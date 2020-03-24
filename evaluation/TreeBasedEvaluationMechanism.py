@@ -207,6 +207,9 @@ class InternalNode(Node):
 
         # given a partial match from one subtree, for each partial match
         # in the other subtree we check for new partial matches in this node.
+        
+        # here ATM we iterate over all the possible partial matches,however most of them aren't relevant
+        # we want a new mechanism to improve the time complexity to atleast O(log(n))
         for partialMatch in partial_matches_to_compare:
             self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs)
 
