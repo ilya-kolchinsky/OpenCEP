@@ -203,6 +203,8 @@ class InternalNode(Node):
         partial_matches_to_compare = other_subtree.get_partial_matches()
         second_event_defs = other_subtree.get_event_definitions()
 
+        # child is cleaned when his father handles his partial matches, 
+        # this is only necessary for root, possibly redundant code.(maybe check if root) 
         self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
         # given a partial match from one subtree, for each partial match
