@@ -19,6 +19,7 @@ class AtomicTerm(Term):
     """
     def __init__(self, value: object):
         self.value = value
+        self.sortable = True
 
     def eval(self, binding: dict = None):
         return self.value
@@ -34,6 +35,7 @@ class IdentifierTerm(Term):
     def __init__(self, name: str, getattr_func: callable):
         self.name = name
         self.getattr_func = getattr_func
+        self.sortable = True
 
     def eval(self, binding: dict = None):
         if not type(binding) == dict or self.name not in binding:
@@ -54,6 +56,7 @@ class BinaryOperationTerm(Term):
         self.lhs = lhs
         self.rhs = rhs
         self.binary_op = binary_op
+        self.sortable = lhs.sortable and rhs.sortable
 
     def eval(self, binding: dict = None):
         return self.binary_op(self.lhs.eval(binding), self.rhs.eval(binding))
@@ -89,6 +92,7 @@ class MinusTerm(BinaryOperationTerm):
 class MulTerm(BinaryOperationTerm):
     def __init__(self, lhs: Term, rhs: Term):
         super().__init__(lhs, rhs, lambda x, y: x * y)
+        self.sortable = False
 
     def get_term_of(self, names: set):
         lhs = self.lhs.get_term_of(names)
@@ -101,6 +105,7 @@ class MulTerm(BinaryOperationTerm):
 class DivTerm(BinaryOperationTerm):
     def __init__(self, lhs: Term, rhs: Term):
         super().__init__(lhs, rhs, lambda x, y: x / y)
+        self.sortable = False
 
     def get_term_of(self, names: set):
         lhs = self.lhs.get_term_of(names)
