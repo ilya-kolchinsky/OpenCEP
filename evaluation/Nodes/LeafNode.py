@@ -23,13 +23,16 @@ class LeafNode(Node):
         self.__event_name = leaf_qitem.name
         self.__event_type = leaf_qitem.event_type
 
+    def add_partial_match(self, pm: PartialMatch):
+        self._partial_matches.append(pm)
+
     def get_leaves(self):
         return [self]
 
-    def apply_formula(self, formula: Formula):
+    def apply_formula(self, formula: Formula):  # formula: is the original formula
         condition = formula.get_formula_of(self.__event_name)
-        if condition is not None:
-            self._condition = condition
+        self._condition = condition if condition else TrueFormula()
+        # formula doesn't need to be simplified
 
     def get_event_definitions(self):
         return [(self.__leaf_index, QItem(self.__event_type, self.__event_name))]

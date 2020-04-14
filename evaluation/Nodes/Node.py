@@ -4,6 +4,7 @@ from datetime import timedelta, datetime
 from base.Formula import TrueFormula, Formula
 from evaluation.PartialMatch import PartialMatch
 from misc.Utils import find_partial_match_by_timestamp
+from evaluation.Storage import Storage, ArrayStorage
 
 
 class Node(ABC):
@@ -14,10 +15,10 @@ class Node(ABC):
     def __init__(self, sliding_window: timedelta, parent):
         self._parent = parent
         self._sliding_window = sliding_window
-        self._partial_matches = None
-        self._condition = TrueFormula()
-        # matches that were not yet pushed to the parent for further processing
+        self._partial_matches: Storage[PartialMatch]
+        self._condition: Formula
         self._unhandled_partial_matches = Queue()
+        # matches that were not yet pushed to the parent for further processing
 
     def consume_first_partial_match(self):
         """
@@ -38,7 +39,7 @@ class Node(ABC):
         """
         Returns the last partial match buffered at this node and not yet transferred to its parent.
         """
-        return self._unhandled_partial_matches.get()
+        return self._unhandled_partial_matches.get()  # returns it and removes it
 
     def set_parent(self, parent):
         """
@@ -52,7 +53,7 @@ class Node(ABC):
         """
         if self._sliding_window == timedelta.max:
             return
-        count = find_partial_match_by_timestamp(
+        count = find_partial_match_by_timestamp(  # binary search: sorted by first timestmap of partial match
             self._partial_matches, last_timestamp - self._sliding_window
         )
         self._partial_matches = self._partial_matches[count:]
@@ -63,18 +64,31 @@ class Node(ABC):
         As of now, the insertion is always by the timestamp, and the partial matches are stored in a list sorted by
         timestamp. Therefore, the insertion operation is performed in O(log n).
         """
-        index = find_partial_match_by_timestamp(
-            self._partial_matches, pm.first_timestamp
-        )
-        self._partial_matches.insert(index, pm)
-        if self._parent is not None:
-            self._unhandled_partial_matches.put(pm)
+        raise NotImplementedError()
 
-    def get_partial_matches(self):
+    """'MUH"""
+
+    def create_storage_unit(self):
+        raise NotImplementedError()
+
+    def set_sorting_properties(self):
+        raise NotImplementedError()
+
+    """'MUH"""
+
+    def get_partial_matches(self, new_partial_match: PartialMatch, Greater=None):
         """
         Returns the currently stored partial matches.
         """
-        return self._partial_matches
+        """
+        Returns the currently stored partial matches.
+        """
+        if Greater is None:
+            return self._partial_matches
+        if Greater is True:
+            return self._partial_matches.get_greater(new_partial_match)
+        else:
+            return self._partial_matches.get_smaller(new_partial_match)
 
     def get_leaves(self):
         """

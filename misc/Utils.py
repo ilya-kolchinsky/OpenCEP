@@ -16,7 +16,44 @@ from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
 
 
-def find_partial_match_by_timestamp(partial_matches: List[PartialMatch], timestamp: datetime):
+def find_partial_match_by_condition(
+    partial_matches: List[PartialMatch],
+    timestamp: datetime,
+    key=lambda pm: pm.first_timestamp,
+):
+    """
+    Returns the partial match from the given list such that its timestamp is the closest to the given timestamp.
+    The list is assumed to be sorted according to the earliest event timestamp.
+    """
+    # should count how many PMs are before last date.
+    length = len(partial_matches)
+    if length == 0 or key(partial_matches[0]) >= timestamp:
+        return 0
+    if length == 1:  # here we already know that first item's date < lastDate
+        return 1  # Unnecessary if
+    if key(partial_matches[-1]) < timestamp:
+        return length
+
+    start = 0
+    end = length - 1
+    while start <= end:
+        mid = (start + end) // 2
+        mid_date = key(partial_matches[mid])
+        if key(partial_matches[mid - 1]) < timestamp <= mid_date:
+            return mid
+        elif timestamp > mid_date:
+            start = mid + 1
+        else:
+            end = mid - 1
+
+    # shouldn't get here, because we know not all partial matches are up to date (nor expired),
+    # which means an index should be found.
+    raise Exception()
+
+
+def find_partial_match_by_timestamp(
+    partial_matches: List[PartialMatch], timestamp: datetime
+):
     """
     Returns the partial match from the given list such that its timestamp is the closest to the given timestamp.
     The list is assumed to be sorted according to the earliest event timestamp.
@@ -26,7 +63,7 @@ def find_partial_match_by_timestamp(partial_matches: List[PartialMatch], timesta
     if length == 0 or partial_matches[0].first_timestamp >= timestamp:
         return 0
     if length == 1:  # here we already know that first item's date < lastDate
-        return 1
+        return 1  # Unnecessary if
     if partial_matches[-1].first_timestamp < timestamp:
         return length
 
@@ -127,7 +164,9 @@ def merge(arr1: list, arr2: list, key=lambda x: x):
     return ret
 
 
-def merge_according_to(arr1: list, arr2: list, actual1: list, actual2: list, key: callable = lambda x: x):
+def merge_according_to(
+    arr1: list, arr2: list, actual1: list, actual2: list, key: callable = lambda x: x
+):
     """
     Merge arrays actual1, actual2 according to the way a merge would be done on arr1 and arr2.
     Used in a partial match merge function - the reorders are given, and the partial matches is merged
@@ -180,7 +219,7 @@ def generate_matches(pattern: Pattern, stream: Stream):
     """
     args = pattern.structure.args
     types = {qitem.eventType for qitem in args}
-    is_seq = (pattern.structure.get_top_operator() == SeqOperator)
+    is_seq = pattern.structure.get_top_operator() == SeqOperator
     events = {}
     matches = []
     for event in stream:
@@ -189,13 +228,23 @@ def generate_matches(pattern: Pattern, stream: Stream):
                 events[event.eventType].append(event)
             else:
                 events[event.eventType] = [event]
-    generate_matches_recursive(pattern, events, is_seq, [], datetime.max, datetime.min, matches, {})
+    generate_matches_recursive(
+        pattern, events, is_seq, [], datetime.max, datetime.min, matches, {}
+    )
     return matches
 
 
-def generate_matches_recursive(pattern: Pattern, events: dict, is_seq: bool, match: list, min_event_timestamp: datetime,
-                               max_event_timestamp: datetime,
-                               matches: list, binding: dict, loop: int = 0):
+def generate_matches_recursive(
+    pattern: Pattern,
+    events: dict,
+    is_seq: bool,
+    match: list,
+    min_event_timestamp: datetime,
+    max_event_timestamp: datetime,
+    matches: list,
+    binding: dict,
+    loop: int = 0,
+):
     pattern_length = len(pattern.structure.args)
     if loop == pattern_length:
         if pattern.condition.eval(binding):
@@ -210,8 +259,17 @@ def generate_matches_recursive(pattern: Pattern, events: dict, is_seq: bool, mat
             if max_date - min_date <= pattern.window:
                 if not is_seq or len(match) == 0 or match[-1].date <= event.date:
                     match.append(event)
-                    generate_matches_recursive(pattern, events, is_seq, match, min_date, max_date, matches, binding,
-                                               loop + 1)
+                    generate_matches_recursive(
+                        pattern,
+                        events,
+                        is_seq,
+                        match,
+                        min_date,
+                        max_date,
+                        matches,
+                        binding,
+                        loop + 1,
+                    )
                     del match[-1]
         del binding[qitem.name]
 

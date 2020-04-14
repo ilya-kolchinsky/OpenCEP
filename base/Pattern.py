@@ -13,8 +13,13 @@ class Pattern:
     A pattern can also carry statistics with it, in order to enable advanced
     tree construction mechanisms - this is hopefully a temporary hack.
     """
-    def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Formula = None,
-                 time_window: timedelta = timedelta.max):
+
+    def __init__(
+        self,
+        pattern_structure: PatternStructure,
+        pattern_matching_condition: Formula = None,
+        time_window: timedelta = timedelta.max,
+    ):
         self.structure = pattern_structure
         self.condition = pattern_matching_condition
         self.window = time_window
@@ -24,3 +29,8 @@ class Pattern:
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         self.statistics_type = statistics_type
         self.statistics = statistics
+
+    def __repr__(self):
+        return "Pattern is {} with condition {} and time window is {}".format(
+            self.structure, self.condition, self.window
+        )
