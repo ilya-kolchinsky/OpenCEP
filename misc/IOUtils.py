@@ -7,11 +7,12 @@ class Stream:
     """
     Represents a generic stream of objects.
     """
+
     def __init__(self):
-        self.__stream = Queue()
+        self._stream = Queue()
 
     def __next__(self):
-        next_item = self.__stream.get(block=True)  # Blocking get
+        next_item = self._stream.get(block=True)  # Blocking get
         if next_item is None:
             raise StopIteration()
         return next_item
@@ -20,29 +21,29 @@ class Stream:
         return self
 
     def add_item(self, item: object):
-        self.__stream.put(item)
+        self._stream.put(item)
 
     def close(self):
-        self.__stream.put(None)
+        self._stream.put(None)
 
     def duplicate(self):
         ret = Stream()
-        ret.__stream.queue = self.__stream.queue.copy()
+        ret._stream.queue = self._stream.queue.copy()
         return ret
 
     def get_item(self):
         return self.__next__()
 
     def count(self):
-        return self.__stream.qsize()
+        return self._stream.qsize()
 
     def first(self):
-        return self.__stream.queue[0]
+        return self._stream.queue[0]
 
     def last(self):
-        x = self.__stream.queue[-1]
+        x = self._stream.queue[-1]
         if x is None:  # if stream is closed last is None. We need the one before None.
-            x = self.__stream.queue[-2]
+            x = self._stream.queue[-2]
         return x
 
 
@@ -64,12 +65,12 @@ def file_input(file_path: str, data_formatter: DataFormatter) -> Stream:
     return events
 
 
-def file_output(matches: list, output_file_name: str = 'matches.txt'):
+def file_output(matches: list, output_file_name: str = "matches.txt"):
     """
     Writes output matches to a file in the subfolder "Matches".
     It supports any iterable as output matches.
     """
-    with open("test/Matches/" + output_file_name, 'w') as f:
+    with open("test/Matches/" + output_file_name, "w") as f:
         for match in matches:
             for event in match.events:
                 f.write("%s\n" % event.payload)

@@ -29,8 +29,10 @@ def find_partial_match_by_condition(
     length = len(partial_matches)
     if length == 0 or key(partial_matches[0]) >= timestamp:
         return 0
+    print("Y11111111111111Y11")
     if length == 1:  # here we already know that first item's date < lastDate
         return 1  # Unnecessary if
+    print("Y222222222222222Y22")
     if key(partial_matches[-1]) < timestamp:
         return length
 

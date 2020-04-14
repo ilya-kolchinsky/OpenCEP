@@ -8,6 +8,8 @@ from evaluation.EvaluationMechanism import EvaluationMechanism
 from evaluation.Nodes.Node import Node
 from evaluation.Nodes.InternalNode import InternalNode, SeqNode, AndNode
 from evaluation.Nodes.LeafNode import LeafNode
+from evaluation.prettyjson import prettyjson
+from evaluation.prettyjson import prettyjson
 
 
 class Tree:
@@ -25,10 +27,13 @@ class Tree:
             pattern.structure.args,  # if we expect * or ~ Operator then should change
             pattern.window,
         )
+        if pattern.condition is not None:
+            self.__root.apply_formula(pattern.condition)  # puts formula in nodes
+        self.__root.create_storage_unit(leaf_index=None)  # root
+        # self.__root.set_sorting_properties()
 
-        self.__root.apply_formula(pattern.condition)  # puts formula in nodes
-        self.__root.create_storage_unit(-1)
-        self.__root.set_sorting_properties()
+    def json_repr(self):
+        return self.__root.json_repr()
 
     @staticmethod
     def __construct_tree(
@@ -38,22 +43,29 @@ class Tree:
         sliding_window: timedelta,
         parent: Node = None,
     ):
+
         # stop condition
-        if type(tree_structure) == int:  # isinstance(tree_structure,int)
+        if type(tree_structure) != int and len(tree_structure) == 1:
+            tree_structure = tree_structure[0]
+        if type(tree_structure) == int:
             return LeafNode(
                 sliding_window, tree_structure, args[tree_structure], parent
             )
         # Creating Node with Appropriate Type
-        current_node = (  # I have a problem with this part because top operator stays hte same for all nodes
+        # I have a problem with this part because top operator stays the same for all nodes
+        current_node = (
             SeqNode(sliding_window, parent)
             if is_sequence
             else AndNode(sliding_window, parent)
         )
         # Creating left and right subtrees
-        (
-            left_structure,
-            right_structure,
-        ) = tree_structure  # This splits the tree into two ~equal parts so the tree will always be ~shalem-tree
+        """OLD  if the next line's purpose is to split into ~halfs then it doesn't work actually
+
+        left_structure, right_structure = tree_structure
+        OLD"""
+        left_structure = tree_structure[: len(tree_structure) // 2]
+        right_structure = tree_structure[len(tree_structure) // 2 :]
+
         left = Tree.__construct_tree(
             is_sequence, left_structure, args, sliding_window, current_node
         )
@@ -100,11 +112,23 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     An implementation of the tree-based evaluation mechanism.
     """
 
+    # def get_leaves(self):
+    # return self.__tree.get_leaves()
+
     def __init__(self, pattern: Pattern, tree_structure: tuple):
+        self.__tree: Tree
+        if type(tree_structure) == tuple and len(tree_structure) == 0:
+            self.__tree = None
+            return  # given empty tuple -> ()
+
         self.__tree = Tree(tree_structure, pattern)
+
+    def json_repr(self):
+        return self.__tree.json_repr()
 
     def eval(self, events: Stream, matches: Stream):
         event_types_listeners = {}
+        print(1)
         # register leaf listeners for event types.
         for leaf in self.__tree.get_leaves():
             event_type = leaf.get_event_type()
@@ -112,15 +136,23 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 event_types_listeners[event_type].append(leaf)
             else:
                 event_types_listeners[event_type] = [leaf]
-
+        print(event_types_listeners)
+        print(2)
         # Send events to listening leaves.
         for event in events:
+            print("*******************")
             if event.event_type in event_types_listeners.keys():
                 for leaf in event_types_listeners[event.event_type]:
-                    leaf.handle_event(
-                        event
-                    )  # maybe we should put them all at once in unhandled then after that we could call handle for some of them
+                    print("justBEFOREhandleevent")
+                    print(prettyjson(self.json_repr()))
+                    leaf.handle_event(event)
+                    print("justAFTERhandleevent")
+                    print(prettyjson(self.json_repr()))
                     for match in self.__tree.get_matches():
-                        matches.add_item(PatternMatch(match))
-
-        matches.close()
+                        print("adding match")
+                        matches.append(PatternMatch(match))  # TODO append -> add_item
+                        print("after adding match")
+        # maybe we should put them all at once in unhandled then after that we could call handle for some of them
+        print("justbeforeCLOSECLOSE")
+        # matches.close()
+        print("justafterCLOSECLOSE")

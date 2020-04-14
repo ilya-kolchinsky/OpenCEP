@@ -4,7 +4,10 @@ from datetime import timedelta, datetime
 from base.Formula import TrueFormula, Formula
 from evaluation.PartialMatch import PartialMatch
 from base.PatternStructure import SeqOperator, QItem
-from base.Event import Event
+
+# from base.Event import Event TODO
+from evaluation.temp_simple_modules import *
+
 from misc.Utils import (
     merge,
     merge_according_to,
@@ -12,6 +15,8 @@ from misc.Utils import (
     find_partial_match_by_timestamp,
 )
 from Storage import ArrayStorage
+import json
+from evaluation.Nodes.LeafNode import LeafNode
 
 
 class InternalNode(Node):
@@ -31,13 +36,8 @@ class InternalNode(Node):
         self._event_defs = event_defs
         self._left_subtree = left
         self._right_subtree = right
-
-    def get_partial_matches(self, new_partial_match: PartialMatch):
-        """
-        Returns the currently stored partial matches.
-        """
-        pass
-        # return self._partial_matches.get(new_partial_match)
+        self._smaller_side = None
+        self._greater_side = None
 
     def get_leaves(self):
         result = []
@@ -81,7 +81,7 @@ class InternalNode(Node):
             self._left_subtree.get_event_definitions(),
             self._right_subtree.get_event_definitions(),
         )
-        # set sorting properties
+        # maybe add these here:  set sorting properties
         # apply formula according to left and right and simplify
         # and apply sequence formula
 
@@ -95,18 +95,30 @@ class InternalNode(Node):
             other_subtree = self._left_subtree
         else:
             raise Exception()  # should never happen
-
-        new_partial_match = (
-            partial_match_source.get_last_unhandled_partial_match()
-        )  # gets only the new one
+        # gets only the new one
+        print("before getting the event1")
+        new_partial_match = partial_match_source.get_last_unhandled_partial_match()
+        print("before getting the event2")
+        new_pm_key = partial_match_source._partial_matches.get_sorting_key()
+        print("before getting the event3")
         first_event_defs = partial_match_source.get_event_definitions()
-
+        print("before getting the event4")
+        # cleaning other subtree before receiving anything from it
         other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
-
-        # this is the function that needs ENHANCEMENT
-        partial_matches_to_compare = other_subtree.get_partial_matches(
-            new_partial_match, Greater=True
-        )
+        print("before touching storage of other")
+        # from other_subtree we need to get a compact amount of partial matches
+        if other_subtree == self._greater_side:
+            partial_matches_to_compare = other_subtree.get_partial_matches(
+                new_partial_match, new_pm_key, Greater=True
+            )
+            print("WTTTTFF1111")
+        elif other_subtree == self._smaller_side:
+            partial_matches_to_compare = other_subtree.get_partial_matches(
+                new_partial_match, new_pm_key, Greater=False
+            )
+            print("WTTTTFF222222")
+        print("new_pm = " + repr(new_partial_match))
+        print("tocompare_pms = " + repr(partial_matches_to_compare))
         second_event_defs = other_subtree.get_event_definitions()
 
         # child is cleaned when his father handles his partial matches,
@@ -215,11 +227,53 @@ class SeqNode(InternalNode):
     of arrival of the events in the partial matches it constructs.
     """
 
+    def json_repr(self):
+        events_defs_for_json = map(lambda x: x[0], self._event_defs)
+        events_nums = list(events_defs_for_json)
+        smaller_side_dict = self._smaller_side.json_repr()
+        greater_side_dict = self._greater_side.json_repr()
+        if type(self._smaller_side) == LeafNode:
+            sm_sd_event_defs_key = "leaf index"
+        else:
+            sm_sd_event_defs_key = "event defs"
+
+        if type(self._greater_side) == LeafNode:
+            gr_sd_event_defs_key = "leaf index"
+        else:
+            gr_sd_event_defs_key = "event defs"
+        data_set = {
+            "Node": "SeqNode",
+            "event defs": events_nums,
+            "condition": repr(self._condition),
+            "": "",
+            "smaller side": {
+                "Node": smaller_side_dict["Node"],
+                sm_sd_event_defs_key: smaller_side_dict[sm_sd_event_defs_key],
+            },
+            "greater side": {
+                "Node": greater_side_dict["Node"],
+                gr_sd_event_defs_key: greater_side_dict[gr_sd_event_defs_key],
+            },
+            "left_subtree": self._left_subtree.json_repr(),
+            "right_subtree": self._right_subtree.json_repr(),
+            "pms": repr(self._partial_matches),
+        }
+        return data_set
+
     def create_storage_unit(self, leaf_index: int):
-        # if node is root which key?
-        if leaf_index == -1:
-            self._partial_matches = ArrayStorage()
-        # assuming all events are in SEQ(,,,,...) makes the order in partial match the same as in event_defs [(1,a),(2,b)] in event_defs and [a,b] in pm
+        """
+        This function creates the storage for partial_matches it gives a special key: callable
+        to the storage unit which tells the storage unit on which attribute(only timestamps here)
+        to sort.
+        We assume all events are in SEQ(,,,,...) which makes the order in partial match the same
+        as in event_defs: [(1,a),(2,b)] in event_defs and [a,b] in pm.
+        """
+        # if node is root We can not sort at all or maybe it is better to sort based on last_timestamp because that's when the pattern occured or even first_timestamp
+        if leaf_index is None:
+            self._partial_matches = ArrayStorage(
+                array=[], key=lambda pm: pm.last_timestamp
+            )
+
         else:
             self._partial_matches = ArrayStorage(
                 array=[], key=lambda pm: pm.events[leaf_index].timestamp
@@ -232,19 +286,32 @@ class SeqNode(InternalNode):
         max_left = max(left_event_defs, key=lambda x: x[0])[0]
         min_right = min(right_event_defs, key=lambda x: x[0])[0]
         max_right = max(right_event_defs, key=lambda x: x[0])[0]
-        # if the other ifs don't apply then we take the first_timestamp
+        """ [] is min_left and max_left, {} is min_right and max_right
+        1) [ { ] }    [ { } ]      minleft , minright ,  smaller_side = left
+        2) { [ } ]    { [ ] }      minright , minleft , smaller_side = right
+        3) [ ] { }       maxleft minright smaller_side = left
+        4) { } [ ]       maxright minleft smaller_side = right
+        """
         left_leaf_index = left_event_defs[0][0]
         right_leaf_index = right_event_defs[0][0]
-        # TODO self._left_is_smaller = False
-        # {left} [right]        if all left subtree should be before all of right subtree (1,2) , (3,4)
+        # 3)
         if max_left < min_right:
             left_leaf_index = left_event_defs[-1][0]
-
-        # TODO if min_left < min_right:
-        # self._left_is_smaller = True
-        # [right] {left}         if all right subtree should be before all of left subtree (3,4) , (1,2)
+            self._smaller_side = self._left_subtree
+            self._greater_side = self._right_subtree
+        # 4)
         elif max_right < min_left:
             right_leaf_index = right_event_defs[-1][0]
+            self._smaller_side = self._right_subtree
+            self._greater_side = self._left_subtree
+        # 1)
+        elif min_left < min_right:
+            self._smaller_side = self._left_subtree
+            self._greater_side = self._right_subtree
+        # 2)
+        elif min_right < min_left:
+            self._smaller_side = self._right_subtree
+            self._greater_side = self._left_subtree
 
         self._left_subtree.create_storage_unit(left_leaf_index)
         self._right_subtree.create_storage_unit(right_leaf_index)

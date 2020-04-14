@@ -16,7 +16,7 @@ class Node(ABC):
         self._parent = parent
         self._sliding_window = sliding_window
         self._partial_matches: Storage[PartialMatch]
-        self._condition: Formula
+        self._condition = TrueFormula()
         self._unhandled_partial_matches = Queue()
         # matches that were not yet pushed to the parent for further processing
 
@@ -47,6 +47,7 @@ class Node(ABC):
         """
         self._parent = parent
 
+    # this function should be simplified to call the clean up in the storage
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
         Removes partial matches whose earliest timestamp violates the time window constraint.
@@ -71,12 +72,14 @@ class Node(ABC):
     def create_storage_unit(self):
         raise NotImplementedError()
 
-    def set_sorting_properties(self):
-        raise NotImplementedError()
+    # def set_sorting_properties(self):
+    #    raise NotImplementedError()
 
     """'MUH"""
 
-    def get_partial_matches(self, new_partial_match: PartialMatch, Greater=None):
+    def get_partial_matches(
+        self, new_pm: PartialMatch, new_pm_key: callable, Greater=None
+    ):
         """
         Returns the currently stored partial matches.
         """
@@ -85,10 +88,11 @@ class Node(ABC):
         """
         if Greater is None:
             return self._partial_matches
-        if Greater is True:
-            return self._partial_matches.get_greater(new_partial_match)
-        else:
-            return self._partial_matches.get_smaller(new_partial_match)
+        elif Greater is True:
+            return self._partial_matches.get_greater(new_pm_key(new_pm))
+        elif Greater is False:
+            return self._partial_matches.get_smaller(new_pm_key(new_pm))
+        raise ValueError()
 
     def get_leaves(self):
         """

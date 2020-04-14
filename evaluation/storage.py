@@ -26,6 +26,9 @@ class Storage(MutableSequence):
         self._container: MutableSequence
         self._key: callable
 
+    def get_sorting_key(self):
+        return self._key
+
     def insert(self, index, item):  # abstract in MutableSequence      for x.insert(i,a)
         self._container.insert(index, item)
 
@@ -46,7 +49,7 @@ class Storage(MutableSequence):
         del self._container[index]
 
     def __contains__(self, item):
-        return item in self._container  # TODO: we can use bisect here instead
+        return item in self._container  # todo : we can use bisect here instead
 
     def __iter__(self):
         return iter(self._container)
@@ -79,11 +82,9 @@ class Storage(MutableSequence):
             return NotImplemented
         return self._container != rhs._container
 
-    # what's the difference between this and using "+"
-
 
 class ArrayStorage(Storage):
-    def __init__(self, array=[], key=lambda pm: pm.first_timestamp):
+    def __init__(self, array, key=lambda pm: pm.first_timestamp):
         self._container = array
         self._key = key
 
@@ -93,22 +94,20 @@ class ArrayStorage(Storage):
         )
         self._container.insert(index, pm)
 
-    def get_smaller(self, pm):
-        # returns all pms that have smaller timestamp than the given timestamp
-        index = find_partial_match_by_condition(
-            self._container, self._key(pm), self._key
-        )
-        return ArrayStorage(self._container[:index])
-
-    def get_greater(self, pm):
-        # returns all pms that have smaller timestamp than the given timestamp
-        index = find_partial_match_by_condition(
-            self._container, self._key(pm), self._key
-        )
-        return ArrayStorage(self._container[index:])
-
     def append(self, pm):
         self._container.append(pm)
+
+    def get_smaller(self, value):
+        # returns all pms that have smaller timestamp than the given timestamp
+        index = find_partial_match_by_condition(self._container, value, self._key)
+        return ArrayStorage(
+            array=self._container[:index]
+        )  # TODO create it with the appropriate key maybe
+
+    def get_greater(self, value):
+        # returns all pms that have smaller timestamp than the given timestamp
+        index = find_partial_match_by_condition(self._container, value, self._key)
+        return ArrayStorage(self._container[index:])
 
     # implementing add or extend depends on whether we want a new object or update the current ArrayStorage.
     # if we need something we'd need extend with O(1)

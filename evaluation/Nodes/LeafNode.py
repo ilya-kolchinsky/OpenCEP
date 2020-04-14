@@ -1,9 +1,12 @@
-from Node import Node
+from evaluation.Nodes.Node import Node
 from datetime import timedelta, datetime
 from base.Formula import TrueFormula, Formula
 from evaluation.PartialMatch import PartialMatch
 from base.PatternStructure import SeqOperator, QItem
-from base.Event import Event
+
+# from base.Event import Event #TODO
+from evaluation.temp_simple_modules import Event
+from evaluation.Storage import ArrayStorage
 
 
 class LeafNode(Node):
@@ -23,8 +26,24 @@ class LeafNode(Node):
         self.__event_name = leaf_qitem.name
         self.__event_type = leaf_qitem.event_type
 
+    def json_repr(self):
+        return {
+            "Node": "LeafNode",
+            "event name": self.__event_name,
+            "event type": self.__event_type,
+            "leaf index": self.__leaf_index,
+            "condition": repr(self._condition),
+            "pms": repr(self._partial_matches),
+        }
+
     def add_partial_match(self, pm: PartialMatch):
         self._partial_matches.append(pm)
+        if self._parent is not None:
+            self._unhandled_partial_matches.put(pm)
+
+    def create_storage_unit(self, leaf_index: int):
+        # the key in the storage unit will be first_timestamp
+        self._partial_matches = ArrayStorage(array=[])
 
     def get_leaves(self):
         return [self]
@@ -54,7 +73,10 @@ class LeafNode(Node):
 
         if not self._condition.eval(binding):
             return
-
+        # right now it only appends a partial match to storage
+        # TODO : When we work on condition we should change to inserting in O(logn)
+        print("just BEFORE adding a partial match to the leaf")
         self.add_partial_match(PartialMatch([event]))
+        print("just AFTER adding a partial match to the leaf")
         if self._parent is not None:
             self._parent.handle_new_partial_match(self)
