@@ -6,6 +6,7 @@ class Term(ABC):
     Evaluates to the term's value.
     If there are variables (identifiers) in the term, a name-value binding shall be inputted.
     """
+
     def eval(self, binding: dict = None):
         raise NotImplementedError()
 
@@ -17,6 +18,7 @@ class AtomicTerm(Term):
     """
     An atomic term of a formula in a condition (e.g., in "x*2 < y + 7" the atomic terms are 2 and 7).
     """
+
     def __init__(self, value: object):
         self.value = value
         self.sortable = True
@@ -32,6 +34,7 @@ class IdentifierTerm(Term):
     """
     A term of a formula representing a single variable (e.g., in "x*2 < y + 7" the atomic terms are x and y).
     """
+
     def __init__(self, name: str, getattr_func: callable):
         self.name = name
         self.getattr_func = getattr_func
@@ -52,11 +55,12 @@ class BinaryOperationTerm(Term):
     """
     A term representing a binary operation.
     """
+
     def __init__(self, lhs: Term, rhs: Term, binary_op: callable):
         self.lhs = lhs
         self.rhs = rhs
         self.binary_op = binary_op
-        self.sortable = lhs.sortable and rhs.sortable
+        self.sortable = lhs.sortable and rhs.sortable  # TODO
 
     def eval(self, binding: dict = None):
         return self.binary_op(self.lhs.eval(binding), self.rhs.eval(binding))
@@ -120,6 +124,7 @@ class Formula(ABC):
     Returns whether the parameters satisfy the formula. It evaluates to True or False.
     If there are variables (identifiers) in the formula, a name-value binding shall be inputted.
     """
+
     def eval(self, binding: dict = None):
         pass
 
@@ -127,17 +132,20 @@ class Formula(ABC):
         pass
 
 
-class AtomicFormula(Formula):
+class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
     """
     An atomic formula containing no logic operators (e.g., A < B).
     """
+
     def __init__(self, left_term: Term, right_term: Term, relation_op: callable):
         self.left_term = left_term
         self.right_term = right_term
         self.relation_op = relation_op
 
     def eval(self, binding: dict = None):
-        return self.relation_op(self.left_term.eval(binding), self.right_term.eval(binding))
+        return self.relation_op(
+            self.left_term.eval(binding), self.right_term.eval(binding)
+        )
 
 
 class EqFormula(AtomicFormula):
@@ -212,20 +220,25 @@ class SmallerThanEqFormula(AtomicFormula):
         return None
 
 
-class BinaryLogicOpFormula(Formula):
+class BinaryLogicOpFormula(Formula):  # AND: A < B AND C < D
     """
     A formula composed of a logic operator and two nested formulas.
     """
-    def __init__(self, left_formula: Formula, right_formula: Formula, binary_logic_op: callable):
+
+    def __init__(
+        self, left_formula: Formula, right_formula: Formula, binary_logic_op: callable
+    ):
         self.left_formula = left_formula
         self.right_formula = right_formula
         self.binary_logic_op = binary_logic_op
 
     def eval(self, binding: dict = None):
-        return self.binary_logic_op(self.left_formula.eval(binding), self.right_formula.eval(binding))
+        return self.binary_logic_op(
+            self.left_formula.eval(binding), self.right_formula.eval(binding)
+        )
 
 
-class AndFormula(BinaryLogicOpFormula):
+class AndFormula(BinaryLogicOpFormula):  # AND: A < B AND C < D
     def __init__(self, left_formula: Formula, right_formula: Formula):
         super().__init__(left_formula, right_formula, lambda x, y: x and y)
 
