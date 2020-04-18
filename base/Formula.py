@@ -1,4 +1,5 @@
 from abc import ABC  # Abstract Base Class
+import copy
 
 
 class Term(ABC):
@@ -21,7 +22,8 @@ class AtomicTerm(Term):
 
     def __init__(self, value: object):
         self.value = value
-        self.sortable = True
+        self.simplifiable = True
+        self.abstract_terms = [{"sign": 1, "term": self, "is_id": False}]
 
     def eval(self, binding: dict = None):
         return self.value
@@ -38,7 +40,8 @@ class IdentifierTerm(Term):
     def __init__(self, name: str, getattr_func: callable):
         self.name = name
         self.getattr_func = getattr_func
-        self.sortable = True
+        self.simplifiable = True
+        self.abstract_terms = [{"sign": 1, "term": self, "is_id": True}]
 
     def eval(self, binding: dict = None):
         if not type(binding) == dict or self.name not in binding:
@@ -56,11 +59,17 @@ class BinaryOperationTerm(Term):
     A term representing a binary operation.
     """
 
-    def __init__(self, lhs: Term, rhs: Term, binary_op: callable):
+    def __init__(self, lhs: Term, rhs: Term, binary_op: callable, is_Minus=False):
         self.lhs = lhs
         self.rhs = rhs
         self.binary_op = binary_op
-        self.sortable = lhs.sortable and rhs.sortable  # TODO
+        self.simplifiable = lhs.simplifiable and rhs.simplifiable
+        new_rhs_terms = copy.deepcopy(rhs.abstract_terms)
+        new_lhs_terms = copy.deepcopy(lhs.abstract_terms)
+        if is_Minus:
+            for item in new_rhs_terms:
+                item["sign"] = -item["sign"]
+        self.abstract_terms = new_lhs_terms + new_rhs_terms
 
     def eval(self, binding: dict = None):
         return self.binary_op(self.lhs.eval(binding), self.rhs.eval(binding))
@@ -83,7 +92,7 @@ class PlusTerm(BinaryOperationTerm):
 
 class MinusTerm(BinaryOperationTerm):
     def __init__(self, lhs: Term, rhs: Term):
-        super().__init__(lhs, rhs, lambda x, y: x - y)
+        super().__init__(lhs, rhs, lambda x, y: x - y, is_Minus=True)
 
     def get_term_of(self, names: set):
         lhs = self.lhs.get_term_of(names)
@@ -96,7 +105,7 @@ class MinusTerm(BinaryOperationTerm):
 class MulTerm(BinaryOperationTerm):
     def __init__(self, lhs: Term, rhs: Term):
         super().__init__(lhs, rhs, lambda x, y: x * y)
-        self.sortable = False
+        self.simplifiable = False
 
     def get_term_of(self, names: set):
         lhs = self.lhs.get_term_of(names)
@@ -109,7 +118,7 @@ class MulTerm(BinaryOperationTerm):
 class DivTerm(BinaryOperationTerm):
     def __init__(self, lhs: Term, rhs: Term):
         super().__init__(lhs, rhs, lambda x, y: x / y)
-        self.sortable = False
+        self.simplifiable = False
 
     def get_term_of(self, names: set):
         lhs = self.lhs.get_term_of(names)
@@ -131,6 +140,14 @@ class Formula(ABC):
     def get_formula_of(self, names: set):
         pass
 
+    def simplify_formula(self):
+        """
+        Returns a simplified formula where the lhs term consist only of lhs_vars, 
+        and rhs term from only rhs_vars.
+        returns None if simplification is complicated (one term contains div for example)
+        """
+        return None
+
 
 class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
     """
@@ -146,6 +163,69 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
         return self.relation_op(
             self.left_term.eval(binding), self.right_term.eval(binding)
         )
+
+    def simplify_formula(self, lhs_vars: set, rhs_vars: set):
+
+        new_lhs_term = AtomicTerm(0)
+        new_rhs_term = AtomicTerm(0)
+        lhs_term_vars = set()
+        rhs_term_vars = set()
+
+        for item in self.left_term.abstract_terms:
+            if item["is_id"] == True:
+                lhs_term_vars.add(item["term"].name)
+
+        for item in self.right_term.abstract_terms:
+            if item["is_id"] == True:
+                rhs_term_vars.add(item["term"].name)
+
+        # check if already simple : set() is for removing duplicates and empty set cases
+        if set(lhs_vars) == set(lhs_term_vars) and set(rhs_vars) == set(rhs_term_vars):
+            return self
+
+        # check if a possible simplification exists
+        if not (self.left_term.simplifiable and self.right_term.simplifiable):
+            return None
+
+        # creating the new 2 terms from the 2 old terms :
+
+        for cur_term in self.left_term.abstract_terms:
+            if cur_term["is_id"]:
+                if cur_term["sign"] == 1:  # plus
+                    if cur_term["term"].name in lhs_vars:
+                        new_lhs_term = PlusTerm(new_lhs_term, cur_term["term"])
+                    else:  # opposite side of the equation, gets opposite sign
+                        new_rhs_term = MinusTerm(new_rhs_term, cur_term["term"])
+                else:  # minus
+                    if cur_term["term"].name in lhs_vars:
+                        new_lhs_term = MinusTerm(new_lhs_term, cur_term["term"])
+                    else:  # opposite side of the equation, gets opposite sign
+                        new_rhs_term = PlusTerm(new_rhs_term, cur_term["term"])
+            else:  # atomic term
+                if cur_term["sign"] == 1:  # plus
+                    new_lhs_term = PlusTerm(new_lhs_term, cur_term["term"])
+                else:  # minus
+                    new_lhs_term = MinusTerm(new_lhs_term, cur_term["term"])
+
+        for cur_term in self.right_term.abstract_terms:
+            if cur_term["is_id"]:
+                if cur_term["sign"] == 1:  # plus
+                    if cur_term["term"].name in rhs_vars:
+                        new_rhs_term = PlusTerm(new_rhs_term, cur_term["term"])
+                    else:  # opposite side of the equation, gets opposite sign
+                        new_lhs_term = MinusTerm(new_lhs_term, cur_term["term"])
+                else:  # minus
+                    if cur_term["term"].name in rhs_vars:
+                        new_rhs_term = MinusTerm(new_rhs_term, cur_term["term"])
+                    else:  # opposite side of the equation, gets opposite sign
+                        new_lhs_term = PlusTerm(new_lhs_term, cur_term["term"])
+            else:
+                if cur_term["sign"] == 1:  # plus
+                    new_rhs_term = PlusTerm(new_rhs_term, cur_term["term"])
+                else:  # minus
+                    new_rhs_term = MinusTerm(new_rhs_term, cur_term["term"])
+
+        return AtomicFormula(new_lhs_term, new_rhs_term, self.relation_op)
 
 
 class EqFormula(AtomicFormula):
