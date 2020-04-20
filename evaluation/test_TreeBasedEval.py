@@ -1,15 +1,11 @@
 import unittest
-from evaluation.Storage import ArrayStorage
+from evaluation.Storage import SortedStorage, UnsortedStorage
 from collections.abc import Sequence, Iterable, Sized, Container
 from datetime import time, datetime
 from typing import List
 from base.PatternStructure import SeqOperator, QItem, AndOperator
 from base.Pattern import Pattern
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
-
-# from base.Formula import *
-from pprint import pprint as pp
-
 from evaluation.prettyjson import prettyjson
 from evaluation.temp_simple_modules import Event
 from misc.IOUtils import Stream

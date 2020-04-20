@@ -25,6 +25,10 @@ class Storage(MutableSequence):
     def __init__(self):
         self._container: MutableSequence
         self._key: callable
+        self._is_sorted_by_first_timestamp: bool
+
+    def append(self, pm):
+        self._container.append(pm)
 
     def get_sorting_key(self):
         return self._key
@@ -37,10 +41,10 @@ class Storage(MutableSequence):
 
     def __getitem__(self, index):  # abstract in MutableSequence      for y = x[i]
         """return self._container[index] => not very good.
-        * index can be a slice [:] which makes us return a list when we should return an ArrayStorage object
+        * index can be a slice [:] which makes us return a list when we should return an SortedStorage object
         """
         result = self._container[index]
-        return ArrayStorage(result) if isinstance(index, slice) else result
+        return SortedStorage(result, self._key) if isinstance(index, slice) else result
 
     def __len__(self):  # abstract in MutableSequence      for len(x)
         return len(self._container)
@@ -57,7 +61,7 @@ class Storage(MutableSequence):
     def __add__(self, rhs):  #      for s1 + s2
         pass
 
-    # TODO: we can implement the index method(overriding it actually) and other methods with binary search.
+    # TODO: we can implement the index method(overriding it actually) and other methods with BINARY SEARCH.
     """def index(self, item):
            index = bisect_left(self._container, item)
            if (index != len(self._container)) and (self._container[index] == item):
@@ -83,10 +87,11 @@ class Storage(MutableSequence):
         return self._container != rhs._container
 
 
-class ArrayStorage(Storage):
-    def __init__(self, array, key=lambda pm: pm.first_timestamp):
+class SortedStorage(Storage):
+    def __init__(self, array, key, is_sorted_by_first_timestamp=False):
         self._container = array
         self._key = key
+        self._is_sorted_by_first_timestamp = is_sorted_by_first_timestamp
 
     def add(self, pm):
         index = find_partial_match_by_condition(
@@ -94,25 +99,46 @@ class ArrayStorage(Storage):
         )
         self._container.insert(index, pm)
 
-    def append(self, pm):
-        self._container.append(pm)
+    # this also can return many values
+    def get_equal(self, value):
+        pass
 
-    def get_smaller(self, value):
-        # returns all pms that have smaller timestamp than the given timestamp
-        index = find_partial_match_by_condition(self._container, value, self._key)
-        return ArrayStorage(
-            array=self._container[:index]
-        )  # TODO create it with the appropriate key maybe
+    def get_unequal(self, value):
+        pass
+
+    def get_greater_or_equal(self, value):
+        pass
+
+    def get_smaller_or_equal(self, value):
+        pass
 
     def get_greater(self, value):
         # returns all pms that have smaller timestamp than the given timestamp
         index = find_partial_match_by_condition(self._container, value, self._key)
-        return ArrayStorage(self._container[index:])
+        return SortedStorage(self._container[index:], self._key)
 
-    # implementing add or extend depends on whether we want a new object or update the current ArrayStorage.
+    def get_smaller(self, value):
+        # returns all pms that have smaller timestamp than the given timestamp
+        index = find_partial_match_by_condition(self._container, value, self._key)
+        # TODO create it with the appropriate key maybe
+        return SortedStorage(self._container[:index], self._key)
+
+    # implementing add or extend depends on whether we want a new object or update the current SortedStorage.
     # if we need something we'd need extend with O(1)
     def __add__(self, rhs):  #      for s1 + s2
-        return ArrayStorage(list(chain(self._container, rhs._container)))
+        return SortedStorage(list(chain(self._container, rhs._container)), self._key)
+
+
+class UnsortedStorage(Storage):
+    def __init__(self, array):
+        self._container = array
+
+    def get(self):
+        return UnsortedStorage(self._container)
+
+    # the same as def append()
+    def add(self, pm):
+        self._container.append(pm)
 
 
 """class BListStorage(Storage):

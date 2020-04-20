@@ -4,7 +4,7 @@ from datetime import timedelta, datetime
 from base.Formula import TrueFormula, Formula
 from evaluation.PartialMatch import PartialMatch
 from misc.Utils import find_partial_match_by_timestamp
-from evaluation.Storage import Storage, ArrayStorage
+from evaluation.Storage import Storage, SortedStorage, UnsortedStorage
 
 
 class Node(ABC):
@@ -19,6 +19,7 @@ class Node(ABC):
         self._condition = TrueFormula()
         self._unhandled_partial_matches = Queue()
         # matches that were not yet pushed to the parent for further processing
+        self._sorted_by_first_timestamp = False
 
     def consume_first_partial_match(self):
         """

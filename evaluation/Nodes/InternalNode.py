@@ -1,7 +1,7 @@
 from evaluation.Nodes.Node import Node
 from typing import List, Tuple
 from datetime import timedelta, datetime
-from base.Formula import TrueFormula, Formula
+from base.Formula import *
 from evaluation.PartialMatch import PartialMatch
 from base.PatternStructure import SeqOperator, QItem
 
@@ -14,7 +14,7 @@ from misc.Utils import (
     is_sorted,
     find_partial_match_by_timestamp,
 )
-from Storage import ArrayStorage
+from evaluation.Storage import SortedStorage, UnsortedStorage
 import json
 from evaluation.Nodes.LeafNode import LeafNode
 
@@ -36,8 +36,11 @@ class InternalNode(Node):
         self._event_defs = event_defs
         self._left_subtree = left
         self._right_subtree = right
-        self._smaller_side = None
-        self._greater_side = None
+        """MY NEW FIELDS"""
+        self._relational_op = None  # can be '==' '!=' '<' '<=' '>' '>=' and None if not order is  enforced if any of the sons is unsortable
+        self._smaller_side = None  # TODO to remove this
+        self._greater_side = None  # TODO to remove this
+        """MY NEW FIELDS"""
 
     def get_leaves(self):
         result = []
@@ -47,9 +50,7 @@ class InternalNode(Node):
             result += self._right_subtree.get_leaves()
         return result
 
-    def apply_formula(
-        self, formula: Formula
-    ):  # this function is recursive now I want it non-recursive and applied when setting sub trees
+    def apply_formula(self, formula: Formula):
         if formula is None:
             return
         names = {item[1].name for item in self._event_defs}
@@ -96,16 +97,11 @@ class InternalNode(Node):
         else:
             raise Exception()  # should never happen
         # gets only the new one
-        print("before getting the event1")
         new_partial_match = partial_match_source.get_last_unhandled_partial_match()
-        print("before getting the event2")
         new_pm_key = partial_match_source._partial_matches.get_sorting_key()
-        print("before getting the event3")
         first_event_defs = partial_match_source.get_event_definitions()
-        print("before getting the event4")
         # cleaning other subtree before receiving anything from it
         other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
-        print("before touching storage of other")
         # from other_subtree we need to get a compact amount of partial matches
         if other_subtree == self._greater_side:
             partial_matches_to_compare = other_subtree.get_partial_matches(
@@ -212,12 +208,57 @@ class InternalNode(Node):
             self._unhandled_partial_matches.put(pm)
 
 
+"""
+def extract_from_formula(simple_formula: Formula):
+    if isinstance(simple_formula, AtomicFormula):
+        if type(simple_formula)
+    (simple_condition.left_term, simple_condition, simple_condition.right_term)
+"""
+
+
 class AndNode(InternalNode):
     """
     An internal node representing an "AND" operator.
     """
 
-    pass
+    # we should agree with SeqNode on a mutual definition if this function
+    # creates aa Storage unit with the key chosen by it's father and chooses the sorting_key for its children
+    # if you are calling this function on root then sorting_key can be WHATEVER you want
+    def create_storage_unit(
+        self, sorting_key: callable, is_sorted_by_first_timestamp=False
+    ):
+
+        if sorting_key is None:
+            self._partial_matches = UnsortedStorage([])
+        else:
+            self._partial_matches = SortedStorage(
+                [], sorting_key, is_sorted_by_first_timestamp
+            )
+
+        left_event_defs = self._left_subtree.get_event_definitions()
+        right_event_defs = self._right_subtree.get_event_definitions()
+
+        simple_formula = simplified_formula(
+            self._condition, left_event_defs, right_event_defs
+        )  # left and right_sorting _keys are ACCORDING TO left and right_event _defs
+        if simple_formula is not None:
+            lhs, self._relational_op, rhs = extract_from_formula(simple_formula)
+            left_sorting_key = lambda pm: lhs.eval(
+                {
+                    left_event_defs[i][1]: pm.events[i].payload
+                    for i in range(len(pm.events))
+                }
+            )
+            right_sorting_key = lambda pm: rhs.eval(
+                {
+                    right_event_defs[i][1]: pm.events[i].payload
+                    for i in range(len(pm.events))
+                }
+            )
+
+        # both sons not sorted by first_timestamp
+        self._left_subtree.create_storage_unit(left_sorting_key)
+        self._right_subtree.create_storage_unit(right_sorting_key)
 
 
 class SeqNode(InternalNode):
@@ -226,6 +267,89 @@ class SeqNode(InternalNode):
     In addition to checking the time window and condition like the basic node does, SeqNode also verifies the order
     of arrival of the events in the partial matches it constructs.
     """
+
+    def create_storage_unit(
+        self, sorting_key: callable, is_sorted_by_first_timestamp=False
+    ):
+        """
+        This function creates the storage for partial_matches it gives a special key: callable
+        to the storage unit which tells the storage unit on which attribute(only timestamps here)
+        to sort.
+        We assume all events are in SEQ(,,,,...) which makes the order in partial match the same
+        as in event_defs: [(1,a),(2,b)] in event_defs and [a,b] in pm.
+        """
+        if sorting_key is None:
+            self._partial_matches = UnsortedStorage([])
+        else:
+            self._partial_matches = SortedStorage(
+                [], sorting_key, is_sorted_by_first_timestamp
+            )
+
+        left_event_defs = self._left_subtree.get_event_definitions()
+        right_event_defs = self._right_subtree.get_event_definitions()
+        # comparing min and max leaf index of two subtrees
+        min_left = min(left_event_defs, key=lambda x: x[0])[0]
+        max_left = max(left_event_defs, key=lambda x: x[0])[0]
+        min_right = min(right_event_defs, key=lambda x: x[0])[0]
+        max_right = max(right_event_defs, key=lambda x: x[0])[0]
+        """ [] is min_left and max_left, {} is min_right and max_right
+        1) [ { ] }    [ { } ]      minleft , minright ,  smaller_side = left
+        2) { [ } ]    { [ ] }      minright , minleft , smaller_side = right
+        3) [ ] { }       maxleft minright smaller_side = left
+        4) { } [ ]       maxright minleft smaller_side = right
+        """
+        left_leaf_index = left_event_defs[0][0]
+        right_leaf_index = right_event_defs[0][0]
+        if max_left < min_right:  # 3)
+            left_leaf_index = left_event_defs[-1][0]
+            self._relational_op = "<"
+        elif max_right < min_left:  # 4)
+            right_leaf_index = right_event_defs[-1][0]
+            self._relational_op = ">"
+        elif min_left < min_right:  # 1)
+            self._relational_op = "<"
+        elif min_right < min_left:  # 2)
+            self._relational_op = ">"
+        # TODO make sure the next two lines qork or false or true
+        left_is_sorted_by_first_timestamp = left_leaf_index == left_event_defs[0][0]
+        right_is_sorted_by_first_timestamp = right_leaf_index == right_event_defs[0][0]
+        self._left_subtree.create_storage_unit(
+            lambda pm: pm.events[left_leaf_index].timestamp,
+            left_is_sorted_by_first_timestamp,
+        )
+        self._right_subtree.create_storage_unit(
+            lambda pm: pm.events[right_leaf_index].timestamp,
+            right_is_sorted_by_first_timestamp,
+        )
+
+    def _set_event_definitions(
+        self,
+        left_event_defs: List[Tuple[int, QItem]],
+        right_event_defs: List[Tuple[int, QItem]],
+    ):
+        self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
+
+    def _merge_events_for_new_match(
+        self,
+        first_event_defs: List[Tuple[int, QItem]],
+        second_event_defs: List[Tuple[int, QItem]],
+        first_event_list: List[Event],
+        second_event_list: List[Event],
+    ):
+        return merge_according_to(
+            first_event_defs,
+            second_event_defs,
+            first_event_list,
+            second_event_list,
+            key=lambda x: x[0],
+        )
+
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        if not is_sorted(
+            events_for_new_match, key=lambda x: x.timestamp
+        ):  # validates timestamps
+            return False
+        return super()._validate_new_match(events_for_new_match)  # validates conditons
 
     def json_repr(self):
         events_defs_for_json = map(lambda x: x[0], self._event_defs)
@@ -259,88 +383,3 @@ class SeqNode(InternalNode):
             "pms": repr(self._partial_matches),
         }
         return data_set
-
-    def create_storage_unit(self, leaf_index: int):
-        """
-        This function creates the storage for partial_matches it gives a special key: callable
-        to the storage unit which tells the storage unit on which attribute(only timestamps here)
-        to sort.
-        We assume all events are in SEQ(,,,,...) which makes the order in partial match the same
-        as in event_defs: [(1,a),(2,b)] in event_defs and [a,b] in pm.
-        """
-        # if node is root We can not sort at all or maybe it is better to sort based on last_timestamp because that's when the pattern occured or even first_timestamp
-        if leaf_index is None:
-            self._partial_matches = ArrayStorage(
-                array=[], key=lambda pm: pm.last_timestamp
-            )
-
-        else:
-            self._partial_matches = ArrayStorage(
-                array=[], key=lambda pm: pm.events[leaf_index].timestamp
-            )
-
-        left_event_defs = self._left_subtree.get_event_definitions()
-        right_event_defs = self._right_subtree.get_event_definitions()
-        # comparing min and max leaf index of two subtrees
-        min_left = min(left_event_defs, key=lambda x: x[0])[0]
-        max_left = max(left_event_defs, key=lambda x: x[0])[0]
-        min_right = min(right_event_defs, key=lambda x: x[0])[0]
-        max_right = max(right_event_defs, key=lambda x: x[0])[0]
-        """ [] is min_left and max_left, {} is min_right and max_right
-        1) [ { ] }    [ { } ]      minleft , minright ,  smaller_side = left
-        2) { [ } ]    { [ ] }      minright , minleft , smaller_side = right
-        3) [ ] { }       maxleft minright smaller_side = left
-        4) { } [ ]       maxright minleft smaller_side = right
-        """
-        left_leaf_index = left_event_defs[0][0]
-        right_leaf_index = right_event_defs[0][0]
-        # 3)
-        if max_left < min_right:
-            left_leaf_index = left_event_defs[-1][0]
-            self._smaller_side = self._left_subtree
-            self._greater_side = self._right_subtree
-        # 4)
-        elif max_right < min_left:
-            right_leaf_index = right_event_defs[-1][0]
-            self._smaller_side = self._right_subtree
-            self._greater_side = self._left_subtree
-        # 1)
-        elif min_left < min_right:
-            self._smaller_side = self._left_subtree
-            self._greater_side = self._right_subtree
-        # 2)
-        elif min_right < min_left:
-            self._smaller_side = self._right_subtree
-            self._greater_side = self._left_subtree
-
-        self._left_subtree.create_storage_unit(left_leaf_index)
-        self._right_subtree.create_storage_unit(right_leaf_index)
-
-    def _set_event_definitions(
-        self,
-        left_event_defs: List[Tuple[int, QItem]],
-        right_event_defs: List[Tuple[int, QItem]],
-    ):
-        self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
-
-    def _merge_events_for_new_match(
-        self,
-        first_event_defs: List[Tuple[int, QItem]],
-        second_event_defs: List[Tuple[int, QItem]],
-        first_event_list: List[Event],
-        second_event_list: List[Event],
-    ):
-        return merge_according_to(
-            first_event_defs,
-            second_event_defs,
-            first_event_list,
-            second_event_list,
-            key=lambda x: x[0],
-        )
-
-    def _validate_new_match(self, events_for_new_match: List[Event]):
-        if not is_sorted(
-            events_for_new_match, key=lambda x: x.timestamp
-        ):  # validates timestamps
-            return False
-        return super()._validate_new_match(events_for_new_match)  # validates conditons

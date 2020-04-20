@@ -6,7 +6,7 @@ from base.PatternStructure import SeqOperator, QItem
 
 # from base.Event import Event #TODO
 from evaluation.temp_simple_modules import Event
-from evaluation.Storage import ArrayStorage
+from evaluation.Storage import SortedStorage, UnsortedStorage
 
 
 class LeafNode(Node):
@@ -38,12 +38,22 @@ class LeafNode(Node):
 
     def add_partial_match(self, pm: PartialMatch):
         self._partial_matches.append(pm)
+        # self._partial_matches.add(pm)
+
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
 
-    def create_storage_unit(self, leaf_index: int):
-        # the key in the storage unit will be first_timestamp
-        self._partial_matches = ArrayStorage(array=[])
+    def create_storage_unit(
+        self, sorting_key: callable, is_sorted_by_first_timestamp=False
+    ):
+        # in case of a leaf node even if sorting_key is None we create SortedStorage and it would be sorted based on timestamps
+        if sorting_key is None:  # this means no condition and no sequence requested
+            self._partial_matches = SortedStorage([], lambda x: x.first_timestamp, True)
+
+        else:  # either by condition or by sequence
+            self._partial_matches = SortedStorage(
+                [], sorting_key, is_sorted_by_first_timestamp
+            )
 
     def get_leaves(self):
         return [self]

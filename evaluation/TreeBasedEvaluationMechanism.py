@@ -9,7 +9,6 @@ from evaluation.Nodes.Node import Node
 from evaluation.Nodes.InternalNode import InternalNode, SeqNode, AndNode
 from evaluation.Nodes.LeafNode import LeafNode
 from evaluation.prettyjson import prettyjson
-from evaluation.prettyjson import prettyjson
 
 
 class Tree:
@@ -27,8 +26,8 @@ class Tree:
             pattern.structure.args,  # if we expect * or ~ Operator then should change
             pattern.window,
         )
-        if pattern.condition is not None:
-            self.__root.apply_formula(pattern.condition)  # puts formula in nodes
+        # a function bdal the next two called: set_up_nodes which applies formula simplifies it and then creates suitable storage units
+        self.__root.apply_formula(pattern.condition)  # puts formula in nodes
         self.__root.create_storage_unit(leaf_index=None)  # root
         # self.__root.set_sorting_properties()
 
