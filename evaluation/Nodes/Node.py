@@ -19,7 +19,9 @@ class Node(ABC):
         self._condition = TrueFormula()
         self._unhandled_partial_matches = Queue()
         # matches that were not yet pushed to the parent for further processing
-        self._sorted_by_first_timestamp = False
+
+    def create_storage_unit(self, sorting_key, relop, equation_side):
+        raise NotImplementedError()
 
     def consume_first_partial_match(self):
         """
@@ -68,32 +70,14 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    """'MUH"""
-
-    def create_storage_unit(self):
-        raise NotImplementedError()
-
-    # def set_sorting_properties(self):
-    #    raise NotImplementedError()
-
-    """'MUH"""
-
-    def get_partial_matches(
-        self, new_pm: PartialMatch, new_pm_key: callable, Greater=None
-    ):
+    def get_partial_matches(self, value_of_new_pm):
         """
         Returns the currently stored partial matches.
         """
         """
         Returns the currently stored partial matches.
         """
-        if Greater is None:
-            return self._partial_matches
-        elif Greater is True:
-            return self._partial_matches.get_greater(new_pm_key(new_pm))
-        elif Greater is False:
-            return self._partial_matches.get_smaller(new_pm_key(new_pm))
-        raise ValueError()
+        return self._partial_matches.get(value_of_new_pm)
 
     def get_leaves(self):
         """

@@ -6,11 +6,11 @@ from typing import List
 from base.PatternStructure import SeqOperator, QItem, AndOperator
 from base.Pattern import Pattern
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
-from evaluation.prettyjson import prettyjson
-from evaluation.temp_simple_modules import Event
+from test.UnitTests.prettyjson import prettyjson
+from base.Event import Event
 from misc.IOUtils import Stream
 
-"""
+
 class TestConstruction(unittest.TestCase):
     def setUp(self):
         self.q1 = QItem("microsoft", "m")
@@ -21,28 +21,24 @@ class TestConstruction(unittest.TestCase):
         # self.pattern = Pattern(SeqOperator([q1, q2, q3, q4]))
         # self.tree_structure = (0,1,2,3)
 
-    def test_empty(self):
+    def rtest_empty(self):
         pattern = Pattern(SeqOperator([]))
         tree_structure = ()
         TreeBasedEvaluationMechanism(pattern, tree_structure)
 
-    def test_one_event(self):
+    def rtest_one_event(self):
         pattern = Pattern(SeqOperator([self.q1]))
         tree_structure = 0
         tbem = TreeBasedEvaluationMechanism(pattern, tree_structure)
-        print("START ONE")
         print(prettyjson(tbem.json_repr()))
-        print("END ONE")
 
     def test_two_events(self):
         pattern = Pattern(SeqOperator([self.q1, self.q2]))
         tree_structure = (0, 1)
         tbem = TreeBasedEvaluationMechanism(pattern, tree_structure)
-        print("START TWO")
         print(prettyjson(tbem.json_repr()))
-        print("END TWO")
 
-    def test_four_events(self):
+    def rtest_four_events(self):
         pattern = Pattern(SeqOperator([self.q1, self.q2, self.q3, self.q4]))
         tree_structure = (0, 1, 2, 3)
         tbem = TreeBasedEvaluationMechanism(pattern, tree_structure)
@@ -51,8 +47,6 @@ class TestConstruction(unittest.TestCase):
 
 
 """
-
-
 class TestEvaluationWithoutStream(unittest.TestCase):
     def setUp(self):
         self.q1 = QItem("amicrosoft", "a")
@@ -87,7 +81,7 @@ class TestEvaluationWithoutStream(unittest.TestCase):
         tbem.eval(events, matches)
         for match in matches:
             print(match)
-
+"""
 
 # for job in iter(queue.get
 

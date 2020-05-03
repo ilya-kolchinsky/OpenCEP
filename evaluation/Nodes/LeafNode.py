@@ -5,7 +5,7 @@ from evaluation.PartialMatch import PartialMatch
 from base.PatternStructure import SeqOperator, QItem
 
 # from base.Event import Event #TODO
-from evaluation.temp_simple_modules import Event
+from base.Event import Event
 from evaluation.Storage import SortedStorage, UnsortedStorage
 
 
@@ -15,26 +15,12 @@ class LeafNode(Node):
     """
 
     def __init__(
-        self,
-        sliding_window: timedelta,
-        leaf_index: int,
-        leaf_qitem: QItem,
-        parent: Node,
+        self, sliding_window: timedelta, leaf_index: int, leaf_qitem: QItem, parent: Node,
     ):
         super().__init__(sliding_window, parent)
         self.__leaf_index = leaf_index
         self.__event_name = leaf_qitem.name
         self.__event_type = leaf_qitem.event_type
-
-    def json_repr(self):
-        return {
-            "Node": "LeafNode",
-            "event name": self.__event_name,
-            "event type": self.__event_type,
-            "leaf index": self.__leaf_index,
-            "condition": repr(self._condition),
-            "pms": repr(self._partial_matches),
-        }
 
     def add_partial_match(self, pm: PartialMatch):
         self._partial_matches.append(pm)
@@ -43,22 +29,21 @@ class LeafNode(Node):
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
 
-    def create_storage_unit(
-        self, sorting_key: callable, is_sorted_by_first_timestamp=False
-    ):
+    def create_storage_unit(self, sorting_key: callable, relation_op=None, equation_side=None):
         # in case of a leaf node even if sorting_key is None we create SortedStorage and it would be sorted based on timestamps
         if sorting_key is None:  # this means no condition and no sequence requested
-            self._partial_matches = SortedStorage([], lambda x: x.first_timestamp, True)
+            self._partial_matches = UnsortedStorage([])
+            """SortedStorage([], lambda pm: pm.first_timestamp, relation_op, equation_side)"""
 
         else:  # either by condition or by sequence
-            self._partial_matches = SortedStorage(
-                [], sorting_key, is_sorted_by_first_timestamp
-            )
+            self._partial_matches = SortedStorage([], sorting_key, relation_op, equation_side)
 
     def get_leaves(self):
         return [self]
 
     def apply_formula(self, formula: Formula):  # formula: is the original formula
+        if formula is None:
+            return
         condition = formula.get_formula_of(self.__event_name)
         self._condition = condition if condition else TrueFormula()
         # formula doesn't need to be simplified
@@ -85,8 +70,16 @@ class LeafNode(Node):
             return
         # right now it only appends a partial match to storage
         # TODO : When we work on condition we should change to inserting in O(logn)
-        print("just BEFORE adding a partial match to the leaf")
         self.add_partial_match(PartialMatch([event]))
-        print("just AFTER adding a partial match to the leaf")
         if self._parent is not None:
             self._parent.handle_new_partial_match(self)
+
+    def json_repr(self):
+        return {
+            "Node": "LeafNode",
+            "event name": self.__event_name,
+            "event type": self.__event_type,
+            "leaf index": self.__leaf_index,
+            "condition": repr(self._condition),
+            "pms": repr(self._partial_matches),
+        }
