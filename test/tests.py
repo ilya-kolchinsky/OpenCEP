@@ -64,6 +64,7 @@ def createTest(testName, patterns, events=None):
     matches = generate_matches(pattern, events)
     file_output(matches, '../TestsExpected/%sMatches.txt' % testName)
     print("Finished creating test %s" % testName)
+    print("help")
 
 
 def runTest(testName, patterns, createTestFile = False,
