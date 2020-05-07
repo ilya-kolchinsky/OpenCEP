@@ -18,6 +18,9 @@ nasdaqEventStreamFrequencyTailored = file_input("test/EventFiles/NASDAQ_FREQUENC
 nasdaqEventStream_AAPL_AMZN_GOOG = file_input("test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt", MetastockDataFormatter())
 nasdaqEventStream = file_input("test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
 
+print("help")
+
+
 #test nathan
 def closeFiles(file1, file2):
     file1.close()
@@ -65,7 +68,6 @@ def createTest(testName, patterns, events=None):
     matches = generate_matches(pattern, events)
     file_output(matches, '../TestsExpected/%sMatches.txt' % testName)
     print("Finished creating test %s" % testName)
-    print("help")
 
 
 def runTest(testName, patterns, createTestFile = False,
