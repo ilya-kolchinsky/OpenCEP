@@ -20,9 +20,7 @@ class Pattern:
         self.window = time_window
         self.statistics_type = StatisticsTypes.NO_STATISTICS
         self.statistics = None
-    #test nathan
 
-    a = 5
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         self.statistics_type = statistics_type
         self.statistics = statistics
