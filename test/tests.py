@@ -18,10 +18,8 @@ nasdaqEventStreamFrequencyTailored = file_input("test/EventFiles/NASDAQ_FREQUENC
 nasdaqEventStream_AAPL_AMZN_GOOG = file_input("test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt", MetastockDataFormatter())
 nasdaqEventStream = file_input("test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
 
-print("help")
+print("test nathan")
 
-
-#test nathan
 def closeFiles(file1, file2):
     file1.close()
     file2.close()
