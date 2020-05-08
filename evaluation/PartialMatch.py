@@ -1,7 +1,7 @@
 from typing import List
 
 # from base.Event import Event TODO
-from evaluation.temp_simple_modules import Event
+from base.Event import Event
 
 
 class PartialMatch:

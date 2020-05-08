@@ -5,7 +5,7 @@ from abc import abstractmethod
 from collections.abc import MutableSequence
 from itertools import chain
 import bisect
-from misc.Utils import find_partial_match_by_timestamp, find_partial_match_by_condition
+from misc.Utils import find_partial_match_by_timestamp, get_first_index, get_last_index
 from datetime import datetime
 from typing import List
 from evaluation.PartialMatch import PartialMatch
@@ -26,21 +26,23 @@ class Storage(MutableSequence):
         self._container: MutableSequence
         self._key: callable
 
-    def get_sorting_key(self):
-        return self._key
+    def append(self, pm):
+        self._container.append(pm)
 
     def insert(self, index, item):  # abstract in MutableSequence      for x.insert(i,a)
         self._container.insert(index, item)
 
+    def get_key(self):
+        return self._key
+
     def __setitem__(self, index, item):  # abstract in MutableSequence      for x[i] = a
         self._container[index] = item
 
+    # TODO maybe make a get_item for both classes with deepcopy but I think if we only iterate over the result we then don't need to construct a new one and we can return the _container itself.
     def __getitem__(self, index):  # abstract in MutableSequence      for y = x[i]
-        """return self._container[index] => not very good.
-        * index can be a slice [:] which makes us return a list when we should return an ArrayStorage object
-        """
+        # return self._container[index] => not very good. index can be a slice [:] which makes us return a list when we should return an SortedStorage object
         result = self._container[index]
-        return ArrayStorage(result) if isinstance(index, slice) else result
+        return result  # return SortedStorage(result, self._key) if isinstance(index, slice) else result
 
     def __len__(self):  # abstract in MutableSequence      for len(x)
         return len(self._container)
@@ -57,7 +59,7 @@ class Storage(MutableSequence):
     def __add__(self, rhs):  #      for s1 + s2
         pass
 
-    # TODO: we can implement the index method(overriding it actually) and other methods with binary search.
+    # TODO: we can implement the index method(overriding it actually) and other methods with BINARY SEARCH.
     """def index(self, item):
            index = bisect_left(self._container, item)
            if (index != len(self._container)) and (self._container[index] == item):
@@ -68,9 +70,7 @@ class Storage(MutableSequence):
 
     # FOR TESTS
     def __repr__(self):
-        return "Storage contains {}".format(
-            repr(self._container) if self._container else "Nothing"
-        )
+        return "Storage contains {}".format(self._container if self._container else "Nothing")
 
     def __eq__(self, rhs):
         if not isinstance(rhs, Storage):
@@ -83,36 +83,123 @@ class Storage(MutableSequence):
         return self._container != rhs._container
 
 
-class ArrayStorage(Storage):
-    def __init__(self, array, key=lambda pm: pm.first_timestamp):
+class SortedStorage(Storage):
+    def __init__(self, array, key, relop=None, equation_side=None):  # , is_sorted_by_first_timestamp=False
         self._container = array
         self._key = key
+        # self._sort_by_first_timestamp = sort_by_first_timestamp
+        self._get_function = self._choose_get_function(relop, equation_side)
+
+    """
+    def __repr__(self):
+        return "Storage contains {}, key is {}, get_func is ".format(
+            self._container if self._container else "Nothing", self._key
+        )
+    """
 
     def add(self, pm):
-        index = find_partial_match_by_condition(
-            self._container, self._key(pm), self._key
-        )
+        index = get_last_index(self._container, self._key(pm), self._key)
+        index = 0 if index == -1 else index
         self._container.insert(index, pm)
 
-    def append(self, pm):
-        self._container.append(pm)
+    def get(self, value):
+        if len(self._container) == 0:
+            return []
+        return self._get_function(value)
 
-    def get_smaller(self, value):
-        # returns all pms that have smaller timestamp than the given timestamp
-        index = find_partial_match_by_condition(self._container, value, self._key)
-        return ArrayStorage(
-            array=self._container[:index]
-        )  # TODO create it with the appropriate key maybe
+    # this also can return many values
+    def _get_equal(self, value):
+        left_index = get_first_index(self._container, value, self._key)
+        if left_index == len(self._container) or left_index == -1 or self._key(self._container[left_index]) != value:
+            return []
 
-    def get_greater(self, value):
-        # returns all pms that have smaller timestamp than the given timestamp
-        index = find_partial_match_by_condition(self._container, value, self._key)
-        return ArrayStorage(self._container[index:])
+        right_index = get_last_index(self._container, value, self._key)
+        return self._container[left_index : right_index + 1]
 
-    # implementing add or extend depends on whether we want a new object or update the current ArrayStorage.
+    def _get_unequal(self, value):
+        left_index = get_first_index(self._container, value, self._key)
+        if left_index == len(self._container) or left_index == -1 or self._key(self._container[left_index]) != value:
+            return self._container  # might need to return a copy
+        right_index = get_last_index(self._container, value, self._key)
+        return self._container[:left_index] + self._container[right_index + 1 :]
+        # can use extend or itertools.chain see what's best
+
+    def _get_greater(self, value):
+        right_index = get_last_index(self._container, value, self._key)
+        if right_index == len(self._container):
+            return []
+        if right_index == -1:
+            return self._container  # might need to return a copy
+        if self._key(self._container[right_index]) != value:
+            return self._container[
+                right_index:
+            ]  # in case value doesn't exist left_index will point on the first one greater than it
+        return self._container[right_index + 1 :]
+        # index = find_split_point(self._container, value, self._key)
+        # return self._container[index:]  # SortedStorage(self._container[index:], self._key)
+
+    def _get_smaller(self, value):
+        left_index = get_first_index(self._container, value, self._key)
+        if left_index == len(self._container):
+            return self._container
+        if left_index == -1:
+            return []  # might need to return a copy
+        if self._key(self._container[left_index]) != value:
+            return self._container[
+                : left_index + 1
+            ]  # in case value doesn't exist left_index will point on the first one smaller than it
+        return self._container[:left_index]
+
+    def _get_greater_or_equal(self, value):
+        return self._get_equal(value) + self._get_greater(value)
+        # maybe I can do better by not calling these functions
+
+    def _get_smaller_or_equal(self, value):
+        return self._get_smaller(value) + self._get_equal(value)
+
+    # implementing add or extend depends on whether we want a new object or update the current SortedStorage.
     # if we need something we'd need extend with O(1)
     def __add__(self, rhs):  #      for s1 + s2
-        return ArrayStorage(list(chain(self._container, rhs._container)))
+        return SortedStorage(list(chain(self._container, rhs._container)), self._key)
+
+    # NADER
+    """def get_partial_matches(self, value, side_of_equation: str, relational_op="="):
+        if side_of_equation == "right":
+            if relational_op == ">":
+                pass
+        return None"""
+
+    def _choose_get_function(self, relop, equation_side):
+
+        assert relop is not None
+
+        if relop == "==":
+            return self._get_equal
+        if relop == "!=":
+            return self._get_unequal
+
+        if relop == ">":
+            return self._get_greater if equation_side == "left" else self._get_smaller
+        if relop == "<":
+            return self._get_smaller if equation_side == "left" else self._get_greater
+
+        if relop == ">=":
+            return self._get_greater_or_equal if equation_side == "left" else self._get_smaller_or_equal
+        if relop == "<=":
+            return self._get_smaller_or_equal if equation_side == "left" else self._get_greater_or_equal
+
+
+class UnsortedStorage(Storage):
+    def __init__(self, array):
+        self._container = array
+        self._key = lambda x: x
+
+    def get(self, value):
+        return self._container
+
+    # the same as def append()
+    def add(self, pm):
+        self._container.append(pm)
 
 
 """class BListStorage(Storage):

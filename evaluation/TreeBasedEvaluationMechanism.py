@@ -8,8 +8,7 @@ from evaluation.EvaluationMechanism import EvaluationMechanism
 from evaluation.Nodes.Node import Node
 from evaluation.Nodes.InternalNode import InternalNode, SeqNode, AndNode
 from evaluation.Nodes.LeafNode import LeafNode
-from evaluation.prettyjson import prettyjson
-from evaluation.prettyjson import prettyjson
+from test.UnitTests.prettyjson import prettyjson
 
 
 class Tree:
@@ -21,15 +20,14 @@ class Tree:
     def __init__(self, tree_structure: tuple, pattern: Pattern):
         # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
         self.__root = Tree.__construct_tree(
-            pattern.structure.get_top_operator()
-            == SeqOperator,  # Currently only SeqOperator and AndOperator
+            pattern.structure.get_top_operator() == SeqOperator,  # Currently only SeqOperator and AndOperator
             tree_structure,
             pattern.structure.args,  # if we expect * or ~ Operator then should change
             pattern.window,
         )
-        if pattern.condition is not None:
-            self.__root.apply_formula(pattern.condition)  # puts formula in nodes
-        self.__root.create_storage_unit(leaf_index=None)  # root
+        # a function bdal the next two called: set_up_nodes which applies formula simplifies it and then creates suitable storage units
+        self.__root.apply_formula(pattern.condition)  # puts formula in nodes
+        self.__root.create_storage_unit(sorting_key=None)  # root #MUH
         # self.__root.set_sorting_properties()
 
     def json_repr(self):
@@ -44,37 +42,21 @@ class Tree:
         parent: Node = None,
     ):
 
-        # stop condition
+        # because splitting the tuple (0,1) returns (0,) and (1,)
         if type(tree_structure) != int and len(tree_structure) == 1:
             tree_structure = tree_structure[0]
+        # stop condition
         if type(tree_structure) == int:
-            return LeafNode(
-                sliding_window, tree_structure, args[tree_structure], parent
-            )
-        # Creating Node with Appropriate Type
-        # I have a problem with this part because top operator stays the same for all nodes
-        current_node = (
-            SeqNode(sliding_window, parent)
-            if is_sequence
-            else AndNode(sliding_window, parent)
-        )
-        # Creating left and right subtrees
-        """OLD  if the next line's purpose is to split into ~halfs then it doesn't work actually
+            return LeafNode(sliding_window, tree_structure, args[tree_structure], parent)
 
-        left_structure, right_structure = tree_structure
-        OLD"""
+        current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
+        # OLD: left_structure, right_structure = tree_structure
         left_structure = tree_structure[: len(tree_structure) // 2]
         right_structure = tree_structure[len(tree_structure) // 2 :]
-
-        left = Tree.__construct_tree(
-            is_sequence, left_structure, args, sliding_window, current_node
-        )
-        right = Tree.__construct_tree(
-            is_sequence, right_structure, args, sliding_window, current_node
-        )
-
-        current_node.set_subtrees(left, right)  # sets event_defs also
-        return current_node
+        left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current)
+        right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current)
+        current.set_subtrees(left, right)  # sets event_defs also
+        return current
 
     def get_leaves(self):
         return self.__root.get_leaves()
@@ -116,10 +98,10 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     # return self.__tree.get_leaves()
 
     def __init__(self, pattern: Pattern, tree_structure: tuple):
-        self.__tree: Tree
+        """self.__tree: Tree
         if type(tree_structure) == tuple and len(tree_structure) == 0:
             self.__tree = None
-            return  # given empty tuple -> ()
+            return  # given empty tuple -> ()"""
 
         self.__tree = Tree(tree_structure, pattern)
 
@@ -128,7 +110,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
     def eval(self, events: Stream, matches: Stream):
         event_types_listeners = {}
-        print(1)
         # register leaf listeners for event types.
         for leaf in self.__tree.get_leaves():
             event_type = leaf.get_event_type()
@@ -136,23 +117,13 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 event_types_listeners[event_type].append(leaf)
             else:
                 event_types_listeners[event_type] = [leaf]
-        print(event_types_listeners)
-        print(2)
+
         # Send events to listening leaves.
         for event in events:
-            print("*******************")
             if event.event_type in event_types_listeners.keys():
                 for leaf in event_types_listeners[event.event_type]:
-                    print("justBEFOREhandleevent")
-                    print(prettyjson(self.json_repr()))
                     leaf.handle_event(event)
-                    print("justAFTERhandleevent")
-                    print(prettyjson(self.json_repr()))
                     for match in self.__tree.get_matches():
-                        print("adding match")
                         matches.append(PatternMatch(match))  # TODO append -> add_item
-                        print("after adding match")
         # maybe we should put them all at once in unhandled then after that we could call handle for some of them
-        print("justbeforeCLOSECLOSE")
-        # matches.close()
-        print("justafterCLOSECLOSE")
+        # matches.close() #TODO uncomment this line
