@@ -29,11 +29,11 @@ class Storage(MutableSequence):
     def append(self, pm):
         self._container.append(pm)
 
-    def get_sorting_key(self):
-        return self._key
-
     def insert(self, index, item):  # abstract in MutableSequence      for x.insert(i,a)
         self._container.insert(index, item)
+
+    def get_key(self):
+        return self._key
 
     def __setitem__(self, index, item):  # abstract in MutableSequence      for x[i] = a
         self._container[index] = item
@@ -70,7 +70,7 @@ class Storage(MutableSequence):
 
     # FOR TESTS
     def __repr__(self):
-        return "Storage contains {}".format(repr(self._container) if self._container else "Nothing")
+        return "Storage contains {}".format(self._container if self._container else "Nothing")
 
     def __eq__(self, rhs):
         if not isinstance(rhs, Storage):
@@ -90,25 +90,35 @@ class SortedStorage(Storage):
         # self._sort_by_first_timestamp = sort_by_first_timestamp
         self._get_function = self._choose_get_function(relop, equation_side)
 
+    """
+    def __repr__(self):
+        return "Storage contains {}, key is {}, get_func is ".format(
+            self._container if self._container else "Nothing", self._key
+        )
+    """
+
     def add(self, pm):
         index = get_last_index(self._container, self._key(pm), self._key)
         index = 0 if index == -1 else index
         self._container.insert(index, pm)
 
     def get(self, value):
+        if len(self._container) == 0:
+            return []
         return self._get_function(value)
 
     # this also can return many values
     def _get_equal(self, value):
         left_index = get_first_index(self._container, value, self._key)
-        if left_index == len(self._container) or left_index == -1:
+        if left_index == len(self._container) or left_index == -1 or self._key(self._container[left_index]) != value:
             return []
+
         right_index = get_last_index(self._container, value, self._key)
-        return self._container[left_index:right_index]
+        return self._container[left_index : right_index + 1]
 
     def _get_unequal(self, value):
         left_index = get_first_index(self._container, value, self._key)
-        if left_index == len(self._container) or left_index == -1:
+        if left_index == len(self._container) or left_index == -1 or self._key(self._container[left_index]) != value:
             return self._container  # might need to return a copy
         right_index = get_last_index(self._container, value, self._key)
         return self._container[:left_index] + self._container[right_index + 1 :]
@@ -120,8 +130,11 @@ class SortedStorage(Storage):
             return []
         if right_index == -1:
             return self._container  # might need to return a copy
+        if self._key(self._container[right_index]) != value:
+            return self._container[
+                right_index:
+            ]  # in case value doesn't exist left_index will point on the first one greater than it
         return self._container[right_index + 1 :]
-
         # index = find_split_point(self._container, value, self._key)
         # return self._container[index:]  # SortedStorage(self._container[index:], self._key)
 
@@ -131,6 +144,10 @@ class SortedStorage(Storage):
             return self._container
         if left_index == -1:
             return []  # might need to return a copy
+        if self._key(self._container[left_index]) != value:
+            return self._container[
+                : left_index + 1
+            ]  # in case value doesn't exist left_index will point on the first one smaller than it
         return self._container[:left_index]
 
     def _get_greater_or_equal(self, value):
@@ -175,9 +192,10 @@ class SortedStorage(Storage):
 class UnsortedStorage(Storage):
     def __init__(self, array):
         self._container = array
+        self._key = lambda x: x
 
-    def get(self):
-        return UnsortedStorage(self._container)
+    def get(self, value):
+        return self._container
 
     # the same as def append()
     def add(self, pm):

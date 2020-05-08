@@ -223,7 +223,7 @@ than the value we are looking for so arrays like this:
 [34,25,60,70] with val < 34 shouldn't be recieved
 """
 
-
+"""
 class TestGetFirstIndexUtils(unittest.TestCase):
     def test_one_exists(self):
         container = [1]
@@ -312,8 +312,68 @@ class TestGetLastIndexUtils(unittest.TestCase):
         index = get_last_index(container, 7, lambda x: x)
         self.assertEqual(index, 1)
 
+"""
+
+
+class TestGetEqual(unittest.TestCase):
+    def test_one_negative(self):
+        storage = SortedStorage([1], lambda x: x, "==")
+        result = storage.get(2)
+        self.assertEqual(result, [])
+
+    def test_one_positive(self):
+        storage = SortedStorage([1], lambda x: x, "==")
+        result = storage.get(1)
+        self.assertEqual(result, [1])
+
+    def test_two_0(self):
+        storage = SortedStorage([1, 2], lambda x: x, "==")
+        result = storage.get(1)
+        self.assertEqual(result, [1])
+
+    def test_two_1(self):
+        storage = SortedStorage([0, 2], lambda x: x, "==")
+        result = storage.get(1)
+        self.assertEqual(result, [])
+
+    def test_2(self):
+        storage = SortedStorage([0, 1], lambda x: x, "==")
+        result = storage.get(1)
+        self.assertEqual(result, [1])
+
+    def test_3(self):
+        storage = SortedStorage([0, 1, 2], lambda x: x, "==")
+        result = storage.get(1)
+        self.assertEqual(result, [1])
+
+    def test_4(self):
+        storage = SortedStorage([0, 1, 1, 1, 1, 2], lambda x: x, "==")
+        result = storage.get(1)
+        self.assertEqual(result, [1, 1, 1, 1])
+
+    def test_5(self):
+        storage = SortedStorage([0, 1, 1, 1, 1], lambda x: x, "==")
+        result = storage.get(1)
+        self.assertEqual(result, [1, 1, 1, 1])
+
+    def test_two_6(self):
+        storage = SortedStorage([0, 1, 1, 1, 1], lambda x: x, "==")
+        result = storage.get(1)
+        self.assertEqual(result, [1, 1, 1, 1])
+
+    def test_two_5(self):
+        storage = SortedStorage([1, 1, 1, 1, 2, 3, 4, 55555, 55555], lambda x: x, "==")
+        result = storage.get(1)
+        self.assertEqual(result, [1, 1, 1, 1])
+
 
 """
+class TestGetUnequal(unittest.TestCase):
+
+
+class TestGetGreaterOrEqual(unittest.TestCase):
+class TestGeSmallerterOrEqual(unittest.TestCase):
+
 class TestGetGreater(unittest.TestCase):
     def setUp(self):
         t1 = time(second=1)
@@ -364,9 +424,3 @@ class TestGetSmaller(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-"""     def test_insert(self):
-        def test_set_item(self):
-        def test_del_item(self):
-        def test_append():
-"""

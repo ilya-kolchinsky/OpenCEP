@@ -15,7 +15,7 @@ from copy import deepcopy
 from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
 
-# receives any size list and to_find_value doesn't need to exist
+# doesn't work for empty containers
 def get_first_index(container, to_find_value, key: callable):
     start = 0
     end = len(container) - 1
@@ -40,7 +40,7 @@ def get_first_index(container, to_find_value, key: callable):
         else:
             return start
 
-
+# doesn't work for empty containers
 def get_last_index(container, to_find_value, key):
     start = 0
     end = len(container) - 1
