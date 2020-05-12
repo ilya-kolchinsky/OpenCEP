@@ -24,7 +24,7 @@ class Node(ABC):
         self._condition = TrueFormula()
         # matches that were not yet pushed to the parent for further processing
         self._unhandled_partial_matches = Queue()
-
+#EVA rajouter un IsNegatedNode?
     def consume_first_partial_match(self):
         """
         Removes and returns a single partial match buffered at this node.

@@ -27,7 +27,7 @@ class CEP:
     def __init__(self, patterns: List[Pattern],
                  eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
                  eval_mechanism_params: EvaluationMechanismParameters = None,
-                 performance_specs: PerformanceSpecifications = None):
+                 performance_specs: PerformanceSpecifications = None):#EVA_rajouter une possibilité de choisir le NegationMode
         """
         Constructor of the class.
         """
@@ -48,7 +48,7 @@ class CEP:
         """
         self.__pattern_matches = Stream()
         start = datetime.now()
-        self.__eval_mechanism.eval(event_stream, self.__pattern_matches)
+        self.__eval_mechanism.eval(event_stream, self.__pattern_matches)#EVA ici faire suivre à la fonction eval le negation mode
         return (datetime.now() - start).total_seconds()
 
     def get_pattern_match(self):

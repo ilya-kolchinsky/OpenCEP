@@ -581,7 +581,36 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
     runTest('nonFrequencyTailored1', [pattern], createTestFile,
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, events=nasdaqEventStream)
 
+def evaTest():
+    pattern = Pattern(
+        SeqOperator([QItem("APL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))
+        ),
+        timedelta.max
+    )
 
+    extraShortEventStream = file_input("test/EventFiles/Extra_Short.txt", MetastockDataFormatter())
+
+    events = extraShortEventStream.duplicate()
+    eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
+    cep = CEP([pattern], eval_mechanism_type)
+    print('EVA_SUCCESS')
+    running_time = cep.run(events)
+    matches = cep.get_pattern_match_stream()
+    extraShort = 'extraShort'
+    file_output(matches, '%sMatches.txt' % extraShort)
+    ##expected_matches_path = "test/TestsExpected/%sMatches.txt" % testName
+    ##actual_matches_path = "test/Matches/%sMatches.txt" % testName
+    ##print("Test %s result: %s, Time Passed: %s" % (testName,
+     ##     "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
+    ##os.remove(actual_matches_path)
+
+evaTest()
+""""
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
@@ -615,3 +644,4 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
+"""""
