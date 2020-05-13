@@ -165,7 +165,7 @@ class Formula(ABC):
         and rhs term from only rhs_vars.
         returns None if simplification is complicated (one term contains div for example)
         """
-        return (None, None, None)
+        return None
 
 
 class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
@@ -210,6 +210,7 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
     def rearrange_terms(self, lhs_vars, rhs_vars):
         new_lhs_term = AtomicTerm(0)
         new_rhs_term = AtomicTerm(0)
+
         (new_lhs_term, new_rhs_term) = self.consume_terms(
             self.left_term.abstract_terms, new_lhs_term, new_rhs_term, lhs_vars
         )
@@ -238,6 +239,7 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
                 else:  # minus
                     same_side_term = MinusTerm(same_side_term, cur_term["term"])
         return (same_side_term, other_side_term)
+
 
     def dismantle(self):
         return (
