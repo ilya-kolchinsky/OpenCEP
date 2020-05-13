@@ -5,7 +5,7 @@ from abc import abstractmethod
 from collections.abc import MutableSequence
 from itertools import chain
 import bisect
-from misc.Utils import find_partial_match_by_timestamp, get_first_index, get_last_index
+from misc.Utils import get_first_index, get_last_index
 from datetime import datetime
 from typing import List
 from evaluation.PartialMatch import PartialMatch
@@ -135,8 +135,6 @@ class SortedStorage(Storage):
                 right_index:
             ]  # in case value doesn't exist left_index will point on the first one greater than it
         return self._container[right_index + 1 :]
-        # index = find_split_point(self._container, value, self._key)
-        # return self._container[index:]  # SortedStorage(self._container[index:], self._key)
 
     def _get_smaller(self, value):
         left_index = get_first_index(self._container, value, self._key)

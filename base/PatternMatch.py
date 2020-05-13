@@ -1,4 +1,3 @@
-# from base.Event import Event TODO
 from base.Event import Event
 from typing import List
 

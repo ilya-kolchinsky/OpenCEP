@@ -27,7 +27,7 @@ class Tree:
         )
         # a function bdal the next two called: set_up_nodes which applies formula simplifies it and then creates suitable storage units
         self.__root.apply_formula(pattern.condition)  # puts formula in nodes
-        self.__root.create_storage_unit(sorting_key=None)  # root #MUH
+        self.__root.create_storage_unit()
         # self.__root.set_sorting_properties()
 
     def json_repr(self):
@@ -65,44 +65,14 @@ class Tree:
         while self.__root.has_partial_matches():
             yield self.__root.consume_first_partial_match().events
 
-    """def _create_sequence_dict(self, ps: PatternStructure):
-        # event_def[1] is of type QItem
-        sequence_dict = {
-            event_def[1].name: set()
-            for event_def in self.__root.get_event_definitions()
-        }
-        current_operator = ps.get_top_operator()
-        if current_operator == SeqOperator:
-            for i in range(len(ps.args) - 1):
-                for j in range(i + 1, len(ps.args)):
-                    sequence_dict[ps.args[i].name].add(ps.args[j].name)
-        return sequence_dict
-    """
-    """ def fill_sequence_dict(ps: PatternStructure):
-            current_operator = ps.get_top_operator()
-            if current_operator == SeqOperator:
-                for arg in ps.args
-                if isinstance(arg, QItem):
-                    fill_all_after(ps,arg.name)
-                else:
-                    fill_sequence_dict(arg)
-    """
-
 
 class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
 
-    # def get_leaves(self):
-    # return self.__tree.get_leaves()
-
     def __init__(self, pattern: Pattern, tree_structure: tuple):
-        """self.__tree: Tree
-        if type(tree_structure) == tuple and len(tree_structure) == 0:
-            self.__tree = None
-            return  # given empty tuple -> ()"""
-
+        # empty tuple tree_structure doesn't work ()
         self.__tree = Tree(tree_structure, pattern)
 
     def json_repr(self):
@@ -124,6 +94,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 for leaf in event_types_listeners[event.event_type]:
                     leaf.handle_event(event)
                     for match in self.__tree.get_matches():
-                        matches.add_item(PatternMatch(match))  # TODO append -> add_item
+                        matches.add_item(PatternMatch(match))
         # maybe we should put them all at once in unhandled then after that we could call handle for some of them
-        matches.close()  # TODO uncomment this line
+        matches.close()
+        # TODO: for our simple tests you would change line 96:add_item to append and delete line 98

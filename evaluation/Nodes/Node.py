@@ -17,11 +17,8 @@ class Node(ABC):
         self._sliding_window = sliding_window
         self._partial_matches: Storage[PartialMatch]
         self._condition = TrueFormula()
-        self._unhandled_partial_matches = Queue()
         # matches that were not yet pushed to the parent for further processing
-
-    def create_storage_unit(self, sorting_key, relop, equation_side):
-        raise NotImplementedError()
+        self._unhandled_partial_matches = Queue()
 
     def consume_first_partial_match(self):
         """
@@ -42,7 +39,7 @@ class Node(ABC):
         """
         Returns the last partial match buffered at this node and not yet transferred to its parent.
         """
-        return self._unhandled_partial_matches.get()  # returns it and removes it
+        return self._unhandled_partial_matches.get()
 
     def set_parent(self, parent):
         """
@@ -50,18 +47,15 @@ class Node(ABC):
         """
         self._parent = parent
 
-    # this function should be simplified to call the clean up in the storage
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
         Removes partial matches whose earliest timestamp violates the time window constraint.
         """
         if self._sliding_window == timedelta.max:
             return
-        count = find_partial_match_by_timestamp(  # binary search: sorted by first timestmap of partial match
-            self._partial_matches, last_timestamp - self._sliding_window
-        )
-        # self._partial_matches = self._partial_matches[count:] #OLD
-        del self._partial_matches[:count]  # MUH
+        # count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window) # OLD
+        # self._partial_matches = self._partial_matches[count:] # OLD
+        # del self._partial_matches[:count]  # MUH
 
     def add_partial_match(self, pm: PartialMatch):
         """
@@ -73,10 +67,7 @@ class Node(ABC):
 
     def get_partial_matches(self, value_of_new_pm):
         """
-        Returns the currently stored partial matches.
-        """
-        """
-        Returns the currently stored partial matches.
+        Returns only partial matches that can be a good fit according the the new pm received.
         """
         return self._partial_matches.get(value_of_new_pm)
 

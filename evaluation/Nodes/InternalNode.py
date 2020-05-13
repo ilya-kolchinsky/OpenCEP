@@ -5,20 +5,12 @@ from base.Event import Event
 from base.Formula import Formula, AtomicFormula, TrueFormula
 from evaluation.PartialMatch import PartialMatch
 from base.PatternStructure import SeqOperator, QItem
-
-# from base.Event import Event TODO
-
 from misc.Utils import (
     merge,
     merge_according_to,
     is_sorted,
-    find_partial_match_by_timestamp,
 )
-
 from evaluation.Storage import SortedStorage, UnsortedStorage
-
-import json
-from evaluation.Nodes.LeafNode import LeafNode
 
 
 class InternalNode(Node):
@@ -181,12 +173,6 @@ class InternalNode(Node):
         # adds new partial match to list O(logn)
         # adds new partial match queue for continuing the computation upwards
         self._partial_matches.add(pm)  # MUH
-        """OLD
-        index = find_partial_match_by_timestamp(
-            self._partial_matches, pm.first_timestamp
-        )
-        self._partial_matches.insert(index, pm)
-        OLD"""
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
 
@@ -235,11 +221,11 @@ class AndNode(InternalNode):
     # we should agree with SeqNode on a mutual definition if this function
     # creates aa Storage unit with the key chosen by it's father and chooses the sorting_key for its children
     # if you are calling this function on root then sorting_key can be WHATEVER you want
-    def create_storage_unit(self, sorting_key: callable, relation_op=None, equation_side=None):
+    def create_storage_unit(self, sorting_key: callable = None, relation_op=None, equation_side=None):
         """if ENABLE_SORTING == false:
             self._partial_matches = UnsortedStorage([])
-            self._left_subtree.create_storage_unit(None)
-            self._right_subtree.create_storage_unit(None)
+            self._left_subtree.create_storage_unit()
+            self._right_subtree.create_storage_unit()
             return"""
 
         if sorting_key is None:
@@ -302,35 +288,23 @@ class SeqNode(InternalNode):
         max_left = max(left_event_defs, key=lambda x: x[0])[0]  # { [ } ] or { [ ] }
         min_right = min(right_event_defs, key=lambda x: x[0])[0]  # [ ] { }
         max_right = max(right_event_defs, key=lambda x: x[0])[0]  # { } [ ]
-        # print("min_left: {}".format(min_left))
-        # print("max_left: {}".format(max_left))
-        # print("min_right: {}".format(min_right))
-        # print("max_right: {}".format(max_right))
-        # left_leaf_index = left_event_defs[0][0]
-        # right_leaf_index = right_event_defs[0][0]
         left_sort = 0
         right_sort = 0
         relop = None
         if max_left < min_right:  # 3)
             left_sort = -1
             right_sort = 0
-            # left_leaf_index = left_event_defs[-1][0]
             relop = "<"
-
         elif max_right < min_left:  # 4)
             left_sort = 0
             right_sort = -1
-            # right_leaf_index = right_event_defs[-1][0]
             relop = ">"
-
         elif min_left < min_right:  # 1)
             relop = "<"
-
         elif min_right < min_left:  # 2)
             relop = ">"
 
         assert relop is not None
-
         self._relation_op = relop  # just for the json_repr
         self._left_subtree.create_storage_unit(lambda pm: pm.events[left_sort].timestamp, relop, "left")
         self._right_subtree.create_storage_unit(lambda pm: pm.events[right_sort].timestamp, relop, "right")
