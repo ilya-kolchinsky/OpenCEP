@@ -13,8 +13,7 @@ misc/__pycache__
 test/__pycache__
 test/UnitTests/__pycache__
 __pycache__
-
 CEPvenv
 settings.json
-
+.vscode
 .gitignore

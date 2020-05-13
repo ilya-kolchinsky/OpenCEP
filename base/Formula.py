@@ -158,7 +158,6 @@ class Formula(ABC):
     def get_formula_of(self, names: set):
         pass
 
-
     def simplify_formula(self, lhs_vars: set, rhs_vars: set):
 
         """
@@ -167,7 +166,6 @@ class Formula(ABC):
         returns None if simplification is complicated (one term contains div for example)
         """
         return (None, None, None)
-
 
 
 class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
@@ -181,95 +179,14 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
         self.relation_op = relation_op
 
     def eval(self, binding: dict = None):
-        return self.relation_op(self.left_term.eval(binding), self.right_term.eval(binding))
+        return self.relation_op(
+            self.left_term.eval(binding), self.right_term.eval(binding)
+        )
 
     def __repr__(self):  # MUH
         return "{} {} {}".format(self.left_term, self.relation_op, self.right_term)
 
     def simplify_formula(self, lhs_vars: set, rhs_vars: set):
-        new_lhs_term = AtomicTerm(0)
-        new_rhs_term = AtomicTerm(0)
-        lhs_term_vars = set()
-        rhs_term_vars = set()
-
-        for item in self.left_term.abstract_terms:
-            if item["is_id"] == True:
-                lhs_term_vars.add(item["term"].name)
-
-        for item in self.right_term.abstract_terms:
-            if item["is_id"] == True:
-                rhs_term_vars.add(item["term"].name)
-
-        # check if already simple : set() is for removing duplicates and empty set cases
-        # MUH but there are no duplicates in a set?!?!!
-        if set(lhs_vars) == set(lhs_term_vars) and set(rhs_vars) == set(rhs_term_vars):
-            return (self.left_term, convert_to_relop(self.relation_op), self.right_term)
-            # return self # NADER
-        # check if a possible simplification exists
-        if not (self.left_term.simplifiable and self.right_term.simplifiable):
-            return (None, None, None)
-            # return None # NADER
-
-        # creating the new 2 terms from the 2 old terms :
-
-        for cur_term in self.left_term.abstract_terms:
-            if cur_term["is_id"]:
-                if cur_term["sign"] == 1:  # plus
-                    if cur_term["term"].name in lhs_vars:
-                        new_lhs_term = PlusTerm(new_lhs_term, cur_term["term"])
-                    else:  # opposite side of the equation, gets opposite sign
-                        new_rhs_term = MinusTerm(new_rhs_term, cur_term["term"])
-                else:  # minus
-                    if cur_term["term"].name in lhs_vars:
-                        new_lhs_term = MinusTerm(new_lhs_term, cur_term["term"])
-                    else:  # opposite side of the equation, gets opposite sign
-                        new_rhs_term = PlusTerm(new_rhs_term, cur_term["term"])
-            else:  # atomic term
-                if cur_term["sign"] == 1:  # plus
-                    new_lhs_term = PlusTerm(new_lhs_term, cur_term["term"])
-                else:  # minus
-                    new_lhs_term = MinusTerm(new_lhs_term, cur_term["term"])
-
-        for cur_term in self.right_term.abstract_terms:
-            if cur_term["is_id"]:
-                if cur_term["sign"] == 1:  # plus
-                    if cur_term["term"].name in rhs_vars:
-                        new_rhs_term = PlusTerm(new_rhs_term, cur_term["term"])
-                    else:  # opposite side of the equation, gets opposite sign
-                        new_lhs_term = MinusTerm(new_lhs_term, cur_term["term"])
-                else:  # minus
-                    if cur_term["term"].name in rhs_vars:
-                        new_rhs_term = MinusTerm(new_rhs_term, cur_term["term"])
-                    else:  # opposite side of the equation, gets opposite sign
-                        new_lhs_term = PlusTerm(new_lhs_term, cur_term["term"])
-            else:
-                if cur_term["sign"] == 1:  # plus
-                    new_rhs_term = PlusTerm(new_rhs_term, cur_term["term"])
-                else:  # minus
-                    new_rhs_term = MinusTerm(new_rhs_term, cur_term["term"])
-
-        # return AtomicFormula(new_lhs_term, new_rhs_term, self.relation_op) Nader
-        return (new_lhs_term, convert_to_relop(self.relation_op), new_rhs_term)
-
-
-def convert_to_relop(relation_op: callable):
-    if relation_op(5, 5):
-        if relation_op(5, 6):
-            return "<="
-        elif relation_op(5, 4):
-            return ">="
-        return "=="
-    else:
-        if relation_op(5, 6):
-            return "<"
-        elif relation_op(5, 4):
-            return ">"
-        return "!="
-
-    def simplify_formula(self, lhs_vars: set, rhs_vars: set):
-
-        new_lhs_term = AtomicTerm(0)
-        new_rhs_term = AtomicTerm(0)
         lhs_term_vars = set()
         rhs_term_vars = set()
 
@@ -290,7 +207,12 @@ def convert_to_relop(relation_op: callable):
             return None
 
         # creating the new 2 terms from the 2 old terms :
+        new_lhs_term, new_rhs_term = self.rearrange_terms(lhs_term_vars, rhs_term_vars)
+        return AtomicFormula(new_lhs_term, new_rhs_term, self.relation_op)
 
+    def rearrange_terms(self, lhs_vars, rhs_vars):
+        new_lhs_term = AtomicTerm(0)
+        new_rhs_term = AtomicTerm(0)
         for cur_term in self.left_term.abstract_terms:
             if cur_term["is_id"]:
                 if cur_term["sign"] == 1:  # plus
@@ -327,7 +249,28 @@ def convert_to_relop(relation_op: callable):
                 else:  # minus
                     new_rhs_term = MinusTerm(new_rhs_term, cur_term["term"])
 
-        return AtomicFormula(new_lhs_term, new_rhs_term, self.relation_op)
+        return (new_lhs_term, new_rhs_term)
+
+    def dismantle(self):
+        return (
+            self.left_term,
+            self.convert_to_relop(self.relation_op),
+            self.right_term,
+        )
+
+    def convert_to_relop(self, relation_op: callable):
+        if relation_op(5, 5):
+            if relation_op(5, 6):
+                return "<="
+            elif relation_op(5, 4):
+                return ">="
+            return "=="
+        else:
+            if relation_op(5, 6):
+                return "<"
+            elif relation_op(5, 4):
+                return ">"
+            return "!="
 
 
 class EqFormula(AtomicFormula):
@@ -425,13 +368,17 @@ class BinaryLogicOpFormula(Formula):  # AND: A < B AND C < D
     A formula composed of a logic operator and two nested formulas.
     """
 
-    def __init__(self, left_formula: Formula, right_formula: Formula, binary_logic_op: callable):
+    def __init__(
+        self, left_formula: Formula, right_formula: Formula, binary_logic_op: callable
+    ):
         self.left_formula = left_formula
         self.right_formula = right_formula
         self.binary_logic_op = binary_logic_op
 
     def eval(self, binding: dict = None):
-        return self.binary_logic_op(self.left_formula.eval(binding), self.right_formula.eval(binding))
+        return self.binary_logic_op(
+            self.left_formula.eval(binding), self.right_formula.eval(binding)
+        )
 
 
 class AndFormula(BinaryLogicOpFormula):  # AND: A < B AND C < D
