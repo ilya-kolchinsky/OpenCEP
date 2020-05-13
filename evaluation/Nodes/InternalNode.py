@@ -14,7 +14,9 @@ from misc.Utils import (
     is_sorted,
     find_partial_match_by_timestamp,
 )
+
 from evaluation.Storage import SortedStorage, UnsortedStorage
+
 import json
 from evaluation.Nodes.LeafNode import LeafNode
 
@@ -199,7 +201,7 @@ class InternalNode(Node):
             "event defs": events_nums,
             "not_simplified_condition": repr(self._condition),
             "simplified_condition": "{} {} {}".format(
-                self._simplified_condition[0], self._simplified_condition[1], self._simplified_condition[2]
+                self._simplified_condition[0], self._simplified_condition[1], self._simplified_condition[2],
             ),
             "RELOP": self._relation_op,
             "": "",
@@ -254,10 +256,11 @@ class AndNode(InternalNode):
         left_event_names = {item[1].name for item in left_event_defs}
         right_event_names = {item[1].name for item in right_event_defs}
 
-        left_term, relop, right_term = self._condition.simplify_formula(left_event_names, right_event_names)
+        simple_formula = self._condition.simplify_formula(left_event_names, right_event_names)
 
-        if relop is not None:
+        if simple_formula is not None:
             # left_term, relop, right_term = extract_from_formula(simple_formula)
+            left_term, relop, right_term = simple_formula.dismantle()
             self._relation_op = relop
             self._simplified_condition = (left_term, relop, right_term)
             left_sorting_key = lambda pm: left_term.eval(
