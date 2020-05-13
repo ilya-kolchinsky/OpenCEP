@@ -15,87 +15,6 @@ from copy import deepcopy
 from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
 
-# doesn't work for empty containers
-def get_first_index(container, to_find_value, key: callable):
-    start = 0
-    end = len(container) - 1
-
-    while start < end:
-        mid = (start + end) // 2
-        mid_value = key(container[mid])
-
-        if mid_value < to_find_value < key(container[mid + 1]):
-            return mid
-        if mid_value >= to_find_value:
-            end = mid
-        else:
-            start = mid + 1
-
-    if start == end:
-        mid_value = key(container[start])
-        if mid_value > to_find_value:
-            return start - 1
-        elif mid_value < to_find_value:
-            return start + 1
-        else:
-            return start
-
-# doesn't work for empty containers
-def get_last_index(container, to_find_value, key):
-    start = 0
-    end = len(container) - 1
-
-    while start < end:
-        mid = (start + end) // 2
-        mid_value = key(container[mid])
-
-        if mid_value < to_find_value < key(container[mid + 1]):
-            return mid + 1
-        if mid_value <= to_find_value:
-            start = mid + 1
-        else:
-            end = mid
-
-    if start == end:
-        mid_value = key(container[start])
-        if mid_value > to_find_value:
-            return start - 1
-        elif mid_value < to_find_value:
-            return start + 1
-        else:
-            return start
-
-
-def find_split_point(partial_matches: List[PartialMatch], compare_value, key):
-    """
-    Returns the partial match from the given list such that its timestamp is the closest to the given timestamp.
-    The list is assumed to be sorted according to the earliest event timestamp.
-    """
-    # should count how many PMs are before last date.
-    length = len(partial_matches)
-    if length == 0 or key(partial_matches[0]) >= compare_value:
-        return 0
-    if length == 1:  # here we already know that first item's date < lastDate
-        return 1  # Unnecessary if
-    if key(partial_matches[-1]) < compare_value:
-        return length
-
-    start = 0
-    end = length - 1
-    while start <= end:
-        mid = (start + end) // 2
-        mid_value = key(partial_matches[mid])
-        if key(partial_matches[mid - 1]) < compare_value <= mid_value:
-            return mid
-        elif compare_value > mid_value:
-            start = mid + 1
-        else:
-            end = mid - 1
-
-    # shouldn't get here, because we know not all partial matches are up to date (nor expired),
-    # which means an index should be found.
-    raise Exception()
-
 
 def find_partial_match_by_timestamp(partial_matches: List[PartialMatch], timestamp: datetime):
     """
@@ -107,7 +26,7 @@ def find_partial_match_by_timestamp(partial_matches: List[PartialMatch], timesta
     if length == 0 or partial_matches[0].first_timestamp >= timestamp:
         return 0
     if length == 1:  # here we already know that first item's date < lastDate
-        return 1  # Unnecessary if
+        return 1
     if partial_matches[-1].first_timestamp < timestamp:
         return length
 
@@ -320,3 +239,57 @@ def does_match_exist(matches: list, match: list):
             if is_equal:
                 return True
     return False
+
+
+def get_first_index(container, to_find_value, key: callable):
+    start = 0
+    end = len(container) - 1
+
+    while start < end:
+        mid = (start + end) // 2
+        mid_value = key(container[mid])
+
+        if mid_value < to_find_value < key(container[mid + 1]):
+            return mid
+        if mid_value >= to_find_value:
+            end = mid
+        else:
+            start = mid + 1
+
+    if start == end:
+        mid_value = key(container[start])
+        if mid_value > to_find_value:
+            return start - 1
+        elif mid_value < to_find_value:
+            return start + 1
+        else:
+            return start
+
+    return 0
+
+
+def get_last_index(container, to_find_value, key):
+    start = 0
+    end = len(container) - 1
+
+    while start < end:
+        mid = (start + end) // 2
+        mid_value = key(container[mid])
+
+        if mid_value < to_find_value < key(container[mid + 1]):
+            return mid + 1
+        if mid_value <= to_find_value:
+            start = mid + 1
+        else:
+            end = mid
+
+    if start == end:
+        mid_value = key(container[start])
+        if mid_value > to_find_value:
+            return start - 1
+        elif mid_value < to_find_value:
+            return start + 1
+        else:
+            return start
+
+    return 0

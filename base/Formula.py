@@ -179,9 +179,7 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
         self.relation_op = relation_op
 
     def eval(self, binding: dict = None):
-        return self.relation_op(
-            self.left_term.eval(binding), self.right_term.eval(binding)
-        )
+        return self.relation_op(self.left_term.eval(binding), self.right_term.eval(binding))
 
     def __repr__(self):  # MUH
         return "{} {} {}".format(self.left_term, self.relation_op, self.right_term)
@@ -212,10 +210,11 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
     def rearrange_terms(self, lhs_vars, rhs_vars):
         new_lhs_term = AtomicTerm(0)
         new_rhs_term = AtomicTerm(0)
-        (new_lhs_term,new_rhs_term) = self.consume_terms(
+
+        (new_lhs_term, new_rhs_term) = self.consume_terms(
             self.left_term.abstract_terms, new_lhs_term, new_rhs_term, lhs_vars
         )
-        (new_rhs_term,new_lhs_term) = self.consume_terms(
+        (new_rhs_term, new_lhs_term) = self.consume_terms(
             self.right_term.abstract_terms, new_rhs_term, new_lhs_term, rhs_vars
         )
 
@@ -239,7 +238,8 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
                     same_side_term = PlusTerm(same_side_term, cur_term["term"])
                 else:  # minus
                     same_side_term = MinusTerm(same_side_term, cur_term["term"])
-        return (same_side_term,other_side_term)
+        return (same_side_term, other_side_term)
+
 
     def dismantle(self):
         return (
@@ -358,17 +358,13 @@ class BinaryLogicOpFormula(Formula):  # AND: A < B AND C < D
     A formula composed of a logic operator and two nested formulas.
     """
 
-    def __init__(
-        self, left_formula: Formula, right_formula: Formula, binary_logic_op: callable
-    ):
+    def __init__(self, left_formula: Formula, right_formula: Formula, binary_logic_op: callable):
         self.left_formula = left_formula
         self.right_formula = right_formula
         self.binary_logic_op = binary_logic_op
 
     def eval(self, binding: dict = None):
-        return self.binary_logic_op(
-            self.left_formula.eval(binding), self.right_formula.eval(binding)
-        )
+        return self.binary_logic_op(self.left_formula.eval(binding), self.right_formula.eval(binding))
 
 
 class AndFormula(BinaryLogicOpFormula):  # AND: A < B AND C < D
