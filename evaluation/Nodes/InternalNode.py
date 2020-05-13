@@ -228,6 +228,7 @@ class AndNode(InternalNode):
             self._right_subtree.create_storage_unit()
             return"""
 
+        # if sorting is enabled and sorting key is none why not sort by timestamp?
         if sorting_key is None:
             self._partial_matches = UnsortedStorage([])
         else:
@@ -276,10 +277,11 @@ class SeqNode(InternalNode):
         We assume all events are in SEQ(,,,,...) which makes the order in partial match the same
         as in event_defs: [(1,a),(2,b)] in event_defs and [a,b] in pm.
         """
+        # this causes root not to order its items, should we keep root unsorted?
         if sorting_key is None:
             self._partial_matches = UnsortedStorage([])
         else:
-            self._partial_matches = SortedStorage([], sorting_key, relation_op, equation_side)
+            self._partial_matches = SortedStorage([], sorting_key, relation_op, equation_side,sort_by_first_timestamp= True)
 
         left_event_defs = self._left_subtree.get_event_definitions()
         right_event_defs = self._right_subtree.get_event_definitions()

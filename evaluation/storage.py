@@ -9,6 +9,7 @@ from misc.Utils import get_first_index, get_last_index
 from datetime import datetime
 from typing import List
 from evaluation.PartialMatch import PartialMatch
+from misc.Utils import find_partial_match_by_timestamp
 
 # from blist import blist B+ tree like list
 # Note: for mutable collections like ours we shouldn't return self but a copy of self.
@@ -84,10 +85,10 @@ class Storage(MutableSequence):
 
 
 class SortedStorage(Storage):
-    def __init__(self, array, key, relop=None, equation_side=None):  # , is_sorted_by_first_timestamp=False
+    def __init__(self, array, key, relop=None, equation_side=None, sort_by_first_timestamp = False):  # , is_sorted_by_first_timestamp=False
         self._container = array
         self._key = key
-        # self._sort_by_first_timestamp = sort_by_first_timestamp
+        self._sorted_by_first_timestamp = sort_by_first_timestamp
         self._get_function = self._choose_get_function(relop, equation_side)
 
     """
@@ -160,12 +161,15 @@ class SortedStorage(Storage):
     def __add__(self, rhs):  #      for s1 + s2
         return SortedStorage(list(chain(self._container, rhs._container)), self._key)
 
-    # NADER
-    """def get_partial_matches(self, value, side_of_equation: str, relational_op="="):
-        if side_of_equation == "right":
-            if relational_op == ">":
-                pass
-        return None"""
+    def clean_expired_partial_matches(self, last_timestamp :datetime ):
+        if(self._sorted_by_first_timestamp):
+            count = find_partial_match_by_timestamp(self._container, last_timestamp)
+            self._container = self._container[count:]
+            del self._container[:count]  # MUH
+        else:
+            for idx in range(len(self._container)):
+                if (self._container[idx].first_timestamp < last_timestamp):
+                    del self._container[idx]
 
     def _choose_get_function(self, relop, equation_side):
 
@@ -191,6 +195,7 @@ class UnsortedStorage(Storage):
     def __init__(self, array):
         self._container = array
         self._key = lambda x: x
+        self._sorted_by_first_timestamp = False
 
     def get(self, value):
         return self._container
@@ -199,7 +204,10 @@ class UnsortedStorage(Storage):
     def add(self, pm):
         self._container.append(pm)
 
-
+    def clean_expired_partial_matches(self, last_timestamp :datetime ):
+        for idx in range(len(self._container)):
+            if (self._container[idx].first_timestamp < last_timestamp):
+                del self._container[idx]
 """class BListStorage(Storage):
     def __init__(self):
         self._container = []"""
