@@ -1,4 +1,14 @@
 base/__init__.py
+evaluation/Nodes/__init__.py
 evaluation/__init__.py
 misc/__init__.py
+test/UnitTests/__init__.py
 test/__init__.py
+base/__pycache__
+evaluation/Nodes/__pycache__
+evaluation/__pycache__
+misc/__pycache__
+test/__pycache__
+test/UnitTests/__pycache__
+CEPvenv
+.gitignore
