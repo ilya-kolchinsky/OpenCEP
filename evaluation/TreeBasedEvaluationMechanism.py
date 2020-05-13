@@ -124,6 +124,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 for leaf in event_types_listeners[event.event_type]:
                     leaf.handle_event(event)
                     for match in self.__tree.get_matches():
-                        matches.append(PatternMatch(match))  # TODO append -> add_item
+                        matches.add_item(PatternMatch(match))  # TODO append -> add_item
         # maybe we should put them all at once in unhandled then after that we could call handle for some of them
-        # matches.close() #TODO uncomment this line
+        matches.close()  # TODO uncomment this line

@@ -60,7 +60,8 @@ class Node(ABC):
         count = find_partial_match_by_timestamp(  # binary search: sorted by first timestmap of partial match
             self._partial_matches, last_timestamp - self._sliding_window
         )
-        self._partial_matches = self._partial_matches[count:]
+        # self._partial_matches = self._partial_matches[count:] #OLD
+        del self._partial_matches[:count]  # MUH
 
     def add_partial_match(self, pm: PartialMatch):
         """

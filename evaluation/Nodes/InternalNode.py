@@ -104,26 +104,7 @@ class InternalNode(Node):
         # cleaning other subtree before receiving anything from it
         other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
         # from other_subtree we need to get a compact amount of partial matches
-        # /////////////////////////////////////////////////////////////
-        """if other_subtree == self._greater_side:
-            partial_matches_to_compare = other_subtree.get_partial_matches(
-                new_partial_match, new_pm_key, Greater=True
-            )
-        elif other_subtree == self._smaller_side:
-            partial_matches_to_compare = other_subtree.get_partial_matches(
-                new_partial_match, new_pm_key, Greater=False
-            )"""
 
-        """NADER value_to_compare = curr_term.eval(
-            {
-                other_subtree.get_event_definitions()[i][1]: new_partial_match.events[i].payload
-                for i in range(len(new_partial_match.events))
-            }
-        )
-        partial_matches_to_compare = other_subtree.get_partial_matches(
-            value_to_compare, side_of_equation, self._relational_op
-        ) NADER"""
-        # /////////////////////////////////////////////////////////////
         partial_matches_to_compare = other_subtree.get_partial_matches(new_pm_key(new_partial_match))
         # print("new_pm = " + repr(new_partial_match))
         # print("tocompare_pms = " + repr(partial_matches_to_compare))
@@ -253,6 +234,11 @@ class AndNode(InternalNode):
     # creates aa Storage unit with the key chosen by it's father and chooses the sorting_key for its children
     # if you are calling this function on root then sorting_key can be WHATEVER you want
     def create_storage_unit(self, sorting_key: callable, relation_op=None, equation_side=None):
+        """if ENABLE_SORTING == false:
+            self._partial_matches = UnsortedStorage([])
+            self._left_subtree.create_storage_unit(None)
+            self._right_subtree.create_storage_unit(None)
+            return"""
 
         if sorting_key is None:
             self._partial_matches = UnsortedStorage([])
@@ -313,27 +299,38 @@ class SeqNode(InternalNode):
         max_left = max(left_event_defs, key=lambda x: x[0])[0]  # { [ } ] or { [ ] }
         min_right = min(right_event_defs, key=lambda x: x[0])[0]  # [ ] { }
         max_right = max(right_event_defs, key=lambda x: x[0])[0]  # { } [ ]
-
-        left_leaf_index = left_event_defs[0][0]
-        right_leaf_index = right_event_defs[0][0]
+        # print("min_left: {}".format(min_left))
+        # print("max_left: {}".format(max_left))
+        # print("min_right: {}".format(min_right))
+        # print("max_right: {}".format(max_right))
+        # left_leaf_index = left_event_defs[0][0]
+        # right_leaf_index = right_event_defs[0][0]
+        left_sort = 0
+        right_sort = 0
         relop = None
-
         if max_left < min_right:  # 3)
-            left_leaf_index = left_event_defs[-1][0]
+            left_sort = -1
+            right_sort = 0
+            # left_leaf_index = left_event_defs[-1][0]
             relop = "<"
+
         elif max_right < min_left:  # 4)
-            right_leaf_index = right_event_defs[-1][0]
+            left_sort = 0
+            right_sort = -1
+            # right_leaf_index = right_event_defs[-1][0]
             relop = ">"
+
         elif min_left < min_right:  # 1)
             relop = "<"
+
         elif min_right < min_left:  # 2)
             relop = ">"
 
         assert relop is not None
 
         self._relation_op = relop  # just for the json_repr
-        self._left_subtree.create_storage_unit(lambda pm: pm.events[left_leaf_index].timestamp, relop, "left")
-        self._right_subtree.create_storage_unit(lambda pm: pm.events[right_leaf_index].timestamp, relop, "right")
+        self._left_subtree.create_storage_unit(lambda pm: pm.events[left_sort].timestamp, relop, "left")
+        self._right_subtree.create_storage_unit(lambda pm: pm.events[right_sort].timestamp, relop, "right")
 
     def _set_event_definitions(
         self, left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]],

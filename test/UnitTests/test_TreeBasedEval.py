@@ -63,7 +63,7 @@ class TestConstruction(unittest.TestCase):
         a = IdentifierTerm("a", lambda x: x.price)  # gonna be using payload with attribute "price"
         b = IdentifierTerm("b", lambda x: x.price)
         aplusb = PlusTerm(a, b)
-        cond = SmallerThanFormula(aplusb, two)
+        cond = SmallerThanFormula(aplusb, two)  # a+b < 2
         pattern = Pattern(AndOperator([self.q1, self.q2]), cond)
         tree_structure = (0, 1)
         tbem = TreeBasedEvaluationMechanism(pattern, tree_structure)

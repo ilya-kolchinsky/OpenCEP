@@ -40,6 +40,9 @@ def get_first_index(container, to_find_value, key: callable):
         else:
             return start
 
+    return 0
+
+
 # doesn't work for empty containers
 def get_last_index(container, to_find_value, key):
     start = 0
@@ -64,6 +67,8 @@ def get_last_index(container, to_find_value, key):
             return start + 1
         else:
             return start
+
+    return 0
 
 
 def find_split_point(partial_matches: List[PartialMatch], compare_value, key):
