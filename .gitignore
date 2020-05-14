@@ -1,4 +1,3 @@
-.gitignore
 base/__init__.py
 evaluation/Nodes/__init__.py
 evaluation/__init__.py
@@ -18,3 +17,4 @@ CEPvenv
 settings.json
 .vscode
 
+.gitignore
