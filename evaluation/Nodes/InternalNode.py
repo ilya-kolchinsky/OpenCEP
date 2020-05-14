@@ -71,11 +71,8 @@ class InternalNode(Node):
         self._left_subtree = left
         self._right_subtree = right
         self._set_event_definitions(
-            self._left_subtree.get_event_definitions(), self._right_subtree.get_event_definitions(),
+            self._left_subtree.get_event_definitions(), self._right_subtree.get_event_definitions()
         )
-        # maybe add these here:  set sorting properties
-        # apply formula according to left and right and simplify
-        # and apply sequence formula
 
     def handle_new_partial_match(self, partial_match_source: Node):
         """
@@ -83,15 +80,11 @@ class InternalNode(Node):
         """
         if partial_match_source == self._left_subtree:
             other_subtree = self._right_subtree
-            # curr_term = self._condition.left_term  # NADER
-            # side_of_equation = "right"  # NADER
         elif partial_match_source == self._right_subtree:
             other_subtree = self._left_subtree
-            # curr_term = self._condition.right_term  # NADER
-            # side_of_equation = "left"  # NADER
         else:
             raise Exception()  # should never happen
-        # gets only the new one
+
         new_partial_match = partial_match_source.get_last_unhandled_partial_match()
         new_pm_key = partial_match_source._partial_matches.get_key()
         first_event_defs = partial_match_source.get_event_definitions()
@@ -170,9 +163,7 @@ class InternalNode(Node):
         As of now, the insertion is always by the timestamp, and the partial matches are stored in a list sorted by
         timestamp. Therefore, the insertion operation is performed in O(log n).
         """
-        # adds new partial match to list O(logn)
-        # adds new partial match queue for continuing the computation upwards
-        self._partial_matches.add(pm)  # MUH
+        self._partial_matches.add(pm)
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
 
@@ -196,19 +187,6 @@ class InternalNode(Node):
             "pms": repr(self._partial_matches),
         }
         return data_set
-
-
-"""
-def extract_from_formula(simple_formula: Formula):
-    if isinstance(simple_formula, AtomicFormula):
-        return (
-            simple_formula.left_term,
-            simple_formula.relation_op,
-            simple_formula.right_term,
-        )
-    else:
-        return (None, None, None)
-"""
 
 
 class AndNode(InternalNode):
@@ -268,7 +246,28 @@ class SeqNode(InternalNode):
     of arrival of the events in the partial matches it constructs.
     """
 
-    def create_storage_unit(self, sorting_key: callable, relation_op=None, equation_side=None):
+    def _set_event_definitions(
+        self, left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]],
+    ):
+        self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
+
+    def _merge_events_for_new_match(
+        self,
+        first_event_defs: List[Tuple[int, QItem]],
+        second_event_defs: List[Tuple[int, QItem]],
+        first_event_list: List[Event],
+        second_event_list: List[Event],
+    ):
+        return merge_according_to(
+            first_event_defs, second_event_defs, first_event_list, second_event_list, key=lambda x: x[0],
+        )
+
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):  # validates timestamps
+            return False
+        return super()._validate_new_match(events_for_new_match)  # validates conditons
+
+    def create_storage_unit(self, sorting_key: callable = None, relation_op=None, equation_side=None):
         """
         This function creates the storage for partial_matches it gives a special key: callable
         to the storage unit which tells the storage unit on which attribute(only timestamps here)
@@ -279,7 +278,7 @@ class SeqNode(InternalNode):
         if sorting_key is None:
             self._partial_matches = UnsortedStorage([])
         else:
-            self._partial_matches = SortedStorage([], sorting_key, relation_op, equation_side)
+            self._partial_matches = SortedStorage([], sorting_key, relation_op, equation_side, True)
 
         left_event_defs = self._left_subtree.get_event_definitions()
         right_event_defs = self._right_subtree.get_event_definitions()
@@ -308,24 +307,3 @@ class SeqNode(InternalNode):
         self._relation_op = relop  # just for the json_repr
         self._left_subtree.create_storage_unit(lambda pm: pm.events[left_sort].timestamp, relop, "left")
         self._right_subtree.create_storage_unit(lambda pm: pm.events[right_sort].timestamp, relop, "right")
-
-    def _set_event_definitions(
-        self, left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]],
-    ):
-        self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
-
-    def _merge_events_for_new_match(
-        self,
-        first_event_defs: List[Tuple[int, QItem]],
-        second_event_defs: List[Tuple[int, QItem]],
-        first_event_list: List[Event],
-        second_event_list: List[Event],
-    ):
-        return merge_according_to(
-            first_event_defs, second_event_defs, first_event_list, second_event_list, key=lambda x: x[0],
-        )
-
-    def _validate_new_match(self, events_for_new_match: List[Event]):
-        if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):  # validates timestamps
-            return False
-        return super()._validate_new_match(events_for_new_match)  # validates conditons

@@ -53,6 +53,7 @@ class Node(ABC):
         """
         if self._sliding_window == timedelta.max:
             return
+        self._partial_matches.clean_expired_partial_matches(last_timestamp - self._sliding_window)
         # count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window) # OLD
         # self._partial_matches = self._partial_matches[count:] # OLD
         # del self._partial_matches[:count]  # MUH

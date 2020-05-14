@@ -64,7 +64,7 @@ class LeafNode(Node):
                 return
         self._partial_matches.append(pm)
 
-    def create_storage_unit(self, sorting_key: callable, relation_op=None, equation_side=None):
+    def create_storage_unit(self, sorting_key: callable = None, relation_op=None, equation_side=None):
         # in case of a leaf node even if sorting_key is None we create SortedStorage and it would be sorted based on timestamps
         if sorting_key is None:  # this means no condition and no sequence requested
             self._partial_matches = UnsortedStorage([])
