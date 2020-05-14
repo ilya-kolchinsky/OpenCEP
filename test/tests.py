@@ -610,7 +610,7 @@ def evaTest():
     ##os.remove(actual_matches_path)
 
 evaTest()
-""""
+
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
@@ -644,4 +644,3 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
-"""""

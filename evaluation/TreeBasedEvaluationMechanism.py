@@ -148,7 +148,7 @@ class InternalNode(Node):
     def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, parent)
-        self._event_defs = event_defs
+        self._event_defs = event_defs #nathanb: contains all the QItem present in this subtree
         self._left_subtree = left
         self._right_subtree = right
 

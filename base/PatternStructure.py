@@ -9,7 +9,6 @@ a pattern matching condition, represented as formula.
 from abc import ABC
 from typing import List
 
-
 class PatternStructure(ABC):
     def get_top_operator(self):
         return type(self)
@@ -17,6 +16,8 @@ class PatternStructure(ABC):
 
 class QItem(PatternStructure):
     def __init__(self, event_type: str, name: str):
+        print("event:", event_type)
+        print("name:", name)
         self.event_type = event_type
         self.name = name
 
@@ -33,7 +34,15 @@ class OrOperator(PatternStructure):
 
 class SeqOperator(PatternStructure):
     def __init__(self, args: List[PatternStructure]):
+        for pattern in args:
+            print(pattern)
+            #if isinstance(pattern, NegationOperator):
+                #args.remove(pattern)
+        args = [arg for arg in args if not isinstance(arg, NegationOperator)]
         self.args = args
+        print(" ")
+        for pattern in args:
+            print(pattern.name)
 
 
 class KleeneClosureOperator(PatternStructure):

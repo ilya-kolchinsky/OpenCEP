@@ -3,6 +3,8 @@ from base.PatternStructure import PatternStructure
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
 
+from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, AtomicTerm, AndFormula, TrueFormula
+from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
 
 class Pattern:
     """
@@ -24,3 +26,16 @@ class Pattern:
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         self.statistics_type = statistics_type
         self.statistics = statistics
+
+
+pattern = Pattern(
+        SeqOperator([QItem("GOOG", "a"), NegationOperator(QItem("GOOG", "b")), QItem("GOOG", "c")]),
+        AndFormula(
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+
+operator = pattern.structure.get_top_operator()
+#pattern.structure.get_top_operator()
