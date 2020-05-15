@@ -32,6 +32,7 @@ nasdaqEventStreamFrequencyTailored = file_input(
 )
 nasdaqEventStream_AAPL_AMZN_GOOG = file_input("test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt", MetastockDataFormatter())
 nasdaqEventStream = file_input("test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
+# TODO return EventFiles ma7al MyTempEventFiles
 
 
 def closeFiles(file1, file2):

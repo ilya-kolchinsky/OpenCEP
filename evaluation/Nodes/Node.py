@@ -54,6 +54,9 @@ class Node(ABC):
         if self._sliding_window == timedelta.max:
             return
         self._partial_matches.clean_expired_partial_matches(last_timestamp - self._sliding_window)
+        # count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window) # OLD
+        # self._partial_matches = self._partial_matches[count:] # OLD
+        # del self._partial_matches[:count]  # MUH
 
     def add_partial_match(self, pm: PartialMatch):
         """
@@ -86,3 +89,8 @@ class Node(ABC):
         Returns the specifications of all events collected by this tree - to be implemented by subclasses.
         """
         raise NotImplementedError()
+
+    def create_storage_unit(
+        self, sorting_key: callable = None, relation_op=None, equation_side=None, sort_by_first_timestamp=False
+    ):
+        pass

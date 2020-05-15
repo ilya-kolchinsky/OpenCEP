@@ -64,14 +64,15 @@ class LeafNode(Node):
                 return
         self._partial_matches.append(pm)
 
-    def create_storage_unit(self, sorting_key: callable, relation_op=None, equation_side=None):
-        # in case of a leaf node even if sorting_key is None we create SortedStorage and it would be sorted based on timestamps
-        if sorting_key is None:  # this means no condition and no sequence requested
-            self._partial_matches = UnsortedStorage([])
-            """SortedStorage([], lambda pm: pm.first_timestamp, relation_op, equation_side)"""
-
-        else:  # either by condition or by sequence
-            self._partial_matches = SortedStorage([], sorting_key, relation_op, equation_side)
+    def create_storage_unit(
+        self, sorting_key: callable = None, relation_op="<", equation_side="left", sort_by_first_timestamp=True
+    ):
+        # this means no condition and no sequence requested
+        if sorting_key is None:
+            self._partial_matches = UnsortedStorage()
+        # either by condition or by sequence
+        else:
+            self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side, sort_by_first_timestamp)
 
     def json_repr(self):
         return {

@@ -27,7 +27,7 @@ class Tree:
         )
         # a function bdal the next two called: set_up_nodes which applies formula simplifies it and then creates suitable storage units
         self.__root.apply_formula(pattern.condition)  # puts formula in nodes
-        self.__root.create_storage_unit()
+        self.__root.create_storage_unit(lambda pm: pm.first_timestamp, "<", "left", True)
         # self.__root.set_sorting_properties()
 
     def json_repr(self):
