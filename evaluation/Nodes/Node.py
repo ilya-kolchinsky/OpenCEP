@@ -89,3 +89,8 @@ class Node(ABC):
         Returns the specifications of all events collected by this tree - to be implemented by subclasses.
         """
         raise NotImplementedError()
+
+    def create_storage_unit(
+        self, sorting_key: callable = None, relation_op=None, equation_side=None, sort_by_first_timestamp=False
+    ):
+        pass

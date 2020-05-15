@@ -93,8 +93,6 @@ class InternalNode(Node):
         # from other_subtree we need to get a compact amount of partial matches
 
         partial_matches_to_compare = other_subtree.get_partial_matches(new_pm_key(new_partial_match))
-        # print("new_pm = " + repr(new_partial_match))
-        # print("tocompare_pms = " + repr(partial_matches_to_compare))
         second_event_defs = other_subtree.get_event_definitions()
 
         # child is cleaned when his father handles his partial matches,
@@ -199,17 +197,19 @@ class AndNode(InternalNode):
     # we should agree with SeqNode on a mutual definition if this function
     # creates aa Storage unit with the key chosen by it's father and chooses the sorting_key for its children
     # if you are calling this function on root then sorting_key can be WHATEVER you want
-    def create_storage_unit(self, sorting_key: callable = None, relation_op=None, equation_side=None):
+    def create_storage_unit(
+        self, sorting_key: callable = None, relation_op="<", equation_side="left", sort_by_first_timestamp=False
+    ):
         """if ENABLE_SORTING == false:
-            self._partial_matches = UnsortedStorage([])
+            self._partial_matches = UnsortedStorage()
             self._left_subtree.create_storage_unit()
             self._right_subtree.create_storage_unit()
             return"""
 
         if sorting_key is None:
-            self._partial_matches = UnsortedStorage([])
+            self._partial_matches = UnsortedStorage()
         else:
-            self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side)
+            self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side, sort_by_first_timestamp)
 
         left_sorting_key = None
         right_sorting_key = None
@@ -267,7 +267,9 @@ class SeqNode(InternalNode):
             return False
         return super()._validate_new_match(events_for_new_match)  # validates conditons
 
-    def create_storage_unit(self, sorting_key: callable = None, relation_op=None, equation_side=None):
+    def create_storage_unit(
+        self, sorting_key: callable = None, relation_op="<", equation_side="left", sort_by_first_timestamp=True
+    ):
         """
         This function creates the storage for partial_matches it gives a special key: callable
         to the storage unit which tells the storage unit on which attribute(only timestamps here)
@@ -276,9 +278,9 @@ class SeqNode(InternalNode):
         as in event_defs: [(1,a),(2,b)] in event_defs and [a,b] in pm.
         """
         if sorting_key is None:
-            self._partial_matches = UnsortedStorage([])
+            self._partial_matches = UnsortedStorage()
         else:
-            self._partial_matches = SortedStorage([], sorting_key, relation_op, equation_side, True)
+            self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side, sort_by_first_timestamp)
 
         left_event_defs = self._left_subtree.get_event_definitions()
         right_event_defs = self._right_subtree.get_event_definitions()
@@ -293,17 +295,23 @@ class SeqNode(InternalNode):
         if max_left < min_right:  # 3)
             left_sort = -1
             right_sort = 0
-            relop = "<"
+            relop = "<="
         elif max_right < min_left:  # 4)
             left_sort = 0
             right_sort = -1
-            relop = ">"
+            relop = ">="
         elif min_left < min_right:  # 1)
-            relop = "<"
+            relop = "<="
         elif min_right < min_left:  # 2)
-            relop = ">"
+            relop = ">="
 
         assert relop is not None
+        left_sort_by_first_timestamp = True if left_sort == 0 else False
+        right_sort_by_first_timestamp = True if right_sort == 0 else False
         self._relation_op = relop  # just for the json_repr
-        self._left_subtree.create_storage_unit(lambda pm: pm.events[left_sort].timestamp, relop, "left")
-        self._right_subtree.create_storage_unit(lambda pm: pm.events[right_sort].timestamp, relop, "right")
+        self._left_subtree.create_storage_unit(
+            lambda pm: pm.events[left_sort].timestamp, relop, "left", left_sort_by_first_timestamp
+        )
+        self._right_subtree.create_storage_unit(
+            lambda pm: pm.events[right_sort].timestamp, relop, "right", right_sort_by_first_timestamp
+        )
