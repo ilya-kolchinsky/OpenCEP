@@ -35,9 +35,20 @@ class CEP:
             raise Exception("No patterns are provided")
         if len(patterns) > 1:
             raise NotImplementedError("Multi-pattern support is not yet available")
+
+        #EVA ici séparer patterns[0] en un pattern avec tous les Positive events et un avec les negatifs.
+        #envoyer à la fonction juste les positifs
+
+        #test = patterns[0].structure.get_args()[0].name
+        NegationPostProcessing = True
+        if NegationPostProcessing:
+            PositifPattern = Pattern(patterns[0].positive_event, patterns[0].condition, patterns[0].window)
+
         self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
                                                                                                eval_mechanism_params,
-                                                                                               patterns[0])
+                                                                                               PositifPattern)
+        #Ici rajouter sur l'arbre créé les NegationNode pour Post-Processing Mode avec la Formula dans le InternalNode
+        #Pour le First-Chance Negation ???
         self.__pattern_matches = None
         self.__performance_specs = performance_specs
 
@@ -48,7 +59,7 @@ class CEP:
         """
         self.__pattern_matches = Stream()
         start = datetime.now()
-        self.__eval_mechanism.eval(event_stream, self.__pattern_matches)#EVA ici faire suivre à la fonction eval le negation mode
+        self.__eval_mechanism.eval(event_stream, self.__pattern_matches)
         return (datetime.now() - start).total_seconds()
 
     def get_pattern_match(self):

@@ -9,7 +9,7 @@ from evaluation.LeftDeepTreeBuilders import *
 from evaluation.BushyTreeBuilders import *
 from datetime import timedelta
 from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, AtomicTerm, AndFormula, TrueFormula
-from base.PatternStructure import AndOperator, SeqOperator, QItem
+from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
 from base.Pattern import Pattern
 
 nasdaqEventStreamShort = file_input("test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
@@ -583,13 +583,9 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
 
 def evaTest():
     pattern = Pattern(
-        SeqOperator([QItem("APL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
-        AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                               IdentifierTerm("b", lambda x: x["Opening Price"])),
-            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                               IdentifierTerm("c", lambda x: x["Opening Price"]))
-        ),
+        SeqOperator([QItem("APL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"])),
         timedelta.max
     )
 

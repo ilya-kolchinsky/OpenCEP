@@ -22,20 +22,24 @@ class Pattern:
         self.window = time_window
         self.statistics_type = StatisticsTypes.NO_STATISTICS
         self.statistics = None
+#EVA 17.05
+        self.positive_event = pattern_structure.duplicate()
+        self.negative_event = pattern_structure.duplicate()
+        i = 0
+        while i < len(pattern_structure.get_args()):
+            p = pattern_structure.get_args()[i]
+            if type(p) == NegationOperator:
+                self.positive_event.remove_arg(p)
+            else:
+                self.negative_event.remove_arg(p)
+            i += 1
 
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         self.statistics_type = statistics_type
         self.statistics = statistics
 
+    #def split_Negation_Event(self):
 
-pattern = Pattern(
-        SeqOperator([QItem("GOOG", "a"), NegationOperator(QItem("GOOG", "b")), QItem("GOOG", "c")]),
-        AndFormula(
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
-            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
-        ),
-        timedelta(minutes=3)
-    )
 
-operator = pattern.structure.get_top_operator()
-#pattern.structure.get_top_operator()
+
+        #test = patterns[0].structure.get_args()[0].name
