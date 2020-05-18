@@ -583,12 +583,14 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
 
 def evaTest():
     pattern = Pattern(
-        SeqOperator([QItem("APL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
-        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                               IdentifierTerm("c", lambda x: x["Opening Price"])),
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(10)),
+            GreaterThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]), AtomicTerm(10))
+        ),
         timedelta.max
     )
-
+#, NegationOperator(QItem("AMZN", "b")),
     extraShortEventStream = file_input("test/EventFiles/Extra_Short.txt", MetastockDataFormatter())
 
     events = extraShortEventStream.duplicate()
