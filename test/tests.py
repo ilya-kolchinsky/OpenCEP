@@ -9,7 +9,7 @@ from evaluation.LeftDeepTreeBuilders import *
 from evaluation.BushyTreeBuilders import *
 from datetime import timedelta
 from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, AtomicTerm, AndFormula, TrueFormula
-from base.PatternStructure import AndOperator, SeqOperator, QItem
+from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
 from base.Pattern import Pattern
 
 nasdaqEventStreamShort = file_input("test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
@@ -583,16 +583,14 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
 
 def evaTest():
     pattern = Pattern(
-        SeqOperator([QItem("APL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
         AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                               IdentifierTerm("b", lambda x: x["Opening Price"])),
-            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                               IdentifierTerm("c", lambda x: x["Opening Price"]))
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(10)),
+            GreaterThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]), AtomicTerm(10))
         ),
         timedelta.max
     )
-
+#, NegationOperator(QItem("AMZN", "b")),
     extraShortEventStream = file_input("test/EventFiles/Extra_Short.txt", MetastockDataFormatter())
 
     events = extraShortEventStream.duplicate()

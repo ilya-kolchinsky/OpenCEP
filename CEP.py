@@ -41,12 +41,12 @@ class CEP:
 
         #test = patterns[0].structure.get_args()[0].name
         NegationPostProcessing = True
-        if NegationPostProcessing:
-            PositifPattern = Pattern(patterns[0].positive_event, patterns[0].condition, patterns[0].window)
+        #if NegationPostProcessing:
+            #PositifPattern = Pattern(patterns[0].positive_event, patterns[0].condition, patterns[0].window)
 
         self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
                                                                                                eval_mechanism_params,
-                                                                                               PositifPattern)
+                                                                                               patterns[0])
         #Ici rajouter sur l'arbre créé les NegationNode pour Post-Processing Mode avec la Formula dans le InternalNode
         #Pour le First-Chance Negation ???
         self.__pattern_matches = None

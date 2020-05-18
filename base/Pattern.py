@@ -4,7 +4,7 @@ from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
 
 from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, AtomicTerm, AndFormula, TrueFormula
-from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
+from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator, OrOperator
 
 class Pattern:
     """
@@ -17,25 +17,34 @@ class Pattern:
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Formula = None,
                  time_window: timedelta = timedelta.max):
-        self.structure = pattern_structure
+        #nathan
+        #self.structure = pattern_structure
+
         self.condition = pattern_matching_condition
         self.window = time_window
         self.statistics_type = StatisticsTypes.NO_STATISTICS
         self.statistics = None
-#EVA 17.05
-        self.positive_event = pattern_structure.duplicate()
-            #self.structure.get_top_operator()
-            #pattern_structure.duplicate()
-        self.negative_event = pattern_structure.duplicate()
-        i = 0
-        while i < len(pattern_structure.get_args()):
-            p = pattern_structure.get_args()[i]
-            if type(p) == NegationOperator:
-                self.positive_event.remove_arg(p)
-            else:
-                self.negative_event.remove_arg(p)
-            i += 1
+
+        """
+        nathan:
+        origin structure is the pattern structure that we get in params - containing all the fields
+        structure is the origin structure without the negative events
+        negative event contains only the negative events of the pattern
+        """
+        self.origin_structure = pattern_structure
+        self.structure = pattern_structure.create_top_operator()
+        self.negative_event = pattern_structure.create_top_operator()
+
+        self.split_structures()
 
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         self.statistics_type = statistics_type
         self.statistics = statistics
+
+    def split_structures(self):
+        for i in range(len(self.origin_structure.get_args())):
+            p = self.origin_structure.get_args()[i]
+            if type(p) == NegationOperator:
+                self.negative_event.add_arg(p)
+            else:
+                self.structure.add_arg(p)
