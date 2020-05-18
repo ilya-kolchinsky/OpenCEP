@@ -24,6 +24,8 @@ class Pattern:
         self.statistics = None
 #EVA 17.05
         self.positive_event = pattern_structure.duplicate()
+            #self.structure.get_top_operator()
+            #pattern_structure.duplicate()
         self.negative_event = pattern_structure.duplicate()
         i = 0
         while i < len(pattern_structure.get_args()):
@@ -37,9 +39,3 @@ class Pattern:
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         self.statistics_type = statistics_type
         self.statistics = statistics
-
-    #def split_Negation_Event(self):
-
-
-
-        #test = patterns[0].structure.get_args()[0].name
