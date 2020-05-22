@@ -48,6 +48,7 @@ class CEP:
         self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(
             eval_mechanism_type, eval_mechanism_params, patterns[0]
         )
+        # print(prettyjson(self.__eval_mechanism.json_repr()))
         self.__pattern_matches = None
         self.__performance_specs = performance_specs
 

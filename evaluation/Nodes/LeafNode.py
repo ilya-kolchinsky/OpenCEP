@@ -44,7 +44,7 @@ class LeafNode(Node):
         """
         Inserts the given event to this leaf.
         """
-        self.clean_expired_partial_matches(event.timestamp)
+        # self.clean_expired_partial_matches(event.timestamp)
 
         # get event's qitem and make a binding to evaluate formula for the new event.
         binding = {self.__event_name: event.payload}
@@ -65,7 +65,7 @@ class LeafNode(Node):
         self._partial_matches.append(pm)
 
     def create_storage_unit(
-        self, sorting_key: callable = None, relation_op="<", equation_side="left", sort_by_first_timestamp=True
+        self, sorting_key: callable = None, relation_op=None, equation_side=None, sort_by_first_timestamp=False
     ):
         # this means no condition and no sequence requested
         if sorting_key is None:

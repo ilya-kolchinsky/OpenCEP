@@ -85,7 +85,7 @@ class Storage(MutableSequence):
 
 
 class SortedStorage(Storage):
-    def __init__(self, key, relop=None, equation_side=None, sort_by_first_timestamp=False):
+    def __init__(self, key, relop, equation_side, sort_by_first_timestamp=False):
         self._container = []
         self._key = key
         self._sorted_by_first_timestamp = sort_by_first_timestamp
