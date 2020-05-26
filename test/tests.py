@@ -583,7 +583,7 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
 
 def evaTest():
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), NegationOperator(QItem("GOOG", "c"))]),
         AndFormula(
             AndFormula(
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),

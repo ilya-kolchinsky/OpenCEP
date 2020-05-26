@@ -294,13 +294,27 @@ class Tree:
         temp_root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
                                             tree_structure, pattern.structure.args, pattern.window)
 
-        self.__root = InternalNode(pattern.window)
+        #root = InternalNode(pattern.window)
+        #temp_root = positive_root
+        for p in pattern.negative_event.get_args():
+            temporal_root = InternalNode(pattern.window)
+            temp_neg_event = LeafNode(pattern.window, 1, p, temporal_root)
+            temporal_root.set_subtrees(temp_root, temp_neg_event)
+            temp_neg_event.set_parent(temporal_root)
+            temp_root.set_parent(temporal_root)
+            temp_root = temp_root._parent
 
+        if len(pattern.negative_event.get_args()):
+            self.__root = temporal_root
+        else:
+            self.__root = temp_root
+        """
         if len(pattern.negative_event.get_args()):
             temp_neg_event = LeafNode(pattern.window, 1, (pattern.negative_event.get_args())[0], self.__root )
             self.__root.set_subtrees(temp_root, temp_neg_event)
         else:
             self.__root = temp_root
+            """
         """
         self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
                                             tree_structure, pattern.structure.args, pattern.window)
