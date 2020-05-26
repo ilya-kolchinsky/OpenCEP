@@ -20,7 +20,7 @@ class Pattern:
         #nathan
         #self.structure = pattern_structure
 
-        self.condition = pattern_matching_condition
+        #self.condition = pattern_matching_condition
         self.window = time_window
         self.statistics_type = StatisticsTypes.NO_STATISTICS
         self.statistics = None
@@ -37,6 +37,10 @@ class Pattern:
 
         self.split_structures()
 
+        #self.negative_condition_list = list()
+        self.condition = pattern_matching_condition
+        #self.split_formula()
+
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         self.statistics_type = statistics_type
         self.statistics = statistics
@@ -48,3 +52,8 @@ class Pattern:
                 self.negative_event.add_arg(p)
             else:
                 self.structure.add_arg(p)
+"""
+    def split_formula(self):
+        for i in self.negative_event.get_args():
+            self.negative_condition_list.append(self.condition.get_formula_of(i.get_event_name()))
+"""

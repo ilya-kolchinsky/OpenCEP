@@ -1,7 +1,7 @@
 from abc import ABC
 from datetime import timedelta, datetime
 from base.Pattern import Pattern
-from base.PatternStructure import SeqOperator, QItem
+from base.PatternStructure import SeqOperator, QItem, NegationOperator
 from base.Formula import TrueFormula, Formula
 from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
@@ -290,8 +290,23 @@ class Tree:
     """
     def __init__(self, tree_structure: tuple, pattern: Pattern):
         # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
+
+        temp_root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
+                                            tree_structure, pattern.structure.args, pattern.window)
+
+        self.__root = InternalNode(pattern.window)
+
+        if len(pattern.negative_event.get_args()):
+            temp_neg_event = LeafNode(pattern.window, 1, (pattern.negative_event.get_args())[0], self.__root )
+            self.__root.set_subtrees(temp_root, temp_neg_event)
+        else:
+            self.__root = temp_root
+        """
         self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
                                             tree_structure, pattern.structure.args, pattern.window)
+        
+        """
+
         self.__root.apply_formula(pattern.condition)
 
     def get_leaves(self):
@@ -320,6 +335,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     def __init__(self, pattern: Pattern, tree_structure: tuple):
         self.__tree = Tree(tree_structure, pattern)
+
+
 
     def eval(self, events: Stream, matches: Stream):
         event_types_listeners = {}

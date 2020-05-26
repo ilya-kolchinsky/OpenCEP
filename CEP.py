@@ -48,7 +48,9 @@ class CEP:
                                                                                                eval_mechanism_params,
                                                                                                patterns[0])
         #Ici rajouter sur l'arbre créé les NegationNode pour Post-Processing Mode avec la Formula dans le InternalNode
+        #ensuite faire self.evalmechanism.apply_formula(pattern.neg_condition)
         #Pour le First-Chance Negation ???
+
         self.__pattern_matches = None
         self.__performance_specs = performance_specs
 

@@ -116,4 +116,19 @@ class KleeneClosureOperator(PatternStructure):
 class NegationOperator(PatternStructure):
     def __init__(self, arg: PatternStructure):
         self.arg = arg
+        self.name = self.get_event_name()
+        self.event_type = self.get_event_type()
+
+    def get_args(self):#EVA_26.05
+        return self.arg
+
+    def get_event_name(self):
+        if type(self.arg) == QItem:
+            return self.get_args().name
+        #pour supporter les nested negation operator rajouter else return une liste de tous les names
+
+    def get_event_type(self):
+        if type(self.arg) == QItem:
+            return self.get_args().event_type
+
 
