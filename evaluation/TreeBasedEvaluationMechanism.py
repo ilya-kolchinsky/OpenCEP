@@ -251,6 +251,28 @@ class InternalNode(Node):
         }
         return self._condition.eval(binding)
 
+class InternalNegationNode(InternalNode):
+    """
+    An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
+    """
+
+    def _try_create_new_match(self,
+                              first_partial_match: PartialMatch, second_partial_match: PartialMatch,
+                              first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
+        """
+        Verifies all the conditions for creating a new partial match and creates it if all constraints are satisfied.
+        """
+        if self._sliding_window != timedelta.max and \
+                abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
+            return
+        events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
+                                                                first_partial_match.events, second_partial_match.events)
+
+        if self._validate_new_match(events_for_new_match):
+            return
+        self.add_partial_match(PartialMatch(events_for_new_match))
+        if self._parent is not None:
+            self._parent.handle_new_partial_match(self)
 
 class AndNode(InternalNode):
     """
@@ -297,7 +319,7 @@ class Tree:
         #root = InternalNode(pattern.window)
         #temp_root = positive_root
         for p in pattern.negative_event.get_args():
-            temporal_root = InternalNode(pattern.window)
+            temporal_root = InternalNegationNode(pattern.window)
             temp_neg_event = LeafNode(pattern.window, 1, p, temporal_root)
             temporal_root.set_subtrees(temp_root, temp_neg_event)
             temp_neg_event.set_parent(temporal_root)
