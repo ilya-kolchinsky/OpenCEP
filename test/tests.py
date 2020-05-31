@@ -583,20 +583,13 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
 
 def evaTest():
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), NegationOperator(QItem("GOOG", "c"))]),
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
         AndFormula(
-            AndFormula(
-                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
-                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                                   IdentifierTerm("c", lambda x: x["Opening Price"]))
-            ),
-            SmallerThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]),
-                               AtomicTerm(135))
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
+            GreaterThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]), AtomicTerm(135))
         ),
         timedelta.max
     )
-#, NegationOperator(QItem("AMZN", "b")),
     extraShortEventStream = file_input("test/EventFiles/Extra_Short.txt", MetastockDataFormatter())
 
     events = extraShortEventStream.duplicate()
@@ -607,14 +600,62 @@ def evaTest():
     matches = cep.get_pattern_match_stream()
     extraShort = 'extraShort'
     file_output(matches, '%sMatches.txt' % extraShort)
-    """
+
     expected_matches_path = "test/TestsExpected/%sMatches.txt" % extraShort
     actual_matches_path = "test/Matches/%sMatches.txt" % extraShort
     print("Test %s result: %s, Time Passed: %s" % (extraShort,
           "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
-    os.remove(actual_matches_path)
-    """
+    #os.remove(actual_matches_path)
+
+
+def NegAtTheBeginningThatDoesntInvalidatesMatchesTest():
+    pattern = Pattern(
+        SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMZN", "b"), QItem("GOOG", "c")]),
+        AndFormula(
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("c", lambda x: x["Opening Price"]))
+            ),
+            GreaterThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]),
+                               AtomicTerm(135))
+        ),
+        timedelta.max
+    )
+    extraShortEventStream = file_input("test/EventFiles/JustShort.txt", MetastockDataFormatter())
+
+    events = extraShortEventStream.duplicate()
+    eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
+    cep = CEP([pattern], eval_mechanism_type)
+    running_time = cep.run(events)
+    matches = cep.get_pattern_match_stream()
+    name = 'NegAtTheBeginningThatDoesntInvalidatesMatchesTest'
+    file_output(matches, '%sMatches.txt' % name)
+
+    expected_matches_path = "test/TestsExpected/%sMatches.txt" % name
+    actual_matches_path = "test/Matches/%sMatches.txt" % name
+    print("Test %s result: %s, Time Passed: %s" % (name,
+          "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
+    #os.remove(actual_matches_path)
+
+
+
 evaTest()
+NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
+"""
+NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
+
+NegAtTheEndThatInvalidatesMatchesTest()
+NegAtTheEndThatDoesntInvalidatesMatchesTest()
+
+NegThatInvalidatesMatchesTest()
+NegThatDoesntInvalidatesMatchesTest()
+NoNegInTest()
+
+
+
+
 
 oneArgumentsearchTest()
 simplePatternSearchTest()
@@ -649,3 +690,4 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
+"""
