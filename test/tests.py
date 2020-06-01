@@ -605,7 +605,7 @@ def evaTest():
     actual_matches_path = "test/Matches/%sMatches.txt" % extraShort
     print("Test %s result: %s, Time Passed: %s" % (extraShort,
           "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
-    #os.remove(actual_matches_path)
+    os.remove(actual_matches_path)
 
 
 def NegAtTheBeginningThatDoesntInvalidatesMatchesTest():
@@ -619,7 +619,7 @@ def NegAtTheBeginningThatDoesntInvalidatesMatchesTest():
                                    IdentifierTerm("c", lambda x: x["Opening Price"]))
             ),
             GreaterThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]),
-                               AtomicTerm(135))
+                               AtomicTerm(35))
         ),
         timedelta.max
     )
@@ -637,12 +637,45 @@ def NegAtTheBeginningThatDoesntInvalidatesMatchesTest():
     actual_matches_path = "test/Matches/%sMatches.txt" % name
     print("Test %s result: %s, Time Passed: %s" % (name,
           "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
-    #os.remove(actual_matches_path)
+    os.remove(actual_matches_path)
 
+def googleAscendPatternSearchTestWITHNEG():
+    """
+    This pattern is looking for a short ascend in the Google peak prices.
+    PATTERN SEQ(GoogleStockPriceUpdate a, GoogleStockPriceUpdate b, GoogleStockPriceUpdate c)
+    WHERE a.PeakPrice < b.PeakPrice AND b.PeakPrice < c.PeakPrice
+    WITHIN 3 minutes
+    """
+    googleAscendPattern = Pattern(
+        SeqOperator([NegationOperator(QItem("GGGGG", "l")), QItem("GOOG", "a"), QItem("GOOG", "b"), QItem("GOOG", "c")]),
+        AndFormula(
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
 
+    extraShortEventStream = file_input("test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
+
+    events = extraShortEventStream.duplicate()
+    eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
+    cep = CEP([googleAscendPattern], eval_mechanism_type)
+    running_time = cep.run(events)
+    matches = cep.get_pattern_match_stream()
+    name = 'googleAscend'
+    file_output(matches, '%sMatches.txt' % name)
+
+    expected_matches_path = "test/TestsExpected/%sMatches.txt" % name
+    actual_matches_path = "test/Matches/%sMatches.txt" % name
+    print("Test %s result: %s, Time Passed: %s" % (name,
+                                                   "Succeeded" if fileCompare(actual_matches_path,
+                                                                              expected_matches_path) else "Failed",
+                                                   running_time))
+    os.remove(actual_matches_path)
 
 evaTest()
 NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
+googleAscendPatternSearchTestWITHNEG()
 """
 NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
 

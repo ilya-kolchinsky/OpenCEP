@@ -255,11 +255,7 @@ class InternalNegationNode(InternalNode):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
-    """
-    def __init__(self):
-        self.positive_events = []
-        self.negative_events = []
-    """
+
     def _try_create_new_match(self,
                               first_partial_match: PartialMatch, second_partial_match: PartialMatch,
                               first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
@@ -274,10 +270,13 @@ class InternalNegationNode(InternalNode):
 
         return self._validate_new_match(events_for_new_match)
             #self._remove_partial_match(events_for_new_match)
-
+#EVA 01/06
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
+            return False
+        return super()._validate_new_match(events_for_new_match)
+    """
     def _remove_partial_match(self, match_to_remove: List[Event]):
-
-        """
         i = 0
         m = set(match_to_remove)
         while i < len(self._left_subtree._partial_matches):
@@ -372,11 +371,13 @@ class Tree:
             temp_root.set_parent(temporal_root)
             temp_root = temp_root._parent
 
+        self.__root = temp_root
+        """
         if len(pattern.negative_event.get_args()):
             self.__root = temporal_root
         else:
             self.__root = temp_root
-        """
+        
         if len(pattern.negative_event.get_args()):
             temp_neg_event = LeafNode(pattern.window, 1, (pattern.negative_event.get_args())[0], self.__root )
             self.__root.set_subtrees(temp_root, temp_neg_event)
@@ -417,8 +418,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     def __init__(self, pattern: Pattern, tree_structure: tuple):
         self.__tree = Tree(tree_structure, pattern)
-
-
 
     def eval(self, events: Stream, matches: Stream):
         event_types_listeners = {}
