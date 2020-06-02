@@ -27,7 +27,11 @@ class Tree:
         )
         # a function bdal the next two called: set_up_nodes which applies formula simplifies it and then creates suitable storage units
         self.__root.apply_formula(pattern.condition)  # puts formula in nodes
-        self.__root.create_storage_unit(lambda pm: pm.first_timestamp, "<", "left", True)
+        """ TODO:
+                think about only sorting the roots matches not giving it a sorting key and shit
+                I think it would be better bcoz your taking from the root just once"""
+        self.__root.create_storage_unit()
+        # self.__root.create_storage_unit(lambda pm: pm.first_timestamp, "<", "left", True)
         # self.__root.set_sorting_properties()
 
     def json_repr(self):
@@ -50,9 +54,9 @@ class Tree:
             return LeafNode(sliding_window, tree_structure, args[tree_structure], parent)
 
         current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
-        # OLD: left_structure, right_structure = tree_structure
-        left_structure = tree_structure[: len(tree_structure) // 2]
-        right_structure = tree_structure[len(tree_structure) // 2 :]
+        left_structure, right_structure = tree_structure
+        # left_structure = tree_structure[: len(tree_structure) // 2]
+        # right_structure = tree_structure[len(tree_structure) // 2 :]
         left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current)
         right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current)
         current.set_subtrees(left, right)  # sets event_defs also
