@@ -188,6 +188,7 @@ class SortedStorage(Storage):
             return self._get_smaller_or_equal if equation_side == "left" else self._get_greater_or_equal
 
 
+# used also if the user doesn't want to use the optimization
 class UnsortedStorage(Storage):
     def __init__(self):
         self._container = []

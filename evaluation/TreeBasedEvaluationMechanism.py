@@ -54,9 +54,9 @@ class Tree:
             return LeafNode(sliding_window, tree_structure, args[tree_structure], parent)
 
         current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
-        # OLD: left_structure, right_structure = tree_structure
-        left_structure = tree_structure[: len(tree_structure) // 2]
-        right_structure = tree_structure[len(tree_structure) // 2 :]
+        left_structure, right_structure = tree_structure
+        # left_structure = tree_structure[: len(tree_structure) // 2]
+        # right_structure = tree_structure[len(tree_structure) // 2 :]
         left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current)
         right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current)
         current.set_subtrees(left, right)  # sets event_defs also

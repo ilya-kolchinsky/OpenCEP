@@ -15,6 +15,7 @@ class Event:
 
 
 """
+For tests only
 class Event:
     def __init__(self, payload, event_type, time):
         self.payload = payload
@@ -26,4 +27,3 @@ class Event:
             self.event_type, self.payload, self.timestamp
         )
 """
-
