@@ -676,6 +676,9 @@ def googleAscendPatternSearchTestWITHNEG():
 evaTest()
 NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
 googleAscendPatternSearchTestWITHNEG()
+
+
+
 """
 NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
 
