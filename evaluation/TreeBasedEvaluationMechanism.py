@@ -251,71 +251,6 @@ class InternalNode(Node):
         }
         return self._condition.eval(binding)
 
-class InternalNegationNode(InternalNode):
-    """
-    An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
-    """
-
-    def _try_create_new_match(self,
-                              first_partial_match: PartialMatch, second_partial_match: PartialMatch,
-                              first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
-        """
-        Verifies all the conditions for creating a new partial match and creates it if all constraints are satisfied.
-        """
-        if self._sliding_window != timedelta.max and \
-                abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
-            return
-        events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
-                                                                first_partial_match.events, second_partial_match.events)
-
-        return self._validate_new_match(events_for_new_match)
-            #self._remove_partial_match(events_for_new_match)
-#EVA 01/06
-    def _validate_new_match(self, events_for_new_match: List[Event]):
-        if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
-            return False
-        return super()._validate_new_match(events_for_new_match)
-    """
-    def _remove_partial_match(self, match_to_remove: List[Event]):
-        i = 0
-        m = set(match_to_remove)
-        while i < len(self._left_subtree._partial_matches):
-            n = set(self._left_subtree._partial_matches[i].events)
-            if n.issubset(set(m)):
-                self._left_subtree._partial_matches.pop(i)
-            i += 1
-        #self._left_subtree._partial_matches = [x for x in self._left_subtree._partial_matches.event if not set(x).issubset(m)]
-        """
-    def handle_new_partial_match(self, partial_match_source: Node):
-        """
-        Internal node's update for a new partial match in one of the subtrees.
-        """
-        if partial_match_source == self._left_subtree:
-            other_subtree = self._right_subtree
-        elif partial_match_source == self._right_subtree:
-            return
-            #si on vient de rajouter un QItem qui est NOT, on ne veut rien faire avec,
-            # on ne veut ni le faire monter en tant que partial match ni comparer avec les autres.
-        else:
-            raise Exception()  # should never happen
-
-        new_partial_match = partial_match_source.get_last_unhandled_partial_match()  #A1 et C1
-        first_event_defs = partial_match_source.get_event_definitions()
-        other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
-
-        partial_matches_to_compare = other_subtree.get_partial_matches() #B
-        second_event_defs = other_subtree.get_event_definitions()
-        self.clean_expired_partial_matches(new_partial_match.last_timestamp)
-
-        for partialMatch in partial_matches_to_compare:#pour chaque negation object, on veut verifier si il n'invalide pas new_partial_match
-            if self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs):
-                return
-                    #self._remove_partial_match(new_partial_match)
-
-        self.add_partial_match(new_partial_match)
-        if self._parent is not None:
-            self._parent.handle_new_partial_match(self)
-
 
 
 
@@ -350,6 +285,97 @@ class SeqNode(InternalNode):
         return super()._validate_new_match(events_for_new_match)
 
 
+class InternalNegationNode(SeqNode):
+    """
+    An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
+    """
+
+    def __init__(self, sliding_window: timedelta, is_first: bool, is_last: bool, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, parent)
+        self.is_first = is_first
+        self.is_last = is_last
+
+    def _try_create_new_match(self,
+                              first_partial_match: PartialMatch, second_partial_match: PartialMatch,
+                              first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
+        
+        if self._sliding_window != timedelta.max and \
+                abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
+            return
+
+        if self.is_first:
+            events_for_new_match = second_partial_match.events + first_partial_match.events
+        elif self.is_last:
+            events_for_new_match = first_partial_match.events + second_partial_match.events
+        else:
+            events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
+                                                                first_partial_match.events, second_partial_match.events)
+
+        if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
+            return False
+        events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
+                                                                first_partial_match.events, second_partial_match.events)
+        return self._validate_new_match(events_for_new_match)
+        # self._remove_partial_match(events_for_new_match)
+
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        """
+        Validates the condition stored in this node on the given set of events.
+        """
+        binding = {
+            self._event_defs[i][1].name: events_for_new_match[i].payload for i in range(len(self._event_defs))
+        }
+        return self._condition.eval(binding)
+
+    """
+        if type(self._left_subtree) != LeafNode:
+            return self._left_subtree._validate_new_match(events_for_new_match)
+        else:
+            return super()._validate_new_match(events_for_new_match)
+
+    def _remove_partial_match(self, match_to_remove: List[Event]):
+        i = 0
+        m = set(match_to_remove)
+        while i < len(self._left_subtree._partial_matches):
+            n = set(self._left_subtree._partial_matches[i].events)
+            if n.issubset(set(m)):
+                self._left_subtree._partial_matches.pop(i)
+            i += 1
+        #self._left_subtree._partial_matches = [x for x in self._left_subtree._partial_matches.event if not set(x).issubset(m)]
+    """
+
+    def handle_new_partial_match(self, partial_match_source: Node):
+        """
+        Internal node's update for a new partial match in one of the subtrees.
+        """
+        if partial_match_source == self._left_subtree:
+            other_subtree = self._right_subtree
+        elif partial_match_source == self._right_subtree:
+            return
+            # si on vient de rajouter un QItem qui est NOT, on ne veut rien faire avec,
+            # on ne veut ni le faire monter en tant que partial match ni comparer avec les autres.
+        else:
+            raise Exception()  # should never happen
+
+        new_partial_match = partial_match_source.get_last_unhandled_partial_match()  # A1 et C1
+        first_event_defs = partial_match_source.get_event_definitions()
+        other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
+
+        partial_matches_to_compare = other_subtree.get_partial_matches()  # B
+        second_event_defs = other_subtree.get_event_definitions()
+        self.clean_expired_partial_matches(new_partial_match.last_timestamp)
+
+        for partialMatch in partial_matches_to_compare:  # pour chaque negation object, on veut verifier si il n'invalide pas new_partial_match
+            if self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs):
+                return
+                # self._remove_partial_match(new_partial_match)
+
+        self.add_partial_match(new_partial_match)
+        if self._parent is not None:
+            self._parent.handle_new_partial_match(self)
+
+
 class Tree:
     """
     Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree structure"
@@ -364,7 +390,13 @@ class Tree:
         #root = InternalNode(pattern.window)
         #temp_root = positive_root
         for p in pattern.negative_event.get_args():
-            temporal_root = InternalNegationNode(pattern.window)
+            if p == pattern.origin_structure.get_args()[0]:
+                temporal_root = InternalNegationNode(pattern.window, 1, 0)
+            elif p == pattern.origin_structure.get_args()[len(pattern.origin_structure.get_args()) -1]:
+                temporal_root = InternalNegationNode(pattern.window, 0, 1)
+            else:
+                temporal_root = InternalNegationNode(pattern.window, 0, 0)
+
             temp_neg_event = LeafNode(pattern.window, 1, p, temporal_root)
             temporal_root.set_subtrees(temp_root, temp_neg_event)
             temp_neg_event.set_parent(temporal_root)

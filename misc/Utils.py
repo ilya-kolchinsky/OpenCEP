@@ -179,16 +179,16 @@ def generate_matches(pattern: Pattern, stream: Stream):
     It is used as our test creator.
     """
     args = pattern.structure.args
-    types = {qitem.eventType for qitem in args}
+    types = {qitem.event_type for qitem in args}
     is_seq = (pattern.structure.get_top_operator() == SeqOperator)
     events = {}
     matches = []
     for event in stream:
-        if event.eventType in types:
-            if event.eventType in events.keys():
-                events[event.eventType].append(event)
+        if event.event_type in types:
+            if event.event_type in events.keys():
+                events[event.event_type].append(event)
             else:
-                events[event.eventType] = [event]
+                events[event.event_type] = [event]
     generate_matches_recursive(pattern, events, is_seq, [], datetime.max, datetime.min, matches, {})
     return matches
 
@@ -203,12 +203,12 @@ def generate_matches_recursive(pattern: Pattern, events: dict, is_seq: bool, mat
                 matches.append(PatternMatch(deepcopy(match)))
     else:
         qitem = pattern.structure.args[loop]
-        for event in events[qitem.eventType]:
-            min_date = min(min_event_timestamp, event.date)
-            max_date = max(max_event_timestamp, event.date)
-            binding[qitem.name] = event.event
+        for event in events[qitem.event_type]:
+            min_date = min(min_event_timestamp, event.timestamp)
+            max_date = max(max_event_timestamp, event.timestamp)
+            binding[qitem.name] = event.payload
             if max_date - min_date <= pattern.window:
-                if not is_seq or len(match) == 0 or match[-1].date <= event.date:
+                if not is_seq or len(match) == 0 or match[-1].timestamp <= event.timestamp:
                     match.append(event)
                     generate_matches_recursive(pattern, events, is_seq, match, min_date, max_date, matches, binding,
                                                loop + 1)

@@ -2,7 +2,7 @@ import os
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
     IterativeImprovementEvaluationMechanismParameters
-from misc.IOUtils import file_input, file_output
+from misc.IOUtils import file_input, file_output, EXPECTEDfile_output
 from misc.Stocks import MetastockDataFormatter
 from misc.Utils import generate_matches
 from evaluation.LeftDeepTreeBuilders import *
@@ -11,6 +11,8 @@ from datetime import timedelta
 from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, AtomicTerm, AndFormula, TrueFormula
 from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
 from base.Pattern import Pattern
+
+from Lib import filecmp
 
 nasdaqEventStreamShort = file_input("test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
 nasdaqEventStreamMedium = file_input("test/EventFiles/NASDAQ_MEDIUM.txt", MetastockDataFormatter())
@@ -23,8 +25,12 @@ def closeFiles(file1, file2):
     file2.close()
 
 def fileCompare(pathA, pathB):
+
+    #return filecmp.cmp(pathA, pathB)
+
     file1 = open(pathA)
     file2 = open(pathB)
+
     file1List = [] # List of unique patterns
     file2List = [] # List of unique patterns
     lineStack = ""
@@ -54,6 +60,7 @@ def fileCompare(pathA, pathB):
             return False
     closeFiles(file1, file2)
     return True
+
 
 def createTest(testName, patterns, events=None):
     if events == None:
@@ -601,11 +608,14 @@ def evaTest():
     extraShort = 'extraShort'
     file_output(matches, '%sMatches.txt' % extraShort)
 
-    expected_matches_path = "test/TestsExpected/%sMatches.txt" % extraShort
-    actual_matches_path = "test/Matches/%sMatches.txt" % extraShort
+    expected_matches_path = "test/TestsExpected/extraShortMatches.txt"
+    actual_matches_path = "test/Matches/extraShortMatches.txt"
+
     print("Test %s result: %s, Time Passed: %s" % (extraShort,
-          "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
-    os.remove(actual_matches_path)
+                                                   "Succeeded" if fileCompare(actual_matches_path,
+                                                                              expected_matches_path) else "Failed",
+                                                   running_time))
+    #os.remove(actual_matches_path)
 
 
 def NegAtTheBeginningThatDoesntInvalidatesMatchesTest():
@@ -637,7 +647,7 @@ def NegAtTheBeginningThatDoesntInvalidatesMatchesTest():
     actual_matches_path = "test/Matches/%sMatches.txt" % name
     print("Test %s result: %s, Time Passed: %s" % (name,
           "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
-    os.remove(actual_matches_path)
+    #os.remove(actual_matches_path)
 
 def googleAscendPatternSearchTestWITHNEG():
     """
@@ -673,24 +683,82 @@ def googleAscendPatternSearchTestWITHNEG():
                                                    running_time))
     os.remove(actual_matches_path)
 
+def PROBLEM():
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
+        AndFormula(
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("c", lambda x: x["Opening Price"]))
+            ),
+            GreaterThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]),
+                               AtomicTerm(35))
+        ),
+        timedelta.max
+    )
+    extraShortEventStream = file_input("test/EventFiles/PROBLEM.txt", MetastockDataFormatter())
+
+    events = extraShortEventStream.duplicate()
+    eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
+    cep = CEP([pattern], eval_mechanism_type)
+    running_time = cep.run(events)
+    matches = cep.get_pattern_match_stream()
+    name = 'PROBLEM'
+    file_output(matches, '%sMatches.txt' % name)
+
+    #expected_matches = generate_matches(pattern, extraShortEventStream)
+    #EXPECTEDfile_output(expected_matches, '%sMatches.txt' % name)
+
+    expected_matches_path = "test/TestsExpected/%sMatches.txt" % name
+    actual_matches_path = "test/Matches/%sMatches.txt" % name
+    print("Test %s result: %s, Time Passed: %s" % (name,
+          "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
+    #os.remove(actual_matches_path)
+
+def MultipleNegTest():
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), NegationOperator(QItem("AN", "f")), QItem("GOOG", "c")]),
+        AndFormula(
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("c", lambda x: x["Opening Price"]))
+            ),
+            GreaterThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]),
+                               AtomicTerm(35))
+        ),
+        timedelta.max
+    )
+    extraShortEventStream = file_input("test/EventFiles/PROBLEM.txt", MetastockDataFormatter())
+
+    events = extraShortEventStream.duplicate()
+    eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
+    cep = CEP([pattern], eval_mechanism_type)
+    running_time = cep.run(events)
+    matches = cep.get_pattern_match_stream()
+    name = 'PROBLEM'
+    file_output(matches, '%sMatches.txt' % name)
+
+    #expected_matches = generate_matches(pattern, extraShortEventStream)
+    #EXPECTEDfile_output(expected_matches, '%sMatches.txt' % name)
+
+    expected_matches_path = "test/TestsExpected/%sMatches.txt" % name
+    actual_matches_path = "test/Matches/%sMatches.txt" % name
+    print("Test %s result: %s, Time Passed: %s" % (name,
+          "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
+    #os.remove(actual_matches_path)
+
+#greedyPatternSearchTest()
 evaTest()
 NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
-googleAscendPatternSearchTestWITHNEG()
-
-
-
+#googleAscendPatternSearchTestWITHNEG()
+PROBLEM()
+#MultipleNegTest()
 """
-NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
-
-NegAtTheEndThatInvalidatesMatchesTest()
-NegAtTheEndThatDoesntInvalidatesMatchesTest()
-
-NegThatInvalidatesMatchesTest()
-NegThatDoesntInvalidatesMatchesTest()
-NoNegInTest()
-
-
-
+oneArgumentsearchTest()
 
 
 oneArgumentsearchTest()
@@ -726,4 +794,5 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
+
 """

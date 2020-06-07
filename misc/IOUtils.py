@@ -74,3 +74,14 @@ def file_output(matches: list, output_file_name: str = 'matches.txt'):
             for event in match.events:
                 f.write("%s\n" % event.payload)
             f.write("\n")
+
+def EXPECTEDfile_output(matches: list, output_file_name: str = 'matches.txt'):
+    """
+    Writes output matches to a file in the subfolder "Matches".
+    It supports any iterable as output matches.
+    """
+    with open("test/TestsExpected/" + output_file_name, 'w') as f:
+        for match in matches:
+            for event in match.events:
+                f.write("%s\n" % event.payload)
+            f.write("\n")
