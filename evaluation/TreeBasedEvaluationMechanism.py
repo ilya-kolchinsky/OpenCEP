@@ -296,6 +296,11 @@ class InternalNegationNode(SeqNode):
         self.is_first = is_first
         self.is_last = is_last
 
+
+    def get_event_definitions(self):#to support multiple neg
+        if type(self._left_subtree) == InternalNegationNode: return self._left_subtree.get_event_definitions()
+        else: return self._left_subtree._event_defs
+
     def _try_create_new_match(self,
                               first_partial_match: PartialMatch, second_partial_match: PartialMatch,
                               first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
@@ -403,6 +408,10 @@ class Tree:
             temp_root.set_parent(temporal_root)
             temp_root = temp_root._parent
 
+            names = {item[1].name for item in temp_root._event_defs}
+            condition = pattern.condition.get_formula_of(names)
+            temp_root._condition = condition if condition else TrueFormula()
+
         self.__root = temp_root
         """
         if len(pattern.negative_event.get_args()):
@@ -422,7 +431,7 @@ class Tree:
         
         """
 
-        self.__root.apply_formula(pattern.condition)
+        #self.__root.apply_formula(pattern.condition)
 
     def get_leaves(self):
         return self.__root.get_leaves()

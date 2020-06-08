@@ -719,7 +719,7 @@ def PROBLEM():
 
 def MultipleNegTest():
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), NegationOperator(QItem("AN", "f")), QItem("GOOG", "c")]),
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), NegationOperator(QItem("AN", "f")), NegationOperator(QItem("AllN", "m")), QItem("GOOG", "c")]),
         AndFormula(
             AndFormula(
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
@@ -727,19 +727,19 @@ def MultipleNegTest():
                 SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
                                    IdentifierTerm("c", lambda x: x["Opening Price"]))
             ),
-            GreaterThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]),
+            GreaterThanFormula(IdentifierTerm("f", lambda x: x["Opening Price"]),
                                AtomicTerm(35))
         ),
         timedelta.max
     )
-    extraShortEventStream = file_input("test/EventFiles/PROBLEM.txt", MetastockDataFormatter())
+    extraShortEventStream = file_input("test/EventFiles/JustShort.txt", MetastockDataFormatter())
 
     events = extraShortEventStream.duplicate()
     eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
     cep = CEP([pattern], eval_mechanism_type)
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
-    name = 'PROBLEM'
+    name = 'MultipleNeg'
     file_output(matches, '%sMatches.txt' % name)
 
     #expected_matches = generate_matches(pattern, extraShortEventStream)
@@ -756,7 +756,7 @@ evaTest()
 NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
 #googleAscendPatternSearchTestWITHNEG()
 PROBLEM()
-#MultipleNegTest()
+MultipleNegTest()
 """
 oneArgumentsearchTest()
 
