@@ -391,7 +391,7 @@ class Tree:
 
         temp_root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
                                             tree_structure, pattern.structure.args, pattern.window)
-
+        temp_root.apply_formula(pattern.condition)
         #root = InternalNode(pattern.window)
         #temp_root = positive_root
         for p in pattern.negative_event.get_args():

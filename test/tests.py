@@ -751,12 +751,47 @@ def MultipleNegTest():
           "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
     #os.remove(actual_matches_path)
 
+def OtherTest():
+    pattern = Pattern(
+        SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMZN", "b"), NegationOperator(QItem("AN", "f")), NegationOperator(QItem("AllN", "m")), QItem("GOOG", "c")]),
+        AndFormula(
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("c", lambda x: x["Opening Price"]))
+            ),
+            GreaterThanFormula(IdentifierTerm("f", lambda x: x["Opening Price"]),
+                               AtomicTerm(35))
+        ),
+        timedelta.max
+    )
+    extraShortEventStream = file_input("test/EventFiles/Longer.txt", MetastockDataFormatter())
+
+    events = extraShortEventStream.duplicate()
+    eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
+    cep = CEP([pattern], eval_mechanism_type)
+    running_time = cep.run(events)
+    matches = cep.get_pattern_match_stream()
+    name = 'OtherTest'
+    file_output(matches, '%sMatches.txt' % name)
+
+    #expected_matches = generate_matches(pattern, extraShortEventStream)
+    #EXPECTEDfile_output(expected_matches, '%sMatches.txt' % name)
+
+    expected_matches_path = "test/TestsExpected/%sMatches.txt" % name
+    actual_matches_path = "test/Matches/%sMatches.txt" % name
+    print("Test %s result: %s, Time Passed: %s" % (name,
+          "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
+    #os.remove(actual_matches_path)
+
 #greedyPatternSearchTest()
 evaTest()
 NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
 #googleAscendPatternSearchTestWITHNEG()
 PROBLEM()
 MultipleNegTest()
+OtherTest()
 """
 oneArgumentsearchTest()
 
