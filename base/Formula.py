@@ -177,6 +177,7 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
         self.left_term = left_term
         self.right_term = right_term
         self.relation_op = relation_op
+        self.seperatable_formulas = True
 
     def eval(self, binding: dict = None):
         return self.relation_op(self.left_term.eval(binding), self.right_term.eval(binding))
@@ -185,6 +186,7 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
         return "{} {} {}".format(self.left_term, self.relation_op, self.right_term)
 
     def simplify_formula(self, lhs_vars: set, rhs_vars: set):
+
         lhs_term_vars = set()
         rhs_term_vars = set()
 
@@ -240,7 +242,6 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
                     same_side_term = MinusTerm(same_side_term, cur_term["term"])
         return (same_side_term, other_side_term)
 
-
     def dismantle(self):
         return (
             self.left_term,
@@ -248,6 +249,8 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
             self.right_term,
         )
 
+    #TODO  : refactor the functions to each son class and for non Atomic 
+    #        formulas return none or another special cases ( AND Formula)
     def convert_to_relop(self, relation_op: callable):
         if relation_op(5, 5):
             if relation_op(5, 6):
@@ -262,6 +265,29 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
                 return ">"
             return "!="
 
+    def rank(self,lhs_vars: set, rhs_vars: set, priorities: dict):
+        """
+        returns the priority of the current formula according to a given dictionary representing
+        the attributes priorities, for example : [a:5 , b:10 , c:8].
+        the rank is computed by multiplying the attributs priorities, to best indicate the frequencies of the combinations.
+        it is best to choose priorities
+        according to the frequencies of the attributes to maximize the optimizations.
+        """
+        simplified = self.simplify_formula(lhs_vars,rhs_vars)
+        if simplified is None:
+            return -1
+        
+        rank = 1
+
+        for attr in simplified.left_term.abstract_terms:
+            if attr["is_id"]:
+                rank *= priorities[attr.name]
+
+        for attr in simplified.right_term.abstract_terms:
+            if attr["is_id"]:
+                rank *= priorities[attr.name]
+        
+        return rank
 
 class EqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -362,10 +388,33 @@ class BinaryLogicOpFormula(Formula):  # AND: A < B AND C < D
         self.left_formula = left_formula
         self.right_formula = right_formula
         self.binary_logic_op = binary_logic_op
+        self.seperatable_formulas = left_formula.seperatable_formulas and right_formula.seperatable_formulas
 
     def eval(self, binding: dict = None):
         return self.binary_logic_op(self.left_formula.eval(binding), self.right_formula.eval(binding))
 
+    def extract_atomic_formulas(self):
+        """
+        given a BinaryLogicOpFormula returns its atomic formulas as a list, in other
+        words, from the formula (f1 or f2 and f3) returns [f1,f2,f3]
+        """
+
+        # a preorder path in a tree (taking only leafs (atomic formulas))
+        formulas_stack = []
+        formulas_stack.append(self.right_formula)
+        formulas_stack.append(self.left_formula)
+
+        atomic_formulas = []
+
+        while formulas_stack:
+            curr_form = formulas_stack.pop()
+            if isinstance(curr_form,AtomicFormula):
+                atomic_formulas.append(curr_form)
+            else:
+                formulas_stack.append(curr_form.right_formula)
+                formulas_stack.append(curr_form.left_formula)
+        
+        return atomic_formulas
 
 class AndFormula(BinaryLogicOpFormula):  # AND: A < B AND C < D
     def __init__(self, left_formula: Formula, right_formula: Formula):
@@ -385,6 +434,30 @@ class AndFormula(BinaryLogicOpFormula):  # AND: A < B AND C < D
     def __repr__(self):  # MUH
         return "{} AND {}".format(self.left_formula, self.right_formula)
 
+    def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict):
+        if (not self.seperatable_formulas):
+            return None
+        
+        # here we know the formulas is of structure (f1 and f2 and f3 and... and fn)
+        # we need to decide which formula to simplify (according to priorities)
+        atomic_formulas = self.extract_atomic_formulas()
+
+        atomic_formulas_ranking = [ f.rank(lhs_vars,rhs_vars,priorities) for f in atomic_formulas ]
+
+        max_rank = max(atomic_formulas_ranking)
+        if max_rank == -1:
+            return None
+        
+        index_of_form_to_simplify = atomic_formulas_ranking.index(max_rank)
+
+        atomic_formulas[index_of_form_to_simplify] = atomic_formulas[index_of_form_to_simplify].simplify_formula(lhs_vars,rhs_vars)
+
+        new_and_form = AndFormula(atomic_formulas[0],atomic_formulas[1])
+
+        for index in range(len(atomic_formulas)-2):
+            new_and_form = AndFormula(new_and_form,atomic_formulas[index+2])
+
+        return new_and_form
 
 class TrueFormula(Formula):
     def eval(self, binding: dict = None):
