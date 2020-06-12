@@ -753,7 +753,7 @@ def MultipleNegTest():
 
 def OtherTest():
     pattern = Pattern(
-        SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMZN", "b"), NegationOperator(QItem("AN", "f")), NegationOperator(QItem("AllN", "m")), QItem("GOOG", "c")]),
+        SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMZN", "b"), NegationOperator(QItem("AllN", "m")), QItem("GOOG", "c"), NegationOperator(QItem("AN", "f")), NegationOperator(QItem("MMAN", "p"))]),
         AndFormula(
             AndFormula(
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
@@ -786,11 +786,11 @@ def OtherTest():
     #os.remove(actual_matches_path)
 
 #greedyPatternSearchTest()
-evaTest()
-NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
+#evaTest()
+#NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
 #googleAscendPatternSearchTestWITHNEG()
-PROBLEM()
-MultipleNegTest()
+#PROBLEM()
+#MultipleNegTest()
 OtherTest()
 """
 oneArgumentsearchTest()

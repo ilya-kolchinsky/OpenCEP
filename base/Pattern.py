@@ -46,8 +46,10 @@ class Pattern:
         self.statistics = statistics
 
     def split_structures(self):
+        #counter = 0
         for i in range(len(self.origin_structure.get_args())):
             p = self.origin_structure.get_args()[i]
+            p.set_qitem_index(i)
             if type(p) == NegationOperator:
                 self.negative_event.add_arg(p)
             else:

@@ -3,7 +3,7 @@ This file contains various useful functions utilized by different project module
 """
 
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 
 from base.Pattern import Pattern
 from base.PatternStructure import QItem
@@ -158,6 +158,8 @@ def merge_according_to(arr1: list, arr2: list, actual1: list, actual2: list, key
 
     return ret
 
+#def sort_according_to(arr1: list, arr2: list, actual1: list, actual2: list, key: callable = lambda x: x):
+
 
 def is_sorted(arr: list, key: callable = lambda x: x):
     """
@@ -230,3 +232,8 @@ def does_match_exist(matches: list, match: list):
             if is_equal:
                 return True
     return False
+
+#EVA 12/06
+
+def get_index(first_event_def):
+    return first_event_def[1].index

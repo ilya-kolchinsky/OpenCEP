@@ -32,10 +32,20 @@ class PatternStructure(ABC):
             return OrOperator([])
 
 class QItem(PatternStructure):
-    def __init__(self, event_type: str, name: str):
+
+    def __init__(self, event_type: str, name: str, index: int = None):
         self.event_type = event_type
         self.name = name
+        self.index = index
 
+    def set_qitem_index(self, index: int):
+        self.index = index
+
+    def get_event_name(self):
+            return self.name
+
+    def get_event_index(self):
+            return self.index
 
 class AndOperator(PatternStructure):
     def __init__(self, args: List[PatternStructure]):
@@ -131,4 +141,10 @@ class NegationOperator(PatternStructure):
         if type(self.arg) == QItem:
             return self.get_args().event_type
 
+    def get_event_index(self):
+        if type(self.arg) == QItem:
+            return self.get_args().get_event_index()
 
+    def set_qitem_index(self, index: int):
+        if type(self.arg) == QItem:
+            return self.arg.set_qitem_index(index)
