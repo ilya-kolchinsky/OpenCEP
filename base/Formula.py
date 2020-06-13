@@ -158,7 +158,7 @@ class Formula(ABC):
     def get_formula_of(self, names: set):
         pass
 
-    def simplify_formula(self, lhs_vars: set, rhs_vars: set):
+    def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
 
         """
         Returns a simplified formula where the lhs term consist only of lhs_vars, 
@@ -185,7 +185,7 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
     def __repr__(self):  # MUH
         return "{} {} {}".format(self.left_term, self.relation_op, self.right_term)
 
-    def simplify_formula(self, lhs_vars: set, rhs_vars: set):
+    def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
 
         lhs_term_vars = set()
         rhs_term_vars = set()
@@ -281,11 +281,17 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
 
         for attr in simplified.left_term.abstract_terms:
             if attr["is_id"]:
-                rank *= priorities[attr.name]
+                if(priorities.__contains__(attr["term"].name)):
+                    rank *= priorities[attr["term"].name]
+                else:
+                    rank +=1
 
         for attr in simplified.right_term.abstract_terms:
             if attr["is_id"]:
-                rank *= priorities[attr.name]
+                if(priorities.__contains__(attr["term"].name)):
+                    rank *= priorities[attr["term"].name]
+                else:
+                    rank +=1
         
         return rank
 
@@ -389,6 +395,7 @@ class BinaryLogicOpFormula(Formula):  # AND: A < B AND C < D
         self.right_formula = right_formula
         self.binary_logic_op = binary_logic_op
         self.seperatable_formulas = left_formula.seperatable_formulas and right_formula.seperatable_formulas
+        self.formula_to_sort_by = None
 
     def eval(self, binding: dict = None):
         return self.binary_logic_op(self.left_formula.eval(binding), self.right_formula.eval(binding))
@@ -416,6 +423,16 @@ class BinaryLogicOpFormula(Formula):  # AND: A < B AND C < D
         
         return atomic_formulas
 
+    def dismantle(self):
+        if(self.formula_to_sort_by is None):
+            return None,None,None
+
+        return (
+            self.formula_to_sort_by.left_term,
+            self.formula_to_sort_by.convert_to_relop(self.formula_to_sort_by.relation_op),
+            self.formula_to_sort_by.right_term,
+        )
+
 class AndFormula(BinaryLogicOpFormula):  # AND: A < B AND C < D
     def __init__(self, left_formula: Formula, right_formula: Formula):
         super().__init__(left_formula, right_formula, lambda x, y: x and y)
@@ -434,7 +451,7 @@ class AndFormula(BinaryLogicOpFormula):  # AND: A < B AND C < D
     def __repr__(self):  # MUH
         return "{} AND {}".format(self.left_formula, self.right_formula)
 
-    def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict):
+    def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
         if (not self.seperatable_formulas):
             return None
         
@@ -442,9 +459,12 @@ class AndFormula(BinaryLogicOpFormula):  # AND: A < B AND C < D
         # we need to decide which formula to simplify (according to priorities)
         atomic_formulas = self.extract_atomic_formulas()
 
+        #the default is to simplify according to the first formula (f1) unless given priorities. 
+
         atomic_formulas_ranking = [ f.rank(lhs_vars,rhs_vars,priorities) for f in atomic_formulas ]
 
         max_rank = max(atomic_formulas_ranking)
+        # rank==-1 in case the formula f is not simple.
         if max_rank == -1:
             return None
         
@@ -456,6 +476,8 @@ class AndFormula(BinaryLogicOpFormula):  # AND: A < B AND C < D
 
         for index in range(len(atomic_formulas)-2):
             new_and_form = AndFormula(new_and_form,atomic_formulas[index+2])
+
+        new_and_form.formula_to_sort_by = atomic_formulas[index_of_form_to_simplify]
 
         return new_and_form
 
