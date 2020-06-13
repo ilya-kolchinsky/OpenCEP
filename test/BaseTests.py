@@ -76,6 +76,29 @@ class TestFormula(unittest.TestCase):
             simplified.eval({"x": 7, "y": 1}),
         )
 
+    def test_simplifyANDFormula(self):
+        term_5 = AtomicTerm(5)
+        term_8 = AtomicTerm(8)
+
+        term_id_x = IdentifierTerm("x", lambda x: x)
+        term_id_y = IdentifierTerm("y", lambda x: x)
+
+        formula_x_steq_8 = SmallerThanEqFormula(term_id_x, term_8)   
+        formula_y_steq_5 = SmallerThanEqFormula(term_id_y, term_5)
+
+        formula_x_steq_8_And_y_steq_5 = AndFormula(formula_x_steq_8, formula_y_steq_5)
+
+        self.assertEqual(formula_x_steq_8_And_y_steq_5.seperatable_formulas , True)
+        
+        #setting priority for y to be higher than x, should simplify f2.
+        simplified_Formula = formula_x_steq_8_And_y_steq_5.simplify_formula({"x","y"},{},{"x":1, "y":10})
+        # formula to sort by should be f2 which is formula_y_steq_5 (with no change so we can assert equal)
+        self.assertEqual(simplified_Formula.formula_to_sort_by , formula_y_steq_5)
+
+        simplified_Formula = formula_x_steq_8_And_y_steq_5.simplify_formula({"x"},{"y"},{"x":1, "y":10})
+
+        self.assertIsNotNone(simplified_Formula)
 
 if __name__ == "__main__":
     unittest.main()
+    

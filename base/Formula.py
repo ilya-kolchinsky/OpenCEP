@@ -199,7 +199,7 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
                 rhs_term_vars.add(item["term"].name)
 
         # check if already simple : set() is for removing duplicates and empty set cases
-        if set(lhs_vars) == set(lhs_term_vars) and set(rhs_vars) == set(rhs_term_vars):
+        if set(lhs_term_vars).issubset(lhs_vars) and set(rhs_term_vars).issubset(rhs_vars):
             return self
 
         # check if a possible simplification exists
