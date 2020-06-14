@@ -16,9 +16,10 @@ class PatternStructure(ABC):
 
 
 class QItem(PatternStructure):
-    def __init__(self, event_type: str, name: str):
+    def __init__(self, event_type: str, name: str, strict: bool = False):
         self.event_type = event_type
         self.name = name
+        self.strict = strict #Should the event come immediately after the previous event in the sequence
 
 
 class AndOperator(PatternStructure):
@@ -32,6 +33,11 @@ class OrOperator(PatternStructure):
 
 
 class SeqOperator(PatternStructure):
+    def __init__(self, args: List[PatternStructure]):
+        self.args = args
+
+
+class StrictSeqOperator(PatternStructure):
     def __init__(self, args: List[PatternStructure]):
         self.args = args
 

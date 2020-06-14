@@ -11,8 +11,8 @@ from misc.Utils import generate_matches
 from evaluation.LeftDeepTreeBuilders import *
 from evaluation.BushyTreeBuilders import *
 from datetime import timedelta
-from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, AtomicTerm, AndFormula, TrueFormula
-from base.PatternStructure import AndOperator, SeqOperator, QItem
+from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, MinusTerm, AtomicTerm, AndFormula, TrueFormula
+from base.PatternStructure import AndOperator, SeqOperator, StrictSeqOperator, QItem
 from base.Pattern import Pattern
 
 

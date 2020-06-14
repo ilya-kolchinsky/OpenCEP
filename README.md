@@ -85,3 +85,39 @@ cep.run(events) # potentially blocking call
 matches = cep.get_pattern_match_stream()
 file_output(matches, 'output.txt')
 ```
+
+Defining strict patterns:
+```
+pattern = Pattern(
+    StrictSeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+    TrueFormula(),
+    timedelta(minutes=5)
+)
+```
+
+Alternatively, each pair of successive event types can be defined as strict:
+```
+pattern = Pattern(
+    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b", True), QItem("AVID", "c", True)]), 
+    TrueFormula(),
+    timedelta(minutes=5)
+)
+```
+
+Alternatively, each pair of successive event types can be manually defined to skip any number of events in between:
+```
+pattern = Pattern(
+    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+    AndFormula(
+        EqFormula(
+            IdentifierTerm("a", lambda x: x["Index"]), 
+            MinusTerm(IdentifierTerm("b", lambda x: x["Index"]), AtomicTerm(1))
+        ),
+        EqFormula(
+            IdentifierTerm("b", lambda x: x["Index"]), 
+            MinusTerm(IdentifierTerm("c", lambda x: x["Index"]), AtomicTerm(1))
+        )
+    ),
+    timedelta(minutes=5)
+)
+```

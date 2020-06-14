@@ -1,8 +1,8 @@
-from base.Formula import Formula
+from base.Formula import Formula, EqFormula, IdentifierTerm, MinusTerm, AtomicTerm, AndFormula
 from base.PatternStructure import PatternStructure
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
-
+from base.PatternStructure import SeqOperator, StrictSeqOperator
 
 class Pattern:
     """
@@ -15,6 +15,23 @@ class Pattern:
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Formula = None,
                  time_window: timedelta = timedelta.max):
+        #Adjust formula if qitems are "strict"
+        args = pattern_structure.args
+        if(pattern_structure.get_top_operator() == StrictSeqOperator):
+            for i in range(len(args) - 1):
+                args[i + 1].strict = True
+            pattern_structure = SeqOperator(args)
+        if(pattern_structure.get_top_operator() == SeqOperator):
+            for i in range(len(args) - 1):
+                if(args[i + 1].strict == True):
+                    pattern_matching_condition = AndFormula(
+                        pattern_matching_condition,
+                        EqFormula(
+                            IdentifierTerm(args[i].name, lambda x: x["Index"]), 
+                            MinusTerm(IdentifierTerm(args[i + 1].name, lambda x: x["Index"]), AtomicTerm(1))
+                        )
+                    )
+        
         self.structure = pattern_structure
         self.condition = pattern_matching_condition
         self.window = time_window
