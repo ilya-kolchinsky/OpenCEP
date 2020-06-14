@@ -46,7 +46,7 @@ class Stream:
         return x
 
 
-def file_input(file_path: str, data_formatter: DataFormatter) -> Stream:
+def file_input(base_path: str, file_path: str, data_formatter: DataFormatter) -> Stream:
     """
     Receives a file and returns a stream of events.
     "filepath": the path to the file that is to be read.
@@ -55,7 +55,7 @@ def file_input(file_path: str, data_formatter: DataFormatter) -> Stream:
     * Each line will be split on "," and the resulting array will be stored in an "Event",
       and the keys are determined from the given list "KeyMap".
     """
-    with open(file_path, "r") as f:
+    with open(base_path + "\\" + file_path, "r") as f:
         content = f.readlines()
     events = Stream()
     for line in content:
@@ -64,12 +64,12 @@ def file_input(file_path: str, data_formatter: DataFormatter) -> Stream:
     return events
 
 
-def file_output(matches: list, output_file_name: str = 'matches.txt'):
+def file_output(base_path: str, matches: list, output_file_name: str = 'matches.txt'):
     """
     Writes output matches to a file in the subfolder "Matches".
     It supports any iterable as output matches.
     """
-    with open("test/Matches/" + output_file_name, 'w') as f:
+    with open(base_path + "\\test\\Matches\\" + output_file_name, 'w') as f:
         for match in matches:
             for event in match.events:
                 f.write("%s\n" % event.payload)
