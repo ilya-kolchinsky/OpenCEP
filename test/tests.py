@@ -753,25 +753,18 @@ def MultipleNegTest():
 
 def OtherTest():
     pattern = Pattern(
-        SeqOperator([ NegationOperator(QItem("AAPL", "a")), QItem("AMZN", "b"),
-                      NegationOperator(QItem("MMAN", "p")), QItem("GOOG", "c"),
-                     NegationOperator(QItem("AN", "f")), QItem("AllN", "m")]),
+        SeqOperator([ QItem("AAPL", "a"), QItem("AMZN", "b"),
+                      NegationOperator(QItem("GOOG", "c")), NegationOperator(QItem("G", "d"))]),
         #SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMZN", "b"), NegationOperator(QItem("AllN", "m")),
         #             QItem("GOOG", "c"), NegationOperator(QItem("AN", "f")), NegationOperator(QItem("MMAN", "p"))]),
-        AndFormula(
-            AndFormula(
-                AndFormula(
-                    SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
+
+        AndFormula(SmallerThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]),
+                               IdentifierTerm("a", lambda x: x["Opening Price"])),
                     SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                                   IdentifierTerm("c", lambda x: x["Opening Price"]))
-                ),
-                GreaterThanFormula(IdentifierTerm("f", lambda x: x["Opening Price"]),
-                               AtomicTerm(35))
-            ),
-            SmallerThanFormula(IdentifierTerm("p", lambda x: x["Opening Price"]),
                                AtomicTerm(50))
         ),
+
+
         timedelta.max
     )
     extraShortEventStream = file_input("test/EventFiles/Longer.txt", MetastockDataFormatter())
