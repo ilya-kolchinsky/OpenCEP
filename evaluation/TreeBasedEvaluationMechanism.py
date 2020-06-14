@@ -342,6 +342,7 @@ class InternalNegationNode(InternalNode):
         return merge_according_to(first_event_defs, second_event_defs,
                                   first_event_list, second_event_list, key=lambda x: x[0])
 
+    #14.06: comment ça marche ?
     def get_event_definitions(self):#to support multiple neg
         if type(self._left_subtree) == InternalNegationNode:
             return self._left_subtree.get_event_definitions()
@@ -357,6 +358,7 @@ class InternalNegationNode(InternalNode):
             return
 
         #12/16 Ici faire juste merge_according_to avec la fonction get_index en key et tester
+        """
         if self.is_first:
             events_for_new_match = second_partial_match.events + first_partial_match.events
         elif self.is_last:
@@ -364,11 +366,13 @@ class InternalNegationNode(InternalNode):
         else:
             events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
                                                                 first_partial_match.events, second_partial_match.events)
+        """
+        events_for_new_match = merge_according_to(first_event_defs, second_event_defs,
+                                                  first_partial_match.events, second_partial_match.events, key=get_index)
 
         if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
             return False
-        events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
-                                                                first_partial_match.events, second_partial_match.events)
+
         return self._validate_new_match(events_for_new_match)
         # self._remove_partial_match(events_for_new_match)
 
@@ -445,15 +449,17 @@ class Tree:
         origin_event_list = pattern.origin_structure.get_args()
         #root = InternalNode(pattern.window)
         #temp_root = positive_root
+
+        # 14.06 : comment sont fixés is first et is last ? comment se servir de is last pour un not a la fin ?
         counter = 0
         for p in negative_event_list:
             if p == origin_event_list[counter]:
-                temporal_root = InternalNegationNode(pattern.window, 1, 0)
+                temporal_root = InternalNegationNode(pattern.window, is_first=True, is_last=False)
                 counter+=1
             elif len(negative_event_list) - negative_event_list.index(p) == len(origin_event_list) - origin_event_list.index(p):
-                temporal_root = InternalNegationNode(pattern.window, 0, 1)
+                temporal_root = InternalNegationNode(pattern.window, is_first=False, is_last=True)
             else:
-                temporal_root = InternalNegationNode(pattern.window, 0, 0)
+                temporal_root = InternalNegationNode(pattern.window, is_first=False, is_last=False)
 
             temp_neg_event = LeafNode(pattern.window, 1, p, temporal_root)
             temporal_root.set_subtrees(temp_root, temp_neg_event)

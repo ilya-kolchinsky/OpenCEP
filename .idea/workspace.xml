@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </select>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="dec0e471-4f79-4adc-862b-0e85acf23cd1" name="Default Changelist" comment="Final version">
+      <change beforePath="$PROJECT_DIR$/evaluation/TreeBasedEvaluationMechanism.py" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/TreeBasedEvaluationMechanism.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/EventFiles/Longer.txt" beforeDir="false" afterPath="$PROJECT_DIR$/test/EventFiles/Longer.txt" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="evaseb &lt;eva.sebagh@campus.technion.ac.il&gt;" />
+      </list>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
+  </component>
+  <component name="ProjectId" id="1awJDByUB9r8mAE5VKXjx6eC1Th" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="full.screen.before.presentation.mode" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\evase\PycharmProjects\OpenCEP\test\TestsExpected" />
+      <recent name="C:\Users\evase\PycharmProjects\OpenCEP\test" />
+      <recent name="C:\Users\evase\PycharmProjects\OpenCEP" />
+    </key>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="dec0e471-4f79-4adc-862b-0e85acf23cd1" name="Default Changelist" comment="" />
+      <created>1587640600480</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1587640600480</updated>
+    </task>
+    <task id="LOCAL-00001" summary="test">
+      <created>1588857158597</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1588857158597</updated>
+    </task>
+    <task id="LOCAL-00002" summary="test 2">
+      <created>1588857610480</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1588857610480</updated>
+    </task>
+    <task id="LOCAL-00003" summary="test extraShort">
+      <created>1589298790278</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1589298790278</updated>
+    </task>
+    <task id="LOCAL-00004" summary="test extraShort">
+      <created>1589461918536</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1589461918536</updated>
+    </task>
+    <task id="LOCAL-00005">
+      <created>1589726654806</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1589726654806</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Dans TreeBasedEvaluationMechanism la fonction init de Tree renvoit un arbre avec d'un coté les positives event et de l'autre les negatives et les formula au bon endroit dans les Internal Node. A faire: le rendre possible pour plusieurs NegativeEvents et le faire en NegativeInternalNode">
+      <created>1590504743539</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1590504743539</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Possible pour plusieurs negative events">
+      <created>1590516964168</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1590516964168</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Possible pour plusieurs negative events + debut de internalNegationNode test rapide avec plusieurs negationOperator ça a l'air de marcher pour un cas general à verifier: &#10;si on a que un negationOperator, &#10;si il n'y a pas de negationOperator dans le txt, &#10;&#10;+faire tests?">
+      <created>1590520843451</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1590520843451</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Y a plein de trucs qui marchent :D maintenant faut faire des tests.......">
+      <created>1590914580374</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1590914580374</updated>
+    </task>
+    <task id="LOCAL-00010" summary="2 tests en plus &#10;BUG: Quand on a un NOT à la fin, il faut arriver à le differencier de si il y a un positive event après ou pas =&gt; deguel?">
+      <created>1590996312151</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1590996312151</updated>
+    </task>
+    <task id="LOCAL-00011" summary="2 tests en plus &#10;BUG: Quand on a un NOT à la fin, il faut arriver à le differencier de si il y a un positive event après ou pas =&gt; deguel?">
+      <created>1591187674106</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1591187674106</updated>
+    </task>
+    <task id="LOCAL-00012" summary="J'ai rajouté un flag pour si Negation en premier ou en dernier + petit pansement pour le truc de c'est pas dans l'ordre...">
+      <created>1591536961366</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1591536961366</updated>
+    </task>
+    <task id="LOCAL-00013" summary="MultipleNeg a l'air de marcher">
+      <created>1591608349158</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1591608349159</updated>
+    </task>
+    <task id="LOCAL-00014" summary="tests">
+      <created>1591636688127</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1591636688127</updated>
+    </task>
+    <task id="LOCAL-00015" summary="event_def a l'air dans l'ordre &#10;Prochaines etapes: &#10;regarder dans negation si on peut enlever des patch&#10;handle_EOF&#10;test&#10;2eme partie">
+      <created>1591965164023</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1591965164023</updated>
+    </task>
+    <task id="LOCAL-00016" summary="14.06">
+      <created>1592163384043</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1592163384043</updated>
+    </task>
+    <task id="LOCAL-00017" summary="15.06 handle_EOF in process">
+      <created>1592229679780</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1592229679780</updated>
+    </task>
+    <task id="LOCAL-00018" summary="2eme partie: &#10;Pour creer l'arbre, on a 2 cas par rapport à où il faut rajouter le negative node:&#10;si il y a une condition: fonction get_formula_of ne fait pas exactement ce que l'on veut=&gt;il faut en faire une autre&#10;si il n'y en a pas =&gt; ça a l'air de marcher &#10;lign 517 changer!!">
+      <created>1592381855148</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1592381855148</updated>
+    </task>
+    <task id="LOCAL-00019" summary="L'arbre a l'air de marcher.... 0 verifier + arranger, l.517">
+      <created>1592485129176</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1592485129177</updated>
+    </task>
+    <task id="LOCAL-00020" summary="Derniere version">
+      <created>1592497245756</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1592497245756</updated>
+    </task>
+    <task id="LOCAL-00021" summary="Tree is almost finished">
+      <created>1592920233135</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1592920233135</updated>
+    </task>
+    <task id="LOCAL-00022" summary="Plusieurs NOT au milieu ça a l'air de marcher">
+      <created>1593170366520</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1593170366520</updated>
+    </task>
+    <task id="LOCAL-00023" summary="Avec des NOT à la fin ça imprime plusieurs fois">
+      <created>1593172735769</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1593172735769</updated>
+    </task>
+    <task id="LOCAL-00024" summary="Avec des NOT à la fin ça imprime plusieurs fois">
+      <created>1593173950349</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1593173950349</updated>
+    </task>
+    <task id="LOCAL-00025" summary="test first chance">
+      <created>1593350861254</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1593350861254</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Not au debut: dans longer ça imprime aussi 5, 6, 7 =&gt; quand on debloque le A, ça crée d'autres timestamp, mais des pas valides....">
+      <created>1593464217284</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1593464217284</updated>
+    </task>
+    <task id="LOCAL-00027" summary="presque fini">
+      <created>1593955141627</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1593955141627</updated>
+    </task>
+    <task id="LOCAL-00028" summary="presque fini 2">
+      <created>1593957175824</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1593957175824</updated>
+    </task>
+    <task id="LOCAL-00029" summary="Final tests">
+      <created>1593964708808</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1593964708808</updated>
+    </task>
+    <task id="LOCAL-00030" summary="Final tests">
+      <created>1593965920194</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1593965920194</updated>
+    </task>
+    <task id="LOCAL-00031" summary="Final version">
+      <created>1594048745953</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1594048745953</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ORDER">
+      <list>
+        <option value="0" />
+        <option value="2" />
+        <option value="3" />
+        <option value="1" />
+      </list>
+    </option>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="test 2" />
+    <MESSAGE value="test extraShort" />
+    <MESSAGE value="Dans TreeBasedEvaluationMechanism la fonction init de Tree renvoit un arbre avec d'un coté les positives event et de l'autre les negatives et les formula au bon endroit dans les Internal Node. A faire: le rendre possible pour plusieurs NegativeEvents et le faire en NegativeInternalNode" />
+    <MESSAGE value="Possible pour plusieurs negative events" />
+    <MESSAGE value="Possible pour plusieurs negative events + debut de internalNegationNode test rapide avec plusieurs negationOperator ça a l'air de marcher pour un cas general à verifier: &#10;si on a que un negationOperator, &#10;si il n'y a pas de negationOperator dans le txt, &#10;&#10;+faire tests?" />
+    <MESSAGE value="Y a plein de trucs qui marchent :D maintenant faut faire des tests......." />
+    <MESSAGE value="2 tests en plus &#10;BUG: Quand on a un NOT à la fin, il faut arriver à le differencier de si il y a un positive event après ou pas =&gt; deguel?" />
+    <MESSAGE value="J'ai rajouté un flag pour si Negation en premier ou en dernier + petit pansement pour le truc de c'est pas dans l'ordre..." />
+    <MESSAGE value="MultipleNeg a l'air de marcher" />
+    <MESSAGE value="tests" />
+    <MESSAGE value="event_def a l'air dans l'ordre &#10;Prochaines etapes: &#10;regarder dans negation si on peut enlever des patch&#10;handle_EOF&#10;test&#10;2eme partie" />
+    <MESSAGE value="14.06" />
+    <MESSAGE value="15.06 handle_EOF in process" />
+    <MESSAGE value="2eme partie: &#10;Pour creer l'arbre, on a 2 cas par rapport à où il faut rajouter le negative node:&#10;si il y a une condition: fonction get_formula_of ne fait pas exactement ce que l'on veut=&gt;il faut en faire une autre&#10;si il n'y en a pas =&gt; ça a l'air de marcher &#10;lign 517 changer!!" />
+    <MESSAGE value="L'arbre a l'air de marcher.... 0 verifier + arranger, l.517" />
+    <MESSAGE value="Derniere version" />
+    <MESSAGE value="Tree is almost finished" />
+    <MESSAGE value="Plusieurs NOT au milieu ça a l'air de marcher" />
+    <MESSAGE value="Avec des NOT à la fin ça imprime plusieurs fois" />
+    <MESSAGE value="test first chance" />
+    <MESSAGE value="Not au debut: dans longer ça imprime aussi 5, 6, 7 =&gt; quand on debloque le A, ça crée d'autres timestamp, mais des pas valides...." />
+    <MESSAGE value="presque fini" />
+    <MESSAGE value="presque fini 2" />
+    <MESSAGE value="Final tests" />
+    <MESSAGE value="Final version" />
+    <option name="LAST_COMMIT_MESSAGE" value="Final version" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="223" y="67" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1594123762315">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="223" y="67" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.824@0.0.1536.824" timestamp="1594123762315" />
+    <state x="84" y="30" width="1350" height="638" key="DiffContextDialog" timestamp="1594117411834">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="84" y="30" width="1350" height="638" key="DiffContextDialog/0.0.1536.824@0.0.1536.824" timestamp="1594117411834" />
+    <state x="549" y="167" key="FileChooserDialogImpl" timestamp="1594123292285">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="549" y="167" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1594123292285" />
+    <state width="1515" height="365" key="GridCell.Tab.0.bottom" timestamp="1594046173535">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.0.bottom.inPresentationMode" timestamp="1592915469218">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.0.bottom.inPresentationMode/0.0.1536.824@0.0.1536.824" timestamp="1592915469218" />
+    <state width="1515" height="365" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1594046173535" />
+    <state width="1515" height="365" key="GridCell.Tab.0.center" timestamp="1594046173534">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.0.center.inPresentationMode" timestamp="1592915469218">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.0.center.inPresentationMode/0.0.1536.824@0.0.1536.824" timestamp="1592915469218" />
+    <state width="1515" height="365" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1594046173534" />
+    <state width="1515" height="365" key="GridCell.Tab.0.left" timestamp="1594046173534">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.0.left.inPresentationMode" timestamp="1592915469218">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.0.left.inPresentationMode/0.0.1536.824@0.0.1536.824" timestamp="1592915469218" />
+    <state width="1515" height="365" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1594046173534" />
+    <state width="1515" height="365" key="GridCell.Tab.0.right" timestamp="1594046173535">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.0.right.inPresentationMode" timestamp="1592915469218">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.0.right.inPresentationMode/0.0.1536.824@0.0.1536.824" timestamp="1592915469218" />
+    <state width="1515" height="365" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1594046173535" />
+    <state width="1515" height="344" key="GridCell.Tab.1.bottom" timestamp="1593957099827">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.1.bottom.inPresentationMode" timestamp="1592915469218">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.1.bottom.inPresentationMode/0.0.1536.824@0.0.1536.824" timestamp="1592915469218" />
+    <state width="1515" height="344" key="GridCell.Tab.1.bottom/0.0.1536.824@0.0.1536.824" timestamp="1593957099827" />
+    <state width="1515" height="344" key="GridCell.Tab.1.center" timestamp="1593957099827">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.1.center.inPresentationMode" timestamp="1592915469218">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.1.center.inPresentationMode/0.0.1536.824@0.0.1536.824" timestamp="1592915469218" />
+    <state width="1515" height="344" key="GridCell.Tab.1.center/0.0.1536.824@0.0.1536.824" timestamp="1593957099827" />
+    <state width="1515" height="344" key="GridCell.Tab.1.left" timestamp="1593957099827">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.1.left.inPresentationMode" timestamp="1592915469218">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.1.left.inPresentationMode/0.0.1536.824@0.0.1536.824" timestamp="1592915469218" />
+    <state width="1515" height="344" key="GridCell.Tab.1.left/0.0.1536.824@0.0.1536.824" timestamp="1593957099827" />
+    <state width="1515" height="344" key="GridCell.Tab.1.right" timestamp="1593957099827">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.1.right.inPresentationMode" timestamp="1592915469218">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1515" height="289" key="GridCell.Tab.1.right.inPresentationMode/0.0.1536.824@0.0.1536.824" timestamp="1592915469218" />
+    <state width="1515" height="344" key="GridCell.Tab.1.right/0.0.1536.824@0.0.1536.824" timestamp="1593957099827" />
+    <state x="67" y="0" width="1325" height="794" key="MergeDialog" timestamp="1593955080627">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="67" y="0" width="1325" height="794" key="MergeDialog/0.0.1536.824@0.0.1536.824" timestamp="1593955080627" />
+    <state x="657" y="286" width="484" height="264" key="MultipleFileMergeDialog" timestamp="1594051617695">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="657" y="286" width="484" height="264" key="MultipleFileMergeDialog/0.0.1536.824@0.0.1536.824" timestamp="1594051617695" />
+    <state x="569" y="133" key="RollbackChangesDialog" timestamp="1588860468296">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="569" y="133" key="RollbackChangesDialog/0.0.1536.824@0.0.1536.824" timestamp="1588860468296" />
+    <state x="277" y="57" key="SettingsEditor" timestamp="1591187596062">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="277" y="57" key="SettingsEditor/0.0.1536.824@0.0.1536.824" timestamp="1591187596062" />
+    <state x="590" y="110" key="VCS.ChangeListViewerDialog" timestamp="1589727119520">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="590" y="110" key="VCS.ChangeListViewerDialog/0.0.1536.824@0.0.1536.824" timestamp="1589727119520" />
+    <state x="599" y="282" key="VCS.EditChangelistDialog" timestamp="1589727732380">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="599" y="282" key="VCS.EditChangelistDialog/0.0.1536.824@0.0.1536.824" timestamp="1589727732380" />
+    <state x="361" y="145" key="Vcs.Push.Dialog.v2" timestamp="1594048749362">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="361" y="145" key="Vcs.Push.Dialog.v2/0.0.1536.824@0.0.1536.824" timestamp="1594048749362" />
+    <state x="93" y="93" width="1350" height="638" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1594123435335">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="93" y="93" width="1350" height="638" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1536.824@0.0.1536.824" timestamp="1594123435335" />
+    <state x="578" y="326" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1594125872155">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="578" y="326" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1536.824@0.0.1536.824" timestamp="1594125872155" />
+    <state x="333" y="141" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1588859703447">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="333" y="141" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/0.0.1536.824@0.0.1536.824" timestamp="1588859703447" />
+    <state x="93" y="93" width="1350" height="638" key="git4idea.log.GitShowExternalLogAction" timestamp="1594123435335">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="93" y="93" width="1350" height="638" key="git4idea.log.GitShowExternalLogAction/0.0.1536.824@0.0.1536.824" timestamp="1594123435335" />
+    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1591884674805">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1591884674805" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/evaluation/TreeBasedEvaluationMechanism.py</url>
+          <line>66</line>
+          <option name="timeStamp" value="101" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/evaluation/TreeBasedEvaluationMechanism.py</url>
+          <line>65</line>
+          <option name="timeStamp" value="102" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/test/tests.py</url>
+          <line>595</line>
+          <option name="timeStamp" value="103" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/test/tests.py</url>
+          <line>114</line>
+          <option name="timeStamp" value="115" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/evaluation/TreeBasedEvaluationMechanism.py</url>
+          <line>543</line>
+          <option name="timeStamp" value="116" />
+        </line-breakpoint>
+      </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+    </breakpoint-manager>
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="self" language="Python" />
+        <watch expression="p_conditions.left_term.name" />
+      </configuration>
+    </watches-manager>
+  </component>
+</project>

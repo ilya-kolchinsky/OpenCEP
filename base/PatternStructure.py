@@ -42,10 +42,10 @@ class QItem(PatternStructure):
         self.index = index
 
     def get_event_name(self):
-            return self.name
+        return self.name
 
     def get_event_index(self):
-            return self.index
+        return self.index
 
 class AndOperator(PatternStructure):
     def __init__(self, args: List[PatternStructure]):

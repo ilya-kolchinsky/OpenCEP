@@ -35,6 +35,7 @@ class Pattern:
         self.structure = pattern_structure.create_top_operator()
         self.negative_event = pattern_structure.create_top_operator()
 
+        #list = self.origin_structure.get_args()
         self.split_structures()
 
         #self.negative_condition_list = list()
