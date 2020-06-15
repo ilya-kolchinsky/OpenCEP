@@ -439,9 +439,12 @@ class InternalNegationNode(InternalNode):
         second_event_defs = other_subtree.get_event_definitions()
         self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
+        matches_to_keep = []
         for partialMatch in partial_matches_to_compare:  # pour chaque pm qu'on a "bloqué" on verifie si le nouveau event not va invalider
-            if self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs):
-                other_subtree._waiting_for_time_out.remove(partialMatch)
+            if not self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs):
+                matches_to_keep.append((partialMatch))
+
+        other_subtree._waiting_for_time_out = matches_to_keep
 
     def handle_new_partial_match(self, partial_match_source: Node):
 
