@@ -883,18 +883,15 @@ def MultipleNegTest():
 
 def OtherTest():
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"),
-                     NegationOperator(QItem("GOOG", "c")), NegationOperator(QItem("G", "d"))]),
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")),
+                     QItem("GOOG", "c"), QItem("AN", "f"), NegationOperator(QItem("MMAN", "p"))]),
         # SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMZN", "b"), NegationOperator(QItem("AllN", "m")),
         #             QItem("GOOG", "c"), NegationOperator(QItem("AN", "f")), NegationOperator(QItem("MMAN", "p"))]),
-        AndFormula(
-            GreaterThanFormula(IdentifierTerm("d", lambda x: x["Opening Price"]),
-                               IdentifierTerm("b", lambda x: x["Opening Price"])),
-            AndFormula(SmallerThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]),
-                                          IdentifierTerm("a", lambda x: x["Opening Price"])),
+        AndFormula(SmallerThanFormula(IdentifierTerm("f", lambda x: x["Opening Price"]),
+                                          IdentifierTerm("b", lambda x: x["Opening Price"])),
                        SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
                                           AtomicTerm(100))
-                       )
+
         ),
         timedelta.max
     )
@@ -919,7 +916,7 @@ def OtherTest():
                                                    running_time))
     # os.remove(actual_matches_path)
 
-
+# comment to commit and push
 # greedyPatternSearchTest()
 # evaTest()
 # NegAtTheBeginningThatDoesntInvalidatesMatchesTest()

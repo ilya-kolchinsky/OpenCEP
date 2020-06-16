@@ -46,6 +46,7 @@ class IdentifierTerm(Term):
         return None
 
 
+
 class BinaryOperationTerm(Term):
     """
     A term representing a binary operation.
@@ -143,6 +144,8 @@ class AtomicFormula(Formula):
         if type(self.right_term) == IdentifierTerm: term_list.append(self.right_term.name)
         return term_list
 
+
+
 class EqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
         super().__init__(left_term, right_term, lambda x, y: x == y)
@@ -151,6 +154,19 @@ class EqFormula(AtomicFormula):
         right_term = self.right_term.get_term_of(names)
         left_term = self.left_term.get_term_of(names)
         if left_term and right_term:
+            return EqFormula(left_term, right_term)
+        return None
+
+    def get_events_in_a_condition_with(self, name: str):
+        right_term = self.right_term
+        left_term = self.left_term
+        if left_term is None or right_term is None:
+            return None
+        if type(left_term) != IdentifierTerm or type(right_term) != IdentifierTerm:
+            return None
+        if left_term is not None and type(left_term) == IdentifierTerm and left_term.name == name:
+            return EqFormula(left_term, right_term)
+        if right_term is not None and type(right_term) == IdentifierTerm and right_term.name == name:
             return EqFormula(left_term, right_term)
         return None
 
@@ -166,6 +182,18 @@ class NotEqFormula(AtomicFormula):
             return NotEqFormula(left_term, right_term)
         return None
 
+    def get_events_in_a_condition_with(self, name: str):
+        right_term = self.right_term
+        left_term = self.left_term
+        if left_term is None or right_term is None:
+            return None
+        if type(left_term) != IdentifierTerm or type(right_term) != IdentifierTerm:
+            return None
+        if left_term is not None and type(left_term) == IdentifierTerm and left_term.name == name:
+            return NotEqFormula(left_term, right_term)
+        if right_term is not None and type(right_term) == IdentifierTerm and right_term.name == name:
+            return NotEqFormula(left_term, right_term)
+        return None
 
 class GreaterThanFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -178,6 +206,18 @@ class GreaterThanFormula(AtomicFormula):
             return GreaterThanFormula(left_term, right_term)
         return None
 
+    def get_events_in_a_condition_with(self, name: str):
+        right_term = self.right_term
+        left_term = self.left_term
+        if left_term is None or right_term is None:
+            return None
+        if type(left_term) != IdentifierTerm or type(right_term) != IdentifierTerm:
+            return None
+        if left_term is not None and type(left_term) == IdentifierTerm and left_term.name == name:
+            return GreaterThanFormula(left_term, right_term)
+        if right_term is not None and type(right_term) == IdentifierTerm and right_term.name == name:
+            return GreaterThanFormula(left_term, right_term)
+        return None
 
 class SmallerThanFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -190,6 +230,18 @@ class SmallerThanFormula(AtomicFormula):
             return SmallerThanFormula(left_term, right_term)
         return None
 
+    def get_events_in_a_condition_with(self, name: str):
+        right_term = self.right_term
+        left_term = self.left_term
+        if left_term is None or right_term is None:
+            return None
+        if type(left_term) != IdentifierTerm or type(right_term) != IdentifierTerm:
+            return None
+        if left_term is not None and type(left_term) == IdentifierTerm and left_term.name == name:
+            return SmallerThanFormula(left_term, right_term)
+        if right_term is not None and type(right_term) == IdentifierTerm and right_term.name == name:
+            return SmallerThanFormula(left_term, right_term)
+        return None
 
 class GreaterThanEqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -202,6 +254,18 @@ class GreaterThanEqFormula(AtomicFormula):
             return GreaterThanEqFormula(left_term, right_term)
         return None
 
+    def get_events_in_a_condition_with(self, name: str):
+        right_term = self.right_term
+        left_term = self.left_term
+        if left_term is None or right_term is None:
+            return None
+        if type(left_term) != IdentifierTerm or type(right_term) != IdentifierTerm:
+            return None
+        if left_term is not None and type(left_term) == IdentifierTerm and left_term.name == name:
+            return GreaterThanEqFormula(left_term, right_term)
+        if right_term is not None and type(right_term) == IdentifierTerm and right_term.name == name:
+            return GreaterThanEqFormula(left_term, right_term)
+        return None
 
 class SmallerThanEqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -214,6 +278,18 @@ class SmallerThanEqFormula(AtomicFormula):
             return SmallerThanEqFormula(left_term, right_term)
         return None
 
+    def get_events_in_a_condition_with(self, name: str):
+        right_term = self.right_term
+        left_term = self.left_term
+        if left_term is None or right_term is None:
+            return None
+        if type(left_term) != IdentifierTerm or type(right_term) != IdentifierTerm:
+            return None
+        if left_term is not None and type(left_term) == IdentifierTerm and left_term.name == name:
+            return SmallerThanEqFormula(left_term, right_term)
+        if right_term is not None and type(right_term) == IdentifierTerm and right_term.name == name:
+            return SmallerThanEqFormula(left_term, right_term)
+        return None
 
 class BinaryLogicOpFormula(Formula):
     """
@@ -232,6 +308,8 @@ class BinaryLogicOpFormula(Formula):
         self.right_formula.get_all_terms(term_list)
         return term_list
 
+
+
 class AndFormula(BinaryLogicOpFormula):
     def __init__(self, left_formula: Formula, right_formula: Formula):
         super().__init__(left_formula, right_formula, lambda x, y: x and y)
@@ -247,6 +325,16 @@ class AndFormula(BinaryLogicOpFormula):
             return right_formula
         return None
 
+    def get_events_in_a_condition_with(self, name: str):
+        right_formula = self.right_formula.get_events_in_a_condition_with(name)
+        left_formula = self.left_formula.get_events_in_a_condition_with(name)
+        if left_formula is not None and right_formula is not None:
+            return AndFormula(left_formula, right_formula)
+        if left_formula:
+            return left_formula
+        if right_formula:
+            return right_formula
+        return None
 
 class TrueFormula(Formula):
     def eval(self, binding: dict = None):
