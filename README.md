@@ -121,3 +121,17 @@ pattern = Pattern(
     timedelta(minutes=5)
 )
 ```
+
+Prohibiting any pattern matching while a partial match is active,
+while a user is able to define a specific point in a sequence from which this behavior must be enforced:
+
+```
+# Enforce mechanism from the first event in the sequence
+pattern = Pattern(
+    SeqOperator([QItem("AAPL", "a", False, True), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+    AndFormula(
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
+        GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
+    timedelta(minutes=5)
+)
+```
