@@ -121,6 +121,10 @@ class Formula(ABC):
     def get_formula_of(self, names: set):
         pass
 
+    #17.06
+    def get_all_terms(self, term_list: list):
+        NotImplementedError()
+
 
 class AtomicFormula(Formula):
     """
@@ -134,6 +138,10 @@ class AtomicFormula(Formula):
     def eval(self, binding: dict = None):
         return self.relation_op(self.left_term.eval(binding), self.right_term.eval(binding))
 
+    def get_all_terms(self, term_list: list):
+        if type(self.left_term) == IdentifierTerm: term_list.append(self.left_term.name)
+        if type(self.right_term) == IdentifierTerm: term_list.append(self.right_term.name)
+        return term_list
 
 class EqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -219,6 +227,10 @@ class BinaryLogicOpFormula(Formula):
     def eval(self, binding: dict = None):
         return self.binary_logic_op(self.left_formula.eval(binding), self.right_formula.eval(binding))
 
+    def get_all_terms(self, term_list: list):
+        self.left_formula.get_all_terms(term_list)
+        self.right_formula.get_all_terms(term_list)
+        return term_list
 
 class AndFormula(BinaryLogicOpFormula):
     def __init__(self, left_formula: Formula, right_formula: Formula):

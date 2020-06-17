@@ -8,7 +8,7 @@ from typing import List, Tuple
 from base.Pattern import Pattern
 from base.PatternStructure import QItem
 from itertools import combinations
-from base.PatternStructure import SeqOperator
+from base.PatternStructure import SeqOperator, NegationOperator
 from base.PatternMatch import PatternMatch
 from copy import deepcopy
 
@@ -237,3 +237,8 @@ def does_match_exist(matches: list, match: list):
 
 def get_index(first_event_def):
     return first_event_def[1].index
+
+def find_positive_events_before(p: NegationOperator, list: list, origin: list):
+    for e in origin:
+        if e == p: break
+        if type(e) != NegationOperator: list.append(e.get_event_name())

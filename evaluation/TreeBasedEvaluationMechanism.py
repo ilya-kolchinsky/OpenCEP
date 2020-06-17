@@ -7,7 +7,7 @@ from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
 from typing import List, Tuple
 from base.Event import Event
-from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_by_timestamp, get_index
+from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_by_timestamp, get_index, find_positive_events_before
 from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
@@ -439,12 +439,9 @@ class InternalNegationNode(InternalNode):
         second_event_defs = other_subtree.get_event_definitions()
         self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
-        matches_to_keep = []
         for partialMatch in partial_matches_to_compare:  # pour chaque pm qu'on a "bloqué" on verifie si le nouveau event not va invalider
-            if not self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs):
-                matches_to_keep.append((partialMatch))
-
-        other_subtree._waiting_for_time_out = matches_to_keep
+            if self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs):
+                other_subtree._waiting_for_time_out.remove(partialMatch)
 
     def handle_new_partial_match(self, partial_match_source: Node):
 
@@ -494,12 +491,72 @@ class Tree:
                                             tree_structure, pattern.structure.args, pattern.window)
         temp_root.apply_formula(pattern.condition)
 
-        negative_event_list = pattern.negative_event.get_args()
-        origin_event_list = pattern.origin_structure.get_args()
+
         #root = InternalNode(pattern.window)
         #temp_root = positive_root
 
-        # 14.06 : comment sont fixés is first et is last ? comment se servir de is last pour un not a la fin ? - nathan
+        self.__root = temp_root
+
+        PostProcessing = False
+        if PostProcessing: self.__root = self.create_PostProcessing_Tree(temp_root, pattern)
+        else: self.__root = self.create_FirstChanceNegation_Tree(pattern)
+
+
+    def create_FirstChanceNegation_Tree(self, pattern: Pattern):
+        negative_event_list = pattern.negative_event.get_args()
+        origin_event_list = pattern.origin_structure.get_args()
+
+        for p in negative_event_list:
+            flag = 1
+            p_conditions = pattern.condition.get_formula_of(p.get_event_name())#Ca ne marche pas
+            list = []
+            if p_conditions is not None: p_conditions.get_all_terms(list)
+            else:
+                find_positive_events_before(p, list, pattern.origin_structure.get_args())
+            node = self.__root.get_leaves()[0]  #A CHANGER
+            while flag:
+                names = {item[1].name for item in node.get_event_definitions()}
+                result = all(elem in names for elem in list)
+                counter = 0
+                if result:
+                    if p == origin_event_list[counter]:
+                        temporal_root = InternalNegationNode(pattern.window, is_first=True, is_last=False)
+                        counter += 1
+                    elif len(negative_event_list) - negative_event_list.index(p) == len(
+                            origin_event_list) - origin_event_list.index(p):
+                        temporal_root = InternalNegationNode(pattern.window, is_first=False, is_last=True)
+                    else:
+                        temporal_root = InternalNegationNode(pattern.window, is_first=False, is_last=False)
+
+                    #temporal_root = InternalNegationNode(pattern.window, is_first=False, is_last=False)
+                    temp_neg_event = LeafNode(pattern.window, 1, p, temporal_root)
+                    temporal_root.set_subtrees(node, temp_neg_event)
+                    temp_neg_event.set_parent(temporal_root)
+                    temporal_root.set_parent(node._parent)
+                    node.set_parent(temporal_root)
+                    if temporal_root._parent != None:
+                        temporal_root._parent.set_subtrees(temporal_root, temporal_root._parent._right_subtree)
+
+                    names = {item[1].name for item in temporal_root._event_defs}
+                    condition = pattern.condition.get_formula_of(names)
+                    temporal_root._condition = condition if condition else TrueFormula()
+
+
+                    flag = 0
+                else: node = node._parent
+
+        while node._parent != None:
+            node = node._parent
+        self.__root = node
+        self.reorder_event_def(pattern)
+
+        return self.__root
+
+
+    def create_PostProcessing_Tree(self, temp_root: Node, pattern: Pattern):
+
+        negative_event_list = pattern.negative_event.get_args()
+        origin_event_list = pattern.origin_structure.get_args()
         counter = 0
         for p in negative_event_list:
             if p == origin_event_list[counter]:
@@ -521,22 +578,15 @@ class Tree:
             temp_root._condition = condition if condition else TrueFormula()
 
         self.__root = temp_root
-
-
         self.reorder_event_def(pattern)
-
+        return self.__root
         #self.__root.apply_formula(pattern.condition)
 
     def get_root(self):
         return self.__root
 
     def reorder_event_def(self, pattern: Pattern):
-        """
-        leaf_list = self.get_leaves()
-        for leaf in leaf_list:
-            for p in pattern.origin_structure.get_args():
-                if p.get_event_name() == leaf.get_event_name(): leaf.set_qitem_index(p.get_event_index())
-        """
+
         current_node = self.__root
         while type(current_node) != LeafNode:
             if (type(current_node) == InternalNegationNode):
