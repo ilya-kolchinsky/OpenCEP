@@ -17,13 +17,13 @@ class BushyTreeBuilder(EvaluationMechanismBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-    def build_single_pattern_eval_mechanism(self, pattern: Pattern):
+    def build_single_pattern_eval_mechanism(self, pattern: Pattern, storage_params):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivityMatrix, arrivalRates) = pattern.statistics
         else:
             raise MissingStatisticsException()
         tree_structure = self._find_tree(selectivityMatrix, arrivalRates, pattern.window.total_seconds())
-        return TreeBasedEvaluationMechanism(pattern, tree_structure)
+        return TreeBasedEvaluationMechanism(pattern, tree_structure, storage_params)
 
     def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern]):
         raise Exception("Unsupported")

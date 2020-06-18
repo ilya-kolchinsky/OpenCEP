@@ -6,7 +6,7 @@ from base.Formula import TrueFormula, Formula
 from evaluation.PartialMatch import PartialMatch
 from base.PatternStructure import SeqOperator, QItem
 from evaluation.Storage import SortedStorage, UnsortedStorage
-
+from Storage import TreeStorageParameters
 
 class LeafNode(Node):
     """
@@ -65,14 +65,17 @@ class LeafNode(Node):
         self._partial_matches.append(pm)
 
     def create_storage_unit(
-        self, sorting_key: callable = None, relation_op=None, equation_side=None, sort_by_first_timestamp=False
+        self, storage_params: TreeStorageParameters, sorting_key: callable = None, relation_op=None, equation_side=None, sort_by_first_timestamp=False
     ):
-        # this means no condition and no sequence requested
+        if storage_params is None or not storage_params.sort_storage:
+            self._partial_matches = UnsortedStorage()
+            return
+
         if sorting_key is None:
             self._partial_matches = UnsortedStorage()
-        # either by condition or by sequence
         else:
-            self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side, sort_by_first_timestamp)
+            self._partial_matches = SortedStorage(
+                sorting_key, relation_op, equation_side, sort_by_first_timestamp)
 
     def json_repr(self):
         return {

@@ -7,7 +7,7 @@ from evaluation.IterativeImprovement import IterativeImprovementType
 from evaluation.LeftDeepTreeBuilders import IterativeImprovementInitType, TrivialLeftDeepTreeBuilder, \
     AscendingFrequencyTreeBuilder, GreedyLeftDeepTreeBuilder, IterativeImprovementLeftDeepTreeBuilder, \
     DynamicProgrammingLeftDeepTreeBuilder
-
+from Storage import TreeStorageParameters
 
 class EvaluationMechanismTypes(Enum):
     """
@@ -44,7 +44,6 @@ class IterativeImprovementEvaluationMechanismParameters(EvaluationMechanismParam
         self.init_type = init_type
         self.step_limit = step_limit
 
-
 class EvaluationMechanismFactory:
     """
     Creates an evaluation mechanism given its specification.
@@ -52,10 +51,11 @@ class EvaluationMechanismFactory:
     @staticmethod
     def build_single_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,
                                             eval_mechanism_params: EvaluationMechanismParameters,
-                                            pattern: Pattern):
+                                            pattern: Pattern,
+                                            storage_params: TreeStorageParameters):
         return EvaluationMechanismFactory. \
             __create_eval_mechanism_builder(eval_mechanism_type, eval_mechanism_params). \
-            build_single_pattern_eval_mechanism(pattern)
+            build_single_pattern_eval_mechanism(pattern, storage_params)
 
     @staticmethod
     def build_multi_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,

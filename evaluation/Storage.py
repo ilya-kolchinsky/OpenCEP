@@ -206,4 +206,13 @@ class UnsortedStorage(Storage):
         self._container = list(filter(lambda pm: pm.first_timestamp >= last_timestamp, self._container))
 
 
+class TreeStorageParameters:
+    """
+    Parameters for the evaluation tree to specify how to store the data.
+    for future compatability - can contain fields to be passed to the Tree constructor.
+    """
+    def __init__(self, sort_storage: bool = False, attributes_priorities: dict = None):
+        self.sort_storage = sort_storage
+        self.attributes_priorities = attributes_priorities
+
 # https://books.google.co.il/books?id=jnEoBgAAQBAJ&pg=A119&lpg=PA119&dq=difference+between+__setitem__+and+insert+in+python&source=bl&ots=5WjkK7Acbl&sig=ACfU3U06CgfJju4aTo8K20rhq0tIul6oBg&hl=en&sa=X&ved=2ahUKEwjo9oGLpuHoAhVTXMAKHf5jA68Q6AEwDnoECA0QOw#v=onepage&q=difference%20between%20__setitem__%20and%20insert%20in%20python&f=false

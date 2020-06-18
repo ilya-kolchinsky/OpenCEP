@@ -5,7 +5,7 @@ from base.Formula import TrueFormula, Formula
 from evaluation.PartialMatch import PartialMatch
 from misc.Utils import find_partial_match_by_timestamp
 from evaluation.Storage import Storage, SortedStorage, UnsortedStorage
-
+from Storage import TreeStorageParameters
 
 class Node(ABC):
     """
@@ -53,7 +53,8 @@ class Node(ABC):
         """
         if self._sliding_window == timedelta.max:
             return
-        self._partial_matches.clean_expired_partial_matches(last_timestamp - self._sliding_window)
+        self._partial_matches.clean_expired_partial_matches(
+            last_timestamp - self._sliding_window)
         # count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window) # OLD
         # self._partial_matches = self._partial_matches[count:] # OLD
         # del self._partial_matches[:count]  # MUH
@@ -91,6 +92,6 @@ class Node(ABC):
         raise NotImplementedError()
 
     def create_storage_unit(
-        self, sorting_key: callable = None, relation_op=None, equation_side=None, sort_by_first_timestamp=False
+        self, storage_params: TreeStorageParameters, sorting_key: callable = None, relation_op=None, equation_side=None, sort_by_first_timestamp=False
     ):
         pass

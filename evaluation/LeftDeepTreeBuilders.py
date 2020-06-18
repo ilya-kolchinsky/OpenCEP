@@ -12,16 +12,16 @@ from base.Pattern import Pattern
 from misc.Statistics import calculate_left_deep_tree_cost_function, MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
-
+from Storage import TreeStorageParameters
 
 class LeftDeepTreeBuilder(EvaluationMechanismBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-    def build_single_pattern_eval_mechanism(self, pattern: Pattern):
+    def build_single_pattern_eval_mechanism(self, pattern: Pattern, storage_params: TreeStorageParameters):
         order = self._create_evaluation_order(pattern)
         tree_structure = self.__build_tree_from_order(order)
-        return TreeBasedEvaluationMechanism(pattern, tree_structure)
+        return TreeBasedEvaluationMechanism(pattern, tree_structure, storage_params)
 
     def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern]):
         raise Exception("Unsupported")

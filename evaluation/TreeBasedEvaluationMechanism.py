@@ -9,6 +9,7 @@ from evaluation.Nodes.Node import Node
 from evaluation.Nodes.InternalNode import InternalNode, SeqNode, AndNode
 from evaluation.Nodes.LeafNode import LeafNode
 from test.UnitTests.prettyjson import prettyjson
+from Storage import TreeStorageParameters
 
 
 class Tree:
@@ -17,7 +18,7 @@ class Tree:
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     """
 
-    def __init__(self, tree_structure: tuple, pattern: Pattern):
+    def __init__(self, tree_structure: tuple, pattern: Pattern, storage_params: TreeStorageParameters):
         # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
         self.__root = Tree.__construct_tree(
             pattern.structure.get_top_operator() == SeqOperator,  # Currently only SeqOperator and AndOperator
@@ -27,12 +28,8 @@ class Tree:
         )
         # a function bdal the next two called: set_up_nodes which applies formula simplifies it and then creates suitable storage units
         self.__root.apply_formula(pattern.condition)  # puts formula in nodes
-        """ TODO:
-                think about only sorting the roots matches not giving it a sorting key and shit
-                I think it would be better bcoz your taking from the root just once"""
-        self.__root.create_storage_unit()
-        # self.__root.create_storage_unit(lambda pm: pm.first_timestamp, "<", "left", True)
-        # self.__root.set_sorting_properties()
+        self.__root.create_storage_unit(storage_params)
+       
 
     def json_repr(self):
         return self.__root.json_repr()
@@ -46,20 +43,18 @@ class Tree:
         parent: Node = None,
     ):
 
-        # because splitting the tuple (0,1) returns (0,) and (1,)
         if type(tree_structure) != int and len(tree_structure) == 1:
             tree_structure = tree_structure[0]
-        # stop condition
+
         if type(tree_structure) == int:
             return LeafNode(sliding_window, tree_structure, args[tree_structure], parent)
 
         current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
         left_structure, right_structure = tree_structure
-        # left_structure = tree_structure[: len(tree_structure) // 2]
-        # right_structure = tree_structure[len(tree_structure) // 2 :]
+        
         left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current)
         right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current)
-        current.set_subtrees(left, right)  # sets event_defs also
+        current.set_subtrees(left, right)
         return current
 
     def get_leaves(self):
@@ -75,9 +70,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     An implementation of the tree-based evaluation mechanism.
     """
 
-    def __init__(self, pattern: Pattern, tree_structure: tuple):
-        # empty tuple tree_structure doesn't work ()
-        self.__tree = Tree(tree_structure, pattern)
+    def __init__(self, pattern: Pattern, tree_structure: tuple, storage_params: TreeStorageParameters):
+        self.__tree = Tree(tree_structure, pattern, storage_params)
 
     def json_repr(self):
         return self.__tree.json_repr()
@@ -99,6 +93,4 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     leaf.handle_event(event)
                     for match in self.__tree.get_matches():
                         matches.add_item(PatternMatch(match))
-        # maybe we should put them all at once in unhandled then after that we could call handle for some of them
         matches.close()
-        # TODO: for our simple tests you would change line 96:add_item to append and delete line 98
