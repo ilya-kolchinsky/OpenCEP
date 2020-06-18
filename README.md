@@ -86,7 +86,19 @@ matches = cep.get_pattern_match_stream()
 file_output(matches, 'output.txt')
 ```
 
-Defining strict patterns:
+### Three different, independent mechanisms for providing "less-than-all-possible-results" semantics ###
+
+First mechanism: limiting a primitive event to only appear in a single full match
+```
+pattern = Pattern(
+    StrictSeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+    TrueFormula(),
+    timedelta(minutes=5),
+    {"AAPL", "AMZN"} # Prevent events  of type "AAPL" or "AMZN" from appearing twice
+)
+```
+
+Second mechanism: Defining strict patterns:
 ```
 pattern = Pattern(
     StrictSeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
@@ -98,7 +110,7 @@ pattern = Pattern(
 Alternatively, each pair of successive event types can be defined as strict:
 ```
 pattern = Pattern(
-    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b", True), QItem("AVID", "c", True)]), 
+    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b", strict=True), QItem("AVID", "c", True)]), 
     TrueFormula(),
     timedelta(minutes=5)
 )
@@ -122,13 +134,13 @@ pattern = Pattern(
 )
 ```
 
-Prohibiting any pattern matching while a partial match is active,
+Third mechanism: Prohibiting any pattern matching while a partial match is active,
 while a user is able to define a specific point in a sequence from which this behavior must be enforced:
 
 ```
 # Enforce mechanism from the first event in the sequence
 pattern = Pattern(
-    SeqOperator([QItem("AAPL", "a", False, True), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+    SeqOperator([QItem("AAPL", "a", skip=True), QItem("AMZN", "b"), QItem("AVID", "c")]), 
     AndFormula(
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
         GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),

@@ -16,11 +16,11 @@ class PatternStructure(ABC):
 
 
 class QItem(PatternStructure):
-    def __init__(self, event_type: str, name: str, strict: bool = False, skip_partial_matches: bool = False):
+    def __init__(self, event_type: str, name: str, strict: bool = False, skip: bool = False):
         self.event_type = event_type
         self.name = name
-        self.strict = strict #Should the event come immediately after the previous event in the sequence
-        self.skip_partial_matches = skip_partial_matches #After this, don't allow a start of a new sequence, until all partial matches are completed
+        self.strict = strict #Second mechanism: requiring an event to immediately follow the previous one in a sequence ("strict" sequence)
+        self.skip = skip #Third mechanism: prohibiting any pattern matching while a single partial match is active
 
 
 class AndOperator(PatternStructure):
