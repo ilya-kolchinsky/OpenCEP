@@ -100,7 +100,7 @@ def runTest(
     else:
         events = events.duplicate()
 
-    storage_params = TreeStorageParameters(True , {})
+    storage_params = TreeStorageParameters(True , {"a" : 10, "b" : 1, "c" : 10})
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, storage_params=storage_params)
     running_time = cep.run(events)
@@ -112,6 +112,7 @@ def runTest(
         "Test %s result: %s, Time Passed: %s"
         % (testName, "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time)
     )
+    runTest.over_all_time += running_time
     os.remove(actual_matches_path)
 
 
@@ -897,6 +898,7 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
         events=nasdaqEventStream,
     )
 
+runTest.over_all_time = 0
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
@@ -930,3 +932,4 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
+print("Finished running all tests, overall time: %s" % runTest.over_all_time)
