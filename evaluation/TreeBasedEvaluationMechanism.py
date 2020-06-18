@@ -13,7 +13,7 @@ from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
 
 
-
+#Derniere version
 class Node(ABC):
     """
     This class represents a single node of an evaluation tree.
