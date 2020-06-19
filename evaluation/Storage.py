@@ -65,7 +65,7 @@ class Storage(MutableSequence):
            index = bisect_left(self._container, item)
            if (index != len(self._container)) and (self._container[index] == item):
                 return index
-            raise ValueError("{} not found".format(repr(item)))
+            return None
         if we implement this function then we can let __contains__ call it to to be O(logn)
     """
 
@@ -86,7 +86,7 @@ class Storage(MutableSequence):
 
 class SortedStorage(Storage):
     def __init__(self, key, relop, equation_side, sort_by_first_timestamp=False):
-        self._container = []
+        self._container = []  # always sorted in increasing order according to key
         self._key = key
         self._sorted_by_first_timestamp = sort_by_first_timestamp
         self._get_function = self._choose_get_function(relop, equation_side)

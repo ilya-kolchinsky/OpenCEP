@@ -898,6 +898,13 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
         events=nasdaqEventStream,
     )
 
+
+# Storage Unit Tests
+from test.UnitTests.test_storage import run_storage_tests
+
+run_storage_tests()
+
+# CEP Tests
 runTest.over_all_time = 0
 oneArgumentsearchTest()
 simplePatternSearchTest()
