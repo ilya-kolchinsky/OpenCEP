@@ -11,13 +11,11 @@ class Node(ABC):
     """
     This class represents a single node of an evaluation tree.
     """
-
     def __init__(self, sliding_window: timedelta, parent):
         self._parent = parent
         self._sliding_window = sliding_window
         self._partial_matches: Storage[PartialMatch]
         self._condition = TrueFormula()
-        # matches that were not yet pushed to the parent for further processing
         self._unhandled_partial_matches = Queue()
 
     def consume_first_partial_match(self):
@@ -55,10 +53,7 @@ class Node(ABC):
             return
         self._partial_matches.clean_expired_partial_matches(
             last_timestamp - self._sliding_window)
-        # count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window) # OLD
-        # self._partial_matches = self._partial_matches[count:] # OLD
-        # del self._partial_matches[:count]  # MUH
-
+        
     def add_partial_match(self, pm: PartialMatch):
         """
         Registers a new partial match at this node.

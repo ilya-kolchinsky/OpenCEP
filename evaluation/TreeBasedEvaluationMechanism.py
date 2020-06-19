@@ -17,17 +17,11 @@ class Tree:
     Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree structure"
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     """
-
     def __init__(self, tree_structure: tuple, pattern: Pattern, storage_params: TreeStorageParameters):
         # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
-        self.__root = Tree.__construct_tree(
-            pattern.structure.get_top_operator() == SeqOperator,  # Currently only SeqOperator and AndOperator
-            tree_structure,
-            pattern.structure.args,  # if we expect * or ~ Operator then should change
-            pattern.window,
-        )
-        # a function bdal the next two called: set_up_nodes which applies formula simplifies it and then creates suitable storage units
-        self.__root.apply_formula(pattern.condition)  # puts formula in nodes
+        self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
+                                            tree_structure, pattern.structure.args, pattern.window)
+        self.__root.apply_formula(pattern.condition)
         self.__root.create_storage_unit(storage_params)
        
 
@@ -38,7 +32,7 @@ class Tree:
     def __construct_tree(
         is_sequence: bool,
         tree_structure: tuple or int,
-        args: List[QItem],  # List[QItems, SeqOperators, AndOperators]
+        args: List[QItem],
         sliding_window: timedelta,
         parent: Node = None,
     ):
@@ -69,7 +63,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
-
     def __init__(self, pattern: Pattern, tree_structure: tuple, storage_params: TreeStorageParameters):
         self.__tree = Tree(tree_structure, pattern, storage_params)
 
@@ -93,4 +86,5 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     leaf.handle_event(event)
                     for match in self.__tree.get_matches():
                         matches.add_item(PatternMatch(match))
+                        
         matches.close()
