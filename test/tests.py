@@ -895,6 +895,12 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
     )
 
 
+# Storage Unit Tests
+from test.UnitTests.test_storage import run_storage_tests
+
+run_storage_tests()
+
+# CEP Tests
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
