@@ -12,7 +12,6 @@ class LeafNode(Node):
     """
     A leaf node is responsible for a single event type of the pattern.
     """
-
     def __init__(
         self, sliding_window: timedelta, leaf_index: int, leaf_qitem: QItem, parent: Node,
     ):
@@ -44,7 +43,7 @@ class LeafNode(Node):
         """
         Inserts the given event to this leaf.
         """
-        # self.clean_expired_partial_matches(event.timestamp)
+        self.clean_expired_partial_matches(event.timestamp)
 
         # get event's qitem and make a binding to evaluate formula for the new event.
         binding = {self.__event_name: event.payload}

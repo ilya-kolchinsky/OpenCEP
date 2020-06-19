@@ -17,7 +17,6 @@ class InternalNode(Node):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
-
     def __init__(
         self,
         sliding_window: timedelta,
@@ -30,11 +29,8 @@ class InternalNode(Node):
         self._event_defs = event_defs
         self._left_subtree = left
         self._right_subtree = right
-
-        """MY NEW FIELDS"""
         self._relation_op = None  # just for json_repr
         self._simplified_condition = (None, None, None)  # just for json_repr
-        """MY NEW FIELDS"""
 
     def get_leaves(self):
         result = []
@@ -92,13 +88,8 @@ class InternalNode(Node):
         partial_matches_to_compare = other_subtree.get_partial_matches(new_pm_key(new_partial_match))
         second_event_defs = other_subtree.get_event_definitions()
 
-        # this is only necessary for root, possibly redundant code.(maybe check if root)
         self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
-        # given a partial match from one subtree, for each partial match
-        # in the other subtree we check for new partial matches in this node.
-
-        # here ATM we iterate over all the possible partial matches,however most of them aren't relevant
         for partialMatch in partial_matches_to_compare:
             self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs)
 
@@ -187,12 +178,7 @@ class AndNode(InternalNode):
     """
     An internal node representing an "AND" operator.
     """
-
     # TODO: add a constructor that call super_init() fro internal and construct the storage according to AND or seq NODE TODO
-
-    # we should agree with SeqNode on a mutual definition if this function
-    # creates aa Storage unit with the key chosen by it's father and chooses the sorting_key for its children
-    # if you are calling this function on root then sorting_key can be WHATEVER you want
     def create_storage_unit(
         self, storage_params: TreeStorageParameters, sorting_key: callable = None, relation_op=None, equation_side=None, sort_by_first_timestamp=False
     ):
@@ -222,7 +208,6 @@ class AndNode(InternalNode):
             simple_formula = self._condition.simplify_formula(left_event_names, right_event_names)
 
         if simple_formula is not None:
-            # left_term, relop, right_term = extract_from_formula(simple_formula)
             left_term, relop, right_term = simple_formula.dismantle()
             self._relation_op = relop
             self._simplified_condition = (left_term, relop, right_term)
@@ -233,7 +218,6 @@ class AndNode(InternalNode):
                 {right_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
             )
         # ////////////////////////////////////////////////////////////////
-        # both sons not sorted by first_timestamp
         self._left_subtree.create_storage_unit(storage_params, left_sorting_key, relop, "left")
         self._right_subtree.create_storage_unit(storage_params, right_sorting_key, relop, "right")
 
@@ -244,7 +228,6 @@ class SeqNode(InternalNode):
     In addition to checking the time window and condition like the basic node does, SeqNode also verifies the order
     of arrival of the events in the partial matches it constructs.
     """
-
     def _set_event_definitions(
         self, left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]],
     ):

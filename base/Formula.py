@@ -7,7 +7,6 @@ class Term(ABC):
     Evaluates to the term's value.
     If there are variables (identifiers) in the term, a name-value binding shall be inputted.
     """
-
     def eval(self, binding: dict = None):
         raise NotImplementedError()
 
@@ -19,7 +18,6 @@ class AtomicTerm(Term):
     """
     An atomic term of a formula in a condition (e.g., in "x*2 < y + 7" the atomic terms are 2 and 7).
     """
-
     def __init__(self, value: object):
         self.value = value
         self.simplifiable = True
@@ -39,7 +37,6 @@ class IdentifierTerm(Term):
     """
     A term of a formula representing a single variable (e.g., in "x*2 < y + 7" the atomic terms are x and y).
     """
-
     def __init__(self, name: str, getattr_func: callable):
         self.name = name
         self.getattr_func = getattr_func
@@ -56,7 +53,7 @@ class IdentifierTerm(Term):
             return self
         return None
 
-    def __repr__(self):  # MUH
+    def __repr__(self):
         return self.name
 
 
@@ -64,7 +61,6 @@ class BinaryOperationTerm(Term):
     """
     A term representing a binary operation.
     """
-
     def __init__(self, lhs: Term, rhs: Term, binary_op: callable, is_Minus=False):
         self.lhs = lhs
         self.rhs = rhs
@@ -95,7 +91,7 @@ class PlusTerm(BinaryOperationTerm):
             return PlusTerm(lhs, rhs)
         return None
 
-    def __repr__(self):  # MUH
+    def __repr__(self):
         return "{}+{}".format(self.lhs, self.rhs)
 
 
@@ -110,7 +106,7 @@ class MinusTerm(BinaryOperationTerm):
             return MinusTerm(lhs, rhs)
         return None
 
-    def __repr__(self):  # MUH
+    def __repr__(self):
         return "{}-{}".format(self.lhs, self.rhs)
 
 
@@ -126,7 +122,7 @@ class MulTerm(BinaryOperationTerm):
             return MulTerm(lhs, rhs)
         return None
 
-    def __repr__(self):  # MUH
+    def __repr__(self):
         return "{}*{}".format(self.lhs, self.rhs)
 
 
@@ -142,7 +138,7 @@ class DivTerm(BinaryOperationTerm):
             return DivTerm(lhs, rhs)
         return None
 
-    def __repr__(self):  # MUH
+    def __repr__(self):
         return "{}/{}".format(self.lhs, self.rhs)
 
 
@@ -151,7 +147,6 @@ class Formula(ABC):
     Returns whether the parameters satisfy the formula. It evaluates to True or False.
     If there are variables (identifiers) in the formula, a name-value binding shall be inputted.
     """
-
     def eval(self, binding: dict = None):
         pass
 
@@ -159,7 +154,6 @@ class Formula(ABC):
         pass
 
     def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
-
         """
         Returns a simplified formula where the lhs term consist only of lhs_vars, 
         and rhs term from only rhs_vars.
@@ -172,7 +166,6 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
     """
     An atomic formula containing no logic operators (e.g., A < B).
     """
-
     def __init__(self, left_term: Term, right_term: Term, relation_op: callable):
         self.left_term = left_term
         self.right_term = right_term
@@ -182,7 +175,7 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
     def eval(self, binding: dict = None):
         return self.relation_op(self.left_term.eval(binding), self.right_term.eval(binding))
 
-    def __repr__(self):  # MUH
+    def __repr__(self):
         return "{} {} {}".format(self.left_term, self.relation_op, self.right_term)
 
     def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
@@ -249,9 +242,10 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
             self.right_term,
         )
 
-    #TODO  : refactor the functions to each son class and for non Atomic 
-    #        formulas return none or another special cases ( AND Formula)
     def convert_to_relop(self, relation_op: callable):
+        """
+            return the relop of the current AtomicFormula ( < <= > >= == != )
+        """
         if relation_op(5, 5):
             if relation_op(5, 6):
                 return "<="
@@ -306,7 +300,7 @@ class EqFormula(AtomicFormula):
             return EqFormula(left_term, right_term)
         return None
 
-    def __repr__(self):  # MUH
+    def __repr__(self):
         return "{} == {}".format(self.left_term, self.right_term)
 
 
@@ -321,7 +315,7 @@ class NotEqFormula(AtomicFormula):
             return NotEqFormula(left_term, right_term)
         return None
 
-    def __repr__(self):  # MUH
+    def __repr__(self):
         return "{} != {}".format(self.left_term, self.right_term)
 
 
@@ -336,7 +330,7 @@ class GreaterThanFormula(AtomicFormula):
             return GreaterThanFormula(left_term, right_term)
         return None
 
-    def __repr__(self):  # MUH
+    def __repr__(self):
         return "{} > {}".format(self.left_term, self.right_term)
 
 
@@ -351,7 +345,7 @@ class SmallerThanFormula(AtomicFormula):
             return SmallerThanFormula(left_term, right_term)
         return None
 
-    def __repr__(self):  # MUH
+    def __repr__(self):
         return "{} < {}".format(self.left_term, self.right_term)
 
 
@@ -366,7 +360,7 @@ class GreaterThanEqFormula(AtomicFormula):
             return GreaterThanEqFormula(left_term, right_term)
         return None
 
-    def __repr__(self):  # MUH
+    def __repr__(self):
         return "{} >= {}".format(self.left_term, self.right_term)
 
 
@@ -381,7 +375,7 @@ class SmallerThanEqFormula(AtomicFormula):
             return SmallerThanEqFormula(left_term, right_term)
         return None
 
-    def __repr__(self):  # MUH
+    def __repr__(self):
         return "{} <= {}".format(self.left_term, self.right_term)
 
 
@@ -389,7 +383,6 @@ class BinaryLogicOpFormula(Formula):  # AND: A < B AND C < D
     """
     A formula composed of a logic operator and two nested formulas.
     """
-
     def __init__(self, left_formula: Formula, right_formula: Formula, binary_logic_op: callable):
         self.left_formula = left_formula
         self.right_formula = right_formula
@@ -405,7 +398,6 @@ class BinaryLogicOpFormula(Formula):  # AND: A < B AND C < D
         given a BinaryLogicOpFormula returns its atomic formulas as a list, in other
         words, from the formula (f1 or f2 and f3) returns [f1,f2,f3]
         """
-
         # a preorder path in a tree (taking only leafs (atomic formulas))
         formulas_stack = []
         formulas_stack.append(self.right_formula)
@@ -448,7 +440,7 @@ class AndFormula(BinaryLogicOpFormula):  # AND: A < B AND C < D
             return right_formula
         return None
 
-    def __repr__(self):  # MUH
+    def __repr__(self):
         return "{} AND {}".format(self.left_formula, self.right_formula)
 
     def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
@@ -485,5 +477,5 @@ class TrueFormula(Formula):
     def eval(self, binding: dict = None):
         return True
 
-    def __repr__(self):  # MUH
+    def __repr__(self):
         return "True Formula"

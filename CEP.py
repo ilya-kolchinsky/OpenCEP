@@ -21,7 +21,6 @@ class PerformanceSpecifications:
     CEP engine will refer to it if it is passed.
     Not implemented yet.
     """
-
     pass
 
 
