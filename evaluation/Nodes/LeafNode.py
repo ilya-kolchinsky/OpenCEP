@@ -74,7 +74,7 @@ class LeafNode(Node):
             self._partial_matches = UnsortedStorage()
         else:
             self._partial_matches = SortedStorage(
-                sorting_key, relation_op, equation_side, sort_by_first_timestamp)
+                sorting_key, relation_op, equation_side, storage_params.clean_expired_every,sort_by_first_timestamp)
 
     def json_repr(self):
         return {
