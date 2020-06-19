@@ -14,12 +14,8 @@ class Pattern:
     tree construction mechanisms - this is hopefully a temporary hack.
     """
 
-    def __init__(
-        self,
-        pattern_structure: PatternStructure,
-        pattern_matching_condition: Formula = None,
-        time_window: timedelta = timedelta.max,
-    ):
+    def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Formula = None,
+                 time_window: timedelta = timedelta.max):
         self.structure = pattern_structure
         self.condition = pattern_matching_condition
         self.window = time_window

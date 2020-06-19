@@ -13,7 +13,7 @@ from typing import List
 from datetime import datetime
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from test.UnitTests.prettyjson import prettyjson
-
+from Storage import TreeStorageParameters
 
 class PerformanceSpecifications:
     """
@@ -21,7 +21,6 @@ class PerformanceSpecifications:
     CEP engine will refer to it if it is passed.
     Not implemented yet.
     """
-
     pass
 
 
@@ -36,7 +35,8 @@ class CEP:
         patterns: List[Pattern],
         eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
         eval_mechanism_params: EvaluationMechanismParameters = None,
-        performance_specs: PerformanceSpecifications = None,  # opt=True, prio_list:tuple=()
+        performance_specs: PerformanceSpecifications = None,
+        storage_params: TreeStorageParameters = None,
     ):
         """
         Constructor of the class.
@@ -46,9 +46,9 @@ class CEP:
         if len(patterns) > 1:
             raise NotImplementedError("Multi-pattern support is not yet available")
         self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(
-            eval_mechanism_type, eval_mechanism_params, patterns[0]
+            eval_mechanism_type, eval_mechanism_params, patterns[0], storage_params
         )
-        # print(prettyjson(self.__eval_mechanism.json_repr()))
+
         self.__pattern_matches = None
         self.__performance_specs = performance_specs
 

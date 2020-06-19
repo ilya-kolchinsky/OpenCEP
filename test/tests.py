@@ -24,6 +24,7 @@ from base.Formula import (
 )
 from base.PatternStructure import AndOperator, SeqOperator, QItem
 from base.Pattern import Pattern
+from Storage import TreeStorageParameters
 
 nasdaqEventStreamShort = file_input("test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
 nasdaqEventStreamMedium = file_input("test/EventFiles/NASDAQ_MEDIUM.txt", MetastockDataFormatter())
@@ -32,7 +33,6 @@ nasdaqEventStreamFrequencyTailored = file_input(
 )
 nasdaqEventStream_AAPL_AMZN_GOOG = file_input("test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt", MetastockDataFormatter())
 nasdaqEventStream = file_input("test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
-# TODO return EventFiles ma7al MyTempEventFiles
 
 
 def closeFiles(file1, file2):
@@ -99,7 +99,10 @@ def runTest(
         events = nasdaqEventStream.duplicate()
     else:
         events = events.duplicate()
-    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
+
+    storage_params = TreeStorageParameters(True , {"a" : 10, "b" : 1, "c" : 10})
+
+    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, storage_params=storage_params)
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
     file_output(matches, "%sMatches.txt" % testName)
@@ -109,6 +112,7 @@ def runTest(
         "Test %s result: %s, Time Passed: %s"
         % (testName, "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time)
     )
+    runTest.over_all_time += running_time
     os.remove(actual_matches_path)
 
 
@@ -901,6 +905,7 @@ from test.UnitTests.test_storage import run_storage_tests
 run_storage_tests()
 
 # CEP Tests
+runTest.over_all_time = 0
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
@@ -934,3 +939,4 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
+print("Finished running all tests, overall time: %s" % runTest.over_all_time)

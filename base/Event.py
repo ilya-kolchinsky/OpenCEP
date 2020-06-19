@@ -13,5 +13,3 @@ class Event:
         self.event_type = data_formatter.get_event_type(self.payload)
         self.timestamp = data_formatter.get_event_timestamp(self.payload)
 
-
-
