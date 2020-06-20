@@ -191,7 +191,7 @@ class AndNode(InternalNode):
         if sorting_key is None:
             self._partial_matches = UnsortedStorage()
         else:
-            self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side)
+            self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side, storage_params.clean_expired_every)
 
         left_sorting_key = None
         right_sorting_key = None
@@ -268,7 +268,7 @@ class SeqNode(InternalNode):
         if sorting_key is None:
             self._partial_matches = UnsortedStorage()
         else:
-            self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side, sort_by_first_timestamp)
+            self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side, storage_params.clean_expired_every,sort_by_first_timestamp)
 
         left_event_defs = self._left_subtree.get_event_definitions()
         right_event_defs = self._right_subtree.get_event_definitions()

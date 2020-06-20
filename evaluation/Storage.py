@@ -85,7 +85,7 @@ class Storage(MutableSequence):
 
 
 class SortedStorage(Storage):
-    def __init__(self, key, relop, equation_side, sort_by_first_timestamp=False):
+    def __init__(self, key, relop, equation_side, clean_up_every: int,sort_by_first_timestamp=False):
         self._container = []  # always sorted in increasing order according to key
         self._key = key
         self._sorted_by_first_timestamp = sort_by_first_timestamp
@@ -165,9 +165,8 @@ class SortedStorage(Storage):
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         if self._sorted_by_first_timestamp:
             count = find_partial_match_by_timestamp(self._container, last_timestamp)
-            # self._container = self._container[count:]
-            del self._container[:count]  # MUH
-        else:  # filter returns a generator
+            self._container = self._container[count:]
+        else:
             self._container = list(filter(lambda pm: pm.first_timestamp >= last_timestamp, self._container))
 
     def _choose_get_function(self, relop, equation_side):
@@ -211,8 +210,9 @@ class TreeStorageParameters:
     Parameters for the evaluation tree to specify how to store the data.
     for future compatability - can contain fields to be passed to the Tree constructor.
     """
-    def __init__(self, sort_storage: bool = False, attributes_priorities: dict = None):
+    def __init__(self, sort_storage: bool = False, attributes_priorities: dict = None, clean_expired_every: int = 200):
         self.sort_storage = sort_storage
         self.attributes_priorities = attributes_priorities
+        self.clean_expired_every = clean_expired_every
 
 # https://books.google.co.il/books?id=jnEoBgAAQBAJ&pg=A119&lpg=PA119&dq=difference+between+__setitem__+and+insert+in+python&source=bl&ots=5WjkK7Acbl&sig=ACfU3U06CgfJju4aTo8K20rhq0tIul6oBg&hl=en&sa=X&ved=2ahUKEwjo9oGLpuHoAhVTXMAKHf5jA68Q6AEwDnoECA0QOw#v=onepage&q=difference%20between%20__setitem__%20and%20insert%20in%20python&f=false
