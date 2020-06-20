@@ -104,6 +104,7 @@ class InternalNode(Node):
         """
         Verifies all the conditions for creating a new partial match and creates it if all constraints are satisfied.
         """
+        # We need this because clean_expired doesn't necessarily clean old partial matches
         if self._sliding_window != timedelta.max and (
             abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window
             or abs(first_partial_match.first_timestamp - second_partial_match.last_timestamp) > self._sliding_window
@@ -259,7 +260,7 @@ class SeqNode(InternalNode):
     def _validate_new_match(self, events_for_new_match: List[Event]):
         if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):  # validates timestamps
             return False
-        return super()._validate_new_match(events_for_new_match)  # validates conditons
+        return super()._validate_new_match(events_for_new_match)  # validates conditions
 
     def create_storage_unit(
         self,

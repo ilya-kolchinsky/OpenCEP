@@ -203,8 +203,9 @@ class DefaultStorage(SortedStorage):
     def __init__(self, in_leaf=False):
         self._container = []
         self._in_leaf = in_leaf
+        self._key = lambda x: x
 
-    def get(self):
+    def get(self, value):
         return self._container
 
     def add(self, pm):
@@ -227,12 +228,13 @@ class DefaultStorage(SortedStorage):
 
 # used also if the user doesn't want to use the optimization
 class UnsortedStorage(Storage):
-    def __init__(self, clean_up_every: int):
+    def __init__(self, clean_up_every: int, in_leaf=False):
         self._container = []
         self._key = lambda x: x  # I don't think we need this param here
         self._sorted_by_first_timestamp = False  # I don't think we need this param here
         self._clean_up_every = clean_up_every
         self._access_count = 0
+        self._in_leaf = in_leaf
 
     def get(self, value):
         return self._container
@@ -248,7 +250,11 @@ class UnsortedStorage(Storage):
             self._access_count = 0
 
     def clean_expired_partial_matches(self, timestamp: datetime):
-        self._container = list(filter(lambda pm: pm.first_timestamp >= timestamp, self._container))
+        if self._in_leaf:
+            count = find_partial_match_by_timestamp(self._container, timestamp)
+            self._container = self._container[count:]
+        else:
+            self._container = list(filter(lambda pm: pm.first_timestamp >= timestamp, self._container))
 
 
 class TreeStorageParameters:
@@ -257,7 +263,12 @@ class TreeStorageParameters:
     for future compatability - can contain fields to be passed to the Tree constructor.
     """
 
-    def __init__(self, sort_storage: bool = True, attributes_priorities: dict = None, clean_expired_every: int = 200):
+    def __init__(
+        self,
+        sort_storage: bool = False,
+        attributes_priorities: dict = {"a": 10, "b": 1, "c": 10},
+        clean_expired_every: int = 200,
+    ):
         self.sort_storage = sort_storage
         self.attributes_priorities = attributes_priorities
         self.clean_expired_every = clean_expired_every

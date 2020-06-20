@@ -100,7 +100,7 @@ def runTest(
     else:
         events = events.duplicate()
 
-    storage_params = TreeStorageParameters(True, {"a": 10, "b": 1, "c": 10})
+    storage_params = TreeStorageParameters(True)
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, storage_params=storage_params)
     running_time = cep.run(events)

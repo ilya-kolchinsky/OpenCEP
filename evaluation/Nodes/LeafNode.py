@@ -75,7 +75,7 @@ class LeafNode(Node):
             return
 
         if sorting_key is None:
-            self._partial_matches = UnsortedStorage(storage_params.clean_expired_every)
+            self._partial_matches = UnsortedStorage(storage_params.clean_expired_every, True)
         else:
             self._partial_matches = SortedStorage(
                 sorting_key,
