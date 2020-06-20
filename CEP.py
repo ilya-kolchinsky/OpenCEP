@@ -13,7 +13,8 @@ from typing import List
 from datetime import datetime
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from test.UnitTests.prettyjson import prettyjson
-from Storage import TreeStorageParameters
+from evaluation.Storage import TreeStorageParameters
+
 
 class PerformanceSpecifications:
     """
@@ -21,6 +22,7 @@ class PerformanceSpecifications:
     CEP engine will refer to it if it is passed.
     Not implemented yet.
     """
+
     pass
 
 

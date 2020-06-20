@@ -6,7 +6,7 @@ from collections.abc import MutableSequence
 from itertools import chain
 import bisect
 from misc.Utils import get_first_index, get_last_index
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 from evaluation.PartialMatch import PartialMatch
 from misc.Utils import find_partial_match_by_timestamp
@@ -85,11 +85,14 @@ class Storage(MutableSequence):
 
 
 class SortedStorage(Storage):
-    def __init__(self, key, relop, equation_side, clean_up_every: int,sort_by_first_timestamp=False):
+    def __init__(self, key, relop, equation_side, clean_up_every: int, sort_by_first_timestamp=False, in_leaf=False):
         self._container = []  # always sorted in increasing order according to key
         self._key = key
         self._sorted_by_first_timestamp = sort_by_first_timestamp
         self._get_function = self._choose_get_function(relop, equation_side)
+        self._clean_up_every = clean_up_every
+        self._access_count = 0
+        self._in_leaf = in_leaf
 
     """
     def __repr__(self):
@@ -99,9 +102,13 @@ class SortedStorage(Storage):
     """
 
     def add(self, pm):
-        index = get_last_index(self._container, self._key(pm), self._key)
-        index = 0 if index == -1 else index
-        self._container.insert(index, pm)
+        self._access_count += 1
+        if self._in_leaf and self._sorted_by_first_timestamp:
+            self._container.append(pm)
+        else:
+            index = get_last_index(self._container, self._key(pm), self._key)
+            index = 0 if index == -1 else index
+            self._container.insert(index, pm)
 
     def get(self, value):
         if len(self._container) == 0:
@@ -162,12 +169,17 @@ class SortedStorage(Storage):
         # return SortedStorage(list(chain(self._container, rhs._container)), self._key)
         return self._container + rhs._container
 
-    def clean_expired_partial_matches(self, last_timestamp: datetime):
+    def try_clean_expired_partial_matches(self, timestamp: datetime):
+        if self._access_count == self._clean_up_every:
+            self.clean_expired_partial_matches(timestamp)
+            self._access_count = 0
+
+    def clean_expired_partial_matches(self, timestamp: datetime):
         if self._sorted_by_first_timestamp:
-            count = find_partial_match_by_timestamp(self._container, last_timestamp)
+            count = find_partial_match_by_timestamp(self._container, timestamp)
             self._container = self._container[count:]
         else:
-            self._container = list(filter(lambda pm: pm.first_timestamp >= last_timestamp, self._container))
+            self._container = list(filter(lambda pm: pm.first_timestamp >= timestamp, self._container))
 
     def _choose_get_function(self, relop, equation_side):
         assert relop is not None
@@ -187,22 +199,56 @@ class SortedStorage(Storage):
             return self._get_smaller_or_equal if equation_side == "left" else self._get_greater_or_equal
 
 
+class DefaultStorage(SortedStorage):
+    def __init__(self, in_leaf=False):
+        self._container = []
+        self._in_leaf = in_leaf
+
+    def get(self):
+        return self._container
+
+    def add(self, pm):
+        if self._in_leaf:
+            self._container.append(pm)
+        else:
+            index = find_partial_match_by_timestamp(self._container, pm.first_timestamp)
+            self._container.insert(index, pm)
+
+    def try_clean_expired_partial_matches(self, timestamp: datetime):
+        self.clean_expired_partial_matches(timestamp)
+
+    def clean_expired_partial_matches(self, timestamp: datetime):
+        """
+        Removes partial matches whose earliest timestamp violates the time window constraint.
+        """
+        count = find_partial_match_by_timestamp(self._container, timestamp)
+        self._container = self._container[count:]
+
+
 # used also if the user doesn't want to use the optimization
 class UnsortedStorage(Storage):
-    def __init__(self):
+    def __init__(self, clean_up_every: int):
         self._container = []
-        self._key = lambda x: x
-        self._sorted_by_first_timestamp = False
+        self._key = lambda x: x  # I don't think we need this param here
+        self._sorted_by_first_timestamp = False  # I don't think we need this param here
+        self._clean_up_every = clean_up_every
+        self._access_count = 0
 
     def get(self, value):
         return self._container
 
     # the same as def append()
     def add(self, pm):
+        self._access_count += 1
         self._container.append(pm)
 
-    def clean_expired_partial_matches(self, last_timestamp: datetime):
-        self._container = list(filter(lambda pm: pm.first_timestamp >= last_timestamp, self._container))
+    def try_clean_expired_partial_matches(self, timestamp: datetime):
+        if self._access_count == self._clean_up_every:
+            self.clean_expired_partial_matches(timestamp)
+            self._access_count = 0
+
+    def clean_expired_partial_matches(self, timestamp: datetime):
+        self._container = list(filter(lambda pm: pm.first_timestamp >= timestamp, self._container))
 
 
 class TreeStorageParameters:
@@ -210,9 +256,11 @@ class TreeStorageParameters:
     Parameters for the evaluation tree to specify how to store the data.
     for future compatability - can contain fields to be passed to the Tree constructor.
     """
-    def __init__(self, sort_storage: bool = False, attributes_priorities: dict = None, clean_expired_every: int = 200):
+
+    def __init__(self, sort_storage: bool = True, attributes_priorities: dict = None, clean_expired_every: int = 200):
         self.sort_storage = sort_storage
         self.attributes_priorities = attributes_priorities
         self.clean_expired_every = clean_expired_every
+
 
 # https://books.google.co.il/books?id=jnEoBgAAQBAJ&pg=A119&lpg=PA119&dq=difference+between+__setitem__+and+insert+in+python&source=bl&ots=5WjkK7Acbl&sig=ACfU3U06CgfJju4aTo8K20rhq0tIul6oBg&hl=en&sa=X&ved=2ahUKEwjo9oGLpuHoAhVTXMAKHf5jA68Q6AEwDnoECA0QOw#v=onepage&q=difference%20between%20__setitem__%20and%20insert%20in%20python&f=false

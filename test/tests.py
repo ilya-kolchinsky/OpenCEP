@@ -24,7 +24,7 @@ from base.Formula import (
 )
 from base.PatternStructure import AndOperator, SeqOperator, QItem
 from base.Pattern import Pattern
-from Storage import TreeStorageParameters
+from evaluation.Storage import TreeStorageParameters
 
 nasdaqEventStreamShort = file_input("test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
 nasdaqEventStreamMedium = file_input("test/EventFiles/NASDAQ_MEDIUM.txt", MetastockDataFormatter())
@@ -100,7 +100,7 @@ def runTest(
     else:
         events = events.duplicate()
 
-    storage_params = TreeStorageParameters(True , {"a" : 10, "b" : 1, "c" : 10})
+    storage_params = TreeStorageParameters(True, {"a": 10, "b": 1, "c": 10})
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, storage_params=storage_params)
     running_time = cep.run(events)

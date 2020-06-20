@@ -9,7 +9,7 @@ from evaluation.Nodes.Node import Node
 from evaluation.Nodes.InternalNode import InternalNode, SeqNode, AndNode
 from evaluation.Nodes.LeafNode import LeafNode
 from test.UnitTests.prettyjson import prettyjson
-from Storage import TreeStorageParameters
+from evaluation.Storage import TreeStorageParameters
 
 
 class Tree:
@@ -17,13 +17,14 @@ class Tree:
     Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree structure"
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     """
+
     def __init__(self, tree_structure: tuple, pattern: Pattern, storage_params: TreeStorageParameters):
         # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
-        self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
-                                            tree_structure, pattern.structure.args, pattern.window)
+        self.__root = Tree.__construct_tree(
+            pattern.structure.get_top_operator() == SeqOperator, tree_structure, pattern.structure.args, pattern.window
+        )
         self.__root.apply_formula(pattern.condition)
         self.__root.create_storage_unit(storage_params)
-       
 
     def json_repr(self):
         return self.__root.json_repr()
@@ -45,7 +46,7 @@ class Tree:
 
         current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
         left_structure, right_structure = tree_structure
-        
+
         left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current)
         right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current)
         current.set_subtrees(left, right)
@@ -63,6 +64,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
+
     def __init__(self, pattern: Pattern, tree_structure: tuple, storage_params: TreeStorageParameters):
         self.__tree = Tree(tree_structure, pattern, storage_params)
 
@@ -86,5 +88,5 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     leaf.handle_event(event)
                     for match in self.__tree.get_matches():
                         matches.add_item(PatternMatch(match))
-                        
+
         matches.close()
