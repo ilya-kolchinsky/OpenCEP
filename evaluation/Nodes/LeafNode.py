@@ -5,13 +5,15 @@ from datetime import timedelta, datetime
 from base.Formula import TrueFormula, Formula
 from evaluation.PartialMatch import PartialMatch
 from base.PatternStructure import SeqOperator, QItem
-from evaluation.Storage import SortedStorage, UnsortedStorage
-from Storage import TreeStorageParameters
+from evaluation.Storage import SortedStorage, UnsortedStorage, DefaultStorage
+from evaluation.Storage import TreeStorageParameters
+
 
 class LeafNode(Node):
     """
     A leaf node is responsible for a single event type of the pattern.
     """
+
     def __init__(
         self, sliding_window: timedelta, leaf_index: int, leaf_qitem: QItem, parent: Node,
     ):
@@ -56,25 +58,33 @@ class LeafNode(Node):
             self._parent.handle_new_partial_match(self)
 
     def add_partial_match(self, pm: PartialMatch):
+        self._partial_matches.add(pm)
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
-            if type(self._parent) == AndNode:
-                self._partial_matches.add(pm)
-                return
-        self._partial_matches.append(pm)
 
     def create_storage_unit(
-        self, storage_params: TreeStorageParameters, sorting_key: callable = None, relation_op=None, equation_side=None, sort_by_first_timestamp=False
+        self,
+        storage_params: TreeStorageParameters,
+        sorting_key: callable = None,
+        relation_op=None,
+        equation_side=None,
+        sort_by_first_timestamp=False,
     ):
         if storage_params is None or not storage_params.sort_storage:
-            self._partial_matches = UnsortedStorage()
+            self._partial_matches = DefaultStorage(in_leaf=True)
             return
 
         if sorting_key is None:
-            self._partial_matches = UnsortedStorage()
+            self._partial_matches = UnsortedStorage(storage_params.clean_expired_every)
         else:
             self._partial_matches = SortedStorage(
-                sorting_key, relation_op, equation_side, storage_params.clean_expired_every,sort_by_first_timestamp)
+                sorting_key,
+                relation_op,
+                equation_side,
+                storage_params.clean_expired_every,
+                sort_by_first_timestamp,
+                True,
+            )
 
     def json_repr(self):
         return {

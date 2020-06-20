@@ -10,13 +10,14 @@ from misc.Utils import (
     merge_according_to,
     is_sorted,
 )
-from evaluation.Storage import SortedStorage, UnsortedStorage, TreeStorageParameters
+from evaluation.Storage import SortedStorage, UnsortedStorage, DefaultStorage, TreeStorageParameters
 
 
 class InternalNode(Node):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
+
     def __init__(
         self,
         sliding_window: timedelta,
@@ -178,20 +179,28 @@ class AndNode(InternalNode):
     """
     An internal node representing an "AND" operator.
     """
+
     # TODO: add a constructor that call super_init() fro internal and construct the storage according to AND or seq NODE TODO
     def create_storage_unit(
-        self, storage_params: TreeStorageParameters, sorting_key: callable = None, relation_op=None, equation_side=None, sort_by_first_timestamp=False
+        self,
+        storage_params: TreeStorageParameters,
+        sorting_key: callable = None,
+        relation_op=None,
+        equation_side=None,
+        sort_by_first_timestamp=False,
     ):
         if storage_params is None or not storage_params.sort_storage:
-            self._partial_matches = UnsortedStorage()
+            self._partial_matches = DefaultStorage()
             self._left_subtree.create_storage_unit(storage_params)
             self._right_subtree.create_storage_unit(storage_params)
             return
 
         if sorting_key is None:
-            self._partial_matches = UnsortedStorage()
+            self._partial_matches = UnsortedStorage(storage_params.clean_expired_every)
         else:
-            self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side, storage_params.clean_expired_every)
+            self._partial_matches = SortedStorage(
+                sorting_key, relation_op, equation_side, storage_params.clean_expired_every
+            )
 
         left_sorting_key = None
         right_sorting_key = None
@@ -202,8 +211,10 @@ class AndNode(InternalNode):
         left_event_names = {item[1].name for item in left_event_defs}
         right_event_names = {item[1].name for item in right_event_defs}
 
-        if(storage_params.attributes_priorities is not None):
-            simple_formula = self._condition.simplify_formula(left_event_names, right_event_names, storage_params.attributes_priorities)
+        if storage_params.attributes_priorities is not None:
+            simple_formula = self._condition.simplify_formula(
+                left_event_names, right_event_names, storage_params.attributes_priorities
+            )
         else:
             simple_formula = self._condition.simplify_formula(left_event_names, right_event_names)
 
@@ -228,6 +239,7 @@ class SeqNode(InternalNode):
     In addition to checking the time window and condition like the basic node does, SeqNode also verifies the order
     of arrival of the events in the partial matches it constructs.
     """
+
     def _set_event_definitions(
         self, left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]],
     ):
@@ -250,7 +262,12 @@ class SeqNode(InternalNode):
         return super()._validate_new_match(events_for_new_match)  # validates conditons
 
     def create_storage_unit(
-        self, storage_params: TreeStorageParameters, sorting_key: callable = None, relation_op=None, equation_side=None, sort_by_first_timestamp=False
+        self,
+        storage_params: TreeStorageParameters,
+        sorting_key: callable = None,
+        relation_op=None,
+        equation_side=None,
+        sort_by_first_timestamp=False,
     ):
         """
         This function creates the storage for partial_matches it gives a special key: callable
@@ -260,15 +277,17 @@ class SeqNode(InternalNode):
         as in event_defs: [(1,a),(2,b)] in event_defs and [a,b] in pm.
         """
         if storage_params is None or not storage_params.sort_storage:
-            self._partial_matches = UnsortedStorage()
+            self._partial_matches = DefaultStorage()
             self._left_subtree.create_storage_unit(storage_params)
             self._right_subtree.create_storage_unit(storage_params)
             return
 
         if sorting_key is None:
-            self._partial_matches = UnsortedStorage()
+            self._partial_matches = UnsortedStorage(storage_params.clean_expired_every)
         else:
-            self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side, storage_params.clean_expired_every,sort_by_first_timestamp)
+            self._partial_matches = SortedStorage(
+                sorting_key, relation_op, equation_side, storage_params.clean_expired_every, sort_by_first_timestamp
+            )
 
         left_event_defs = self._left_subtree.get_event_definitions()
         right_event_defs = self._right_subtree.get_event_definitions()

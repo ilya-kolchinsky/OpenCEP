@@ -46,7 +46,7 @@ class TestUnsortedStorage:
         self.pm4 = PartialMatch([Event(33, "type", self.dt + timedelta(32))])
 
     def test_add(self):
-        u_s = UnsortedStorage()
+        u_s = UnsortedStorage(0)
         my_list = [7, 7, 8, 9, 1, 7, 3]
 
         for i in range(len(my_list)):
@@ -56,7 +56,7 @@ class TestUnsortedStorage:
             assert u_s[i] == my_list[i], "UnsortedStorage: addition wasn't by order"
 
     def test_get(self):
-        u_s = UnsortedStorage()
+        u_s = UnsortedStorage(0)
         my_list = [7, 7, 8, 9, 1, 7, 3]
 
         for i in range(len(my_list)):
@@ -65,7 +65,7 @@ class TestUnsortedStorage:
         assert u_s.get("nothing") == my_list, "UnsortedStorage: getting values didn't return everything"
 
     def test_clean_expired_partial_matches(self):
-        u_s = UnsortedStorage()
+        u_s = UnsortedStorage(0)
         u_s.add(self.pm1)
         u_s.add(self.pm2)
         u_s.add(self.pm3)
