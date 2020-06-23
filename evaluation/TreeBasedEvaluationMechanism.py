@@ -104,6 +104,10 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
+    def get_deepest_leave(self):
+
+        raise NotImplementedError()
+
 
 class LeafNode(Node):
     """
@@ -121,6 +125,10 @@ class LeafNode(Node):
 
     def get_leaves(self):
         return [self]
+
+    def get_deepest_leave(self):
+        return self
+
 
     def set_qitem_index(self, index: int):
         self.qitem_index = index
@@ -179,6 +187,11 @@ class InternalNode(Node):
         if self._right_subtree is not None:
             result += self._right_subtree.get_leaves()
         return result
+
+    def get_deepest_leave(self):
+        if self._left_subtree is not None:
+            return self._left_subtree.get_deepest_leave()
+
 
     def apply_formula(self, formula: Formula):
         names = {item[1].name for item in self._event_defs}
@@ -327,28 +340,23 @@ class SeqNode(InternalNode):
             return False
         return super()._validate_new_match(events_for_new_match)
 
-
 class InternalNegationNode(InternalNode):
-    """
-    An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
-    """
 
     def __init__(self, sliding_window: timedelta, is_first: bool, is_last: bool, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
-        super().__init__(sliding_window, parent)
+        super().__init__(sliding_window, parent, event_defs, left, right)
         #Those are flags in order to differenciate the NegationNode if they are in the middle of a pattern, at the beginning or at the end
         self.is_first = is_first
         self.is_last = is_last
         #This is a list of PartialMatches that are waiting to see if a later Negative event will invalidate them
         self._waiting_for_time_out = []
+
         # This is a list of PartialMatches that are waiting to see if a later Negative event will invalidate them
-
         self.matches_to_handle_at_EOF = []
-
 
     def _set_event_definitions(self,
                                left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
-        self._event_defs = merge(left_event_defs, right_event_defs, key=get_index)#test eva à verifier
+        self._event_defs = merge(left_event_defs, right_event_defs, key=get_index)  # test eva à verifier
 
     def _merge_events_for_new_match(self,
                                     first_event_defs: List[Tuple[int, QItem]],
@@ -356,13 +364,26 @@ class InternalNegationNode(InternalNode):
                                     first_event_list: List[Event],
                                     second_event_list: List[Event]):
         return merge_according_to(first_event_defs, second_event_defs,
-                                  first_event_list, second_event_list, key=lambda x: x[0])#ici aussi faire get_index? En fait on dirait qu'on l'utilise pas finalement... A enlever?
+                                  first_event_list, second_event_list, key=lambda x: x[0])  # ici aussi faire get_index? En fait on dirait qu'on l'utilise pas finalement... A enlever?
 
     def get_event_definitions(self):#to support multiple neg
-        if type(self._left_subtree) == InternalNegationNode:
-            return self._left_subtree.get_event_definitions()
-        else:
             return self._left_subtree.get_event_definitions()#à verifier
+
+class FirstChanceNode(InternalNegationNode):
+
+    def __init__(self, sliding_window: timedelta, is_first: bool, is_last: bool, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, is_first, is_last, parent, event_defs, left, right)
+
+
+class PostProcessingNode(InternalNegationNode):
+    """
+    An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
+    """
+    def __init__(self, sliding_window: timedelta, is_first: bool, is_last: bool, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, is_first, is_last, parent, event_defs, left, right)
+
 
     def _try_create_new_match(self,
                               first_partial_match: PartialMatch, second_partial_match: PartialMatch,
@@ -497,6 +518,8 @@ class Tree:
             self.__root = self.create_FirstChanceNegation_Tree(pattern)
 
 
+
+
     def create_FirstChanceNegation_Tree(self, pattern: Pattern):
         negative_event_list = pattern.negative_event.get_args()
         origin_event_list = pattern.origin_structure.get_args()
@@ -513,23 +536,26 @@ class Tree:
                 find_positive_events_before(p, list, pattern.origin_structure.get_args())
             if p.get_event_name() in list:
                 list.remove(p.get_event_name())
-            node = self.__root.get_leaves()[0]  #A CHANGER
+            node = self.__root.get_deepest_leave()  #A CHANGER
             while flag:
                 names = {item[1].name for item in node.get_event_definitions()}
                 result = all(elem in names for elem in list)
                 counter = 0
                 if result:
+                    while type(node._parent) == FirstChanceNode:
+                        node = node._parent
                     if p == origin_event_list[counter]:
-                        temporal_root = InternalNegationNode(pattern.window, is_first=True, is_last=False)
+                        temporal_root = FirstChanceNode(pattern.window, is_first=True, is_last=False)
                         counter += 1
                     elif len(negative_event_list) - negative_event_list.index(p) \
                             == len(origin_event_list) - origin_event_list.index(p):
-                        temporal_root = InternalNegationNode(pattern.window, is_first=False, is_last=True)
+                        temporal_root = FirstChanceNode(pattern.window, is_first=False, is_last=True)
                     else:
-                        temporal_root = InternalNegationNode(pattern.window, is_first=False, is_last=False)
+                        temporal_root = FirstChanceNode(pattern.window, is_first=False, is_last=False)
 
                     #temporal_root = InternalNegationNode(pattern.window, is_first=False, is_last=False)
                     temp_neg_event = LeafNode(pattern.window, 1, p, temporal_root)
+                    temp_neg_event.apply_formula(pattern.condition)
                     temporal_root.set_subtrees(node, temp_neg_event)
                     temp_neg_event.set_parent(temporal_root)
                     temporal_root.set_parent(node._parent)
@@ -560,20 +586,20 @@ class Tree:
         counter = 0
         for p in negative_event_list:
             if p == origin_event_list[counter]:
-                temporal_root = InternalNegationNode(pattern.window, is_first=True, is_last=False)
+                temporal_root = PostProcessingNode(pattern.window, is_first=True, is_last=False)
                 counter+=1
             elif len(negative_event_list) - negative_event_list.index(p) \
                     == len(origin_event_list) - origin_event_list.index(p):
-                temporal_root = InternalNegationNode(pattern.window, is_first=False, is_last=True)
+                temporal_root = PostProcessingNode(pattern.window, is_first=False, is_last=True)
             else:
-                temporal_root = InternalNegationNode(pattern.window, is_first=False, is_last=False)
+                temporal_root = PostProcessingNode(pattern.window, is_first=False, is_last=False)
 
             temp_neg_event = LeafNode(pattern.window, 1, p, temporal_root)
             temporal_root.set_subtrees(temp_root, temp_neg_event)
             temp_neg_event.set_parent(temporal_root)
             temp_root.set_parent(temporal_root)
             temp_root = temp_root._parent
-
+#Peut être à enlever?
             names = {item[1].name for item in temp_root._event_defs}
             condition = pattern.condition.get_formula_of(names)
             temp_root._condition = condition if condition else TrueFormula()
@@ -589,8 +615,8 @@ class Tree:
     def reorder_event_def(self, pattern: Pattern):
         current_node = self.__root
         while type(current_node) != LeafNode:
-            if (type(current_node) == InternalNegationNode):
-                current_node._event_defs.sort(key=get_index)
+            #if (type(current_node) == InternalNegationNode):
+            current_node._event_defs.sort(key=get_index)
             current_node = current_node._left_subtree
 
     def handle_EOF(self , matches: Stream):

@@ -883,12 +883,12 @@ def MultipleNegTest():
 
 def OtherTest():
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")),
-                     QItem("GOOG", "c"), QItem("AN", "f"), NegationOperator(QItem("MMAN", "p"))]),
+        SeqOperator([NegationOperator(QItem("AAPL", "a")), NegationOperator(QItem("AMZN", "b")),
+                     QItem("GOOG", "c"), QItem("G", "f")]),
         # SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMZN", "b"), NegationOperator(QItem("AllN", "m")),
         #             QItem("GOOG", "c"), NegationOperator(QItem("AN", "f")), NegationOperator(QItem("MMAN", "p"))]),
         AndFormula(SmallerThanFormula(IdentifierTerm("f", lambda x: x["Opening Price"]),
-                                          IdentifierTerm("b", lambda x: x["Opening Price"])),
+                                      IdentifierTerm("c", lambda x: x["Opening Price"])),
                        SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
                                           AtomicTerm(100))
 
