@@ -511,7 +511,7 @@ class Tree:
         self.__root = temp_root
 
         #According to the flag PostProcessing or FirstChanceProcessing, we add the negative events in a different way
-        PostProcessing = False
+        PostProcessing = True
         if PostProcessing:
             self.__root = self.create_PostProcessing_Tree(temp_root, pattern)
         else:

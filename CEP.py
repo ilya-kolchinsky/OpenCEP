@@ -36,9 +36,6 @@ class CEP:
         if len(patterns) > 1:
             raise NotImplementedError("Multi-pattern support is not yet available")
 
-        NegationPostProcessing = True
-
-
         self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
                                                                                                eval_mechanism_params,
                                                                                                patterns[0])

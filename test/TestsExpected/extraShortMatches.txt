@@ -1,2 +1,0 @@
-{'Stock Ticker': 'AAPL', 'Date': 200802010900, 'Opening Price': 300}
-{'Stock Ticker': 'GOOG', 'Date': 200802010901, 'Opening Price': 140}

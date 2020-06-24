@@ -81,10 +81,15 @@ def runTest(testName, patterns, createTestFile=False,
             eval_mechanism_params=None, events=None):
     if createTestFile:
         createTest(testName, patterns, events)
+    """
     if events is None:
         events = nasdaqEventStream.duplicate()
     else:
         events = events.duplicate()
+    """
+    #nathan
+    events = nasdaqEventStreamShort.duplicate()
+
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
@@ -95,7 +100,7 @@ def runTest(testName, patterns, createTestFile=False,
                                                    "Succeeded" if fileCompare(actual_matches_path,
                                                                               expected_matches_path) else "Failed",
                                                    running_time))
-    os.remove(actual_matches_path)
+    #os.remove(actual_matches_path)
 
 
 def oneArgumentsearchTest(createTestFile=False):
@@ -916,6 +921,45 @@ def OtherTest():
                                                    running_time))
     # os.remove(actual_matches_path)
 
+
+def simplePatternSearchTest_OneNotAtTheBeginning(createTestFile=False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > b.OpeningPrice
+        AND b.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([NegationOperator(QItem("TYP1", "x")), QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    runTest("simpleOneNegBegin", [pattern], createTestFile)
+
+def simplePatternSearchTest_MultipleNotAtTheBeginning(createTestFile=False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > b.OpeningPrice
+        AND b.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([NegationOperator(QItem("TYP1", "x")), NegationOperator(QItem("TYP2", "y")),
+                     NegationOperator(QItem("TYP3", "z")), QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    runTest("simpleMultipleNegBegin", [pattern], createTestFile)
+
+
 # comment to commit and push
 # greedyPatternSearchTest()
 # evaTest()
@@ -923,10 +967,11 @@ def OtherTest():
 # googleAscendPatternSearchTestWITHNEG()
 # PROBLEM()
 # MultipleNegTest()
-OtherTest()
-"""
-oneArgumentsearchTest()
 
+simplePatternSearchTest_OneNotAtTheBeginning()
+simplePatternSearchTest_MultipleNotAtTheBeginning()
+"""
+OtherTest()
 
 oneArgumentsearchTest()
 simplePatternSearchTest()
@@ -961,5 +1006,4 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
-
 """
