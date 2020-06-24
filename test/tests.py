@@ -92,6 +92,7 @@ def runTest(
     eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
     eval_mechanism_params=None,
     events=None,
+    storage_params=None,
 ):
     if createTestFile:
         createTest(testName, patterns, events)
@@ -114,6 +115,30 @@ def runTest(
     )
     runTest.over_all_time += running_time
     os.remove(actual_matches_path)
+
+
+def runBenchMark(
+    testName,
+    patterns,
+    eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+    eval_mechanism_params=None,
+    events=None,
+    storage_params=None,
+):
+    """
+    this runs a bench mark ,since some outputs for benchmarks are very large,
+    we assume correct functionality and check runtimes. (not a test)
+    """
+
+    if events is None:
+        events = nasdaqEventStream.duplicate()
+    else:
+        events = events.duplicate()
+
+    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, storage_params=storage_params)
+    running_time = cep.run(events)
+    print("Bench Mark %s completed, Time Passed: %s" % (testName, running_time))
+    runTest.over_all_time += running_time
 
 
 def oneArgumentsearchTest(createTestFile=False):
@@ -899,12 +924,61 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
     )
 
 
-# Storage Unit Tests
+def sortedStorageTest(createTestFile=False):
+    pattern = Pattern(
+        AndOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c")]),
+        AndFormula(
+            GreaterThanFormula(
+                IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])
+            ),
+            GreaterThanFormula(
+                IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])
+            ),
+        ),
+        timedelta.max,
+    )
+    runTest(
+        "sortedStorageTest",
+        [pattern],
+        createTestFile,
+        eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+        events=nasdaqEventStream,
+    )
+
+
+def sortedStorageBenchMarkTest(createTestFile=False):
+    pattern = Pattern(
+        AndOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c"), QItem("MSFT", "m")]),
+        AndFormula(
+            GreaterThanEqFormula(
+                IdentifierTerm("b", lambda x: x["Lowest Price"]), IdentifierTerm("a", lambda x: x["Lowest Price"])
+            ),
+            AndFormula(
+                GreaterThanEqFormula(
+                    IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])
+                ),
+                GreaterThanEqFormula(
+                    IdentifierTerm("b", lambda x: x["Lowest Price"]), IdentifierTerm("m", lambda x: x["Lowest Price"])
+                ),
+            ),
+        ),
+        timedelta.max,
+    )
+    runBenchMark("sortedStorageBenchMark - default storage", [pattern])
+
+    storage_params = TreeStorageParameters(True, {"a": 1, "b": 10, "c": 1, "m": 1})
+    runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], storage_params=storage_params)
+
+
+# region Unit Tests
 from test.UnitTests.test_storage import run_storage_tests
 
 run_storage_tests()
 
-# CEP Tests
+# endregion
+
+# region - Tests
+
 runTest.over_all_time = 0
 oneArgumentsearchTest()
 simplePatternSearchTest()
@@ -939,4 +1013,15 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
+sortedStorageTest()
+
+# endregion
+
+# region - Bench Marks
+
+sortedStorageBenchMarkTest()
+
+# endregion
+
 print("Finished running all tests, overall time: %s" % runTest.over_all_time)
+
