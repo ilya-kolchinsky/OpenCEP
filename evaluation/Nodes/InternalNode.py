@@ -229,7 +229,7 @@ class AndNode(InternalNode):
             right_sorting_key = lambda pm: right_term.eval(
                 {right_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
             )
-        # ////////////////////////////////////////////////////////////////
+
         self._left_subtree.create_storage_unit(storage_params, left_sorting_key, relop, "left")
         self._right_subtree.create_storage_unit(storage_params, right_sorting_key, relop, "right")
 
