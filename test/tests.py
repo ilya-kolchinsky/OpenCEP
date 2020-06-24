@@ -92,7 +92,7 @@ def runTest(
     eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
     eval_mechanism_params=None,
     events=None,
-    storage_params = None
+    storage_params=None,
 ):
     if createTestFile:
         createTest(testName, patterns, events)
@@ -100,6 +100,8 @@ def runTest(
         events = nasdaqEventStream.duplicate()
     else:
         events = events.duplicate()
+
+    storage_params = TreeStorageParameters(True)
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, storage_params=storage_params)
     running_time = cep.run(events)
@@ -114,18 +116,20 @@ def runTest(
     runTest.over_all_time += running_time
     os.remove(actual_matches_path)
 
+
 def runBenchMark(
     testName,
     patterns,
     eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
     eval_mechanism_params=None,
     events=None,
-    storage_params = None
+    storage_params=None,
 ):
-"""
+    """
     this runs a bench mark ,since some outputs for benchmarks are very large,
     we assume correct functionality and check runtimes. (not a test)
-"""
+    """
+
     if events is None:
         events = nasdaqEventStream.duplicate()
     else:
@@ -133,11 +137,9 @@ def runBenchMark(
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, storage_params=storage_params)
     running_time = cep.run(events)
-    print(
-        "Bench Mark %s completed, Time Passed: %s"
-        % (testName, running_time)
-    )
+    print("Bench Mark %s completed, Time Passed: %s" % (testName, running_time))
     runTest.over_all_time += running_time
+
 
 def oneArgumentsearchTest(createTestFile=False):
     pattern = Pattern(
@@ -921,6 +923,7 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
         events=nasdaqEventStream,
     )
 
+
 def sortedStorageTest(createTestFile=False):
     pattern = Pattern(
         AndOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c")]),
@@ -942,31 +945,39 @@ def sortedStorageTest(createTestFile=False):
         events=nasdaqEventStream,
     )
 
-def sortedStorageBenchMarkTest(createTestFile = False):
+
+def sortedStorageBenchMarkTest(createTestFile=False):
     pattern = Pattern(
         AndOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c"), QItem("MSFT", "m")]),
         AndFormula(
-            GreaterThanEqFormula(IdentifierTerm("b", lambda x: x["Lowest Price"]), IdentifierTerm("a", lambda x: x["Lowest Price"])),
+            GreaterThanEqFormula(
+                IdentifierTerm("b", lambda x: x["Lowest Price"]), IdentifierTerm("a", lambda x: x["Lowest Price"])
+            ),
             AndFormula(
-                GreaterThanEqFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])),
-                GreaterThanEqFormula(IdentifierTerm("b", lambda x: x["Lowest Price"]), IdentifierTerm("m", lambda x: x["Lowest Price"]))
-            )
+                GreaterThanEqFormula(
+                    IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])
+                ),
+                GreaterThanEqFormula(
+                    IdentifierTerm("b", lambda x: x["Lowest Price"]), IdentifierTerm("m", lambda x: x["Lowest Price"])
+                ),
+            ),
         ),
-        timedelta.max
+        timedelta.max,
     )
-    runBenchMark('sortedStorageBenchMark - default storage', [pattern])
+    runBenchMark("sortedStorageBenchMark - default storage", [pattern])
 
-    storage_params = TreeStorageParameters(True, {"a": 1,"b": 10 ,"c": 1,"m": 1}) 
-    runBenchMark('sortedStorageBenchMark - sorted storage', [pattern], storage_params = storage_params)
+    storage_params = TreeStorageParameters(True, {"a": 1, "b": 10, "c": 1, "m": 1})
+    runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], storage_params=storage_params)
 
 
-#region Unit Tests
+# region Unit Tests
 from test.UnitTests.test_storage import run_storage_tests
+
 run_storage_tests()
 
-#endregion
+# endregion
 
-#region - Tests
+# region - Tests
 
 runTest.over_all_time = 0
 oneArgumentsearchTest()
@@ -1004,13 +1015,13 @@ nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
 sortedStorageTest()
 
-#endregion
+# endregion
 
-#region - Bench Marks 
+# region - Bench Marks
 
 sortedStorageBenchMarkTest()
 
-#endregion
+# endregion
 
 print("Finished running all tests, overall time: %s" % runTest.over_all_time)
 
