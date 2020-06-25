@@ -16,12 +16,90 @@ from base.Pattern import Pattern
 from Lib import filecmp
 
 nasdaqEventStreamShort = file_input("test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
+nasdaqEventStreamHalfShort = file_input("test/EventFiles/NASDAQ_HALF_SHORT.txt", MetastockDataFormatter())
 nasdaqEventStreamMedium = file_input("test/EventFiles/NASDAQ_MEDIUM.txt", MetastockDataFormatter())
 nasdaqEventStreamFrequencyTailored = file_input("test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt",
                                                 MetastockDataFormatter())
 nasdaqEventStream_AAPL_AMZN_GOOG = file_input("test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt", MetastockDataFormatter())
 nasdaqEventStream = file_input("test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
 
+
+def numOfLinesInPattern(file):
+    """
+    get num of lines in file until first blank line == num of lines in pattern
+    :param file: file
+    :return: int
+    """
+    counter = 0
+    for line in file:
+        if line == '\n':
+            break
+        counter = counter + 1
+    return counter
+
+def compareFiles(path1 : str, path2 : str):
+    """
+    Compare expected output and actual ouput
+    :param path1: path to first file
+    :param path2: path to second file
+    :return: bool, True if the two files are equivalent
+    """
+    file1 = open(path1)
+    file2 = open(path2)
+
+    counter1 = numOfLinesInPattern(file1)
+    counter2 = numOfLinesInPattern(file2)
+
+    file1.seek(0)
+    file2.seek(0)
+
+    # quick check, if both files don't return the same counter, or if both files are empty
+    if counter1 != counter2:
+        closeFiles(file1, file2)
+        print('dif counters')
+        return False
+    elif counter1 == counter2 and counter1 == 0:
+        closeFiles(file1, file2)
+        return True
+
+    set1 = set()
+    set2 = set()
+
+    fillSet(file1, set1, counter1)
+    fillSet(file2, set2, counter2)
+    closeFiles(file1, file2)
+
+    """
+    with open('set1.txt', 'w') as f:
+        print(set1, file=f)
+
+    with open('set2.txt', 'w') as f:
+        print(set2, file=f)
+    """
+    return set1 == set2
+
+def fillSet(file, set: set, counter: int):
+    """
+    fill a set, each element of the set is x consecutive lines of the file, with x = counter
+    :param file:
+    :param set:
+    :param counter:
+    :return:
+    """
+    list = []
+    tmp = 0
+    for line in file:
+        if line == '\n':
+            continue
+        # solve a problem when no blank lines at end of file
+        line = line.strip()
+        list.append(line)
+        tmp = tmp + 1
+        # if we read 'counter' lines, we want to add it to the set, and continue with the next 'counter' lines
+        if tmp == counter:
+            set.add(tuple(list))
+            list = []
+            tmp = 0
 
 def closeFiles(file1, file2):
     file1.close()
@@ -88,7 +166,8 @@ def runTest(testName, patterns, createTestFile=False,
         events = events.duplicate()
     """
     #nathan
-    events = nasdaqEventStreamShort.duplicate()
+    #events = nasdaqEventStreamShort.duplicate()
+    events = nasdaqEventStreamHalfShort.duplicate()
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
@@ -920,8 +999,38 @@ def OtherTest():
                                                                               expected_matches_path) else "Failed",
                                                    running_time))
     # os.remove(actual_matches_path)
+def OtherTestNat():
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x"))]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    extraShortEventStream = file_input("test/EventFiles/JustShort.txt", MetastockDataFormatter())
 
+    events = extraShortEventStream.duplicate()
+    eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
+    cep = CEP([pattern], eval_mechanism_type)
+    running_time = cep.run(events)
+    matches = cep.get_pattern_match_stream()
+    name = 'OtherTestNat'
+    file_output(matches, '%sMatches.txt' % name)
 
+    # expected_matches = generate_matches(pattern, extraShortEventStream)
+    # EXPECTEDfile_output(expected_matches, '%sMatches.txt' % name)
+
+    expected_matches_path = "test/TestsExpected/%sMatches.txt" % name
+    actual_matches_path = "test/Matches/%sMatches.txt" % name
+    print("Test %s result: %s, Time Passed: %s" % (name,
+                                                   "Succeeded" if fileCompare(actual_matches_path,
+                                                                              expected_matches_path) else "Failed",
+                                                   running_time))
+    # os.remove(actual_matches_path)
+
+# ON NASDAQ SHORT
 def simplePatternSearchTest_OneNotAtTheBeginning(createTestFile=False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
@@ -938,8 +1047,9 @@ def simplePatternSearchTest_OneNotAtTheBeginning(createTestFile=False):
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    runTest("simpleOneNegBegin", [pattern], createTestFile)
+    runTest("simpleOneNotBegin", [pattern], createTestFile)
 
+# ON NASDAQ SHORT
 def simplePatternSearchTest_MultipleNotAtTheBeginning(createTestFile=False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
@@ -957,8 +1067,26 @@ def simplePatternSearchTest_MultipleNotAtTheBeginning(createTestFile=False):
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    runTest("simpleMultipleNegBegin", [pattern], createTestFile)
+    runTest("simpleMultipleNotBegin", [pattern], createTestFile)
 
+# ON NASDAQ *HALF* SHORT
+def simplePatternSearchTest_OneNotAtTheEnd(createTestFile=False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > b.OpeningPrice
+        AND b.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x"))]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    runTest("simpleOneNotEnd", [pattern], createTestFile)
 
 # comment to commit and push
 # greedyPatternSearchTest()
@@ -968,77 +1096,14 @@ def simplePatternSearchTest_MultipleNotAtTheBeginning(createTestFile=False):
 # PROBLEM()
 # MultipleNegTest()
 
-def numOfLinesInPattern(file):
-    """
-    get num of lines in file until first blank line == num of lines in pattern
-    :param file: file
-    :return: int
-    """
-    counter = 0
-    for line in file:
-        if line == '\n':
-            break
-        counter = counter + 1
-    return counter
-
-def compareFiles(path1 : str, path2 : str):
-    """
-    Compare expected output and actual ouput
-    :param path1: path to first file
-    :param path2: path to second file
-    :return: bool, True if the two files are equivalent
-    """
-    file1 = open(path1)
-    file2 = open(path2)
-
-    counter1 = numOfLinesInPattern(file1)
-    counter2 = numOfLinesInPattern(file2)
-
-    # quick check, if both files don't return the same counter, or if both files are empty
-    if counter1 != counter2:
-        closeFiles(file1, file2)
-        return False
-    elif counter1 == counter2 and counter1 == 0:
-        closeFiles(file1, file2)
-        return True
-
-    set1 = set()
-    set2 = set()
-
-    fillSet(file1, set1, counter1)
-    fillSet(file2, set2, counter2)
-    closeFiles(file1, file2)
-
-    return set1 == set2
-
-def fillSet(file, set: set, counter: int):
-    """
-    fill a set, each element of the set is x consecutive lines of the file, with x = counter
-    :param file:
-    :param set:
-    :param counter:
-    :return:
-    """
-    list = []
-    tmp = 0
-    for line in file:
-        if line == '\n':
-            continue
-        # solve a problem when no blank lines at end of file
-        line = line.strip()
-        list.append(line)
-        tmp = tmp + 1
-        # if we read 'counter' lines, we want to add it to the set, and continue with the next 'counter' lines
-        if tmp == counter:
-            set.add(tuple(list))
-            list = []
-            tmp = 0
-
 
 # out = compareFiles('test/Matches/dpB1MatcheMatch.txt', 'test/Matches/dpB1MatchesExpect.txt')
 # print(out)
-simplePatternSearchTest_OneNotAtTheBeginning()
-simplePatternSearchTest_MultipleNotAtTheBeginning()
+
+#OtherTestNat()
+#simplePatternSearchTest_OneNotAtTheBeginning()
+#simplePatternSearchTest_MultipleNotAtTheBeginning()
+simplePatternSearchTest_OneNotAtTheEnd()
 """
 OtherTest()
 

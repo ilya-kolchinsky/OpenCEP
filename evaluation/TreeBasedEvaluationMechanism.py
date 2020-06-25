@@ -671,7 +671,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     for match in self.__tree.get_matches():
                         matches.add_item(PatternMatch(match))
 
-        if type(self.__tree.get_root()) == InternalNegationNode and self.__tree.get_root().is_last:
+        #if type(self.__tree.get_root()) == InternalNegationNode and self.__tree.get_root().is_last:
+        if type(self.__tree.get_root()) == PostProcessingNode and self.__tree.get_root().is_last:
             self.__tree.handle_EOF(matches)
 
         matches.close()
