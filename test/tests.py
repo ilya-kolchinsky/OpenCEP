@@ -97,7 +97,7 @@ def runTest(testName, patterns, createTestFile=False,
     expected_matches_path = "test/TestsExpected/%sMatches.txt" % testName
     actual_matches_path = "test/Matches/%sMatches.txt" % testName
     print("Test %s result: %s, Time Passed: %s" % (testName,
-                                                   "Succeeded" if fileCompare(actual_matches_path,
+                                                   "Succeeded" if compareFiles(actual_matches_path,
                                                                               expected_matches_path) else "Failed",
                                                    running_time))
     #os.remove(actual_matches_path)
@@ -968,6 +968,75 @@ def simplePatternSearchTest_MultipleNotAtTheBeginning(createTestFile=False):
 # PROBLEM()
 # MultipleNegTest()
 
+def numOfLinesInPattern(file):
+    """
+    get num of lines in file until first blank line == num of lines in pattern
+    :param file: file
+    :return: int
+    """
+    counter = 0
+    for line in file:
+        if line == '\n':
+            break
+        counter = counter + 1
+    return counter
+
+def compareFiles(path1 : str, path2 : str):
+    """
+    Compare expected output and actual ouput
+    :param path1: path to first file
+    :param path2: path to second file
+    :return: bool, True if the two files are equivalent
+    """
+    file1 = open(path1)
+    file2 = open(path2)
+
+    counter1 = numOfLinesInPattern(file1)
+    counter2 = numOfLinesInPattern(file2)
+
+    # quick check, if both files don't return the same counter, or if both files are empty
+    if counter1 != counter2:
+        closeFiles(file1, file2)
+        return False
+    elif counter1 == counter2 and counter1 == 0:
+        closeFiles(file1, file2)
+        return True
+
+    set1 = set()
+    set2 = set()
+
+    fillSet(file1, set1, counter1)
+    fillSet(file2, set2, counter2)
+    closeFiles(file1, file2)
+
+    return set1 == set2
+
+def fillSet(file, set: set, counter: int):
+    """
+    fill a set, each element of the set is x consecutive lines of the file, with x = counter
+    :param file:
+    :param set:
+    :param counter:
+    :return:
+    """
+    list = []
+    tmp = 0
+    for line in file:
+        if line == '\n':
+            continue
+        # solve a problem when no blank lines at end of file
+        line = line.strip()
+        list.append(line)
+        tmp = tmp + 1
+        # if we read 'counter' lines, we want to add it to the set, and continue with the next 'counter' lines
+        if tmp == counter:
+            set.add(tuple(list))
+            list = []
+            tmp = 0
+
+
+# out = compareFiles('test/Matches/dpB1MatcheMatch.txt', 'test/Matches/dpB1MatchesExpect.txt')
+# print(out)
 simplePatternSearchTest_OneNotAtTheBeginning()
 simplePatternSearchTest_MultipleNotAtTheBeginning()
 """
