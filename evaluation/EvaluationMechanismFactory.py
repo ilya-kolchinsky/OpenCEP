@@ -4,14 +4,9 @@ from enum import Enum
 from base.Pattern import Pattern
 from evaluation.BushyTreeBuilders import DynamicProgrammingBushyTreeBuilder, ZStreamTreeBuilder, ZStreamOrdTreeBuilder
 from evaluation.IterativeImprovement import IterativeImprovementType
-from evaluation.LeftDeepTreeBuilders import (
-    IterativeImprovementInitType,
-    TrivialLeftDeepTreeBuilder,
-    AscendingFrequencyTreeBuilder,
-    GreedyLeftDeepTreeBuilder,
-    IterativeImprovementLeftDeepTreeBuilder,
-    DynamicProgrammingLeftDeepTreeBuilder,
-)
+from evaluation.LeftDeepTreeBuilders import IterativeImprovementInitType, TrivialLeftDeepTreeBuilder, \
+    AscendingFrequencyTreeBuilder, GreedyLeftDeepTreeBuilder, IterativeImprovementLeftDeepTreeBuilder, \
+    DynamicProgrammingLeftDeepTreeBuilder
 from evaluation.Storage import TreeStorageParameters
 
 
@@ -19,14 +14,13 @@ class EvaluationMechanismTypes(Enum):
     """
     The various algorithms for constructing an efficient evaluation tree.
     """
-
-    TRIVIAL_LEFT_DEEP_TREE = (0,)
-    SORT_BY_FREQUENCY_LEFT_DEEP_TREE = (1,)
-    GREEDY_LEFT_DEEP_TREE = (2,)
-    LOCAL_SEARCH_LEFT_DEEP_TREE = (3,)
-    DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE = (4,)
-    DYNAMIC_PROGRAMMING_BUSHY_TREE = (5,)
-    ZSTREAM_BUSHY_TREE = (6,)
+    TRIVIAL_LEFT_DEEP_TREE = 0,
+    SORT_BY_FREQUENCY_LEFT_DEEP_TREE = 1,
+    GREEDY_LEFT_DEEP_TREE = 2,
+    LOCAL_SEARCH_LEFT_DEEP_TREE = 3,
+    DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE = 4,
+    DYNAMIC_PROGRAMMING_BUSHY_TREE = 5,
+    ZSTREAM_BUSHY_TREE = 6,
     ORDERED_ZSTREAM_BUSHY_TREE = 7
 
 
@@ -34,7 +28,6 @@ class EvaluationMechanismParameters:
     """
     Parameters for the evaluation mechanism builder.
     """
-
     def __init__(self, eval_mechanism_type: EvaluationMechanismTypes):
         self.type = eval_mechanism_type
 
@@ -44,13 +37,9 @@ class IterativeImprovementEvaluationMechanismParameters(EvaluationMechanismParam
     Parameters for evaluation mechanism builders based on local search include the number of search steps, the
     choice of the neighborhood (step) function, and the way to generate the initial state.
     """
-
-    def __init__(
-        self,
-        step_limit: int,
-        ii_type: IterativeImprovementType = IterativeImprovementType.SWAP_BASED,
-        init_type: IterativeImprovementInitType = IterativeImprovementInitType.RANDOM,
-    ):
+    def __init__(self, step_limit: int,
+                 ii_type: IterativeImprovementType = IterativeImprovementType.SWAP_BASED,
+                 init_type: IterativeImprovementInitType = IterativeImprovementInitType.RANDOM):
         super().__init__(EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE)
         self.ii_type = ii_type
         self.init_type = init_type

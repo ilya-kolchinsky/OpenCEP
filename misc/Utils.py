@@ -180,7 +180,7 @@ def generate_matches(pattern: Pattern, stream: Stream):
     """
     args = pattern.structure.args
     types = {qitem.eventType for qitem in args}
-    is_seq = pattern.structure.get_top_operator() == SeqOperator
+    is_seq = (pattern.structure.get_top_operator() == SeqOperator)
     events = {}
     matches = []
     for event in stream:
@@ -193,17 +193,9 @@ def generate_matches(pattern: Pattern, stream: Stream):
     return matches
 
 
-def generate_matches_recursive(
-    pattern: Pattern,
-    events: dict,
-    is_seq: bool,
-    match: list,
-    min_event_timestamp: datetime,
-    max_event_timestamp: datetime,
-    matches: list,
-    binding: dict,
-    loop: int = 0,
-):
+def generate_matches_recursive(pattern: Pattern, events: dict, is_seq: bool, match: list, min_event_timestamp: datetime,
+                               max_event_timestamp: datetime,
+                               matches: list, binding: dict, loop: int = 0):
     pattern_length = len(pattern.structure.args)
     if loop == pattern_length:
         if pattern.condition.eval(binding):
@@ -218,9 +210,8 @@ def generate_matches_recursive(
             if max_date - min_date <= pattern.window:
                 if not is_seq or len(match) == 0 or match[-1].date <= event.date:
                     match.append(event)
-                    generate_matches_recursive(
-                        pattern, events, is_seq, match, min_date, max_date, matches, binding, loop + 1,
-                    )
+                    generate_matches_recursive(pattern, events, is_seq, match, min_date, max_date, matches, binding,
+                                               loop + 1)
                     del match[-1]
         del binding[qitem.name]
 
