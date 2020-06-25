@@ -23,6 +23,7 @@ nasdaqEventStreamFrequencyTailored = file_input("test/EventFiles/NASDAQ_FREQUENC
 nasdaqEventStream_AAPL_AMZN_GOOG = file_input("test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt", MetastockDataFormatter())
 nasdaqEventStream = file_input("test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
 
+custom = file_input("test/EventFiles/custom.txt", MetastockDataFormatter())
 
 def numOfLinesInPattern(file):
     """
@@ -166,8 +167,16 @@ def runTest(testName, patterns, createTestFile=False,
         events = events.duplicate()
     """
     #nathan
-    #events = nasdaqEventStreamShort.duplicate()
-    events = nasdaqEventStreamHalfShort.duplicate()
+    listShort = ["simpleOneNotBegin", "simpleMultipleNotBegin"]
+    listHalfShort = ["simpleOneNotEnd", "simpleMultipleNotEnd"]
+    listCustom = ["simpleMultipleNotBeginAndEnd"]
+
+    if testName in listShort:
+        events = nasdaqEventStreamShort.duplicate()
+    elif testName in listHalfShort:
+        events = nasdaqEventStreamHalfShort.duplicate()
+    elif testName in listCustom:
+        events = custom.duplicate()
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
@@ -179,7 +188,7 @@ def runTest(testName, patterns, createTestFile=False,
                                                    "Succeeded" if compareFiles(actual_matches_path,
                                                                               expected_matches_path) else "Failed",
                                                    running_time))
-    #os.remove(actual_matches_path)
+    os.remove(actual_matches_path)
 
 
 def oneArgumentsearchTest(createTestFile=False):
@@ -789,7 +798,7 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
 
 def evaTest():
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), NegationOperator(QItem("AM", "d")), QItem("GOOG", "c")]),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
@@ -797,7 +806,7 @@ def evaTest():
         ),
         timedelta.max
     )
-    extraShortEventStream = file_input("test/EventFiles/Extra_Short.txt", MetastockDataFormatter())
+    extraShortEventStream = file_input("test/EventFiles/PROBLEM.txt", MetastockDataFormatter())
 
     events = extraShortEventStream.duplicate()
     eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
@@ -805,11 +814,11 @@ def evaTest():
     print('EVA_SUCCESS')
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
-    extraShort = 'extraShort'
-    file_output(matches, '%sMatches.txt' % extraShort)
+    extraShort = 'PROBLEM'
+    file_output(matches, 'PROBLEMMatches.txt')
 
-    expected_matches_path = "test/TestsExpected/extraShortMatches.txt"
-    actual_matches_path = "test/Matches/extraShortMatches.txt"
+    expected_matches_path = "test/TestsExpected/PROBLEMMatches.txt"
+    actual_matches_path = "test/Matches/PROBLEMMatches.txt"
 
     print("Test %s result: %s, Time Passed: %s" % (extraShort,
                                                    "Succeeded" if fileCompare(actual_matches_path,
@@ -1088,9 +1097,57 @@ def simplePatternSearchTest_OneNotAtTheEnd(createTestFile=False):
     )
     runTest("simpleOneNotEnd", [pattern], createTestFile)
 
+# ON NASDAQ *HALF* SHORT
+def simplePatternSearchTest_MultipleNotAtTheEnd(createTestFile=False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > b.OpeningPrice
+        AND b.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x")),
+                     NegationOperator(QItem("TYP2", "y")), NegationOperator(QItem("TYP3", "z"))]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    runTest("simpleMultipleNotEnd", [pattern], createTestFile)
+
+#ON CUSTOM
+def simplePatternSearchTest_MultipleNotBeginAndEnd(createTestFile=False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > b.OpeningPrice
+        AND b.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([NegationOperator(QItem("TYP1", "x")),
+                     NegationOperator(QItem("TYP4", "t")),
+                     QItem("AAPL", "a"), QItem("AMZN", "b"),
+                     QItem("GOOG", "c"),
+                     NegationOperator(QItem("TYP2", "y")),
+                     NegationOperator(QItem("TYP3", "z"))]),
+        AndFormula(
+            AndFormula(
+                GreaterThanFormula(IdentifierTerm("x", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
+                SmallerThanFormula(IdentifierTerm("y", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("c", lambda x: x["Opening Price"]))),
+            GreaterThanFormula(IdentifierTerm("t", lambda x: x["Opening Price"]),
+                               IdentifierTerm("a", lambda x: x["Opening Price"]))
+        ),
+        timedelta(minutes=5)
+    )
+    runTest("simpleMultipleNotBeginAndEnd", [pattern], createTestFile)
+
 # comment to commit and push
 # greedyPatternSearchTest()
-# evaTest()
+evaTest()
 # NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
 # googleAscendPatternSearchTestWITHNEG()
 # PROBLEM()
@@ -1099,11 +1156,20 @@ def simplePatternSearchTest_OneNotAtTheEnd(createTestFile=False):
 
 # out = compareFiles('test/Matches/dpB1MatcheMatch.txt', 'test/Matches/dpB1MatchesExpect.txt')
 # print(out)
-
+"""
 #OtherTestNat()
-#simplePatternSearchTest_OneNotAtTheBeginning()
-#simplePatternSearchTest_MultipleNotAtTheBeginning()
+
+#ON NASDAQ SHORT
+simplePatternSearchTest_OneNotAtTheBeginning()
+simplePatternSearchTest_MultipleNotAtTheBeginning()
+
+#ON NASDAQ HALF SHORT
 simplePatternSearchTest_OneNotAtTheEnd()
+simplePatternSearchTest_MultipleNotAtTheEnd()
+
+#ON CUSTOM
+#simplePatternSearchTest_MultipleNotBeginAndEnd()
+"""
 """
 OtherTest()
 

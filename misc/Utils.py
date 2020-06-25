@@ -174,6 +174,9 @@ def is_sorted(arr: list, key: callable = lambda x: x):
 
     return True
 
+def generate_matches_with_negation(pattern, stream):
+    matches = generate_matches(pattern, stream)
+    
 
 def generate_matches(pattern: Pattern, stream: Stream):
     """
