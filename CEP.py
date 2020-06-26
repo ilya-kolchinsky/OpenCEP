@@ -12,7 +12,6 @@ from evaluation.EvaluationMechanismFactory import (
 from typing import List
 from datetime import datetime
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
-from test.UnitTests.prettyjson import prettyjson
 from evaluation.Storage import TreeStorageParameters
 
 

@@ -58,14 +58,18 @@ class Node(ABC):
     def add_partial_match(self, pm: PartialMatch):
         """
         Registers a new partial match at this node.
-        As of now, the insertion is always by the timestamp, and the partial matches are stored in a list sorted by
-        timestamp. Therefore, the insertion operation is performed in O(log n).
+        In case of DefaultStorage (without optimization) the insertion is by the timestamp, O(log n).
+        In case of SortedStorage the insertion is by timestamp or condition, O(log n).
+        In case of UnsortedStorage the insertion is directly at the end, O(1).
         """
-        raise NotImplementedError()
+        self._partial_matches.add(pm)
+        if self._parent is not None:
+            self._unhandled_partial_matches.put(pm)
 
     def get_partial_matches(self, value_of_new_pm):
         """
-        Returns only partial matches that can be a good fit according the the new pm received.
+        Returns only partial matches that can be a good fit according the the new partial match received
+        from the other node.
         """
         return self._partial_matches.get(value_of_new_pm)
 
