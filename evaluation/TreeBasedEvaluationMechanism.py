@@ -414,7 +414,7 @@ class FirstChanceNode(InternalNegationNode):
                 self._parent.handle_new_partial_match(self)
             #a verifier
             if self.is_last:
-                new_partial_match = partial_match_source.get_last_unhandled_partial_match()
+                #new_partial_match = partial_match_source.get_last_unhandled_partial_match()
                 self._waiting_for_time_out.append(new_partial_match)
                 return
 
@@ -447,10 +447,11 @@ class FirstChanceNode(InternalNegationNode):
             while type(node) == FirstChanceNode:
                 node._remove_partial_matches(matches_to_remove)
                 node = node._left_subtree
-
+            """
             if self.is_last:
                 self.handle_PM_with_negation_at_the_end(partial_match_source)
             return
+            """
 
     def _remove_partial_matches(self, matches_to_remove: List[PartialMatch]):
         matches_to_keep = []
@@ -781,5 +782,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             self.__tree.handle_EOF(matches)
         if type(self.__tree.get_root()) == FirstChanceNode and self.__tree.get_root().is_last:
             self.__tree.handle_EOF(matches)
+
 
         matches.close()

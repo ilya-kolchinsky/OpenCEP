@@ -798,7 +798,7 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
 
 def evaTest():
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), NegationOperator(QItem("AM", "d")), QItem("GOOG", "c")]),
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), NegationOperator(QItem("GOOG", "c"))]),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
@@ -1156,7 +1156,7 @@ evaTest()
 
 # out = compareFiles('test/Matches/dpB1MatcheMatch.txt', 'test/Matches/dpB1MatchesExpect.txt')
 # print(out)
-"""
+
 #OtherTestNat()
 
 #ON NASDAQ SHORT
@@ -1169,7 +1169,7 @@ simplePatternSearchTest_MultipleNotAtTheEnd()
 
 #ON CUSTOM
 #simplePatternSearchTest_MultipleNotBeginAndEnd()
-"""
+
 """
 OtherTest()
 
