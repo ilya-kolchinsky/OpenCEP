@@ -169,7 +169,7 @@ def runTest(testName, patterns, createTestFile=False,
     #nathan
     listShort = ["simpleOneNotBegin", "simpleMultipleNotBegin"]
     listHalfShort = ["simpleOneNotEnd", "simpleMultipleNotEnd"]
-    listCustom = ["simpleMultipleNotBeginAndEnd"]
+    listCustom = ["simpleMultipleNotBeginAndEnd", "DUMMYsimpleMultipleNotBeginAndEnd"]
 
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
@@ -177,6 +177,8 @@ def runTest(testName, patterns, createTestFile=False,
         events = nasdaqEventStreamHalfShort.duplicate()
     elif testName in listCustom:
         events = custom.duplicate()
+    else:
+        event = custom.duplicate()
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
@@ -1145,6 +1147,25 @@ def simplePatternSearchTest_MultipleNotBeginAndEnd(createTestFile=False):
     )
     runTest("simpleMultipleNotBeginAndEnd", [pattern], createTestFile)
 
+
+
+#ON CUSTOM
+def DUMMYsimplePatternSearchTest_MultipleNotBeginAndEnd(createTestFile=False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > b.OpeningPrice
+        AND b.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"),
+                     QItem("GOOG", "c")]),
+        TrueFormula(),
+        timedelta(minutes=5)
+    )
+    runTest("DUMMYsimpleMultipleNotBeginAndEnd", [pattern], createTestFile)
+
+
 # comment to commit and push
 # greedyPatternSearchTest()
 evaTest()
@@ -1167,9 +1188,11 @@ simplePatternSearchTest_MultipleNotAtTheBeginning()
 simplePatternSearchTest_OneNotAtTheEnd()
 simplePatternSearchTest_MultipleNotAtTheEnd()
 
-#ON CUSTOM
-#simplePatternSearchTest_MultipleNotBeginAndEnd()
 
+simplePatternSearchTest_MultipleNotBeginAndEnd()
+
+
+#DUMMYsimplePatternSearchTest_MultipleNotBeginAndEnd()
 """
 OtherTest()
 
