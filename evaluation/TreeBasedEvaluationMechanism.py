@@ -454,10 +454,10 @@ class FirstChanceNode(InternalNegationNode):
             """
 
     def _remove_partial_matches(self, matches_to_remove: List[PartialMatch]):
-        matches_to_keep = []
-        for match in self._partial_matches:
-            if match not in matches_to_remove:
-                matches_to_keep.append(match)
+        matches_to_keep = [match for match in self._partial_matches if match not in matches_to_remove]
+        # for match in self._partial_matches:
+        #     if match not in matches_to_remove:
+        #         matches_to_keep.append(match)
 
         self._partial_matches = matches_to_keep
         """

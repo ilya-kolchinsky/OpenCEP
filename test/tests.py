@@ -1181,15 +1181,16 @@ evaTest()
 #OtherTestNat()
 
 #ON NASDAQ SHORT
-simplePatternSearchTest_OneNotAtTheBeginning()
-simplePatternSearchTest_MultipleNotAtTheBeginning()
+#simplePatternSearchTest_OneNotAtTheBeginning()
+#simplePatternSearchTest_MultipleNotAtTheBeginning()
 
-#ON NASDAQ HALF SHORT
-simplePatternSearchTest_OneNotAtTheEnd()
-simplePatternSearchTest_MultipleNotAtTheEnd()
+# ON NASDAQ HALF SHORT
+#simplePatternSearchTest_OneNotAtTheEnd()
+#simplePatternSearchTest_MultipleNotAtTheEnd()
 
 
-simplePatternSearchTest_MultipleNotBeginAndEnd()
+#simplePatternSearchTest_MultipleNotBeginAndEnd()
+
 
 
 #DUMMYsimplePatternSearchTest_MultipleNotBeginAndEnd()
