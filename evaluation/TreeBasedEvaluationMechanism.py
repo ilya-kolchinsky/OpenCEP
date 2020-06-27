@@ -617,7 +617,7 @@ class Tree:
         self.__root = temp_root
 
         #According to the flag PostProcessing or FirstChanceProcessing, we add the negative events in a different way
-        PostProcessing = False
+        PostProcessing = True
         if PostProcessing:
             self.__root = self.create_PostProcessing_Tree(temp_root, pattern)
         else:
@@ -778,11 +778,15 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     for match in self.__tree.get_matches():
                         matches.add_item(PatternMatch(match))
 
-        #if type(self.__tree.get_root()) == InternalNegationNode and self.__tree.get_root().is_last:
-        if type(self.__tree.get_root()) == PostProcessingNode and self.__tree.get_root().is_last:
-            self.__tree.handle_EOF(matches)
-        if type(self.__tree.get_root()) == FirstChanceNode and self.__tree.get_root().is_last:
-            self.__tree.handle_EOF(matches)
 
+        #if type(self.__tree.get_root()) == InternalNegationNode and self.__tree.get_root().is_last:
+        # if type(self.__tree.get_root()) == PostProcessingNode and self.__tree.get_root().is_last:
+        #     self.__tree.handle_EOF(matches)
+        # if type(self.__tree.get_root()) == FirstChanceNode and self.__tree.get_root().is_last:
+        #     self.__tree.handle_EOF(matches)
+
+        if (type(self.__tree.get_root()) == PostProcessingNode or type(self.__tree.get_root()) == FirstChanceNode) \
+                and self.__tree.get_root().is_last:
+            self.__tree.handle_EOF(matches)
 
         matches.close()

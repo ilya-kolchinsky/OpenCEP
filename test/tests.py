@@ -183,8 +183,8 @@ def runTest(testName, patterns, createTestFile=False,
         events = custom.duplicate()
     elif testName in listCustom2:
         events = custom2.duplicate()
-    else:
-        events = custom.duplicate()
+    # else:
+    #     events = custom.duplicate()
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
@@ -1214,6 +1214,35 @@ def DUMMYsimpleNotTest(createTestFile=False):
     )
     runTest("DUMMYsimpleNot", [pattern], createTestFile)
 
+
+# ON NASDAQ *HALF* SHORT
+def OneNotAtTheEndWithStatsTest(createTestFile=False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > b.OpeningPrice
+        AND b.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x"))]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+
+    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
+                         [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
+    arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
+    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    runTest('OneNotEnd', [pattern], createTestFile,
+            eval_mechanism_type=EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE,
+            eval_mechanism_params=IterativeImprovementEvaluationMechanismParameters(
+                20, IterativeImprovementType.CIRCLE_BASED, IterativeImprovementInitType.GREEDY),
+            events=nasdaqEventStreamHalfShort)
+
 # comment to commit and push
 # greedyPatternSearchTest()
 # evaTest()
@@ -1230,17 +1259,21 @@ def DUMMYsimpleNotTest(createTestFile=False):
 
 
 DUMMYsimpleNotTest()
+# nathan : a verifier !
+OneNotAtTheEndWithStatsTest()
+
+simpleNotTest()
 
 # ON NASDAQ SHORT
-# OneNotAtTheBeginningTest()
-# MultipleNotAtTheBeginningTest()
-#
-# # ON NASDAQ HALF SHORT
-# OneNotAtTheEndTest()
-# MultipleNotAtTheEndTest()
-#
-# # ON CUSTOM
-# MultipleNotBeginAndEndTest()
+OneNotAtTheBeginningTest()
+MultipleNotAtTheBeginningTest()
+
+# ON NASDAQ HALF SHORT
+OneNotAtTheEndTest()
+MultipleNotAtTheEndTest()
+
+# ON CUSTOM
+MultipleNotBeginAndEndTest()
 
 # DUMMYPatternSearchTest_MultipleNotBeginAndEnd()
 """
