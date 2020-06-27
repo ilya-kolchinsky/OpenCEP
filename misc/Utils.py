@@ -241,7 +241,9 @@ def does_match_exist(matches: list, match: list):
 def get_index(first_event_def):
     return first_event_def[1].index
 
-def find_positive_events_before(p: NegationOperator, list: list, origin: list):
+def find_positive_events_before(p: NegationOperator, set: set, origin: list):
     for e in origin:
-        if e == p: break
-        if type(e) != NegationOperator: list.append(e.get_event_name())
+        if e == p:
+            break
+        if type(e) != NegationOperator:
+            set.add(e.get_event_name())

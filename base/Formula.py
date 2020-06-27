@@ -123,7 +123,7 @@ class Formula(ABC):
         pass
 
     #17.06
-    def get_all_terms(self, term_list: list):
+    def get_all_terms(self, term_set: set):
         NotImplementedError()
 
 
@@ -139,10 +139,12 @@ class AtomicFormula(Formula):
     def eval(self, binding: dict = None):
         return self.relation_op(self.left_term.eval(binding), self.right_term.eval(binding))
 
-    def get_all_terms(self, term_list: list):
-        if type(self.left_term) == IdentifierTerm: term_list.append(self.left_term.name)
-        if type(self.right_term) == IdentifierTerm: term_list.append(self.right_term.name)
-        return term_list
+    def get_all_terms(self, term_set: set):
+        if type(self.left_term) == IdentifierTerm:
+            term_set.add(self.left_term.name)
+        if type(self.right_term) == IdentifierTerm:
+            term_set.add(self.right_term.name)
+        return term_set
 
 
 
@@ -303,10 +305,10 @@ class BinaryLogicOpFormula(Formula):
     def eval(self, binding: dict = None):
         return self.binary_logic_op(self.left_formula.eval(binding), self.right_formula.eval(binding))
 
-    def get_all_terms(self, term_list: list):
-        self.left_formula.get_all_terms(term_list)
-        self.right_formula.get_all_terms(term_list)
-        return term_list
+    def get_all_terms(self, term_set: set):
+        self.left_formula.get_all_terms(term_set)
+        self.right_formula.get_all_terms(term_set)
+        return term_set
 
 
 

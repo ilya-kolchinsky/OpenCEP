@@ -24,6 +24,7 @@ nasdaqEventStream_AAPL_AMZN_GOOG = file_input("test/EventFiles/NASDAQ_AAPL_AMZN_
 nasdaqEventStream = file_input("test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
 
 custom = file_input("test/EventFiles/custom.txt", MetastockDataFormatter())
+custom2 = file_input("test/EventFiles/custom2.txt", MetastockDataFormatter())
 
 def numOfLinesInPattern(file):
     """
@@ -38,7 +39,8 @@ def numOfLinesInPattern(file):
         counter = counter + 1
     return counter
 
-def compareFiles(path1 : str, path2 : str):
+
+def compareFiles(path1: str, path2: str):
     """
     Compare expected output and actual ouput
     :param path1: path to first file
@@ -79,6 +81,7 @@ def compareFiles(path1 : str, path2 : str):
     """
     return set1 == set2
 
+
 def fillSet(file, set: set, counter: int):
     """
     fill a set, each element of the set is x consecutive lines of the file, with x = counter
@@ -101,6 +104,7 @@ def fillSet(file, set: set, counter: int):
             set.add(tuple(list))
             list = []
             tmp = 0
+
 
 def closeFiles(file1, file2):
     file1.close()
@@ -166,19 +170,21 @@ def runTest(testName, patterns, createTestFile=False,
     else:
         events = events.duplicate()
     """
-    #nathan
-    listShort = ["simpleOneNotBegin", "simpleMultipleNotBegin"]
-    listHalfShort = ["simpleOneNotEnd", "simpleMultipleNotEnd"]
-    listCustom = ["simpleMultipleNotBeginAndEnd", "DUMMYsimpleMultipleNotBeginAndEnd"]
-
+    # nathan
+    listShort = ["OneNotBegin", "MultipleNotBegin"]
+    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
+    listCustom = ["MultipleNotBeginAndEnd", "DUMMYMultipleNotBeginAndEnd"]
+    listCustom2 = ["DUMMYsimpleNot", "simpleNot"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
         events = nasdaqEventStreamHalfShort.duplicate()
     elif testName in listCustom:
         events = custom.duplicate()
+    elif testName in listCustom2:
+        events = custom2.duplicate()
     else:
-        event = custom.duplicate()
+        events = custom.duplicate()
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
@@ -188,9 +194,10 @@ def runTest(testName, patterns, createTestFile=False,
     actual_matches_path = "test/Matches/%sMatches.txt" % testName
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if compareFiles(actual_matches_path,
-                                                                              expected_matches_path) else "Failed",
+                                                                               expected_matches_path) else "Failed",
                                                    running_time))
-    os.remove(actual_matches_path)
+
+    # os.remove(actual_matches_path)
 
 
 def oneArgumentsearchTest(createTestFile=False):
@@ -984,10 +991,10 @@ def OtherTest():
         #             QItem("GOOG", "c"), NegationOperator(QItem("AN", "f")), NegationOperator(QItem("MMAN", "p"))]),
         AndFormula(SmallerThanFormula(IdentifierTerm("f", lambda x: x["Opening Price"]),
                                       IdentifierTerm("c", lambda x: x["Opening Price"])),
-                       SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                                          AtomicTerm(100))
+                   SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                                      AtomicTerm(100))
 
-        ),
+                   ),
         timedelta.max
     )
     extraShortEventStream = file_input("test/EventFiles/Longer.txt", MetastockDataFormatter())
@@ -1010,6 +1017,8 @@ def OtherTest():
                                                                               expected_matches_path) else "Failed",
                                                    running_time))
     # os.remove(actual_matches_path)
+
+
 def OtherTestNat():
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x"))]),
@@ -1041,8 +1050,9 @@ def OtherTestNat():
                                                    running_time))
     # os.remove(actual_matches_path)
 
+
 # ON NASDAQ SHORT
-def simplePatternSearchTest_OneNotAtTheBeginning(createTestFile=False):
+def OneNotAtTheBeginningTest(createTestFile=False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > b.OpeningPrice
@@ -1058,10 +1068,11 @@ def simplePatternSearchTest_OneNotAtTheBeginning(createTestFile=False):
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    runTest("simpleOneNotBegin", [pattern], createTestFile)
+    runTest("OneNotBegin", [pattern], createTestFile)
+
 
 # ON NASDAQ SHORT
-def simplePatternSearchTest_MultipleNotAtTheBeginning(createTestFile=False):
+def MultipleNotAtTheBeginningTest(createTestFile=False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > b.OpeningPrice
@@ -1078,10 +1089,11 @@ def simplePatternSearchTest_MultipleNotAtTheBeginning(createTestFile=False):
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    runTest("simpleMultipleNotBegin", [pattern], createTestFile)
+    runTest("MultipleNotBegin", [pattern], createTestFile)
+
 
 # ON NASDAQ *HALF* SHORT
-def simplePatternSearchTest_OneNotAtTheEnd(createTestFile=False):
+def OneNotAtTheEndTest(createTestFile=False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > b.OpeningPrice
@@ -1097,10 +1109,11 @@ def simplePatternSearchTest_OneNotAtTheEnd(createTestFile=False):
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    runTest("simpleOneNotEnd", [pattern], createTestFile)
+    runTest("OneNotEnd", [pattern], createTestFile)
+
 
 # ON NASDAQ *HALF* SHORT
-def simplePatternSearchTest_MultipleNotAtTheEnd(createTestFile=False):
+def MultipleNotAtTheEndTest(createTestFile=False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > b.OpeningPrice
@@ -1117,10 +1130,11 @@ def simplePatternSearchTest_MultipleNotAtTheEnd(createTestFile=False):
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    runTest("simpleMultipleNotEnd", [pattern], createTestFile)
+    runTest("MultipleNotEnd", [pattern], createTestFile)
 
-#ON CUSTOM
-def simplePatternSearchTest_MultipleNotBeginAndEnd(createTestFile=False):
+
+# ON CUSTOM
+def MultipleNotBeginAndEndTest(createTestFile=False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > b.OpeningPrice
@@ -1145,12 +1159,11 @@ def simplePatternSearchTest_MultipleNotBeginAndEnd(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runTest("simpleMultipleNotBeginAndEnd", [pattern], createTestFile)
+    runTest("MultipleNotBeginAndEnd", [pattern], createTestFile)
 
 
-
-#ON CUSTOM
-def DUMMYsimplePatternSearchTest_MultipleNotBeginAndEnd(createTestFile=False):
+# ON CUSTOM
+def DUMMYMultipleNotBeginAndEndTest(createTestFile=False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > b.OpeningPrice
@@ -1163,12 +1176,47 @@ def DUMMYsimplePatternSearchTest_MultipleNotBeginAndEnd(createTestFile=False):
         TrueFormula(),
         timedelta(minutes=5)
     )
-    runTest("DUMMYsimpleMultipleNotBeginAndEnd", [pattern], createTestFile)
+    runTest("DUMMYMultipleNotBeginAndEnd", [pattern], createTestFile)
 
+
+
+# ON custom2
+def simpleNotTest(createTestFile=False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > b.OpeningPrice
+        AND b.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    runTest("simpleNot", [pattern], createTestFile)
+
+# ON custom2
+def DUMMYsimpleNotTest(createTestFile=False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > b.OpeningPrice
+        AND b.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("GOOG", "c")]),
+        TrueFormula(),
+        timedelta(minutes=5)
+    )
+    runTest("DUMMYsimpleNot", [pattern], createTestFile)
 
 # comment to commit and push
 # greedyPatternSearchTest()
-evaTest()
+# evaTest()
 # NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
 # googleAscendPatternSearchTestWITHNEG()
 # PROBLEM()
@@ -1178,22 +1226,23 @@ evaTest()
 # out = compareFiles('test/Matches/dpB1MatcheMatch.txt', 'test/Matches/dpB1MatchesExpect.txt')
 # print(out)
 
-#OtherTestNat()
-
-#ON NASDAQ SHORT
-#simplePatternSearchTest_OneNotAtTheBeginning()
-#simplePatternSearchTest_MultipleNotAtTheBeginning()
-
-# ON NASDAQ HALF SHORT
-#simplePatternSearchTest_OneNotAtTheEnd()
-#simplePatternSearchTest_MultipleNotAtTheEnd()
+# OtherTestNat()
 
 
-#simplePatternSearchTest_MultipleNotBeginAndEnd()
+DUMMYsimpleNotTest()
 
+# ON NASDAQ SHORT
+# OneNotAtTheBeginningTest()
+# MultipleNotAtTheBeginningTest()
+#
+# # ON NASDAQ HALF SHORT
+# OneNotAtTheEndTest()
+# MultipleNotAtTheEndTest()
+#
+# # ON CUSTOM
+# MultipleNotBeginAndEndTest()
 
-
-#DUMMYsimplePatternSearchTest_MultipleNotBeginAndEnd()
+# DUMMYPatternSearchTest_MultipleNotBeginAndEnd()
 """
 OtherTest()
 

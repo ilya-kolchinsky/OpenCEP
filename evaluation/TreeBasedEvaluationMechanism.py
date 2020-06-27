@@ -631,21 +631,22 @@ class Tree:
         origin_event_list = pattern.origin_structure.get_args()
 
         # init node to use it out of the scope of the for
-        node = None
+        node = self.__root
         for p in negative_event_list:
             flag = 1
             p_conditions = pattern.condition.get_events_in_a_condition_with(p.get_event_name())
-            list = []
+            set_of_depending_events = set()
             if p_conditions is not None:
-                p_conditions.get_all_terms(list)
+                p_conditions.get_all_terms(set_of_depending_events)
             if pattern.origin_structure.get_top_operator() == SeqOperator:
-                find_positive_events_before(p, list, pattern.origin_structure.get_args())
-            if p.get_event_name() in list:
-                list.remove(p.get_event_name())
+                find_positive_events_before(p, set_of_depending_events, pattern.origin_structure.get_args())
+            if p.get_event_name() in set_of_depending_events:
+                set_of_depending_events.remove(p.get_event_name())
+            #list_of_depending_events = list(set(list_of_depending_events))
             node = self.__root.get_deepest_leave()  #A CHANGER
             while flag:
                 names = {item[1].name for item in node.get_event_definitions()}
-                result = all(elem in names for elem in list)
+                result = all(elem in names for elem in set_of_depending_events)
                 counter = 0
                 if result:
                     while type(node._parent) == FirstChanceNode:
