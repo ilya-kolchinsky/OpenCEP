@@ -1,0 +1,24 @@
+{'Stock Ticker': 'AMAZON', 'Date': 200802010919, 'Opening Price': 16, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+{'Stock Ticker': 'FB', 'Date': 200802010920, 'Opening Price': 17, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+
+{'Stock Ticker': 'AMAZON', 'Date': 200802010919, 'Opening Price': 16, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+{'Stock Ticker': 'FB', 'Date': 200802010921, 'Opening Price': 18, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+
+{'Stock Ticker': 'AMAZON', 'Date': 200802010919, 'Opening Price': 16, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+{'Stock Ticker': 'FB', 'Date': 200802010922, 'Opening Price': 18, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+
+{'Stock Ticker': 'AMAZON', 'Date': 200802010919, 'Opening Price': 16, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+{'Stock Ticker': 'FB', 'Date': 200802010923, 'Opening Price': 19, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+
+{'Stock Ticker': 'AMAZON', 'Date': 200802010919, 'Opening Price': 16, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+{'Stock Ticker': 'FB', 'Date': 200802010924, 'Opening Price': 20, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+
+{'Stock Ticker': 'AMAZON', 'Date': 200802010927, 'Opening Price': 10, 'Peak Price': 78.75, 'Lowest Price': 78.7, 'Close Price': 78.72, 'Volume': 800}
+{'Stock Ticker': 'FB', 'Date': 200802010928, 'Opening Price': 16, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+
+{'Stock Ticker': 'AMAZON', 'Date': 200802010927, 'Opening Price': 10, 'Peak Price': 78.75, 'Lowest Price': 78.7, 'Close Price': 78.72, 'Volume': 800}
+{'Stock Ticker': 'FB', 'Date': 200802010930, 'Opening Price': 50, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+
+{'Stock Ticker': 'AMAZON', 'Date': 200802010935, 'Opening Price': 11, 'Peak Price': 135.68, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 3236}
+{'Stock Ticker': 'FB', 'Date': 200802010936, 'Opening Price': 16, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+

@@ -1,0 +1,21 @@
+{'Stock Ticker': 'AMZN', 'Date': 200802010901, 'Opening Price': 101}
+{'Stock Ticker': 'GOOG', 'Date': 200802010901, 'Opening Price': 440}
+
+{'Stock Ticker': 'AMZN', 'Date': 200802010901, 'Opening Price': 101}
+{'Stock Ticker': 'GOOG', 'Date': 200802010902, 'Opening Price': 140}
+
+{'Stock Ticker': 'AMZN', 'Date': 200802010901, 'Opening Price': 101}
+{'Stock Ticker': 'GOOG', 'Date': 200802010904, 'Opening Price': 140}
+
+{'Stock Ticker': 'AMZN', 'Date': 200802010903, 'Opening Price': 100}
+{'Stock Ticker': 'GOOG', 'Date': 200802010904, 'Opening Price': 140}
+
+{'Stock Ticker': 'AMZN', 'Date': 200802010901, 'Opening Price': 101}
+{'Stock Ticker': 'GOOG', 'Date': 200802010905, 'Opening Price': 450}
+
+{'Stock Ticker': 'AMZN', 'Date': 200802010902, 'Opening Price': 320}
+{'Stock Ticker': 'GOOG', 'Date': 200802010905, 'Opening Price': 450}
+
+{'Stock Ticker': 'AMZN', 'Date': 200802010903, 'Opening Price': 100}
+{'Stock Ticker': 'GOOG', 'Date': 200802010905, 'Opening Price': 450}
+
