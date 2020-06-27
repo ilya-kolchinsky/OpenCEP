@@ -11,6 +11,7 @@ from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_
 from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
+from misc.ConsumptionPolicies import *
 
 
 class Node(ABC):
@@ -321,7 +322,10 @@ class Tree:
         # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
         self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
                                             tree_structure, pattern.structure.args, pattern.window, 
-                                            None, pattern.single_types)
+                                            None, pattern.consumption_policies)
+        if pattern.consumption_policies and pattern.consumption_policies.single and pattern.consumption_policies.single.mechanism == Mechanisms.type2:
+            for event_type in pattern.consumption_policies.single.single_types:
+                self.__root.add_single_event_type(event_type)
         self.__root.apply_formula(pattern.condition)
 
     def get_leaves(self):
@@ -333,16 +337,16 @@ class Tree:
 
     @staticmethod
     def __construct_tree(is_sequence: bool, tree_structure: tuple or int, args: List[QItem],
-                         sliding_window: timedelta, parent: Node = None, single_types: set = None):
+                         sliding_window: timedelta, parent: Node = None, consumption_policies: ConsumptionPolicies = None):
         if type(tree_structure) == int:
             event = args[tree_structure]
-            if single_types != None and event.event_type in single_types:
+            if consumption_policies and consumption_policies.single and consumption_policies.single.mechanism == Mechanisms.type1 and event.event_type in consumption_policies.single.single_types:
                 parent.add_single_event_type(event.event_type)
             return LeafNode(sliding_window, tree_structure, event, parent)
         current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
         left_structure, right_structure = tree_structure
-        left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current, single_types)
-        right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current, single_types)
+        left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current, consumption_policies)
+        right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current, consumption_policies)
         current.set_subtrees(left, right)
         return current
 
@@ -385,10 +389,10 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         be skipped and the leaf that the user specifed from which this mechanism must be enforced
         """
         skip_leaf, stop_new_sequences_leaf = None, None
-        if pattern.structure.get_top_operator() == SeqOperator: #Enforce mechanism on sequences only
+        if pattern.consumption_policies:
             args = pattern.structure.args
             for i in range(len(args)):
-                if args[i].skip:
+                if args[i].name == pattern.consumption_policies.skip:
                     for leaf in self.__tree.get_leaves():
                         index = leaf.get_leaf_index()
                         if index == 0:
@@ -414,9 +418,10 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 if leaf.has_partial_matches():
                     return True
                 else:
-                    self.__should_skip_leaf = False
+                    if leaf != self.__stop_new_sequences_leaf:
+                        self.__should_skip_leaf = False
                     return False
-        else:
+        elif self.__should_skip_leaf == False:
             if leaf != self.__stop_new_sequences_leaf:
                 return False
             else:

@@ -8,11 +8,12 @@ from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
 from misc.IOUtils import file_input, file_output
 from misc.Stocks import MetastockDataFormatter
 from misc.Utils import generate_matches
+from misc.ConsumptionPolicies import *
 from evaluation.LeftDeepTreeBuilders import *
 from evaluation.BushyTreeBuilders import *
 from datetime import timedelta
 from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, MinusTerm, AtomicTerm, AndFormula, TrueFormula
-from base.PatternStructure import AndOperator, SeqOperator, StrictSeqOperator, QItem
+from base.PatternStructure import AndOperator, SeqOperator, QItem
 from base.Pattern import Pattern
 
 
@@ -88,7 +89,7 @@ def runTest(testName, patterns, createTestFile = False,
     actual_matches_path = "test/Matches/%sMatches.txt" % testName
     print("Test %s result: %s, Time Passed: %s" % (testName,
           "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
-    os.remove(absolutePath + "\\" + actual_matches_path)
+    #os.remove(absolutePath + "\\" + actual_matches_path)
 
 def oneArgumentsearchTest(createTestFile = False):
     pattern = Pattern(
@@ -101,16 +102,14 @@ def oneArgumentsearchTest(createTestFile = False):
 def simplePatternSearchTest(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
-    WHERE   a.OpeningPrice > b.OpeningPrice
-        AND b.OpeningPrice > c.OpeningPrice
+    WHERE   a.OpeningPrice > c.OpeningPrice
     WITHIN 5 minutes
     """
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
-        AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
-            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
-        timedelta(minutes=5)
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
+        timedelta(minutes=5),
+        ConsumptionPolicies(skip = 'b')
     )
     runTest("simple", [pattern], createTestFile)
 

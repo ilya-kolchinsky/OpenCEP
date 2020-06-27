@@ -16,11 +16,9 @@ class PatternStructure(ABC):
 
 
 class QItem(PatternStructure):
-    def __init__(self, event_type: str, name: str, strict: bool = False, skip: bool = False):
+    def __init__(self, event_type: str, name: str):
         self.event_type = event_type
         self.name = name
-        self.strict = strict #Second mechanism: requiring an event to immediately follow the previous one in a sequence ("strict" sequence)
-        self.skip = skip #Third mechanism: prohibiting any pattern matching while a single partial match is active
 
 
 class AndOperator(PatternStructure):
@@ -34,11 +32,6 @@ class OrOperator(PatternStructure):
 
 
 class SeqOperator(PatternStructure):
-    def __init__(self, args: List[PatternStructure]):
-        self.args = args
-
-
-class StrictSeqOperator(PatternStructure):
     def __init__(self, args: List[PatternStructure]):
         self.args = args
 
