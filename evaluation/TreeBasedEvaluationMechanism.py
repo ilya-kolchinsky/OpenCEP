@@ -8,7 +8,6 @@ from evaluation.EvaluationMechanism import EvaluationMechanism
 from evaluation.Nodes.Node import Node
 from evaluation.Nodes.InternalNode import InternalNode, SeqNode, AndNode
 from evaluation.Nodes.LeafNode import LeafNode
-from test.UnitTests.prettyjson import prettyjson
 from evaluation.Storage import TreeStorageParameters
 
 

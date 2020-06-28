@@ -11,17 +11,12 @@ from typing import List
 from evaluation.PartialMatch import PartialMatch
 from misc.Utils import find_partial_match_by_timestamp
 
-# from blist import blist B+ tree like list
-# TODO Note: for mutable collections like ours we shouldn't return self but a copy of self.
-# if we were immutable we could return self because the user aslan can't use our collection
-
 
 class Storage(MutableSequence):
     """
-    This stores all the partial matches
+    Abstract class for storing partial matches
     """
 
-    # TODO def get_parial_matches(self, pm):
     @abstractmethod
     def __init__(self):
         self._container: MutableSequence
@@ -30,76 +25,49 @@ class Storage(MutableSequence):
     def append(self, pm):
         self._container.append(pm)
 
-    def insert(self, index, item):  # abstract in MutableSequence      for x.insert(i,a)
+    def insert(self, index, item):
         self._container.insert(index, item)
 
     def get_key(self):
         return self._key
 
-    def __setitem__(self, index, item):  # abstract in MutableSequence      for x[i] = a
+    def __setitem__(self, index, item):
         self._container[index] = item
 
-    # TODO maybe make a get_item for both classes with deepcopy but I think if we only iterate over the result we then don't need to construct a new one and we can return the _container itself.
-    def __getitem__(self, index):  # abstract in MutableSequence      for y = x[i]
-        # return self._container[index] => not very good. index can be a slice [:] which makes us return a list when we should return an SortedStorage object
-        result = self._container[index]
-        return result  # return SortedStorage(result, self._key) if isinstance(index, slice) else result
+    def __getitem__(self, index):
+        # index can be a slice [:] so the return value can be a list
+        return self._container[index]
 
-    def __len__(self):  # abstract in MutableSequence      for len(x)
+    def __len__(self):
         return len(self._container)
 
-    def __delitem__(self, index):  # abstract in MutableSequence      for del x[i]
+    def __delitem__(self, index):
         del self._container[index]
 
     def __contains__(self, item):
-        return item in self._container  # todo : we can use bisect here instead
+        # can be implemented with O(logn) if the storage is sorted
+        return item in self._container
 
     def __iter__(self):
         return iter(self._container)
 
-    def __add__(self, rhs):  #      for s1 + s2
-        pass
-
-    # TODO: we can implement the index method(overriding it actually) and other methods with BINARY SEARCH.
-    """def index(self, item):
-           index = bisect_left(self._container, item)
-           if (index != len(self._container)) and (self._container[index] == item):
-                return index
-            return None
-        if we implement this function then we can let __contains__ call it to to be O(logn)
-    """
-
-    # FOR TESTS
-    def __repr__(self):
-        return "Storage contains {}".format(self._container if self._container else "Nothing")
-
-    def __eq__(self, rhs):
+    def __add__(self, rhs):
         if not isinstance(rhs, Storage):
             return NotImplemented
-        return self._container == rhs._container
+        return self._container + rhs._container
 
-    def __ne__(self, rhs):
-        if not isinstance(rhs, Storage):
-            return NotImplemented
-        return self._container != rhs._container
-
+    
 
 class SortedStorage(Storage):
     def __init__(self, key, relop, equation_side, clean_up_every: int, sort_by_first_timestamp=False, in_leaf=False):
-        self._container = []  # always sorted in increasing order according to key
+        self._container = []  # sorted in increasing order according to key
         self._key = key
+        self._in_leaf = in_leaf
         self._sorted_by_first_timestamp = sort_by_first_timestamp
-        self._get_function = self._choose_get_function(relop, equation_side)
         self._clean_up_every = clean_up_every
         self._access_count = 0
-        self._in_leaf = in_leaf
+        self._get_function = self._choose_get_function(relop, equation_side)
 
-    """
-    def __repr__(self):
-        return "Storage contains {}, key is {}, get_func is ".format(
-            self._container if self._container else "Nothing", self._key
-        )
-    """
 
     def add(self, pm):
         self._access_count += 1
@@ -115,7 +83,21 @@ class SortedStorage(Storage):
             return []
         return self._get_function(value)
 
-    # this also can return many values
+    def try_clean_expired_partial_matches(self, timestamp: datetime):
+        if self._access_count >= self._clean_up_every:
+            self._clean_expired_partial_matches(timestamp)
+            self._access_count = 0
+
+    def _clean_expired_partial_matches(self, timestamp: datetime):
+        """
+        Removes partial matches whose earliest timestamp violates the time window constraint.
+        """
+        if self._sorted_by_first_timestamp:
+            count = find_partial_match_by_timestamp(self._container, timestamp)
+            self._container = self._container[count:]
+        else:
+            self._container = list(filter(lambda pm: pm.first_timestamp >= timestamp, self._container))
+
     def _get_equal(self, value):
         left_index = get_first_index(self._container, value, self._key)
         if left_index == len(self._container) or left_index == -1 or self._key(self._container[left_index]) != value:
@@ -127,21 +109,19 @@ class SortedStorage(Storage):
     def _get_unequal(self, value):
         left_index = get_first_index(self._container, value, self._key)
         if left_index == len(self._container) or left_index == -1 or self._key(self._container[left_index]) != value:
-            return self._container  # might need to return a copy
+            return self._container
         right_index = get_last_index(self._container, value, self._key)
         return self._container[:left_index] + self._container[right_index + 1 :]
-        # can use extend or itertools.chain see what's best
 
     def _get_greater(self, value):
         right_index = get_last_index(self._container, value, self._key)
         if right_index == len(self._container):
             return []
         if right_index == -1:
-            return self._container  # might need to return a copy
+            return self._container
+        # in case value doesn't exist right_index will point on the first one greater than it
         if self._key(self._container[right_index]) != value:
-            return self._container[
-                right_index:
-            ]  # in case value doesn't exist left_index will point on the first one greater than it
+            return self._container[right_index:] 
         return self._container[right_index + 1 :]
 
     def _get_smaller(self, value):
@@ -149,37 +129,18 @@ class SortedStorage(Storage):
         if left_index == len(self._container):
             return self._container
         if left_index == -1:
-            return []  # might need to return a copy
+            return []
+        # in case value doesn't exist left_index will point on the first one smaller than it
         if self._key(self._container[left_index]) != value:
-            return self._container[
-                : left_index + 1
-            ]  # in case value doesn't exist left_index will point on the first one smaller than it
+            return self._container[: left_index + 1]
+            
         return self._container[:left_index]
 
     def _get_greater_or_equal(self, value):
         return self._get_equal(value) + self._get_greater(value)
-        # maybe I can do better by not calling these functions
 
     def _get_smaller_or_equal(self, value):
         return self._get_smaller(value) + self._get_equal(value)
-
-    # implementing add or extend depends on whether we want a new object or update the current SortedStorage.
-    # if we need something we'd need extend with O(1)
-    def __add__(self, rhs):  #      for s1 + s2
-        # return SortedStorage(list(chain(self._container, rhs._container)), self._key)
-        return self._container + rhs._container
-
-    def try_clean_expired_partial_matches(self, timestamp: datetime):
-        if self._access_count == self._clean_up_every:
-            self.clean_expired_partial_matches(timestamp)
-            self._access_count = 0
-
-    def clean_expired_partial_matches(self, timestamp: datetime):
-        if self._sorted_by_first_timestamp:
-            count = find_partial_match_by_timestamp(self._container, timestamp)
-            self._container = self._container[count:]
-        else:
-            self._container = list(filter(lambda pm: pm.first_timestamp >= timestamp, self._container))
 
     def _choose_get_function(self, relop, equation_side):
         assert relop is not None
@@ -202,8 +163,9 @@ class SortedStorage(Storage):
 class DefaultStorage(SortedStorage):
     def __init__(self, in_leaf=False):
         self._container = []
-        self._in_leaf = in_leaf
         self._key = lambda x: x
+        self._in_leaf = in_leaf
+        self._sorted_by_first_timestamp = True
 
     def get(self, value):
         return self._container
@@ -216,40 +178,31 @@ class DefaultStorage(SortedStorage):
             self._container.insert(index, pm)
 
     def try_clean_expired_partial_matches(self, timestamp: datetime):
-        self.clean_expired_partial_matches(timestamp)
-
-    def clean_expired_partial_matches(self, timestamp: datetime):
-        """
-        Removes partial matches whose earliest timestamp violates the time window constraint.
-        """
-        count = find_partial_match_by_timestamp(self._container, timestamp)
-        self._container = self._container[count:]
+        self._clean_expired_partial_matches(timestamp)
 
 
-# used also if the user doesn't want to use the optimization
 class UnsortedStorage(Storage):
     def __init__(self, clean_up_every: int, in_leaf=False):
         self._container = []
-        self._key = lambda x: x  # I don't think we need this param here
-        self._sorted_by_first_timestamp = False  # I don't think we need this param here
+        self._key = lambda x: x
+        self._in_leaf = in_leaf
         self._clean_up_every = clean_up_every
         self._access_count = 0
-        self._in_leaf = in_leaf
 
     def get(self, value):
         return self._container
 
-    # the same as def append()
     def add(self, pm):
         self._access_count += 1
         self._container.append(pm)
+        
 
     def try_clean_expired_partial_matches(self, timestamp: datetime):
-        if self._access_count == self._clean_up_every:
-            self.clean_expired_partial_matches(timestamp)
+        if self._access_count >= self._clean_up_every:
+            self._clean_expired_partial_matches(timestamp)
             self._access_count = 0
 
-    def clean_expired_partial_matches(self, timestamp: datetime):
+    def _clean_expired_partial_matches(self, timestamp: datetime):
         if self._in_leaf:
             count = find_partial_match_by_timestamp(self._container, timestamp)
             self._container = self._container[count:]
@@ -266,12 +219,9 @@ class TreeStorageParameters:
     def __init__(
         self,
         sort_storage: bool = False,
-        attributes_priorities: dict = {"a": 10, "b": 1, "c": 10},
-        clean_expired_every: int = 200,
+        attributes_priorities: dict = {},
+        clean_expired_every: int = 0,
     ):
         self.sort_storage = sort_storage
         self.attributes_priorities = attributes_priorities
         self.clean_expired_every = clean_expired_every
-
-
-# https://books.google.co.il/books?id=jnEoBgAAQBAJ&pg=A119&lpg=PA119&dq=difference+between+__setitem__+and+insert+in+python&source=bl&ots=5WjkK7Acbl&sig=ACfU3U06CgfJju4aTo8K20rhq0tIul6oBg&hl=en&sa=X&ved=2ahUKEwjo9oGLpuHoAhVTXMAKHf5jA68Q6AEwDnoECA0QOw#v=onepage&q=difference%20between%20__setitem__%20and%20insert%20in%20python&f=false

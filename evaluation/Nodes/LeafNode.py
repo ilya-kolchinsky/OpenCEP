@@ -57,11 +57,6 @@ class LeafNode(Node):
         if self._parent is not None:
             self._parent.handle_new_partial_match(self)
 
-    def add_partial_match(self, pm: PartialMatch):
-        self._partial_matches.add(pm)
-        if self._parent is not None:
-            self._unhandled_partial_matches.put(pm)
-
     def create_storage_unit(
         self,
         storage_params: TreeStorageParameters,
@@ -85,13 +80,4 @@ class LeafNode(Node):
                 sort_by_first_timestamp,
                 True,
             )
-
-    def json_repr(self):
-        return {
-            "Node": "LeafNode",
-            "event name": self.__event_name,
-            "event type": self.__event_type,
-            "leaf index": self.__leaf_index,
-            "condition": repr(self._condition),
-            "pms": repr(self._partial_matches),
-        }
+            

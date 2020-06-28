@@ -70,7 +70,7 @@ class TestUnsortedStorage:
         u_s.add(self.pm2)
         u_s.add(self.pm3)
         u_s.add(self.pm4)
-        u_s.clean_expired_partial_matches(self.dt + timedelta(15))
+        u_s._clean_expired_partial_matches(self.dt + timedelta(15))
         assert u_s.get("nothing") == [self.pm3, self.pm4], "UnsortedStorage clean_expired_partial_matches failed"
 
     def run_tests(self):

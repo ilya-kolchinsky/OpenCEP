@@ -30,8 +30,7 @@ class InternalNode(Node):
         self._event_defs = event_defs
         self._left_subtree = left
         self._right_subtree = right
-        self._relation_op = None  # just for json_repr
-        self._simplified_condition = (None, None, None)  # just for json_repr
+
 
     def get_leaves(self):
         result = []
@@ -104,7 +103,7 @@ class InternalNode(Node):
         """
         Verifies all the conditions for creating a new partial match and creates it if all constraints are satisfied.
         """
-        # We need this because clean_expired doesn't necessarily clean old partial matches
+        # We need this because clean_expired doesn't necessarily clean old partial matches.
         if self._sliding_window != timedelta.max and (
             abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window
             or abs(first_partial_match.first_timestamp - second_partial_match.last_timestamp) > self._sliding_window
@@ -144,37 +143,6 @@ class InternalNode(Node):
         binding = {self._event_defs[i][1].name: events_for_new_match[i].payload for i in range(len(self._event_defs))}
         return self._condition.eval(binding)
 
-    def add_partial_match(self, pm: PartialMatch):
-        """
-        Registers a new partial match at this node.
-        As of now, the insertion is always by the timestamp, and the partial matches are stored in a list sorted by
-        timestamp. Therefore, the insertion operation is performed in O(log n).
-        """
-        self._partial_matches.add(pm)
-        if self._parent is not None:
-            self._unhandled_partial_matches.put(pm)
-
-    def json_repr(self):
-        events_defs_for_json = map(lambda x: x[0], self._event_defs)
-        events_nums = list(events_defs_for_json)
-        node_type = "SEQ Node"
-        if type(self) == AndNode:
-            node_type = "AND Node"
-        data_set = {
-            "Node": node_type,
-            "event defs": events_nums,
-            "not_simplified_condition": repr(self._condition),
-            "simplified_condition": "{} {} {}".format(
-                self._simplified_condition[0], self._simplified_condition[1], self._simplified_condition[2],
-            ),
-            "RELOP": self._relation_op,
-            "": "",
-            "left_subtree": self._left_subtree.json_repr(),
-            "right_subtree": self._right_subtree.json_repr(),
-            "pms": repr(self._partial_matches),
-        }
-        return data_set
-
 
 class AndNode(InternalNode):
     """
@@ -206,7 +174,7 @@ class AndNode(InternalNode):
         left_sorting_key = None
         right_sorting_key = None
         relop = None
-        # ////////////////////////////////////////////////////////////////
+
         left_event_defs = self._left_subtree.get_event_definitions()
         right_event_defs = self._right_subtree.get_event_definitions()
         left_event_names = {item[1].name for item in left_event_defs}
@@ -221,8 +189,6 @@ class AndNode(InternalNode):
 
         if simple_formula is not None:
             left_term, relop, right_term = simple_formula.dismantle()
-            self._relation_op = relop
-            self._simplified_condition = (left_term, relop, right_term)
             left_sorting_key = lambda pm: left_term.eval(
                 {left_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
             )
@@ -316,7 +282,6 @@ class SeqNode(InternalNode):
         assert relop is not None
         left_sort_by_first_timestamp = True if left_sort == 0 else False
         right_sort_by_first_timestamp = True if right_sort == 0 else False
-        self._relation_op = relop  # just for the json_repr
         self._left_subtree.create_storage_unit(
             storage_params, lambda pm: pm.events[left_sort].timestamp, relop, "left", left_sort_by_first_timestamp
         )
