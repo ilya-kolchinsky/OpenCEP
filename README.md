@@ -94,7 +94,7 @@ pattern = Pattern(
     StrictSeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
     TrueFormula(),
     timedelta(minutes=5),
-    ConsumptionPolicies(single = {"AAPL", "AMZN"})# Prevent events  of type "AAPL" or "AMZN" from appearing twice
+    ConsumptionPolicies(single = {"AAPL", "AMZN"}, Mechanisms.type1)# Prevent events  of type "AAPL" or "AMZN" from appearing twice
 )
 ```
 
