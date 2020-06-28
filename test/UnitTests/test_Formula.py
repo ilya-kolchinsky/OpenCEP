@@ -61,7 +61,7 @@ class TestFormula(unittest.TestCase):
         #  lhs vars and rhs vars are already in lhs term and rhs term, returns self
         self.assertEqual(formula_xy_eq_8.simplify_formula({"x"}, {"y"}), None)
         self.assertEqual(
-            formula_xy_eq_8.simplify_formula({"x", "y"}, {}), formula_xy_eq_8
+            formula_xy_eq_8.simplify_formula({"x", "y"}, {}).left_term, formula_xy_eq_8.left_term
         )
 
         self.assertNotEqual(formula_xplusy_steq_8.simplify_formula({"x"}, {"y"}), None)
@@ -93,7 +93,7 @@ class TestFormula(unittest.TestCase):
         #setting priority for y to be higher than x, should simplify f2.
         simplified_Formula = formula_x_steq_8_And_y_steq_5.simplify_formula({"x","y"},{},{"x":1, "y":10})
         # formula to sort by should be f2 which is formula_y_steq_5 (with no change so we can assert equal)
-        self.assertEqual(simplified_Formula.formula_to_sort_by , formula_y_steq_5)
+        self.assertEqual(simplified_Formula.formula_to_sort_by.left_term , formula_y_steq_5.left_term)
 
         simplified_Formula = formula_x_steq_8_And_y_steq_5.simplify_formula({"x"},{"y"},{"x":1, "y":10})
 
