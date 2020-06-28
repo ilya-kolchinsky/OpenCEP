@@ -94,25 +94,17 @@ pattern = Pattern(
     StrictSeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
     TrueFormula(),
     timedelta(minutes=5),
-    {"AAPL", "AMZN"} # Prevent events  of type "AAPL" or "AMZN" from appearing twice
+    ConsumptionPolicies(single = {"AAPL", "AMZN"})# Prevent events  of type "AAPL" or "AMZN" from appearing twice
 )
 ```
 
 Second mechanism: Defining strict patterns:
 ```
 pattern = Pattern(
-    StrictSeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
     TrueFormula(),
-    timedelta(minutes=5)
-)
-```
-
-Alternatively, each pair of successive event types can be defined as strict:
-```
-pattern = Pattern(
-    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b", strict=True), QItem("AVID", "c", True)]), 
-    TrueFormula(),
-    timedelta(minutes=5)
+    timedelta(minutes=5),
+    ConsumptionPolicies(strict = {"a", "b", "c"})
 )
 ```
 
@@ -140,10 +132,11 @@ while a user is able to define a specific point in a sequence from which this be
 ```
 # Enforce mechanism from the first event in the sequence
 pattern = Pattern(
-    SeqOperator([QItem("AAPL", "a", skip=True), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
     AndFormula(
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
         GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
-    timedelta(minutes=5)
+    timedelta(minutes=5),
+    ConsumptionPolicies(skip = "b")
 )
 ```
