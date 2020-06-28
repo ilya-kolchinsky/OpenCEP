@@ -12,12 +12,12 @@ class Node(ABC):
     """
     This class represents a single node of an evaluation tree.
     """
-
     def __init__(self, sliding_window: timedelta, parent):
         self._parent = parent
         self._sliding_window = sliding_window
         self._partial_matches: Storage[PartialMatch]
         self._condition = TrueFormula()
+        # matches that were not yet pushed to the parent for further processing
         self._unhandled_partial_matches = Queue()
 
     def consume_first_partial_match(self):
@@ -91,12 +91,6 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    def create_storage_unit(
-        self,
-        storage_params: TreeStorageParameters,
-        sorting_key: callable = None,
-        relation_op=None,
-        equation_side=None,
-        sort_by_first_timestamp=False,
-    ):
+    def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                            relation_op=None, equation_side=None, sort_by_first_timestamp=False):
         pass

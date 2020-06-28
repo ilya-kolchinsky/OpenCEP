@@ -16,40 +16,12 @@ class Tree:
     Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree structure"
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     """
-
     def __init__(self, tree_structure: tuple, pattern: Pattern, storage_params: TreeStorageParameters):
         # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
-        self.__root = Tree.__construct_tree(
-            pattern.structure.get_top_operator() == SeqOperator, tree_structure, pattern.structure.args, pattern.window
-        )
+        self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
+                                            tree_structure, pattern.structure.args, pattern.window)
         self.__root.apply_formula(pattern.condition)
         self.__root.create_storage_unit(storage_params)
-
-    def json_repr(self):
-        return self.__root.json_repr()
-
-    @staticmethod
-    def __construct_tree(
-        is_sequence: bool,
-        tree_structure: tuple or int,
-        args: List[QItem],
-        sliding_window: timedelta,
-        parent: Node = None,
-    ):
-
-        if type(tree_structure) != int and len(tree_structure) == 1:
-            tree_structure = tree_structure[0]
-
-        if type(tree_structure) == int:
-            return LeafNode(sliding_window, tree_structure, args[tree_structure], parent)
-
-        current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
-        left_structure, right_structure = tree_structure
-
-        left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current)
-        right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current)
-        current.set_subtrees(left, right)
-        return current
 
     def get_leaves(self):
         return self.__root.get_leaves()
@@ -58,17 +30,25 @@ class Tree:
         while self.__root.has_partial_matches():
             yield self.__root.consume_first_partial_match().events
 
+    @staticmethod
+    def __construct_tree(is_sequence: bool, tree_structure: tuple or int, args: List[QItem],
+                         sliding_window: timedelta, parent: Node = None):
+        if type(tree_structure) == int:
+            return LeafNode(sliding_window, tree_structure, args[tree_structure], parent)
+        current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
+        left_structure, right_structure = tree_structure
+        left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current)
+        right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current)
+        current.set_subtrees(left, right)
+        return current
+
 
 class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
-
     def __init__(self, pattern: Pattern, tree_structure: tuple, storage_params: TreeStorageParameters):
         self.__tree = Tree(tree_structure, pattern, storage_params)
-
-    def json_repr(self):
-        return self.__tree.json_repr()
 
     def eval(self, events: Stream, matches: Stream):
         event_types_listeners = {}
