@@ -89,7 +89,7 @@ def runTest(testName, patterns, createTestFile = False,
     actual_matches_path = "test/Matches/%sMatches.txt" % testName
     print("Test %s result: %s, Time Passed: %s" % (testName,
           "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
-    #os.remove(absolutePath + "\\" + actual_matches_path)
+    os.remove(absolutePath + "\\" + actual_matches_path)
 
 def oneArgumentsearchTest(createTestFile = False):
     pattern = Pattern(
@@ -108,8 +108,7 @@ def simplePatternSearchTest(createTestFile = False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
-        timedelta(minutes=5),
-        ConsumptionPolicies(skip = 'b')
+        timedelta(minutes=5)
     )
     runTest("simple", [pattern], createTestFile)
 
