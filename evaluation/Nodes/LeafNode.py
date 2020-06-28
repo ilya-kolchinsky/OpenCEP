@@ -13,10 +13,7 @@ class LeafNode(Node):
     """
     A leaf node is responsible for a single event type of the pattern.
     """
-
-    def __init__(
-        self, sliding_window: timedelta, leaf_index: int, leaf_qitem: QItem, parent: Node,
-    ):
+    def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_qitem: QItem, parent: Node):
         super().__init__(sliding_window, parent)
         self.__leaf_index = leaf_index
         self.__event_name = leaf_qitem.name
@@ -26,8 +23,6 @@ class LeafNode(Node):
         return [self]
 
     def apply_formula(self, formula: Formula):
-        if formula is None:
-            return
         condition = formula.get_formula_of(self.__event_name)
         if condition is not None:
             self._condition = condition
@@ -57,14 +52,8 @@ class LeafNode(Node):
         if self._parent is not None:
             self._parent.handle_new_partial_match(self)
 
-    def create_storage_unit(
-        self,
-        storage_params: TreeStorageParameters,
-        sorting_key: callable = None,
-        relation_op=None,
-        equation_side=None,
-        sort_by_first_timestamp=False,
-    ):
+    def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                            relation_op=None, equation_side=None, sort_by_first_timestamp=False):
         if storage_params is None or not storage_params.sort_storage:
             self._partial_matches = DefaultStorage(in_leaf=True)
             return
@@ -72,12 +61,6 @@ class LeafNode(Node):
         if sorting_key is None:
             self._partial_matches = UnsortedStorage(storage_params.clean_expired_every, True)
         else:
-            self._partial_matches = SortedStorage(
-                sorting_key,
-                relation_op,
-                equation_side,
-                storage_params.clean_expired_every,
-                sort_by_first_timestamp,
-                True,
-            )
+            self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side,
+                                                  storage_params.clean_expired_every, sort_by_first_timestamp, True)
             

@@ -16,7 +16,6 @@ class Storage(MutableSequence):
     """
     Abstract class for storing partial matches
     """
-
     @abstractmethod
     def __init__(self):
         self._container: MutableSequence
@@ -59,6 +58,9 @@ class Storage(MutableSequence):
     
 
 class SortedStorage(Storage):
+    """
+    This class stores the partial matches sorted in increasing order according to a function(key) on partial matches.
+    """
     def __init__(self, key, relop, equation_side, clean_up_every: int, sort_by_first_timestamp=False, in_leaf=False):
         self._container = []  # sorted in increasing order according to key
         self._key = key
@@ -102,7 +104,6 @@ class SortedStorage(Storage):
         left_index = get_first_index(self._container, value, self._key)
         if left_index == len(self._container) or left_index == -1 or self._key(self._container[left_index]) != value:
             return []
-
         right_index = get_last_index(self._container, value, self._key)
         return self._container[left_index : right_index + 1]
 
@@ -161,6 +162,9 @@ class SortedStorage(Storage):
 
 
 class DefaultStorage(SortedStorage):
+    """
+    This class is the default storage that sorts partial matches by their first timestamp.
+    """
     def __init__(self, in_leaf=False):
         self._container = []
         self._key = lambda x: x
@@ -182,6 +186,10 @@ class DefaultStorage(SortedStorage):
 
 
 class UnsortedStorage(Storage):
+    """
+    This class stores partial matches unsorted.
+    It is used when it's difficult to specify an order that helps when receiving partial mitches.
+    """
     def __init__(self, clean_up_every: int, in_leaf=False):
         self._container = []
         self._key = lambda x: x
@@ -215,7 +223,6 @@ class TreeStorageParameters:
     Parameters for the evaluation tree to specify how to store the data.
     for future compatability - can contain fields to be passed to the Tree constructor.
     """
-
     def __init__(
         self,
         sort_storage: bool = False,

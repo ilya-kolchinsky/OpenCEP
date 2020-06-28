@@ -17,20 +17,12 @@ class InternalNode(Node):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
-
-    def __init__(
-        self,
-        sliding_window: timedelta,
-        parent: Node = None,
-        event_defs: List[Tuple[int, QItem]] = None,
-        left: Node = None,
-        right: Node = None,
-    ):
+    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
+                 left: Node = None, right: Node = None):
         super().__init__(sliding_window, parent)
         self._event_defs = event_defs
         self._left_subtree = left
         self._right_subtree = right
-
 
     def get_leaves(self):
         result = []
@@ -41,8 +33,6 @@ class InternalNode(Node):
         return result
 
     def apply_formula(self, formula: Formula):
-        if formula is None:
-            return
         names = {item[1].name for item in self._event_defs}
         condition = formula.get_formula_of(names)
         self._condition = condition if condition else TrueFormula()
@@ -52,9 +42,8 @@ class InternalNode(Node):
     def get_event_definitions(self):
         return self._event_defs
 
-    def _set_event_definitions(
-        self, left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]],
-    ):
+    def _set_event_definitions(self,
+                               left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
         """
         A helper function for collecting the event definitions from subtrees. To be overridden by subclasses.
         """
@@ -66,9 +55,8 @@ class InternalNode(Node):
         """
         self._left_subtree = left
         self._right_subtree = right
-        self._set_event_definitions(
-            self._left_subtree.get_event_definitions(), self._right_subtree.get_event_definitions()
-        )
+        self._set_event_definitions(self._left_subtree.get_event_definitions(),
+                                    self._right_subtree.get_event_definitions())
 
     def handle_new_partial_match(self, partial_match_source: Node):
         """
@@ -90,16 +78,14 @@ class InternalNode(Node):
 
         self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
+        # given a partial match from one subtree, for each partial match
+        # in the other subtree we check for new partial matches in this node.
         for partialMatch in partial_matches_to_compare:
             self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs)
 
-    def _try_create_new_match(
-        self,
-        first_partial_match: PartialMatch,
-        second_partial_match: PartialMatch,
-        first_event_defs: List[Tuple[int, QItem]],
-        second_event_defs: List[Tuple[int, QItem]],
-    ):
+    def _try_create_new_match(self,
+                              first_partial_match: PartialMatch, second_partial_match: PartialMatch,
+                              first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
         """
         Verifies all the conditions for creating a new partial match and creates it if all constraints are satisfied.
         """
@@ -109,10 +95,8 @@ class InternalNode(Node):
             or abs(first_partial_match.first_timestamp - second_partial_match.last_timestamp) > self._sliding_window
         ):
             return
-
-        events_for_new_match = self._merge_events_for_new_match(
-            first_event_defs, second_event_defs, first_partial_match.events, second_partial_match.events,
-        )
+        events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
+                                                                first_partial_match.events, second_partial_match.events)
         # events merged
         if not self._validate_new_match(events_for_new_match):
             return
@@ -120,13 +104,11 @@ class InternalNode(Node):
         if self._parent is not None:
             self._parent.handle_new_partial_match(self)
 
-    def _merge_events_for_new_match(
-        self,
-        first_event_defs: List[Tuple[int, QItem]],
-        second_event_defs: List[Tuple[int, QItem]],
-        first_event_list: List[Event],
-        second_event_list: List[Event],
-    ):
+    def _merge_events_for_new_match(self,
+                                    first_event_defs: List[Tuple[int, QItem]],
+                                    second_event_defs: List[Tuple[int, QItem]],
+                                    first_event_list: List[Event],
+                                    second_event_list: List[Event]):
         """
         Creates a list of events to be included in a new partial match.
         """
@@ -140,7 +122,9 @@ class InternalNode(Node):
         """
         Validates the condition stored in this node on the given set of events.
         """
-        binding = {self._event_defs[i][1].name: events_for_new_match[i].payload for i in range(len(self._event_defs))}
+        binding = {
+            self._event_defs[i][1].name: events_for_new_match[i].payload for i in range(len(self._event_defs))
+        }
         return self._condition.eval(binding)
 
 
@@ -148,16 +132,8 @@ class AndNode(InternalNode):
     """
     An internal node representing an "AND" operator.
     """
-
-    # TODO: add a constructor that call super_init() fro internal and construct the storage according to AND or seq NODE TODO
-    def create_storage_unit(
-        self,
-        storage_params: TreeStorageParameters,
-        sorting_key: callable = None,
-        relation_op=None,
-        equation_side=None,
-        sort_by_first_timestamp=False,
-    ):
+    def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                            relation_op=None, equation_side=None, sort_by_first_timestamp=False):
         if storage_params is None or not storage_params.sort_storage:
             self._partial_matches = DefaultStorage()
             self._left_subtree.create_storage_unit(storage_params)
@@ -206,36 +182,25 @@ class SeqNode(InternalNode):
     In addition to checking the time window and condition like the basic node does, SeqNode also verifies the order
     of arrival of the events in the partial matches it constructs.
     """
-
-    def _set_event_definitions(
-        self, left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]],
-    ):
+    def _set_event_definitions(self,
+                               left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
         self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
 
-    def _merge_events_for_new_match(
-        self,
-        first_event_defs: List[Tuple[int, QItem]],
-        second_event_defs: List[Tuple[int, QItem]],
-        first_event_list: List[Event],
-        second_event_list: List[Event],
-    ):
-        return merge_according_to(
-            first_event_defs, second_event_defs, first_event_list, second_event_list, key=lambda x: x[0],
-        )
+    def _merge_events_for_new_match(self,
+                                    first_event_defs: List[Tuple[int, QItem]],
+                                    second_event_defs: List[Tuple[int, QItem]],
+                                    first_event_list: List[Event],
+                                    second_event_list: List[Event]):
+        return merge_according_to(first_event_defs, second_event_defs,
+                                  first_event_list, second_event_list, key=lambda x: x[0])
 
     def _validate_new_match(self, events_for_new_match: List[Event]):
-        if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):  # validates timestamps
+        if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
             return False
-        return super()._validate_new_match(events_for_new_match)  # validates conditions
+        return super()._validate_new_match(events_for_new_match)
 
-    def create_storage_unit(
-        self,
-        storage_params: TreeStorageParameters,
-        sorting_key: callable = None,
-        relation_op=None,
-        equation_side=None,
-        sort_by_first_timestamp=False,
-    ):
+    def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                            relation_op=None, equation_side=None, sort_by_first_timestamp=False):
         """
         This function creates the storage for partial_matches it gives a special key: callable
         to the storage unit which tells the storage unit on which attribute(only timestamps here)

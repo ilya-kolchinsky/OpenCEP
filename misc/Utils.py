@@ -231,15 +231,17 @@ def does_match_exist(matches: list, match: list):
                 return True
     return False
 
-
-def get_first_index(container, to_find_value, key: callable):
+    
+def get_first_index(container, to_find_value, key: callable): 
+    """
+    Returns the first instance of the to_find_value in a sequence that's sorted increasingly according to key.
+    However in case the to_find_value doesn't exist it returns the index of first value smaller than it or -1.
+    """
     start = 0
     end = len(container) - 1
-
     while start < end:
         mid = (start + end) // 2
         mid_value = key(container[mid])
-
         if mid_value < to_find_value < key(container[mid + 1]):
             return mid
         if mid_value >= to_find_value:
@@ -255,18 +257,19 @@ def get_first_index(container, to_find_value, key: callable):
             return start + 1
         else:
             return start
-
     return 0
 
-
+    
 def get_last_index(container, to_find_value, key):
+    """
+    Returns the last instance of the to_find_value in a sequence that's sorted increasingly according to key.
+    However in case the to_find_value doesn't exist it returns the index of first value greater than it or -1.
+    """
     start = 0
     end = len(container) - 1
-
     while start < end:
         mid = (start + end) // 2
         mid_value = key(container[mid])
-
         if mid_value < to_find_value < key(container[mid + 1]):
             return mid + 1
         if mid_value <= to_find_value:
@@ -282,5 +285,4 @@ def get_last_index(container, to_find_value, key):
             return start + 1
         else:
             return start
-
     return 0
