@@ -1260,7 +1260,7 @@ def OneNotAtTheEndWithStatsTest(createTestFile=False):
 
 DUMMYsimpleNotTest()
 # nathan : a verifier !
-OneNotAtTheEndWithStatsTest()
+# OneNotAtTheEndWithStatsTest()
 
 simpleNotTest()
 
