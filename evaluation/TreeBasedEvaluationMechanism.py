@@ -13,6 +13,7 @@ from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
 
+check_expired_timestamp = set()
 
 class Node(ABC):
     """
@@ -84,6 +85,11 @@ class Node(ABC):
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
 
+        # nathan - 28.06
+        if pm.last_timestamp in check_expired_timestamp:
+            check_expired_timestamp.remove(pm.last_timestamp)
+            self.check_for_expired_negative_events(pm.last_timestamp)
+
     def get_partial_matches(self):
         """
         Returns the currently stored partial matches.
@@ -112,6 +118,21 @@ class Node(ABC):
 
         raise NotImplementedError()
 
+    def check_for_expired_negative_events(self, last_timestamp : datetime):
+        node = self.get_deepest_leave()
+        # special case if the parent of the deepest leaf is a first chance node
+        if type(node._parent) == FirstChanceNode:
+            for pm in node.get_partial_matches():
+                # call handle_new_pm ?? problem with get_last_unhandled_pm ??
+                pass
+
+        while node._parent is not None:
+            if type(node._parent) == FirstChanceNode:
+                node._parent._right_subtree.clean_expired_partial_matches(last_timestamp)
+                for pm in node.get_partial_matches():
+                    # call handle_new_pm ?? problem with get_last_unhandled_pm ??
+                    # node._parent.handle_new_partial_match(pm)
+                    pass
 
 class LeafNode(Node):
     """
@@ -412,11 +433,12 @@ class FirstChanceNode(InternalNegationNode):
                  event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, is_first, is_last, parent, event_defs, left, right)
+        # check_expired_timestamp = []
 
     def handle_new_partial_match(self, partial_match_source: Node):
 
-
-        if partial_match_source == self._left_subtree:  # If we received events from the left_subtree => positive events
+        if partial_match_source == self._left_subtree:
+            # If we received events from the left_subtree => positive events
             # we add them to the partial matches of this node and we continue on
             new_partial_match = partial_match_source.get_last_unhandled_partial_match()  # A1 et C1
             other_subtree = self._right_subtree
@@ -432,17 +454,25 @@ class FirstChanceNode(InternalNegationNode):
             second_event_defs = other_subtree.get_event_definitions()
             self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
-            to_remove = False
-            for partialMatch in partial_matches_to_compare:  # for every negative event, we want to check if he invalidates new_partial_match
+            invalidate = False
+            for partialMatch in partial_matches_to_compare:
+                # for every negative event, we want to check if he invalidates new_partial_match
                 if self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs):
-                    to_remove = True
+                    invalidate = True
                     break
 
             # if the list is empty, there is no negative event that invalidated the current pm and therefore we go up
-            if to_remove is False:
+            if invalidate is False:
                 self.add_partial_match(new_partial_match)
                 if self._parent is not None:
                     self._parent.handle_new_partial_match(self)
+
+            if invalidate:
+                # if the new partial match  is invalidated we want to check later if the negative event has expired
+                if partialMatch.first_timestamp != partialMatch.last_timestamp:
+                    print("partial match is not leaf event")
+                check_expired_timestamp.add(partialMatch.first_timestamp + self._sliding_window)
+
 
             # else we do nothing ? or we need to remove the current pm from the list of pms all the way to the bottom ??
             return
@@ -652,6 +682,9 @@ class Tree:
     def create_FirstChanceNegation_Tree(self, pattern: Pattern):
         negative_event_list = pattern.negative_event.get_args()
         origin_event_list = pattern.origin_structure.get_args()
+
+        # nathan - 28.06
+        check_expired_list =[]
 
         # init node to use it out of the scope of the for
         node = self.__root
