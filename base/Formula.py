@@ -177,8 +177,8 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
 
     def __repr__(self):
         return "{} {} {}".format(self.left_term, self.relation_op, self.right_term)
-
-    def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
+    
+    def simplify_formula_handler(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
 
         lhs_term_vars = set()
         rhs_term_vars = set()
@@ -193,14 +193,14 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
 
         # check if already simple : set() is for removing duplicates and empty set cases
         if set(lhs_term_vars).issubset(lhs_vars) and set(rhs_term_vars).issubset(rhs_vars):
-            return self
+            return self.left_term, self.right_term
 
         # check if a possible simplification exists
         if not (self.left_term.simplifiable and self.right_term.simplifiable):
-            return None
+            return None, None
 
         new_lhs_term, new_rhs_term = self.rearrange_terms(lhs_vars, rhs_vars)
-        return AtomicFormula(new_lhs_term, new_rhs_term, self.relation_op)
+        return new_lhs_term, new_rhs_term
 
     def rearrange_terms(self, lhs_vars, rhs_vars):
         new_lhs_term = AtomicTerm(0)
@@ -238,26 +238,15 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
     def dismantle(self):
         return (
             self.left_term,
-            self.convert_to_relop(self.relation_op),
+            self.get_relop(),
             self.right_term,
         )
 
-    def convert_to_relop(self, relation_op: callable):
+    def get_relop(self):
         """
-            return the relop of the current AtomicFormula ( < <= > >= == != )
+        return the relop of the current AtomicFormula ( < <= > >= == != )
         """
-        if relation_op(5, 5):
-            if relation_op(5, 6):
-                return "<="
-            elif relation_op(5, 4):
-                return ">="
-            return "=="
-        else:
-            if relation_op(5, 6):
-                return "<"
-            elif relation_op(5, 4):
-                return ">"
-            return "!="
+        return None
 
     def rank(self,lhs_vars: set, rhs_vars: set, priorities: dict):
         """
@@ -267,20 +256,20 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
         it is best to choose priorities
         according to the frequencies of the attributes to maximize the optimizations.
         """
-        simplified = self.simplify_formula(lhs_vars,rhs_vars)
-        if simplified is None:
+        simplified_lhs, simplified_rhs = self.simplify_formula_handler(lhs_vars, rhs_vars)
+        if simplified_lhs is None:
             return -1
         
         rank = 1
 
-        for attr in simplified.left_term.abstract_terms:
+        for attr in simplified_lhs.abstract_terms:
             if attr["is_id"]:
                 if(priorities.__contains__(attr["term"].name)):
                     rank *= priorities[attr["term"].name]
                 else:
                     rank +=1
 
-        for attr in simplified.right_term.abstract_terms:
+        for attr in simplified_rhs.abstract_terms:
             if attr["is_id"]:
                 if(priorities.__contains__(attr["term"].name)):
                     rank *= priorities[attr["term"].name]
@@ -300,9 +289,15 @@ class EqFormula(AtomicFormula):
             return EqFormula(left_term, right_term)
         return None
 
+    def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
+        new_lhs_term, new_rhs_term = self.simplify_formula_handler(lhs_vars, rhs_vars, priorities)
+        return EqFormula(new_lhs_term, new_rhs_term) if new_lhs_term is not None else None
+
     def __repr__(self):
         return "{} == {}".format(self.left_term, self.right_term)
 
+    def get_relop(self):
+        return "=="
 
 class NotEqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -315,9 +310,15 @@ class NotEqFormula(AtomicFormula):
             return NotEqFormula(left_term, right_term)
         return None
 
+    def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
+        new_lhs_term, new_rhs_term = self.simplify_formula_handler(lhs_vars, rhs_vars, priorities)
+        return NotEqFormula(new_lhs_term, new_rhs_term) if new_lhs_term is not None else None
+
     def __repr__(self):
         return "{} != {}".format(self.left_term, self.right_term)
 
+    def get_relop(self):
+        return "!="
 
 class GreaterThanFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -330,9 +331,15 @@ class GreaterThanFormula(AtomicFormula):
             return GreaterThanFormula(left_term, right_term)
         return None
 
+    def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
+        new_lhs_term, new_rhs_term = self.simplify_formula_handler(lhs_vars, rhs_vars, priorities)
+        return GreaterThanFormula(new_lhs_term, new_rhs_term) if new_lhs_term is not None else None
+
     def __repr__(self):
         return "{} > {}".format(self.left_term, self.right_term)
 
+    def get_relop(self):
+        return ">"
 
 class SmallerThanFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -345,9 +352,15 @@ class SmallerThanFormula(AtomicFormula):
             return SmallerThanFormula(left_term, right_term)
         return None
 
+    def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
+        new_lhs_term, new_rhs_term = self.simplify_formula_handler(lhs_vars, rhs_vars, priorities)
+        return SmallerThanFormula(new_lhs_term, new_rhs_term) if new_lhs_term is not None else None
+
     def __repr__(self):
         return "{} < {}".format(self.left_term, self.right_term)
 
+    def get_relop(self):
+        return "<"
 
 class GreaterThanEqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -360,9 +373,15 @@ class GreaterThanEqFormula(AtomicFormula):
             return GreaterThanEqFormula(left_term, right_term)
         return None
 
+    def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
+        new_lhs_term, new_rhs_term = self.simplify_formula_handler(lhs_vars, rhs_vars, priorities)
+        return GreaterThanEqFormula(new_lhs_term, new_rhs_term) if new_lhs_term is not None else None
+
     def __repr__(self):
         return "{} >= {}".format(self.left_term, self.right_term)
 
+    def get_relop(self):
+        return ">="
 
 class SmallerThanEqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -375,9 +394,15 @@ class SmallerThanEqFormula(AtomicFormula):
             return SmallerThanEqFormula(left_term, right_term)
         return None
 
+    def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
+        new_lhs_term, new_rhs_term = self.simplify_formula_handler(lhs_vars, rhs_vars, priorities)
+        return SmallerThanEqFormula(new_lhs_term, new_rhs_term) if new_lhs_term is not None else None
+
     def __repr__(self):
         return "{} <= {}".format(self.left_term, self.right_term)
 
+    def get_relop(self):
+        return "<="
 
 class BinaryLogicOpFormula(Formula):  # AND: A < B AND C < D
     """
@@ -421,7 +446,7 @@ class BinaryLogicOpFormula(Formula):  # AND: A < B AND C < D
 
         return (
             self.formula_to_sort_by.left_term,
-            self.formula_to_sort_by.convert_to_relop(self.formula_to_sort_by.relation_op),
+            self.formula_to_sort_by.get_relop(),
             self.formula_to_sort_by.right_term,
         )
 

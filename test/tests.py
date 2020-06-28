@@ -659,7 +659,7 @@ def sortedStorageBenchMarkTest(createTestFile=False):
     )
     runBenchMark("sortedStorageBenchMark - default storage", [pattern])
 
-    storage_params = TreeStorageParameters(True, {"a": 1, "b": 10, "c": 1, "m": 1})
+    storage_params = TreeStorageParameters(True, {"a": 122, "b": 139, "c": 104, "m": 139})
     runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], storage_params=storage_params)
 
 
