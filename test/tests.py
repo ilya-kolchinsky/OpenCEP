@@ -1266,7 +1266,7 @@ DUMMYsimpleNotTest()
 # nathan : a verifier !
 # OneNotAtTheEndWithStatsTest()
 #
-#simpleNotTest()
+# simpleNotTest()
 
 # ON NASDAQ SHORT
 OneNotAtTheBeginningTest()

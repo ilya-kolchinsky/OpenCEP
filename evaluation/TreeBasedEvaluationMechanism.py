@@ -13,7 +13,7 @@ from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
 
-check_expired_timestamp = set()
+# check_expired_timestamp = set()
 
 class Node(ABC):
     """
@@ -64,7 +64,6 @@ class Node(ABC):
         count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window)
         self._partial_matches = self._partial_matches[count:]
 
-        # TODO: replace InternalNegationNode here
         if (type(self) == PostProcessingNode or type(self) == FirstChanceNode) \
                 and self.is_last:
             count = find_partial_match_by_timestamp(self._waiting_for_time_out, last_timestamp - self._sliding_window)
@@ -73,6 +72,20 @@ class Node(ABC):
                 node = node._parent
             node.matches_to_handle_at_EOF.extend(self._waiting_for_time_out[:count])
             self._waiting_for_time_out = self._waiting_for_time_out[count:]
+
+        list_of_nodes = self.get_first_FCNodes()
+        for node in list_of_nodes:
+            """
+            partial_matches = []
+            for x, y in node.check_expired_timestamp.items():
+                if x >= last_timestamp:
+                    partial_matches.append(y)
+            """
+            partial_matches = [v for k, v in node.check_expired_timestamp.items() if k >= last_timestamp]
+            for pm in partial_matches:
+                node.check_expired_timestamp = {key: val for key, val in node.check_expired_timestamp.items() if val !=pm}
+                node._left_subtree._unhandled_partial_matches.put(pm)
+                node.handle_new_partial_match(node._left_subtree)
 
     def add_partial_match(self, pm: PartialMatch):
         """
@@ -86,15 +99,21 @@ class Node(ABC):
             self._unhandled_partial_matches.put(pm)
 
         # nathan - 28.06
+        """
         if pm.last_timestamp in check_expired_timestamp:
             check_expired_timestamp.remove(pm.last_timestamp)
             self.check_for_expired_negative_events(pm.last_timestamp)
+        """
 
     def get_partial_matches(self):
         """
         Returns the currently stored partial matches.
         """
         return self._partial_matches
+
+    def get_first_FCNodes(self):
+
+        raise NotImplementedError()
 
     def get_leaves(self):
         """
@@ -118,6 +137,7 @@ class Node(ABC):
 
         raise NotImplementedError()
 
+    """
     def check_for_expired_negative_events(self, last_timestamp : datetime):
         node = self.get_deepest_leave()
         # special case if the parent of the deepest leaf is a first chance node
@@ -133,6 +153,7 @@ class Node(ABC):
                     # call handle_new_pm ?? problem with get_last_unhandled_pm ??
                     # node._parent.handle_new_partial_match(pm)
                     pass
+    """
 
 class LeafNode(Node):
     """
@@ -151,6 +172,9 @@ class LeafNode(Node):
 
     def get_leaves(self):
         return [self]
+
+    def get_first_FCNodes(self):
+        return []
 
     def get_deepest_leave(self):
         return self
@@ -213,6 +237,14 @@ class InternalNode(Node):
             result += self._left_subtree.get_leaves()
         if self._right_subtree is not None:
             result += self._right_subtree.get_leaves()
+        return result
+
+    def get_first_FCNodes(self):
+        result = []
+        if type(self._left_subtree) != LeafNode:
+            result += self._left_subtree.get_first_FCNodes()
+        if type(self._right_subtree) != LeafNode:
+            result += self._right_subtree.get_first_FCNodes()
         return result
 
     def get_deepest_leave(self):
@@ -434,6 +466,7 @@ class FirstChanceNode(InternalNegationNode):
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, is_first, is_last, parent, event_defs, left, right)
         # check_expired_timestamp = []
+        self.check_expired_timestamp = {}
 
     def handle_new_partial_match(self, partial_match_source: Node):
 
@@ -455,6 +488,7 @@ class FirstChanceNode(InternalNegationNode):
             self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
             invalidate = False
+            partialMatch = None
             for partialMatch in partial_matches_to_compare:
                 # for every negative event, we want to check if he invalidates new_partial_match
                 if self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs):
@@ -468,11 +502,12 @@ class FirstChanceNode(InternalNegationNode):
                     self._parent.handle_new_partial_match(self)
 
             if invalidate:
-                # if the new partial match  is invalidated we want to check later if the negative event has expired
+                # if the new partial match is invalidated we want to check later if the negative event has expired
                 if partialMatch.first_timestamp != partialMatch.last_timestamp:
                     print("partial match is not leaf event")
-                check_expired_timestamp.add(partialMatch.first_timestamp + self._sliding_window)
-
+                #check_expired_timestamp.add(partialMatch.first_timestamp + self._sliding_window)
+                self.check_expired_timestamp[partialMatch.last_timestamp + self._sliding_window] = new_partial_match
+                # print("test:", partialMatch.last_timestamp + self._sliding_window)
 
             # else we do nothing ? or we need to remove the current pm from the list of pms all the way to the bottom ??
             return
@@ -560,6 +595,11 @@ class FirstChanceNode(InternalNegationNode):
         else:
             return self
 
+    def get_first_FCNodes(self):
+        if self.is_first:
+            return [self]
+        else:
+            return []
 
 class PostProcessingNode(InternalNegationNode):
     """
