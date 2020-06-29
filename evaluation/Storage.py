@@ -1,6 +1,3 @@
-"""
-lower bound and the upper bound
-"""
 from abc import abstractmethod
 from collections.abc import MutableSequence
 from itertools import chain
