@@ -93,4 +93,4 @@ class Node(ABC):
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             relation_op=None, equation_side=None, sort_by_first_timestamp=False):
-        pass
+        raise NotImplementedError()
