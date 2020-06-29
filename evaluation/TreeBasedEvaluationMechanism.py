@@ -73,15 +73,24 @@ class Node(ABC):
             node.matches_to_handle_at_EOF.extend(self._waiting_for_time_out[:count])
             self._waiting_for_time_out = self._waiting_for_time_out[count:]
 
-        list_of_nodes = self.get_first_FCNodes()
+        if self._parent is not None:
+            list_of_nodes = self._parent.get_first_FCNodes()
+        else:
+            list_of_nodes = self.get_first_FCNodes()
+
         for node in list_of_nodes:
-            """
+            #node._right_subtree.clean_expired_partial_matches(last_timestamp)
+            if node._right_subtree._sliding_window == timedelta.max:
+                return
+            count = find_partial_match_by_timestamp(node._right_subtree._partial_matches, last_timestamp - node._right_subtree._sliding_window)
+            node._right_subtree._partial_matches = node._right_subtree._partial_matches[count:]
+
             partial_matches = []
             for x, y in node.check_expired_timestamp.items():
-                if x >= last_timestamp:
+                if x <= last_timestamp:
                     partial_matches.append(y)
-            """
-            partial_matches = [v for k, v in node.check_expired_timestamp.items() if k >= last_timestamp]
+
+            #partial_matches = [v for k, v in node.check_expired_timestamp.items() if k >= last_timestamp]
             for pm in partial_matches:
                 node.check_expired_timestamp = {key: val for key, val in node.check_expired_timestamp.items() if val !=pm}
                 node._left_subtree._unhandled_partial_matches.put(pm)
@@ -475,6 +484,7 @@ class FirstChanceNode(InternalNegationNode):
             # we add them to the partial matches of this node and we continue on
             new_partial_match = partial_match_source.get_last_unhandled_partial_match()  # A1 et C1
             other_subtree = self._right_subtree
+            #new_partial_match = partial_match_source.get_last_unhandled_partial_match()  # A1 et C1
 
             if self.is_last:
                 self._waiting_for_time_out.append(new_partial_match)
@@ -523,6 +533,8 @@ class FirstChanceNode(InternalNegationNode):
                 new_partial_match = partial_match_source.get_last_unhandled_partial_match()  # A1 et C1
 
                 other_subtree = self._left_subtree
+                new_partial_match = partial_match_source.get_last_unhandled_partial_match()  # A1 et C1
+
                 first_event_defs = partial_match_source.get_event_definitions()
                 other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
@@ -713,7 +725,7 @@ class Tree:
         self.__root = temp_root
 
         # According to the flag PostProcessing or FirstChanceProcessing, we add the negative events in a different way
-        PostProcessing = False
+        PostProcessing = True
         if PostProcessing:
             self.__root = self.create_PostProcessing_Tree(temp_root, pattern)
         else:

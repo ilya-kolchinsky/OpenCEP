@@ -185,15 +185,15 @@ def runTest(testName, patterns, createTestFile=False,
         events = custom.duplicate()
     elif testName in listCustom2:
         events = custom2.duplicate()
-    # else:
-    #     events = custom.duplicate()
 
-    events = longer.duplicate()
+    LongerEventStream = file_input("test/EventFiles/Longer.txt", MetastockDataFormatter())
 
+    events = LongerEventStream.duplicate()
+    testName = 'PROBLEM'
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
-    file_output(matches, '%sMatches.txt' % testName)
+    file_output(matches, 'PROBLEMMatches.txt')
     expected_matches_path = "test/TestsExpected/%sMatches.txt" % testName
     actual_matches_path = "test/Matches/%sMatches.txt" % testName
     print("Test %s result: %s, Time Passed: %s" % (testName,
@@ -1259,27 +1259,29 @@ def OneNotAtTheEndWithStatsTest(createTestFile=False):
 # out = compareFiles('test/Matches/dpB1MatcheMatch.txt', 'test/Matches/dpB1MatchesExpect.txt')
 # print(out)
 
-# OtherTestNat()
+#OtherTestNat()
 
 
 DUMMYsimpleNotTest()
 # nathan : a verifier !
 # OneNotAtTheEndWithStatsTest()
 #
-# simpleNotTest()
+#simpleNotTest()
 
 # ON NASDAQ SHORT
 OneNotAtTheBeginningTest()
-# MultipleNotAtTheBeginningTest()
-#
-# # ON NASDAQ HALF SHORT
-# OneNotAtTheEndTest()
-# MultipleNotAtTheEndTest()
-#
-# # ON CUSTOM
-# MultipleNotBeginAndEndTest()
+"""
+MultipleNotAtTheBeginningTest()
+
+# ON NASDAQ HALF SHORT
+OneNotAtTheEndTest()
+MultipleNotAtTheEndTest()
+
+# ON CUSTOM
+MultipleNotBeginAndEndTest()
 
 # DUMMYPatternSearchTest_MultipleNotBeginAndEnd()
+"""
 """
 OtherTest()
 
