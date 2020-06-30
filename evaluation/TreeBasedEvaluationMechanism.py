@@ -78,23 +78,33 @@ class Node(ABC):
         else:
             list_of_nodes = self.get_first_FCNodes()
 
+        root = self
+        while root._parent is not None:
+            root = root._parent
+
+        root.threshold = last_timestamp
+
         for node in list_of_nodes:
-            #node._right_subtree.clean_expired_partial_matches(last_timestamp)
+            # node._right_subtree.clean_expired_partial_matches(last_timestamp)
             if node._right_subtree._sliding_window == timedelta.max:
                 return
             count = find_partial_match_by_timestamp(node._right_subtree._partial_matches, last_timestamp - node._right_subtree._sliding_window)
             node._right_subtree._partial_matches = node._right_subtree._partial_matches[count:]
 
+            """
             partial_matches = []
             for x, y in node.check_expired_timestamp.items():
                 if x <= last_timestamp:
                     partial_matches.append(y)
+            """
 
-            #partial_matches = [v for k, v in node.check_expired_timestamp.items() if k >= last_timestamp]
+            partial_matches = [v for k, v in node.check_expired_timestamp.items() if k <= last_timestamp]
             for pm in partial_matches:
                 node.check_expired_timestamp = {key: val for key, val in node.check_expired_timestamp.items() if val !=pm}
                 node._left_subtree._unhandled_partial_matches.put(pm)
                 node.handle_new_partial_match(node._left_subtree)
+
+        root.threshold = 0
 
     def add_partial_match(self, pm: PartialMatch):
         """
@@ -240,6 +250,10 @@ class InternalNode(Node):
         self._left_subtree = left
         self._right_subtree = right
 
+        # special field to be used only in the root,
+        # contains the threshold timestamp that a pm have to exceed to be a match
+        self.threshold = 0
+
     def get_leaves(self):
         result = []
         if self._left_subtree is not None:
@@ -324,6 +338,11 @@ class InternalNode(Node):
 
         if not self._validate_new_match(events_for_new_match):
             return
+
+        # handle for negation nodes
+        if self._parent is None and self.threshold != 0 and first_partial_match.last_timestamp < self.threshold:
+            return
+
         self.add_partial_match(PartialMatch(events_for_new_match))
         if self._parent is not None:
             self._parent.handle_new_partial_match(self)
@@ -421,7 +440,8 @@ class InternalNegationNode(InternalNode):
         # This is a list of PartialMatches that are waiting to see if a later Negative event will invalidate them
         self._waiting_for_time_out = []
 
-        # This is a list of PartialMatches that are ready
+        # This is a list of PartialMatches that are ready,
+        # and wait for a possible negative event that might invalidate them
         self.matches_to_handle_at_EOF = []
 
     def _set_event_definitions(self,
@@ -484,7 +504,6 @@ class FirstChanceNode(InternalNegationNode):
             # we add them to the partial matches of this node and we continue on
             new_partial_match = partial_match_source.get_last_unhandled_partial_match()  # A1 et C1
             other_subtree = self._right_subtree
-            #new_partial_match = partial_match_source.get_last_unhandled_partial_match()  # A1 et C1
 
             if self.is_last:
                 self._waiting_for_time_out.append(new_partial_match)
@@ -533,7 +552,6 @@ class FirstChanceNode(InternalNegationNode):
                 new_partial_match = partial_match_source.get_last_unhandled_partial_match()  # A1 et C1
 
                 other_subtree = self._left_subtree
-                new_partial_match = partial_match_source.get_last_unhandled_partial_match()  # A1 et C1
 
                 first_event_defs = partial_match_source.get_event_definitions()
                 other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
@@ -725,7 +743,7 @@ class Tree:
         self.__root = temp_root
 
         # According to the flag PostProcessing or FirstChanceProcessing, we add the negative events in a different way
-        PostProcessing = True
+        PostProcessing = False
         if PostProcessing:
             self.__root = self.create_PostProcessing_Tree(temp_root, pattern)
         else:

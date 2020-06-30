@@ -188,12 +188,12 @@ def runTest(testName, patterns, createTestFile=False,
 
     LongerEventStream = file_input("test/EventFiles/Longer.txt", MetastockDataFormatter())
 
-    events = LongerEventStream.duplicate()
-    testName = 'PROBLEM'
+    events = longer.duplicate()
+    #testName = 'PROBLEM'
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
-    file_output(matches, 'PROBLEMMatches.txt')
+    file_output(matches, '%sMatches.txt' % testName)
     expected_matches_path = "test/TestsExpected/%sMatches.txt" % testName
     actual_matches_path = "test/Matches/%sMatches.txt" % testName
     print("Test %s result: %s, Time Passed: %s" % (testName,
