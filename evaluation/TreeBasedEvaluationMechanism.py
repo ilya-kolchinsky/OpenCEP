@@ -13,6 +13,7 @@ from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
 
+
 # check_expired_timestamp = set()
 
 class Node(ABC):
@@ -66,11 +67,13 @@ class Node(ABC):
 
         if (type(self) == PostProcessingNode or type(self) == FirstChanceNode) \
                 and self.is_last:
+            self._waiting_for_time_out = sorted(self._waiting_for_time_out, key=lambda x: x.first_timestamp)
             count = find_partial_match_by_timestamp(self._waiting_for_time_out, last_timestamp - self._sliding_window)
             node = self
             while node._parent is not None:
                 node = node._parent
-            node.matches_to_handle_at_EOF.extend(self._waiting_for_time_out[:count])
+
+            node.matches_to_handle_at_EOF.extend(self._waiting_for_time_out[:count]) # pourquoi ne pas les mettre directement dans root.partial_matches ?
             self._waiting_for_time_out = self._waiting_for_time_out[count:]
 
         if self._parent is not None:
@@ -82,7 +85,8 @@ class Node(ABC):
             # node._right_subtree.clean_expired_partial_matches(last_timestamp)
             if node._right_subtree._sliding_window == timedelta.max:
                 return
-            count = find_partial_match_by_timestamp(node._right_subtree._partial_matches, last_timestamp - node._right_subtree._sliding_window)
+            count = find_partial_match_by_timestamp(node._right_subtree._partial_matches,
+                                                    last_timestamp - node._right_subtree._sliding_window)
             node._right_subtree._partial_matches = node._right_subtree._partial_matches[count:]
 
             """
@@ -97,16 +101,20 @@ class Node(ABC):
                 if timestamp < last_timestamp:
                     partial_matches.append(pm)
 
-            #partial_matches = [v for k, v in node.check_expired_timestamp.items() if k <= last_timestamp]
+            # partial_matches = [v for k, v in node.check_expired_timestamp.items() if k <= last_timestamp]
             for pm in partial_matches:
                 root = self
                 while root._parent is not None:
                     root = root._parent
 
+                # need to check also that root.left_subtree is not leaf ?
+                while type(root) == FirstChanceNode and root.is_last:
+                    root = root._left_subtree
+
                 root.threshold = last_timestamp
 
                 # we want to remove the pm from the check_expired_timestamp list
-                #node.check_expired_timestamp = {key: val for key, val in node.check_expired_timestamp.items() if val !=pm}
+                # node.check_expired_timestamp = {key: val for key, val in node.check_expired_timestamp.items() if val !=pm}
                 node.check_expired_timestamp = [x for x in node.check_expired_timestamp if x[1] != pm]
 
                 node._left_subtree._unhandled_partial_matches.put(pm)
@@ -181,6 +189,7 @@ class Node(ABC):
                     # node._parent.handle_new_partial_match(pm)
                     pass
     """
+
 
 class LeafNode(Node):
     """
@@ -348,7 +357,8 @@ class InternalNode(Node):
             return
 
         # handle for negation
-        if self._parent is None and self.threshold != 0 and first_partial_match.last_timestamp < self.threshold:
+        # if self._parent is None and self.threshold != 0 and first_partial_match.last_timestamp < self.threshold:
+        if self.threshold != 0 and first_partial_match.last_timestamp < self.threshold:
             return
 
         self.add_partial_match(PartialMatch(events_for_new_match))
@@ -386,7 +396,7 @@ class InternalNode(Node):
         qitem_list = list(list(zip(*self._event_defs))[1])
 
         qitem_list_name = [x.name for x in qitem_list]
-        
+
         for name in qitem_list_name:
             if name == self._right_subtree.__event_name:
                 index_to_delete = qitem_list_name.index(name)
@@ -398,7 +408,7 @@ class InternalNode(Node):
                 new_index = pattern_list.index(p)
 
         list_name = [x.name for x in list_for_sorting]
-        
+
 
         sorted_qitems = sorted(qitem_list, key=lambda x: x.get_event_index())
         """
@@ -462,7 +472,8 @@ class InternalNegationNode(InternalNode):
                                     first_event_list: List[Event],
                                     second_event_list: List[Event]):
         return merge_according_to(first_event_defs, second_event_defs,
-                                  first_event_list, second_event_list, key=lambda x: x[0])  # ici aussi faire get_index? En fait on dirait qu'on l'utilise pas finalement... A enlever?
+                                  first_event_list, second_event_list, key=lambda x: x[
+                0])  # ici aussi faire get_index? En fait on dirait qu'on l'utilise pas finalement... A enlever?
 
     def get_event_definitions(self):  # to support multiple neg
         return self._left_subtree.get_event_definitions()  # à verifier
@@ -542,10 +553,10 @@ class FirstChanceNode(InternalNegationNode):
                 # if the new partial match is invalidated we want to check later if the negative event has expired
                 if partialMatch.first_timestamp != partialMatch.last_timestamp:
                     print("partial match is not leaf event")
-                #check_expired_timestamp.add(partialMatch.first_timestamp + self._sliding_window)
+                # check_expired_timestamp.add(partialMatch.first_timestamp + self._sliding_window)
                 self.check_expired_timestamp.append((partialMatch.last_timestamp + self._sliding_window,
-                                                    new_partial_match))
-                #self.check_expired_timestamp[partialMatch.last_timestamp + self._sliding_window] = new_partial_match
+                                                     new_partial_match))
+                # self.check_expired_timestamp[partialMatch.last_timestamp + self._sliding_window] = new_partial_match
                 # print("test:", partialMatch.last_timestamp + self._sliding_window)
 
             # else we do nothing ? or we need to remove the current pm from the list of pms all the way to the bottom ??
@@ -640,6 +651,7 @@ class FirstChanceNode(InternalNegationNode):
             return [self]
         else:
             return []
+
 
 class PostProcessingNode(InternalNegationNode):
     """
@@ -753,7 +765,7 @@ class Tree:
         self.__root = temp_root
 
         # According to the flag PostProcessing or FirstChanceProcessing, we add the negative events in a different way
-        PostProcessing = True
+        PostProcessing = False
         if PostProcessing:
             self.__root = self.create_PostProcessing_Tree(temp_root, pattern)
         else:
@@ -764,7 +776,7 @@ class Tree:
         origin_event_list = pattern.origin_structure.get_args()
 
         # nathan - 28.06
-        check_expired_list =[]
+        check_expired_list = []
 
         # init node to use it out of the scope of the for
         node = self.__root

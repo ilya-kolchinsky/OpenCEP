@@ -597,3 +597,4 @@
 {'Stock Ticker': 'AAPL', 'Date': 200802010933, 'Opening Price': 135.7, 'Peak Price': 135.77, 'Lowest Price': 135.42, 'Close Price': 135.6, 'Volume': 156926}
 {'Stock Ticker': 'AMZN', 'Date': 200802010933, 'Opening Price': 79.07, 'Peak Price': 79.4, 'Lowest Price': 79.04, 'Close Price': 79.29, 'Volume': 72308}
 {'Stock Ticker': 'GOOG', 'Date': 200802010933, 'Opening Price': 534.54, 'Peak Price': 536.67, 'Lowest Price': 533.4, 'Close Price': 534.15, 'Volume': 160588}
+

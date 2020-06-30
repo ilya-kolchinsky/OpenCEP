@@ -27,6 +27,8 @@ custom = file_input("test/EventFiles/custom.txt", MetastockDataFormatter())
 custom2 = file_input("test/EventFiles/custom2.txt", MetastockDataFormatter())
 longer = file_input("test/EventFiles/Longer.txt", MetastockDataFormatter())
 
+justshort =  file_input("test/EventFiles/JustShort.txt", MetastockDataFormatter())
+
 def numOfLinesInPattern(file):
     """
     get num of lines in file until first blank line == num of lines in pattern
@@ -173,7 +175,7 @@ def runTest(testName, patterns, createTestFile=False,
     """
     # nathan
     listShort = ["OneNotBegin", "MultipleNotBegin"]
-    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
+    listHalfShort = ["OneNotEnd", "MultipleNotEnd", "DUMMYOneNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd", "DUMMYMultipleNotBeginAndEnd"]
     listCustom2 = ["DUMMYsimpleNot", "simpleNot"]
     if testName in listShort:
@@ -188,6 +190,9 @@ def runTest(testName, patterns, createTestFile=False,
     #LongerEventStream = file_input("test/EventFiles/Longer.txt", MetastockDataFormatter())
     #events = longer.duplicate()
     #testName = 'PROBLEM'
+
+    # events = justshort.duplicate()
+
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
@@ -1113,6 +1118,24 @@ def OneNotAtTheEndTest(createTestFile=False):
     )
     runTest("OneNotEnd", [pattern], createTestFile)
 
+# ON NASDAQ *HALF* SHORT
+def DUMMYOneNotAtTheEndTest(createTestFile=False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > b.OpeningPrice
+        AND b.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    runTest("DUMMYOneNotEnd", [pattern], createTestFile)
 
 # ON NASDAQ *HALF* SHORT
 def MultipleNotAtTheEndTest(createTestFile=False):
@@ -1264,6 +1287,8 @@ DUMMYsimpleNotTest()
 # nathan : a verifier !
 # OneNotAtTheEndWithStatsTest()
 #
+
+
 simpleNotTest()
 
 # ON NASDAQ SHORT
