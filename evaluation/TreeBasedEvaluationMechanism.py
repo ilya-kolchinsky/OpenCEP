@@ -78,12 +78,6 @@ class Node(ABC):
         else:
             list_of_nodes = self.get_first_FCNodes()
 
-        root = self
-        while root._parent is not None:
-            root = root._parent
-
-        root.threshold = last_timestamp
-
         for node in list_of_nodes:
             # node._right_subtree.clean_expired_partial_matches(last_timestamp)
             if node._right_subtree._sliding_window == timedelta.max:
@@ -98,13 +92,27 @@ class Node(ABC):
                     partial_matches.append(y)
             """
 
-            partial_matches = [v for k, v in node.check_expired_timestamp.items() if k <= last_timestamp]
+            partial_matches = []
+            for timestamp, pm in node.check_expired_timestamp:
+                if timestamp < last_timestamp:
+                    partial_matches.append(pm)
+
+            #partial_matches = [v for k, v in node.check_expired_timestamp.items() if k <= last_timestamp]
             for pm in partial_matches:
-                node.check_expired_timestamp = {key: val for key, val in node.check_expired_timestamp.items() if val !=pm}
+                root = self
+                while root._parent is not None:
+                    root = root._parent
+
+                root.threshold = last_timestamp
+
+                # we want to remove the pm from the check_expired_timestamp list
+                #node.check_expired_timestamp = {key: val for key, val in node.check_expired_timestamp.items() if val !=pm}
+                node.check_expired_timestamp = [x for x in node.check_expired_timestamp if x[1] != pm]
+
                 node._left_subtree._unhandled_partial_matches.put(pm)
                 node.handle_new_partial_match(node._left_subtree)
 
-        root.threshold = 0
+                root.threshold = 0
 
     def add_partial_match(self, pm: PartialMatch):
         """
@@ -339,7 +347,7 @@ class InternalNode(Node):
         if not self._validate_new_match(events_for_new_match):
             return
 
-        # handle for negation nodes
+        # handle for negation
         if self._parent is None and self.threshold != 0 and first_partial_match.last_timestamp < self.threshold:
             return
 
@@ -495,7 +503,7 @@ class FirstChanceNode(InternalNegationNode):
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, is_first, is_last, parent, event_defs, left, right)
         # check_expired_timestamp = []
-        self.check_expired_timestamp = {}
+        self.check_expired_timestamp = []
 
     def handle_new_partial_match(self, partial_match_source: Node):
 
@@ -535,7 +543,9 @@ class FirstChanceNode(InternalNegationNode):
                 if partialMatch.first_timestamp != partialMatch.last_timestamp:
                     print("partial match is not leaf event")
                 #check_expired_timestamp.add(partialMatch.first_timestamp + self._sliding_window)
-                self.check_expired_timestamp[partialMatch.last_timestamp + self._sliding_window] = new_partial_match
+                self.check_expired_timestamp.append((partialMatch.last_timestamp + self._sliding_window,
+                                                    new_partial_match))
+                #self.check_expired_timestamp[partialMatch.last_timestamp + self._sliding_window] = new_partial_match
                 # print("test:", partialMatch.last_timestamp + self._sliding_window)
 
             # else we do nothing ? or we need to remove the current pm from the list of pms all the way to the bottom ??
@@ -743,7 +753,7 @@ class Tree:
         self.__root = temp_root
 
         # According to the flag PostProcessing or FirstChanceProcessing, we add the negative events in a different way
-        PostProcessing = False
+        PostProcessing = True
         if PostProcessing:
             self.__root = self.create_PostProcessing_Tree(temp_root, pattern)
         else:

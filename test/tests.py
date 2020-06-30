@@ -25,7 +25,6 @@ nasdaqEventStream = file_input("test/EventFiles/NASDAQ_LONG.txt", MetastockDataF
 
 custom = file_input("test/EventFiles/custom.txt", MetastockDataFormatter())
 custom2 = file_input("test/EventFiles/custom2.txt", MetastockDataFormatter())
-
 longer = file_input("test/EventFiles/Longer.txt", MetastockDataFormatter())
 
 def numOfLinesInPattern(file):
@@ -186,9 +185,8 @@ def runTest(testName, patterns, createTestFile=False,
     elif testName in listCustom2:
         events = custom2.duplicate()
 
-    LongerEventStream = file_input("test/EventFiles/Longer.txt", MetastockDataFormatter())
-
-    events = longer.duplicate()
+    #LongerEventStream = file_input("test/EventFiles/Longer.txt", MetastockDataFormatter())
+    #events = longer.duplicate()
     #testName = 'PROBLEM'
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
@@ -1072,7 +1070,7 @@ def OneNotAtTheBeginningTest(createTestFile=False):
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    runTest("OneNotBeginfirstchance", [pattern], createTestFile)
+    runTest("OneNotBegin", [pattern], createTestFile)
 
 
 # ON NASDAQ SHORT
@@ -1266,11 +1264,11 @@ DUMMYsimpleNotTest()
 # nathan : a verifier !
 # OneNotAtTheEndWithStatsTest()
 #
-#simpleNotTest()
+simpleNotTest()
 
 # ON NASDAQ SHORT
 OneNotAtTheBeginningTest()
-"""
+
 MultipleNotAtTheBeginningTest()
 
 # ON NASDAQ HALF SHORT
@@ -1281,7 +1279,7 @@ MultipleNotAtTheEndTest()
 MultipleNotBeginAndEndTest()
 
 # DUMMYPatternSearchTest_MultipleNotBeginAndEnd()
-"""
+
 """
 OtherTest()
 
