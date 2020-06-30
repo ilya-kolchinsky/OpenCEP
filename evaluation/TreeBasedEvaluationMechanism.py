@@ -65,6 +65,14 @@ class Node(ABC):
         count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window)
         self._partial_matches = self._partial_matches[count:]
 
+        """
+        "waiting for timeout" contains matches that may be invalidated by a future negative event
+        if the timestamp has passed, they can't be invalidated anymore,
+        therefore we remove them from waiting for timeout
+        and we put them in the field "matches to handle at eof" of the root,
+        for it to put it in the matches at the end of the program
+        """
+
         if (type(self) == PostProcessingNode or type(self) == FirstChanceNode) \
                 and self.is_last:
             self._waiting_for_time_out = sorted(self._waiting_for_time_out, key=lambda x: x.first_timestamp)
@@ -75,6 +83,20 @@ class Node(ABC):
 
             node.matches_to_handle_at_EOF.extend(self._waiting_for_time_out[:count]) # pourquoi ne pas les mettre directement dans root.partial_matches ?
             self._waiting_for_time_out = self._waiting_for_time_out[count:]
+
+        """
+        the end of the function is here to handle a special case: a pattern that starts by a negative event, and we got
+        a negative event that has invalidated the first part of a match but the second part of the match arrives later,
+        with a timestamp not "influenced" anymore by the negative event
+        example: notA, B, C : A has invalidated B, but C arrives later,
+        and the time window doesn't contain A and C at the same time. Therefore B, C is a match.
+        If a positive event (C) arrives with a timestamp that exceeds the frame of the negative event (A),
+        we want to remove the negative event and try to handle previous pm that were blocked by A (in our case: B)
+        Algorithm : we get all the FirstChanceNodes with flag is_first in the subtree of the current node
+        for each node, we remove the expired negative events, and we send back to the tree
+        all the pms contained in the field "check_expired_timestamp" that have been blocked
+        by a negative event that has expired.
+        """
 
         if self._parent is not None:
             list_of_nodes = self._parent.get_first_FCNodes()
@@ -96,31 +118,42 @@ class Node(ABC):
                     partial_matches.append(y)
             """
 
-            partial_matches = []
-            for timestamp, pm in node.check_expired_timestamp:
-                if timestamp < last_timestamp:
-                    partial_matches.append(pm)
+            partial_matches = [pm for timestamp, pm in node.check_expired_timestamp if timestamp < last_timestamp]
+            # for timestamp, pm in node.check_expired_timestamp:
+            #     if timestamp < last_timestamp:
+            #         partial_matches.append(pm)
 
-            # partial_matches = [v for k, v in node.check_expired_timestamp.items() if k <= last_timestamp]
             for pm in partial_matches:
-                root = self
-                while root._parent is not None:
-                    root = root._parent
+
+                """
+                "unblocking" previous pms that were blocked by an expired neg event may lead to accept as a match
+                a pam that is in the time window of the negative event.
+                In our previous example, if a C1 arrived earlier and was blocked by A (like it should be),
+                removing the A now will cause C1 to go up the tree. Therefore we hold a threshold in a node,
+                which is the timestamp that a pm has tà exceed to be a match
+                (when B, C1 go all the way up, we want to stop them because they are still in the time window of the previous A)
+                By default, the threshold is old by the root. If the root is a FirstChance Node with flag is_last on,
+                it may cause errors, and therefore we go down the tree from the root until we find a node that meets the criteria
+                """
+
+                node_to_hold_threshold = self
+                while node_to_hold_threshold._parent is not None:
+                    node_to_hold_threshold = node_to_hold_threshold._parent
 
                 # need to check also that root.left_subtree is not leaf ?
-                while type(root) == FirstChanceNode and root.is_last:
-                    root = root._left_subtree
+                while type(node_to_hold_threshold) == FirstChanceNode and node_to_hold_threshold.is_last:
+                    node_to_hold_threshold = node_to_hold_threshold._left_subtree
 
-                root.threshold = last_timestamp
+                node_to_hold_threshold.threshold = last_timestamp
 
                 # we want to remove the pm from the check_expired_timestamp list
-                # node.check_expired_timestamp = {key: val for key, val in node.check_expired_timestamp.items() if val !=pm}
                 node.check_expired_timestamp = [x for x in node.check_expired_timestamp if x[1] != pm]
 
                 node._left_subtree._unhandled_partial_matches.put(pm)
                 node.handle_new_partial_match(node._left_subtree)
 
-                root.threshold = 0
+                # now we turn the threshold off because we finished to handle this case
+                node_to_hold_threshold.threshold = 0
 
     def add_partial_match(self, pm: PartialMatch):
         """
@@ -133,13 +166,6 @@ class Node(ABC):
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
 
-        # nathan - 28.06
-        """
-        if pm.last_timestamp in check_expired_timestamp:
-            check_expired_timestamp.remove(pm.last_timestamp)
-            self.check_for_expired_negative_events(pm.last_timestamp)
-        """
-
     def get_partial_matches(self):
         """
         Returns the currently stored partial matches.
@@ -147,7 +173,9 @@ class Node(ABC):
         return self._partial_matches
 
     def get_first_FCNodes(self):
-
+        """
+        Returns all FirstChance nodes with flag is_first on in the subtree of self - to be implemented by subclasses.
+        """
         raise NotImplementedError()
 
     def get_leaves(self):
@@ -171,25 +199,6 @@ class Node(ABC):
     def get_deepest_leave(self):
 
         raise NotImplementedError()
-
-    """
-    def check_for_expired_negative_events(self, last_timestamp : datetime):
-        node = self.get_deepest_leave()
-        # special case if the parent of the deepest leaf is a first chance node
-        if type(node._parent) == FirstChanceNode:
-            for pm in node.get_partial_matches():
-                # call handle_new_pm ?? problem with get_last_unhandled_pm ??
-                pass
-
-        while node._parent is not None:
-            if type(node._parent) == FirstChanceNode:
-                node._parent._right_subtree.clean_expired_partial_matches(last_timestamp)
-                for pm in node.get_partial_matches():
-                    # call handle_new_pm ?? problem with get_last_unhandled_pm ??
-                    # node._parent.handle_new_partial_match(pm)
-                    pass
-    """
-
 
 class LeafNode(Node):
     """
@@ -266,9 +275,12 @@ class InternalNode(Node):
         self._event_defs = event_defs
         self._left_subtree = left
         self._right_subtree = right
-
-        # special field to be used only in the root,
-        # contains the threshold timestamp that a pm have to exceed to be a match
+        """
+        Special field to be used in only one node (root or first node which is not a FC node) if the pattern contains
+        a negative operator, in mode "first chance negation".
+        In some cases, contains the threshold timestamp that a pm has to exceed in order to be a match - see clean_expired
+        Otherwise is 0
+        """
         self.threshold = 0
 
     def get_leaves(self):
@@ -356,8 +368,7 @@ class InternalNode(Node):
         if not self._validate_new_match(events_for_new_match):
             return
 
-        # handle for negation
-        # if self._parent is None and self.threshold != 0 and first_partial_match.last_timestamp < self.threshold:
+        # If the threshold is not 0, we accept the pm as a match only if its last timestamp exceeds the threshold
         if self.threshold != 0 and first_partial_match.last_timestamp < self.threshold:
             return
 
@@ -447,7 +458,9 @@ class SeqNode(InternalNode):
 
 
 class InternalNegationNode(InternalNode):
-
+    """
+    Virtual class that represents a NOT operator. Has two subclasses, one for each mode
+    """
     def __init__(self, sliding_window: timedelta, is_first: bool, is_last: bool, parent: Node = None,
                  event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
@@ -455,11 +468,17 @@ class InternalNegationNode(InternalNode):
         # Those are flags in order to differenciate the NegationNode if they are in the middle of a pattern, at the beginning or at the end
         self.is_first = is_first
         self.is_last = is_last
-        # This is a list of PartialMatches that are waiting to see if a later Negative event will invalidate them
+
+        """
+        Contains PMs that match the whole pattern, but may be invalidated by a negative event later 
+        We wait for them to exceed the time window and therefore can't be invalidated anymore
+        """
         self._waiting_for_time_out = []
 
-        # This is a list of PartialMatches that are ready,
-        # and wait for a possible negative event that might invalidate them
+        """
+        Contains PMs that match the whole pattern and were in waiting_for_timeout, and now can't be invalidated anymore
+        When we finish all the stream of events we handle them and put them in the output
+        """
         self.matches_to_handle_at_EOF = []
 
     def _set_event_definitions(self,
@@ -472,8 +491,8 @@ class InternalNegationNode(InternalNode):
                                     first_event_list: List[Event],
                                     second_event_list: List[Event]):
         return merge_according_to(first_event_defs, second_event_defs,
-                                  first_event_list, second_event_list, key=lambda x: x[
-                0])  # ici aussi faire get_index? En fait on dirait qu'on l'utilise pas finalement... A enlever?
+                                  first_event_list, second_event_list, key=lambda x: x[0])
+        # ici aussi faire get_index? En fait on dirait qu'on l'utilise pas finalement... A enlever?
 
     def get_event_definitions(self):  # to support multiple neg
         return self._left_subtree.get_event_definitions()  # à verifier
@@ -508,12 +527,20 @@ class InternalNegationNode(InternalNode):
 
 
 class FirstChanceNode(InternalNegationNode):
+    """
+        An internal node representing a Negation operator in case of FirstChance mode
 
+    """
     def __init__(self, sliding_window: timedelta, is_first: bool, is_last: bool, parent: Node = None,
                  event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, is_first, is_last, parent, event_defs, left, right)
-        # check_expired_timestamp = []
+
+        """
+        contains PMs invalidated by a negative event,
+        but may be part of a bigger pm that exceeds the time window of the neg event later
+        """
+
         self.check_expired_timestamp = []
 
     def handle_new_partial_match(self, partial_match_source: Node):
@@ -543,7 +570,7 @@ class FirstChanceNode(InternalNegationNode):
                     invalidate = True
                     break
 
-            # if the list is empty, there is no negative event that invalidated the current pm and therefore we go up
+            # if the flag is off is empty, there is no negative event that invalidated the current pm and therefore we go up
             if invalidate is False:
                 self.add_partial_match(new_partial_match)
                 if self._parent is not None:
