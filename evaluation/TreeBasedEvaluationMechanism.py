@@ -11,6 +11,7 @@ from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_
 from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
+from misc.ConsumptionPolicies import *
 
 
 class Node(ABC):
@@ -24,6 +25,10 @@ class Node(ABC):
         self._condition = TrueFormula()
         # matches that were not yet pushed to the parent for further processing
         self._unhandled_partial_matches = Queue()
+        # Variables for the first mechanism
+        # First mechanism: limiting a primitive event to only appear in a single full match
+        self._single_event_types = set() # Set of event types that will only appear in a single full match
+        self._filtered_events = set() # Events that were added to a partial match and cannot be added again
 
     def consume_first_partial_match(self):
         """
@@ -61,16 +66,30 @@ class Node(ABC):
         count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window)
         self._partial_matches = self._partial_matches[count:]
 
-    def add_partial_match(self, pm: PartialMatch):
+    def add_partial_match(self, pm: PartialMatch) -> bool:
         """
         Registers a new partial match at this node.
         As of now, the insertion is always by the timestamp, and the partial matches are stored in a list sorted by
         timestamp. Therefore, the insertion operation is performed in O(log n).
+        Returns True if adding the partial match succeeded and False otherwise.
+        Will always return true if single event type limit mechanism is disabled.
         """
+        # Check if partial match can be added if single event type limit mechanism is enabled
+        if len(self._single_event_types) > 0:
+            new_filtered_events = set()
+            for event in pm.events:
+                if event.event_type in self._single_event_types: 
+                    if event in self._filtered_events:
+                        return False
+                    else:
+                        new_filtered_events.add(event)
+            self._filtered_events |= new_filtered_events
+        
         index = find_partial_match_by_timestamp(self._partial_matches, pm.first_timestamp)
         self._partial_matches.insert(index, pm)
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
+        return True
 
     def get_partial_matches(self):
         """
@@ -95,6 +114,14 @@ class Node(ABC):
         Returns the specifications of all events collected by this tree - to be implemented by subclasses.
         """
         raise NotImplementedError()
+
+    def add_single_event_type(self, event_type: str):
+        """
+        Add the event type to the set "_single_event_types" recursively up the tree
+        """
+        self._single_event_types.add(event_type)
+        if self._parent != None:
+            self._parent.add_single_event_type(event_type)
 
 
 class LeafNode(Node):
@@ -136,9 +163,12 @@ class LeafNode(Node):
         if not self._condition.eval(binding):
             return
 
-        self.add_partial_match(PartialMatch([event]))
-        if self._parent is not None:
-            self._parent.handle_new_partial_match(self)
+        if self.add_partial_match(PartialMatch([event])):
+            if self._parent is not None:
+                self._parent.handle_new_partial_match(self)
+    
+    def get_leaf_index(self):
+        return self.__leaf_index
 
 
 class InternalNode(Node):
@@ -224,9 +254,9 @@ class InternalNode(Node):
 
         if not self._validate_new_match(events_for_new_match):
             return
-        self.add_partial_match(PartialMatch(events_for_new_match))
-        if self._parent is not None:
-            self._parent.handle_new_partial_match(self)
+        if self.add_partial_match(PartialMatch(events_for_new_match)):
+            if self._parent is not None:
+                self._parent.handle_new_partial_match(self)
 
     def _merge_events_for_new_match(self,
                                     first_event_defs: List[Tuple[int, QItem]],
@@ -291,7 +321,11 @@ class Tree:
     def __init__(self, tree_structure: tuple, pattern: Pattern):
         # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
         self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
-                                            tree_structure, pattern.structure.args, pattern.window)
+                                            tree_structure, pattern.structure.args, pattern.window, 
+                                            None, pattern.consumption_policies)
+        if pattern.consumption_policies and pattern.consumption_policies.single and pattern.consumption_policies.single.mechanism == Mechanisms.type2:
+            for event_type in pattern.consumption_policies.single.single_types:
+                self.__root.add_single_event_type(event_type)
         self.__root.apply_formula(pattern.condition)
 
     def get_leaves(self):
@@ -303,13 +337,16 @@ class Tree:
 
     @staticmethod
     def __construct_tree(is_sequence: bool, tree_structure: tuple or int, args: List[QItem],
-                         sliding_window: timedelta, parent: Node = None):
+                         sliding_window: timedelta, parent: Node = None, consumption_policies: ConsumptionPolicies = None):
         if type(tree_structure) == int:
-            return LeafNode(sliding_window, tree_structure, args[tree_structure], parent)
+            event = args[tree_structure]
+            if consumption_policies and consumption_policies.single and consumption_policies.single.mechanism == Mechanisms.type1 and event.event_type in consumption_policies.single.single_types:
+                parent.add_single_event_type(event.event_type)
+            return LeafNode(sliding_window, tree_structure, event, parent)
         current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
         left_structure, right_structure = tree_structure
-        left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current)
-        right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current)
+        left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current, consumption_policies)
+        right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current, consumption_policies)
         current.set_subtrees(left, right)
         return current
 
@@ -320,6 +357,9 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     def __init__(self, pattern: Pattern, tree_structure: tuple):
         self.__tree = Tree(tree_structure, pattern)
+        # Partial match skipping mechanism variables
+        self.__skip_leaf, self.__stop_new_sequences_leaf = self.__get_skip_leaves(pattern)
+        self.__should_skip_leaf = False
 
     def eval(self, events: Stream, matches: Stream):
         event_types_listeners = {}
@@ -335,8 +375,55 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         for event in events:
             if event.event_type in event_types_listeners.keys():
                 for leaf in event_types_listeners[event.event_type]:
-                    leaf.handle_event(event)
-                    for match in self.__tree.get_matches():
-                        matches.add_item(PatternMatch(match))
+                    if self.__skip_partial_matches(leaf, event) == False:
+                        leaf.handle_event(event)
+                        for match in self.__tree.get_matches():
+                            matches.add_item(PatternMatch(match))
 
         matches.close()
+
+    def __get_skip_leaves(self, pattern: Pattern) -> (LeafNode, LeafNode):
+        """
+        If the mechanism(prohibiting any pattern matching while a single partial match is active) 
+        is enabled then this function will return the first leaf that starts the sequence that will
+        be skipped and the leaf that the user specifed from which this mechanism must be enforced
+        """
+        skip_leaf, stop_new_sequences_leaf = None, None
+        if pattern.consumption_policies:
+            args = pattern.structure.args
+            for i in range(len(args)):
+                if args[i].name == pattern.consumption_policies.skip:
+                    for leaf in self.__tree.get_leaves():
+                        index = leaf.get_leaf_index()
+                        if index == 0:
+                            skip_leaf = leaf
+                        if index == i:
+                            stop_new_sequences_leaf = leaf
+        return skip_leaf, stop_new_sequences_leaf
+
+    def __skip_partial_matches(self, leaf: LeafNode, event: Event) -> bool:
+        """
+        Toggles "self.__should_skip_leaf" that indicates the state of the mechanism(skipping or not).
+        Meaning that this function prevents a start of a new sequence, 
+        until all current partial matches are completed.
+        This function returns True if the current leaf should be skipped and False otherwise.
+        """
+        if self.__skip_leaf == None or self.__stop_new_sequences_leaf == None: #Always skip if mechanism disabled
+            return False
+        if self.__should_skip_leaf:
+            if leaf != self.__skip_leaf:
+                return False
+            else:
+                leaf.clean_expired_partial_matches(event.timestamp)
+                if leaf.has_partial_matches():
+                    return True
+                else:
+                    if leaf != self.__stop_new_sequences_leaf:
+                        self.__should_skip_leaf = False
+                    return False
+        elif self.__should_skip_leaf == False:
+            if leaf != self.__stop_new_sequences_leaf:
+                return False
+            else:
+                self.__should_skip_leaf = True
+                return False
