@@ -1,7 +1,7 @@
 from abc import ABC
 from datetime import timedelta, datetime
 from base.Pattern import Pattern
-from base.PatternStructure import SeqOperator, QItem, NegationOperator
+from base.PatternStructure import SeqOperator, QItem, NegationOperator, AndOperator, OrOperator
 from base.Formula import TrueFormula, Formula
 from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
@@ -12,7 +12,6 @@ from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_
 from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
-
 
 # check_expired_timestamp = set()
 
@@ -461,13 +460,14 @@ class InternalNegationNode(InternalNode):
     """
     Virtual class that represents a NOT operator. Has two subclasses, one for each mode
     """
-    def __init__(self, sliding_window: timedelta, is_first: bool, is_last: bool, parent: Node = None,
+    def __init__(self, sliding_window: timedelta, is_first: bool, is_last: bool, top_operator, parent: Node = None,
                  event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, parent, event_defs, left, right)
         # Those are flags in order to differenciate the NegationNode if they are in the middle of a pattern, at the beginning or at the end
         self.is_first = is_first
         self.is_last = is_last
+        self.top_operator = top_operator
 
         """
         Contains PMs that match the whole pattern, but may be invalidated by a negative event later 
@@ -510,9 +510,19 @@ class InternalNegationNode(InternalNode):
                                                   first_partial_match.events, second_partial_match.events, key=get_index)
 
 
-        if not is_sorted(events_for_new_match,
-                         key=lambda x: x.timestamp):  # 17.06 ça il faut verifier que si on est dans SEQ...
-            return False
+        if self.top_operator == SeqOperator:
+            if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):  # 17.06 ça il faut verifier que si on est dans SEQ...
+                return False
+        elif self.top_operator == AndOperator:
+            """
+                To be implemented later when class AndNode will be implemented
+            """
+            raise NotImplementedError()
+        elif self.top_operator == OrOperator:
+            """
+                To be implemented later when class OrNode will be implemented
+            """
+            raise NotImplementedError()
 
         return self._validate_new_match(events_for_new_match)
 
@@ -531,10 +541,10 @@ class FirstChanceNode(InternalNegationNode):
         An internal node representing a Negation operator in case of FirstChance mode
 
     """
-    def __init__(self, sliding_window: timedelta, is_first: bool, is_last: bool, parent: Node = None,
+    def __init__(self, sliding_window: timedelta, is_first: bool, is_last: bool, top_operator, parent: Node = None,
                  event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
-        super().__init__(sliding_window, is_first, is_last, parent, event_defs, left, right)
+        super().__init__(sliding_window, is_first, is_last, top_operator, parent, event_defs, left, right)
 
         """
         contains PMs invalidated by a negative event,
@@ -614,11 +624,19 @@ class FirstChanceNode(InternalNegationNode):
                         partial_match_to_remove.append(partialMatch)
 
                 # if the negative event invalidated some pms we want to remove all of them in each negative node in the way up
+
+                """
                 for partialMatch in partial_match_to_remove:
                     node = self
                     while node is not None and type(node) == FirstChanceNode:
                         node._remove_partial_matches(partialMatch)
                         node = node._parent
+
+                """
+                node = self
+                while node is not None and type(node) == FirstChanceNode:
+                    node._remove_partial_matches(partial_match_to_remove)
+                    node = node._parent
 
     def _remove_partial_matches(self, matches_to_remove: List[PartialMatch]):
         matches_to_keep = [match for match in self._partial_matches if match not in matches_to_remove]
@@ -685,10 +703,10 @@ class PostProcessingNode(InternalNegationNode):
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
 
-    def __init__(self, sliding_window: timedelta, is_first: bool, is_last: bool, parent: Node = None,
+    def __init__(self, sliding_window: timedelta, is_first: bool, is_last: bool, top_operator, parent: Node = None,
                  event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
-        super().__init__(sliding_window, is_first, is_last, parent, event_defs, left, right)
+        super().__init__(sliding_window, is_first, is_last, parent, event_defs, left, right, top_operator)
 
     """
         if type(self._left_subtree) != LeafNode:
@@ -792,18 +810,18 @@ class Tree:
         self.__root = temp_root
 
         # According to the flag PostProcessing or FirstChanceProcessing, we add the negative events in a different way
-        PostProcessing = False
+        PostProcessing = True
         if PostProcessing:
             self.__root = self.create_PostProcessing_Tree(temp_root, pattern)
         else:
             self.__root = self.create_FirstChanceNegation_Tree(pattern)
 
     def create_FirstChanceNegation_Tree(self, pattern: Pattern):
+
+        top_operator = pattern.origin_structure.get_top_operator()
+
         negative_event_list = pattern.negative_event.get_args()
         origin_event_list = pattern.origin_structure.get_args()
-
-        # nathan - 28.06
-        check_expired_list = []
 
         # init node to use it out of the scope of the for
         node = self.__root
@@ -827,13 +845,13 @@ class Tree:
                     while type(node._parent) == FirstChanceNode:
                         node = node._parent
                     if p == origin_event_list[counter]:
-                        temporal_root = FirstChanceNode(pattern.window, is_first=True, is_last=False)
+                        temporal_root = FirstChanceNode(pattern.window, is_first=True, is_last=False, top_operator=top_operator)
                         counter += 1
                     elif len(negative_event_list) - negative_event_list.index(p) \
                             == len(origin_event_list) - origin_event_list.index(p):
-                        temporal_root = FirstChanceNode(pattern.window, is_first=False, is_last=True)
+                        temporal_root = FirstChanceNode(pattern.window, is_first=False, is_last=True, top_operator=top_operator)
                     else:
-                        temporal_root = FirstChanceNode(pattern.window, is_first=False, is_last=False)
+                        temporal_root = FirstChanceNode(pattern.window, is_first=False, is_last=False, top_operator=top_operator)
 
                     # temporal_root = InternalNegationNode(pattern.window, is_first=False, is_last=False)
                     temp_neg_event = LeafNode(pattern.window, 1, p, temporal_root)
@@ -862,18 +880,22 @@ class Tree:
 
     def create_PostProcessing_Tree(self, temp_root: Node, pattern: Pattern):
 
+        top_operator = pattern.origin_structure.get_top_operator()
         negative_event_list = pattern.negative_event.get_args()
         origin_event_list = pattern.origin_structure.get_args()
         counter = 0
         for p in negative_event_list:
             if p == origin_event_list[counter]:
-                temporal_root = PostProcessingNode(pattern.window, is_first=True, is_last=False)
+                temporal_root = PostProcessingNode(pattern.window, is_first=True, is_last=False,
+                                                   top_operator=top_operator)
                 counter += 1
             elif len(negative_event_list) - negative_event_list.index(p) \
                     == len(origin_event_list) - origin_event_list.index(p):
-                temporal_root = PostProcessingNode(pattern.window, is_first=False, is_last=True)
+                temporal_root = PostProcessingNode(pattern.window, is_first=False, is_last=True,
+                                                   top_operator=top_operator)
             else:
-                temporal_root = PostProcessingNode(pattern.window, is_first=False, is_last=False)
+                temporal_root = PostProcessingNode(pattern.window, is_first=False, is_last=False,
+                                                   top_operator=top_operator)
 
             temp_neg_event = LeafNode(pattern.window, 1, p, temporal_root)
             temporal_root.set_subtrees(temp_root, temp_neg_event)

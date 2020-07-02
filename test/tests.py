@@ -175,7 +175,7 @@ def runTest(testName, patterns, createTestFile=False,
         events = events.duplicate()
     """
     # nathan
-    listShort = ["OneNotBegin", "MultipleNotBegin"]
+    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle"]
     listHalfShort = ["OneNotEnd", "MultipleNotEnd", "DUMMYOneNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd", "DUMMYMultipleNotBeginAndEnd"]
     listCustom2 = ["DUMMYsimpleNot", "simpleNot"]
@@ -1241,6 +1241,34 @@ def DUMMYsimpleNotTest(createTestFile=False):
     runTest("DUMMYsimpleNot", [pattern], createTestFile)
 
 
+# ON NASDAQ SHORT
+def MultipleNotInTheMiddle(createTestFile=False):
+    """
+        PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+        WHERE   a.OpeningPrice > b.OpeningPrice
+            AND b.OpeningPrice > c.OpeningPrice
+        WITHIN 5 minutes
+        """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("LI", "d")), QItem("AMZN", "b"),
+                     NegationOperator(QItem("FB", "e")), QItem("GOOG", "c")]),
+        AndFormula(
+            AndFormula(
+                GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("c", lambda x: x["Opening Price"]))),
+            AndFormula(
+                GreaterThanFormula(IdentifierTerm("e", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("a", lambda x: x["Opening Price"])),
+                SmallerThanFormula(IdentifierTerm("d", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("c", lambda x: x["Opening Price"])))
+            ),
+        timedelta(minutes=4)
+    )
+    runTest("MultipleNotMiddle", [pattern], createTestFile)
+
+
 # ON NASDAQ *HALF* SHORT
 def OneNotAtTheEndWithStatsTest(createTestFile=False):
     """
@@ -1289,6 +1317,7 @@ DUMMYsimpleNotTest()
 # OneNotAtTheEndWithStatsTest()
 #
 
+MultipleNotInTheMiddle()
 
 simpleNotTest()
 
