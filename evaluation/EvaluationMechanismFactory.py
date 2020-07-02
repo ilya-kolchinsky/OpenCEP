@@ -7,6 +7,7 @@ from evaluation.IterativeImprovement import IterativeImprovementType
 from evaluation.LeftDeepTreeBuilders import IterativeImprovementInitType, TrivialLeftDeepTreeBuilder, \
     AscendingFrequencyTreeBuilder, GreedyLeftDeepTreeBuilder, IterativeImprovementLeftDeepTreeBuilder, \
     DynamicProgrammingLeftDeepTreeBuilder
+from evaluation.Storage import TreeStorageParameters
 
 
 class EvaluationMechanismTypes(Enum):
@@ -49,27 +50,35 @@ class EvaluationMechanismFactory:
     """
     Creates an evaluation mechanism given its specification.
     """
-    @staticmethod
-    def build_single_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,
-                                            eval_mechanism_params: EvaluationMechanismParameters,
-                                            pattern: Pattern):
-        return EvaluationMechanismFactory. \
-            __create_eval_mechanism_builder(eval_mechanism_type, eval_mechanism_params). \
-            build_single_pattern_eval_mechanism(pattern)
 
     @staticmethod
-    def build_multi_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,
-                                           eval_mechanism_params: EvaluationMechanismParameters,
-                                           patterns: List[Pattern]):
-        return EvaluationMechanismFactory. \
-            __create_eval_mechanism_builder(eval_mechanism_type, eval_mechanism_params). \
-            build_multi_pattern_eval_mechanism(patterns)
+    def build_single_pattern_eval_mechanism(
+        eval_mechanism_type: EvaluationMechanismTypes,
+        eval_mechanism_params: EvaluationMechanismParameters,
+        pattern: Pattern,
+        storage_params: TreeStorageParameters,
+    ):
+        return EvaluationMechanismFactory.__create_eval_mechanism_builder(
+            eval_mechanism_type, eval_mechanism_params
+        ).build_single_pattern_eval_mechanism(pattern, storage_params)
 
     @staticmethod
-    def __create_eval_mechanism_builder(eval_mechanism_type: EvaluationMechanismTypes,
-                                        eval_mechanism_params: EvaluationMechanismParameters):
-        eval_mechanism_params = EvaluationMechanismFactory.__create_eval_mechanism_parameters(eval_mechanism_type,
-                                                                                              eval_mechanism_params)
+    def build_multi_pattern_eval_mechanism(
+        eval_mechanism_type: EvaluationMechanismTypes,
+        eval_mechanism_params: EvaluationMechanismParameters,
+        patterns: List[Pattern],
+    ):
+        return EvaluationMechanismFactory.__create_eval_mechanism_builder(
+            eval_mechanism_type, eval_mechanism_params
+        ).build_multi_pattern_eval_mechanism(patterns)
+
+    @staticmethod
+    def __create_eval_mechanism_builder(
+        eval_mechanism_type: EvaluationMechanismTypes, eval_mechanism_params: EvaluationMechanismParameters
+    ):
+        eval_mechanism_params = EvaluationMechanismFactory.__create_eval_mechanism_parameters(
+            eval_mechanism_type, eval_mechanism_params
+        )
         if eval_mechanism_params.type == EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE:
             return TrivialLeftDeepTreeBuilder()
         if eval_mechanism_params.type == EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE:
@@ -77,9 +86,9 @@ class EvaluationMechanismFactory:
         if eval_mechanism_params.type == EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE:
             return GreedyLeftDeepTreeBuilder()
         if eval_mechanism_params.type == EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE:
-            return IterativeImprovementLeftDeepTreeBuilder(eval_mechanism_params.step_limit,
-                                                           eval_mechanism_params.ii_type,
-                                                           eval_mechanism_params.init_type)
+            return IterativeImprovementLeftDeepTreeBuilder(
+                eval_mechanism_params.step_limit, eval_mechanism_params.ii_type, eval_mechanism_params.init_type
+            )
         if eval_mechanism_params.type == EvaluationMechanismTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE:
             return DynamicProgrammingLeftDeepTreeBuilder()
         if eval_mechanism_params.type == EvaluationMechanismTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE:
@@ -91,8 +100,9 @@ class EvaluationMechanismFactory:
         return None
 
     @staticmethod
-    def __create_eval_mechanism_parameters(eval_mechanism_type: EvaluationMechanismTypes,
-                                           eval_mechanism_params: EvaluationMechanismParameters):
+    def __create_eval_mechanism_parameters(
+        eval_mechanism_type: EvaluationMechanismTypes, eval_mechanism_params: EvaluationMechanismParameters
+    ):
         if eval_mechanism_params is not None:
             return eval_mechanism_params
         return EvaluationMechanismParameters(eval_mechanism_type)

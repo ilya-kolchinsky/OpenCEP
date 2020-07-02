@@ -24,3 +24,8 @@ class Pattern:
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         self.statistics_type = statistics_type
         self.statistics = statistics
+
+    def __repr__(self):
+        return "Pattern is {} with condition {} and time window is {}".format(
+            self.structure, self.condition, self.window
+        )
