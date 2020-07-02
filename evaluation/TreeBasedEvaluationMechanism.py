@@ -706,7 +706,7 @@ class PostProcessingNode(InternalNegationNode):
     def __init__(self, sliding_window: timedelta, is_first: bool, is_last: bool, top_operator, parent: Node = None,
                  event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
-        super().__init__(sliding_window, is_first, is_last, parent, event_defs, left, right, top_operator)
+        super().__init__(sliding_window, is_first, is_last, top_operator, parent, event_defs, left, right)
 
     """
         if type(self._left_subtree) != LeafNode:
@@ -810,7 +810,7 @@ class Tree:
         self.__root = temp_root
 
         # According to the flag PostProcessing or FirstChanceProcessing, we add the negative events in a different way
-        PostProcessing = True
+        PostProcessing = False
         if PostProcessing:
             self.__root = self.create_PostProcessing_Tree(temp_root, pattern)
         else:

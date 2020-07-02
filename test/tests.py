@@ -1286,16 +1286,9 @@ def OneNotAtTheEndWithStatsTest(createTestFile=False):
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
+    pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"GOOG": 1, "AAPL": 2, "AMZN": 3, "TYP1": 4})
+    runTest("OneNotEnd", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
 
-    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
-                         [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
-    arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    runTest('OneNotEnd', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE,
-            eval_mechanism_params=IterativeImprovementEvaluationMechanismParameters(
-                20, IterativeImprovementType.CIRCLE_BASED, IterativeImprovementInitType.GREEDY),
-            events=nasdaqEventStreamHalfShort)
 
 # comment to commit and push
 # greedyPatternSearchTest()
@@ -1314,14 +1307,13 @@ def OneNotAtTheEndWithStatsTest(createTestFile=False):
 
 DUMMYsimpleNotTest()
 # nathan : a verifier !
-# OneNotAtTheEndWithStatsTest()
-#
+OneNotAtTheEndWithStatsTest()
 
-MultipleNotInTheMiddle()
 
 simpleNotTest()
 
 # ON NASDAQ SHORT
+MultipleNotInTheMiddle()
 OneNotAtTheBeginningTest()
 
 MultipleNotAtTheBeginningTest()
