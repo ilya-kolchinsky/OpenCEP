@@ -64,6 +64,9 @@ class Node(ABC):
         if self._sliding_window == timedelta.max:
             return
         count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window)
+        expired_partial_matches = self._partial_matches[:count]
+        for event in expired_partial_matches:
+            self._filtered_events.discard(event)  
         self._partial_matches = self._partial_matches[count:]
 
     def add_partial_match(self, pm: PartialMatch) -> bool:
