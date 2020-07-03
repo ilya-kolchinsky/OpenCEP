@@ -17,7 +17,7 @@ from base.PatternStructure import AndOperator, SeqOperator, QItem
 from base.Pattern import Pattern
 
 
-
+nasdaqEventStreamTiny = file_input(absolutePath, "test/EventFiles/NASDAQ_TINY.txt", MetastockDataFormatter())
 nasdaqEventStreamShort = file_input(absolutePath, "test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
 nasdaqEventStreamMedium = file_input(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt", MetastockDataFormatter())
 nasdaqEventStreamFrequencyTailored = file_input(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt", MetastockDataFormatter())
@@ -61,9 +61,9 @@ def fileCompare(pathA, pathB):
     closeFiles(file1, file2)
     return True
 
-def createTest(testName, patterns, events=None):
+def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream):
     if events == None:
-        events = nasdaqEventStream.duplicate()
+        events = eventStream.duplicate()
     else:
         events = events.duplicate()
     pattern = patterns[0]
@@ -74,11 +74,11 @@ def createTest(testName, patterns, events=None):
 
 def runTest(testName, patterns, createTestFile = False,
             eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-            eval_mechanism_params = None, events = None):
+            eval_mechanism_params = None, events = None, eventStream = nasdaqEventStream):
     if createTestFile:
-        createTest(testName, patterns, events)
+        createTest(testName, patterns, events, eventStream = eventStream)
     if events is None:
-        events = nasdaqEventStream.duplicate()
+        events = eventStream.duplicate()
     else:
         events = events.duplicate()
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
@@ -102,12 +102,15 @@ def oneArgumentsearchTest(createTestFile = False):
 def simplePatternSearchTest(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
-    WHERE   a.OpeningPrice > c.OpeningPrice
+    WHERE   a.OpeningPrice > b.OpeningPrice
+        AND b.OpeningPrice > c.OpeningPrice
     WITHIN 5 minutes
     """
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
-        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
+            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
     runTest("simple", [pattern], createTestFile)
@@ -584,6 +587,76 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
     runTest('nonFrequencyTailored1', [pattern], createTestFile,
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, events=nasdaqEventStream)
 
+def singleType1PolicyPatternSearchTest(createTestFile = False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
+        timedelta(minutes=5),
+        ConsumptionPolicies(single = SingleTypes({"AMZN"}, Mechanisms.type1))
+    )
+    runTest("singleType1Policy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
+def singleType2PolicyPatternSearchTest(createTestFile = False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
+        timedelta(minutes=5),
+        ConsumptionPolicies(single = SingleTypes({"AMZN"}, Mechanisms.type2))
+    )
+    runTest("singleType2Policy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
+def strictPolicyPatternSearchTest(createTestFile = False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
+        timedelta(minutes=5),
+        ConsumptionPolicies(strict={"a", "b", "c"})
+    )
+    runTest("strictPolicy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
+def skipPolicyPatternSearchTest(createTestFile = False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
+        timedelta(minutes=5),
+        ConsumptionPolicies(skip="a")
+    )
+    runTest("skipPolicy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
+def skipPolicy2PatternSearchTest(createTestFile = False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
+        timedelta(minutes=5),
+        ConsumptionPolicies(skip="b")
+    )
+    runTest("skipPolicy2", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
 
 oneArgumentsearchTest()
 simplePatternSearchTest()
@@ -618,3 +691,11 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
+
+#Consumption Policies Tests
+singleType1PolicyPatternSearchTest()
+singleType2PolicyPatternSearchTest()
+strictPolicyPatternSearchTest()
+skipPolicyPatternSearchTest()
+skipPolicy2PatternSearchTest()
+

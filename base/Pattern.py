@@ -23,8 +23,6 @@ class Pattern:
                 raise Exception("Skip policies only work with SeqOperator")
         #Adjust formula if qitems are "strict"
         if consumption_policies and consumption_policies.strict:
-            if(pattern_structure.get_top_operator() != SeqOperator):
-                raise Exception("Strict policies only work with SeqOperator")
             args = pattern_structure.args
             for event_name in consumption_policies.strict:
                 for i in range(len(args) - 1):

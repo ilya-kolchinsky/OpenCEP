@@ -64,6 +64,9 @@ class Node(ABC):
         if self._sliding_window == timedelta.max:
             return
         count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window)
+        expired_partial_matches = self._partial_matches[:count]
+        for event in expired_partial_matches:
+            self._filtered_events.discard(event)  
         self._partial_matches = self._partial_matches[count:]
 
     def add_partial_match(self, pm: PartialMatch) -> bool:
@@ -358,7 +361,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     def __init__(self, pattern: Pattern, tree_structure: tuple):
         self.__tree = Tree(tree_structure, pattern)
         # Partial match skipping mechanism variables
-        self.__skip_leaf, self.__stop_new_sequences_leaf = self.__get_skip_leaves(pattern)
+        self.__skip_leaves, self.__stop_new_sequences_leaf = self.__get_skip_leaves(pattern)
+        self.__first_leaf = self.__tree.get_leaves()[0]
         self.__should_skip_leaf = False
 
     def eval(self, events: Stream, matches: Stream):
@@ -385,21 +389,22 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     def __get_skip_leaves(self, pattern: Pattern) -> (LeafNode, LeafNode):
         """
         If the mechanism(prohibiting any pattern matching while a single partial match is active) 
-        is enabled then this function will return the first leaf that starts the sequence that will
-        be skipped and the leaf that the user specifed from which this mechanism must be enforced
+        is enabled then this function will return a set of leaves, which precede or equal the user 
+        specified leaf, that will be skipped and the leaf that the user specified from which this 
+        mechanism must be enforced
         """
-        skip_leaf, stop_new_sequences_leaf = None, None
+        skip_leaves, stop_new_sequences_leaf = set(), None
         if pattern.consumption_policies:
             args = pattern.structure.args
             for i in range(len(args)):
                 if args[i].name == pattern.consumption_policies.skip:
                     for leaf in self.__tree.get_leaves():
                         index = leaf.get_leaf_index()
-                        if index == 0:
-                            skip_leaf = leaf
+                        if index <= i:
+                            skip_leaves.add(leaf)
                         if index == i:
                             stop_new_sequences_leaf = leaf
-        return skip_leaf, stop_new_sequences_leaf
+        return skip_leaves, stop_new_sequences_leaf
 
     def __skip_partial_matches(self, leaf: LeafNode, event: Event) -> bool:
         """
@@ -408,17 +413,17 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         until all current partial matches are completed.
         This function returns True if the current leaf should be skipped and False otherwise.
         """
-        if self.__skip_leaf == None or self.__stop_new_sequences_leaf == None: #Always skip if mechanism disabled
+        if not self.__skip_leaves or self.__stop_new_sequences_leaf == None: #Always skip if mechanism disabled
             return False
         if self.__should_skip_leaf:
-            if leaf != self.__skip_leaf:
+            if leaf not in self.__skip_leaves:
                 return False
             else:
                 leaf.clean_expired_partial_matches(event.timestamp)
                 if leaf.has_partial_matches():
                     return True
                 else:
-                    if leaf != self.__stop_new_sequences_leaf:
+                    if leaf != self.__stop_new_sequences_leaf or leaf != self.__first_leaf:
                         self.__should_skip_leaf = False
                     return False
         elif self.__should_skip_leaf == False:
