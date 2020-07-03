@@ -91,7 +91,7 @@ file_output(matches, 'output.txt')
 First mechanism: limiting a primitive event to only appear in a single full match
 ```
 pattern = Pattern(
-    StrictSeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
     TrueFormula(),
     timedelta(minutes=5),
     ConsumptionPolicies(single = {"AAPL", "AMZN"}, Mechanisms.type1)# Prevent events  of type "AAPL" or "AMZN" from appearing twice
