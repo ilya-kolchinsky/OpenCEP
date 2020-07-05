@@ -18,7 +18,8 @@ class Node(ABC):
     """
     This class represents a single node of an evaluation tree.
     """
-    def __init__(self, sliding_window: timedelta, parent):
+    def __init__(self, tree, sliding_window: timedelta, parent):
+        self._tree = tree
         self._parent = parent
         self._sliding_window = sliding_window
         self._partial_matches = []
@@ -70,14 +71,21 @@ class Node(ABC):
         return expired_partial_matches
 
     def clean_expired_filtered_events(self, event_type: str, expired_partial_matches: List):
+        """
+        Removes all the filtered events all the way up to the root if the appropriate mechanism
+        is enabled.
+        """
         if expired_partial_matches:
-            current = self
-            while current:
-                if current._filtered_events and event_type in current._single_event_types:
-                    for pm in expired_partial_matches:
-                        for event in pm.events:
-                            current._filtered_events.discard(event)
-                current = current._parent
+            consumption_policies = self._tree.consumption_policies
+            if consumption_policies and consumption_policies.single and event_type in consumption_policies.single.single_types:
+                mechanism = consumption_policies.single.mechanism
+                current = self if mechanism == Mechanisms.type1 else self._tree.root if mechanism == Mechanisms.type2 else None
+                while current:
+                    if current._filtered_events:
+                        for pm in expired_partial_matches:
+                            for event in pm.events:
+                                current._filtered_events.discard(event)
+                    current = current._parent
 
     def add_partial_match(self, pm: PartialMatch) -> bool:
         """
@@ -88,7 +96,7 @@ class Node(ABC):
         Will always return true if single event type limit mechanism is disabled.
         """
         # Check if partial match can be added if single event type limit mechanism is enabled
-        if len(self._single_event_types) > 0:
+        if self._single_event_types:
             new_filtered_events = set()
             for event in pm.events:
                 if event.event_type in self._single_event_types: 
@@ -141,8 +149,8 @@ class LeafNode(Node):
     """
     A leaf node is responsible for a single event type of the pattern.
     """
-    def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_qitem: QItem, parent: Node):
-        super().__init__(sliding_window, parent)
+    def __init__(self, tree, sliding_window: timedelta, leaf_index: int, leaf_qitem: QItem, parent: Node):
+        super().__init__(tree, sliding_window, parent)
         self.__leaf_index = leaf_index
         self.__event_name = leaf_qitem.name
         self.__event_type = leaf_qitem.event_type
@@ -186,6 +194,8 @@ class LeafNode(Node):
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
         Removes partial matches whose earliest timestamp violates the time window constraint.
+        Also removes all the filtered events all the way up to the root if the appropriate mechanism
+        is enabled.
         Return the expired partial matches.
         """
         expired_partial_matches = super().clean_expired_partial_matches(last_timestamp)
@@ -197,9 +207,9 @@ class InternalNode(Node):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
+    def __init__(self, tree, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
-        super().__init__(sliding_window, parent)
+        super().__init__(tree, sliding_window, parent)
         self._event_defs = event_defs
         self._left_subtree = left
         self._right_subtree = right
@@ -342,33 +352,35 @@ class Tree:
     """
     def __init__(self, tree_structure: tuple, pattern: Pattern):
         # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
-        self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
+        self.root = Tree.__construct_tree(self, pattern.structure.get_top_operator() == SeqOperator,
                                             tree_structure, pattern.structure.args, pattern.window, 
                                             None, pattern.consumption_policies)
+        self.consumption_policies = pattern.consumption_policies
         if pattern.consumption_policies and pattern.consumption_policies.single and pattern.consumption_policies.single.mechanism == Mechanisms.type2:
             for event_type in pattern.consumption_policies.single.single_types:
-                self.__root.add_single_event_type(event_type)
-        self.__root.apply_formula(pattern.condition)
+                self.root.add_single_event_type(event_type)
+        self.root.apply_formula(pattern.condition)
 
     def get_leaves(self):
-        return self.__root.get_leaves()
+        return self.root.get_leaves()
 
     def get_matches(self):
-        while self.__root.has_partial_matches():
-            yield self.__root.consume_first_partial_match().events
+        while self.root.has_partial_matches():
+            yield self.root.consume_first_partial_match().events
 
     @staticmethod
-    def __construct_tree(is_sequence: bool, tree_structure: tuple or int, args: List[QItem],
-                         sliding_window: timedelta, parent: Node = None, consumption_policies: ConsumptionPolicies = None):
+    def __construct_tree(tree, is_sequence: bool, tree_structure: tuple or int, args: List[QItem],
+                         sliding_window: timedelta, parent: Node = None, 
+                         consumption_policies: ConsumptionPolicies = None):
         if type(tree_structure) == int:
             event = args[tree_structure]
             if consumption_policies and consumption_policies.single and consumption_policies.single.mechanism == Mechanisms.type1 and event.event_type in consumption_policies.single.single_types:
                 parent.add_single_event_type(event.event_type)
-            return LeafNode(sliding_window, tree_structure, event, parent)
-        current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
+            return LeafNode(tree, sliding_window, tree_structure, event, parent)
+        current = SeqNode(tree, sliding_window, parent) if is_sequence else AndNode(tree, sliding_window, parent)
         left_structure, right_structure = tree_structure
-        left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current, consumption_policies)
-        right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current, consumption_policies)
+        left = Tree.__construct_tree(tree, is_sequence, left_structure, args, sliding_window, current, consumption_policies)
+        right = Tree.__construct_tree(tree, is_sequence, right_structure, args, sliding_window, current, consumption_policies)
         current.set_subtrees(left, right)
         return current
 
