@@ -60,14 +60,24 @@ class Node(ABC):
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
         Removes partial matches whose earliest timestamp violates the time window constraint.
+        Return the expired partial matches.
         """
         if self._sliding_window == timedelta.max:
-            return
+            return []
         count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window)
         expired_partial_matches = self._partial_matches[:count]
-        for event in expired_partial_matches:
-            self._filtered_events.discard(event)  
         self._partial_matches = self._partial_matches[count:]
+        return expired_partial_matches
+
+    def clean_expired_filtered_events(self, event_type: str, expired_partial_matches: List):
+        if expired_partial_matches:
+            current = self
+            while current:
+                if current._filtered_events and event_type in current._single_event_types:
+                    for pm in expired_partial_matches:
+                        for event in pm.events:
+                            current._filtered_events.discard(event)
+                current = current._parent
 
     def add_partial_match(self, pm: PartialMatch) -> bool:
         """
@@ -172,6 +182,15 @@ class LeafNode(Node):
     
     def get_leaf_index(self):
         return self.__leaf_index
+
+    def clean_expired_partial_matches(self, last_timestamp: datetime):
+        """
+        Removes partial matches whose earliest timestamp violates the time window constraint.
+        Return the expired partial matches.
+        """
+        expired_partial_matches = super().clean_expired_partial_matches(last_timestamp)
+        self.clean_expired_filtered_events(self.__event_type, expired_partial_matches)
+        return expired_partial_matches
 
 
 class InternalNode(Node):
