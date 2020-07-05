@@ -14,11 +14,6 @@ from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFo
 from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
 from base.Pattern import Pattern
 
-from Lib import filecmp
-
-
-# com to commit
-
 nasdaqEventStreamShort = file_input("test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
 nasdaqEventStreamHalfShort = file_input("test/EventFiles/NASDAQ_HALF_SHORT.txt", MetastockDataFormatter())
 nasdaqEventStreamMedium = file_input("test/EventFiles/NASDAQ_MEDIUM.txt", MetastockDataFormatter())
@@ -177,7 +172,7 @@ def runTest(testName, patterns, createTestFile=False,
         events = nasdaqEventStream.duplicate()
     else:
         events = events.duplicate()
-    """
+
     # nathan
     listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle"]
     listHalfShort = ["OneNotEnd", "MultipleNotEnd", "DUMMYOneNotEnd"]
@@ -191,9 +186,10 @@ def runTest(testName, patterns, createTestFile=False,
         events = custom.duplicate()
     elif testName in listCustom2:
         events = custom2.duplicate()
-    else:
-        events = nasdaqEventStream.duplicate()
-    """
+    elif testName == "NotEverywhere":
+        events = custom2.duplicate()
+
+
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
@@ -1295,6 +1291,20 @@ def OneNotAtTheEndWithStatsTest(createTestFile=False):
     runTest("OneNotEnd", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
 
 
+def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
+
+    pattern = Pattern(
+        SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMAZON", "b"), NegationOperator(QItem("GOOG", "c")),
+                     QItem("FB", "d"), NegationOperator(QItem("TYP1", "x"))]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    runTest("NotEverywhere", [pattern], createTestFile, EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE)
+
 # comment to commit and push
 # greedyPatternSearchTest()
 # evaTest()
@@ -1334,6 +1344,10 @@ MultipleNotBeginAndEndTest()
 
 
 """
+
+testWithMultipleNotAtBeginningMiddleEnd()
+
+"""
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
@@ -1367,4 +1381,4 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
-
+"""
