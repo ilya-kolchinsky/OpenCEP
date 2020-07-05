@@ -1,8 +1,9 @@
 import os
 from CEP import CEP
+from evaluation.EvaluationMechanism import NegationMode
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
-    IterativeImprovementEvaluationMechanismParameters
-from misc.IOUtils import file_input, file_output, EXPECTEDfile_output
+    IterativeImprovementEvaluationMechanismParameters, EvaluationMechanismParameters
+from misc.IOUtils import file_input, file_output
 from misc.Stocks import MetastockDataFormatter
 from misc.Utils import generate_matches
 from evaluation.LeftDeepTreeBuilders import *
@@ -15,6 +16,8 @@ from base.Pattern import Pattern
 
 from Lib import filecmp
 
+
+# com to commit
 
 nasdaqEventStreamShort = file_input("test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
 nasdaqEventStreamHalfShort = file_input("test/EventFiles/NASDAQ_HALF_SHORT.txt", MetastockDataFormatter())
@@ -165,10 +168,11 @@ def createTest(testName, patterns, events=None):
 
 def runTest(testName, patterns, createTestFile=False,
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-            eval_mechanism_params=None, events=None):
+            eval_mechanism_params=EvaluationMechanismParameters(),
+            events=None):
     if createTestFile:
         createTest(testName, patterns, events)
-    """
+
     if events is None:
         events = nasdaqEventStream.duplicate()
     else:
@@ -187,12 +191,9 @@ def runTest(testName, patterns, createTestFile=False,
         events = custom.duplicate()
     elif testName in listCustom2:
         events = custom2.duplicate()
-
-    #LongerEventStream = file_input("test/EventFiles/Longer.txt", MetastockDataFormatter())
-    #events = longer.duplicate()
-    #testName = 'PROBLEM'
-
-    # events = justshort.duplicate()
+    else:
+        events = nasdaqEventStream.duplicate()
+    """
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
@@ -206,6 +207,7 @@ def runTest(testName, patterns, createTestFile=False,
                                                    running_time))
 
     # os.remove(actual_matches_path)
+
 
 
 def oneArgumentsearchTest(createTestFile=False):
@@ -812,6 +814,7 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
     runTest('nonFrequencyTailored1', [pattern], createTestFile,
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, events=nasdaqEventStream)
 
+<<<<<<< HEAD
 
 def evaTest():
     pattern = Pattern(
@@ -1223,7 +1226,9 @@ def simpleNotTest(createTestFile=False):
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    runTest("simpleNot", [pattern], createTestFile)
+    eval_param = EvaluationMechanismParameters(EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  NegationMode.FIRST_CHANCE)
+    runTest("simpleNot", [pattern], createTestFile, eval_mechanism_params=eval_param)
 
 # ON custom2
 def DUMMYsimpleNotTest(createTestFile=False):
@@ -1306,7 +1311,7 @@ def OneNotAtTheEndWithStatsTest(createTestFile=False):
 
 
 DUMMYsimpleNotTest()
-# nathan : a verifier !
+
 OneNotAtTheEndWithStatsTest()
 
 
@@ -1327,9 +1332,8 @@ MultipleNotBeginAndEndTest()
 
 # DUMMYPatternSearchTest_MultipleNotBeginAndEnd()
 
-"""
-OtherTest()
 
+"""
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
@@ -1363,4 +1367,4 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
-"""
+

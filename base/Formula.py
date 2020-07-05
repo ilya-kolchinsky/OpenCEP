@@ -43,7 +43,6 @@ class IdentifierTerm(Term):
     def get_term_of(self, names: set):
         if self.name in names:
             return self
-        return None
 
 
 
@@ -72,7 +71,6 @@ class PlusTerm(BinaryOperationTerm):
         rhs = self.rhs.get_term_of(names)
         if lhs and rhs:
             return PlusTerm(lhs, rhs)
-        return None
 
 
 class MinusTerm(BinaryOperationTerm):
@@ -84,7 +82,6 @@ class MinusTerm(BinaryOperationTerm):
         rhs = self.rhs.get_term_of(names)
         if lhs and rhs:
             return MinusTerm(lhs, rhs)
-        return None
 
 
 class MulTerm(BinaryOperationTerm):
@@ -96,7 +93,6 @@ class MulTerm(BinaryOperationTerm):
         rhs = self.rhs.get_term_of(names)
         if lhs and rhs:
             return MulTerm(lhs, rhs)
-        return None
 
 
 class DivTerm(BinaryOperationTerm):
@@ -108,7 +104,6 @@ class DivTerm(BinaryOperationTerm):
         rhs = self.rhs.get_term_of(names)
         if lhs and rhs:
             return DivTerm(lhs, rhs)
-        return None
 
 
 class Formula(ABC):
@@ -122,7 +117,6 @@ class Formula(ABC):
     def get_formula_of(self, names: set):
         pass
 
-    #17.06
     def get_all_terms(self, term_set: set):
         NotImplementedError()
 
@@ -157,7 +151,6 @@ class EqFormula(AtomicFormula):
         left_term = self.left_term.get_term_of(names)
         if left_term and right_term:
             return EqFormula(left_term, right_term)
-        return None
 
     def get_events_in_a_condition_with(self, name: str):
         right_term = self.right_term
@@ -170,7 +163,6 @@ class EqFormula(AtomicFormula):
             return EqFormula(left_term, right_term)
         if type(right_term) == IdentifierTerm and right_term.name == name:
             return EqFormula(left_term, right_term)
-        return None
 
 
 class NotEqFormula(AtomicFormula):
@@ -182,7 +174,6 @@ class NotEqFormula(AtomicFormula):
         left_term = self.left_term.get_term_of(names)
         if left_term and right_term:
             return NotEqFormula(left_term, right_term)
-        return None
 
     def get_events_in_a_condition_with(self, name: str):
         right_term = self.right_term
@@ -191,11 +182,10 @@ class NotEqFormula(AtomicFormula):
             return None
         if type(left_term) != IdentifierTerm or type(right_term) != IdentifierTerm:
             return None
-        if left_term is not None and type(left_term) == IdentifierTerm and left_term.name == name:
+        if type(left_term) == IdentifierTerm and left_term.name == name:
             return NotEqFormula(left_term, right_term)
-        if right_term is not None and type(right_term) == IdentifierTerm and right_term.name == name:
+        if type(right_term) == IdentifierTerm and right_term.name == name:
             return NotEqFormula(left_term, right_term)
-        return None
 
 class GreaterThanFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -206,7 +196,6 @@ class GreaterThanFormula(AtomicFormula):
         left_term = self.left_term.get_term_of(names)
         if left_term and right_term:
             return GreaterThanFormula(left_term, right_term)
-        return None
 
     def get_events_in_a_condition_with(self, name: str):
         right_term = self.right_term
@@ -215,11 +204,10 @@ class GreaterThanFormula(AtomicFormula):
             return None
         if type(left_term) != IdentifierTerm or type(right_term) != IdentifierTerm:
             return None
-        if left_term is not None and type(left_term) == IdentifierTerm and left_term.name == name:
+        if type(left_term) == IdentifierTerm and left_term.name == name:
             return GreaterThanFormula(left_term, right_term)
-        if right_term is not None and type(right_term) == IdentifierTerm and right_term.name == name:
+        if type(right_term) == IdentifierTerm and right_term.name == name:
             return GreaterThanFormula(left_term, right_term)
-        return None
 
 class SmallerThanFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -230,7 +218,6 @@ class SmallerThanFormula(AtomicFormula):
         left_term = self.left_term.get_term_of(names)
         if left_term and right_term:
             return SmallerThanFormula(left_term, right_term)
-        return None
 
     def get_events_in_a_condition_with(self, name: str):
         right_term = self.right_term
@@ -239,11 +226,10 @@ class SmallerThanFormula(AtomicFormula):
             return None
         if type(left_term) != IdentifierTerm or type(right_term) != IdentifierTerm:
             return None
-        if left_term is not None and type(left_term) == IdentifierTerm and left_term.name == name:
+        if type(left_term) == IdentifierTerm and left_term.name == name:
             return SmallerThanFormula(left_term, right_term)
-        if right_term is not None and type(right_term) == IdentifierTerm and right_term.name == name:
+        if type(right_term) == IdentifierTerm and right_term.name == name:
             return SmallerThanFormula(left_term, right_term)
-        return None
 
 class GreaterThanEqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -254,7 +240,6 @@ class GreaterThanEqFormula(AtomicFormula):
         left_term = self.left_term.get_term_of(names)
         if left_term and right_term:
             return GreaterThanEqFormula(left_term, right_term)
-        return None
 
     def get_events_in_a_condition_with(self, name: str):
         right_term = self.right_term
@@ -263,11 +248,10 @@ class GreaterThanEqFormula(AtomicFormula):
             return None
         if type(left_term) != IdentifierTerm or type(right_term) != IdentifierTerm:
             return None
-        if left_term is not None and type(left_term) == IdentifierTerm and left_term.name == name:
+        if type(left_term) == IdentifierTerm and left_term.name == name:
             return GreaterThanEqFormula(left_term, right_term)
-        if right_term is not None and type(right_term) == IdentifierTerm and right_term.name == name:
+        if type(right_term) == IdentifierTerm and right_term.name == name:
             return GreaterThanEqFormula(left_term, right_term)
-        return None
 
 class SmallerThanEqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -278,7 +262,6 @@ class SmallerThanEqFormula(AtomicFormula):
         left_term = self.left_term.get_term_of(names)
         if left_term and right_term:
             return SmallerThanEqFormula(left_term, right_term)
-        return None
 
     def get_events_in_a_condition_with(self, name: str):
         right_term = self.right_term
@@ -287,11 +270,10 @@ class SmallerThanEqFormula(AtomicFormula):
             return None
         if type(left_term) != IdentifierTerm or type(right_term) != IdentifierTerm:
             return None
-        if left_term is not None and type(left_term) == IdentifierTerm and left_term.name == name:
+        if type(left_term) == IdentifierTerm and left_term.name == name:
             return SmallerThanEqFormula(left_term, right_term)
-        if right_term is not None and type(right_term) == IdentifierTerm and right_term.name == name:
+        if type(right_term) == IdentifierTerm and right_term.name == name:
             return SmallerThanEqFormula(left_term, right_term)
-        return None
 
 class BinaryLogicOpFormula(Formula):
     """
@@ -325,7 +307,6 @@ class AndFormula(BinaryLogicOpFormula):
             return left_formula
         if right_formula:
             return right_formula
-        return None
 
     def get_events_in_a_condition_with(self, name: str):
         right_formula = self.right_formula.get_events_in_a_condition_with(name)
@@ -336,7 +317,6 @@ class AndFormula(BinaryLogicOpFormula):
             return left_formula
         if right_formula:
             return right_formula
-        return None
 
 class TrueFormula(Formula):
     def eval(self, binding: dict = None):
