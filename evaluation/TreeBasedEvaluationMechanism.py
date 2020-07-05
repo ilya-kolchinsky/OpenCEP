@@ -75,17 +75,16 @@ class Node(ABC):
         Removes all the filtered events all the way up to the root if the appropriate mechanism
         is enabled.
         """
-        if expired_partial_matches:
-            consumption_policies = self._tree.consumption_policies
-            if consumption_policies and consumption_policies.single and event_type in consumption_policies.single.single_types:
-                mechanism = consumption_policies.single.mechanism
-                current = self if mechanism == Mechanisms.type1 else self._tree.root if mechanism == Mechanisms.type2 else None
-                while current:
-                    if current._filtered_events:
-                        for pm in expired_partial_matches:
-                            for event in pm.events:
-                                current._filtered_events.discard(event)
-                    current = current._parent
+        single_mechanism = self._tree.single_mechanism
+        if expired_partial_matches and single_mechanism and event_type in single_mechanism.single_types:
+            mechanism = single_mechanism.mechanism
+            current = self if mechanism == Mechanisms.type1 else self._tree.root if mechanism == Mechanisms.type2 else None
+            while current:
+                if current._filtered_events:
+                    for pm in expired_partial_matches:
+                        for event in pm.events:
+                            current._filtered_events.discard(event)
+                current = current._parent
 
     def add_partial_match(self, pm: PartialMatch) -> bool:
         """
@@ -355,10 +354,12 @@ class Tree:
         self.root = Tree.__construct_tree(self, pattern.structure.get_top_operator() == SeqOperator,
                                             tree_structure, pattern.structure.args, pattern.window, 
                                             None, pattern.consumption_policies)
-        self.consumption_policies = pattern.consumption_policies
-        if pattern.consumption_policies and pattern.consumption_policies.single and pattern.consumption_policies.single.mechanism == Mechanisms.type2:
-            for event_type in pattern.consumption_policies.single.single_types:
-                self.root.add_single_event_type(event_type)
+        self.single_mechanism = None
+        if pattern.consumption_policies and pattern.consumption_policies.single:
+            self.single_mechanism = pattern.consumption_policies.single
+            if pattern.consumption_policies.single.mechanism == Mechanisms.type2:
+                for event_type in pattern.consumption_policies.single.single_types:
+                    self.root.add_single_event_type(event_type)
         self.root.apply_formula(pattern.condition)
 
     def get_leaves(self):
