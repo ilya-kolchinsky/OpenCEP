@@ -8,6 +8,9 @@ from evaluation.LeftDeepTreeBuilders import IterativeImprovementInitType, Trivia
     AscendingFrequencyTreeBuilder, GreedyLeftDeepTreeBuilder, IterativeImprovementLeftDeepTreeBuilder, \
     DynamicProgrammingLeftDeepTreeBuilder
 
+class NegationMode(Enum):
+    POST_PROCESSING = 0,
+    FIRST_CHANCE = 1
 
 class EvaluationMechanismTypes(Enum):
     """
@@ -27,8 +30,10 @@ class EvaluationMechanismParameters:
     """
     Parameters for the evaluation mechanism builder.
     """
-    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes):
+    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes,
+                 negation_mode: NegationMode = NegationMode.POST_PROCESSING):
         self.type = eval_mechanism_type
+        self.negation_mode = negation_mode
 
 
 class IterativeImprovementEvaluationMechanismParameters(EvaluationMechanismParameters):

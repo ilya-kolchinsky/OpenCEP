@@ -166,9 +166,9 @@ class EqFormula(AtomicFormula):
             return None
         if type(left_term) != IdentifierTerm or type(right_term) != IdentifierTerm:
             return None
-        if left_term is not None and type(left_term) == IdentifierTerm and left_term.name == name:
+        if type(left_term) == IdentifierTerm and left_term.name == name:
             return EqFormula(left_term, right_term)
-        if right_term is not None and type(right_term) == IdentifierTerm and right_term.name == name:
+        if type(right_term) == IdentifierTerm and right_term.name == name:
             return EqFormula(left_term, right_term)
         return None
 
