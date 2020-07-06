@@ -26,8 +26,6 @@ custom = file_input("test/EventFiles/custom.txt", MetastockDataFormatter())
 custom2 = file_input("test/EventFiles/custom2.txt", MetastockDataFormatter())
 longer = file_input("test/EventFiles/Longer.txt", MetastockDataFormatter())
 
-justshort =  file_input("test/EventFiles/JustShort.txt", MetastockDataFormatter())
-
 def numOfLinesInPattern(file):
     """
     get num of lines in file until first blank line == num of lines in pattern
@@ -41,7 +39,7 @@ def numOfLinesInPattern(file):
         counter = counter + 1
     return counter
 
-
+# fixed comparision function between outputs
 def compareFiles(path1: str, path2: str):
     """
     Compare expected output and actual ouput
@@ -74,13 +72,6 @@ def compareFiles(path1: str, path2: str):
     fillSet(file2, set2, counter2)
     closeFiles(file1, file2)
 
-    """
-    with open('set1.txt', 'w') as f:
-        print(set1, file=f)
-
-    with open('set2.txt', 'w') as f:
-        print(set2, file=f)
-    """
     return set1 == set2
 
 
@@ -177,7 +168,7 @@ def runTest(testName, patterns, createTestFile=False,
     listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle"]
     listHalfShort = ["OneNotEnd", "MultipleNotEnd", "DUMMYOneNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd", "DUMMYMultipleNotBeginAndEnd"]
-    listCustom2 = ["DUMMYsimpleNot", "simpleNot"]
+    listCustom2 = ["DUMMYsimpleNot", "simpleNot", "NotEverywhere"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
@@ -186,10 +177,9 @@ def runTest(testName, patterns, createTestFile=False,
         events = custom.duplicate()
     elif testName in listCustom2:
         events = custom2.duplicate()
-    elif testName == "NotEverywhere":
-        events = custom2.duplicate()
 
-
+    eval_mechanism_params = EvaluationMechanismParameters(EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                                          NegationMode.POST_PROCESSING)
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
@@ -1320,7 +1310,7 @@ def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
 #OtherTestNat()
 
 
-DUMMYsimpleNotTest()
+#DUMMYsimpleNotTest()
 
 OneNotAtTheEndWithStatsTest()
 
@@ -1343,7 +1333,7 @@ MultipleNotBeginAndEndTest()
 # DUMMYPatternSearchTest_MultipleNotBeginAndEnd()
 
 
-"""
+
 
 testWithMultipleNotAtBeginningMiddleEnd()
 
