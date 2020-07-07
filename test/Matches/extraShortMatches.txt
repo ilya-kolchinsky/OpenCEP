@@ -1,0 +1,6 @@
+{'Stock Ticker': 'AAPL', 'Date': 200802010902, 'Opening Price': 100}
+{'Stock Ticker': 'AMZN', 'Date': 200802010906, 'Opening Price': 300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010905, 'Opening Price': 200}
+{'Stock Ticker': 'AMZN', 'Date': 200802010906, 'Opening Price': 300}
+

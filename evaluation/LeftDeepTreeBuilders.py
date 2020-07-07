@@ -18,10 +18,10 @@ class LeftDeepTreeBuilder(EvaluationMechanismBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-    def build_single_pattern_eval_mechanism(self, pattern: Pattern):
+    def build_single_pattern_eval_mechanism(self, pattern: Pattern, eval_mechanism_params):
         order = self._create_evaluation_order(pattern)
         tree_structure = self.__build_tree_from_order(order)
-        return TreeBasedEvaluationMechanism(pattern, tree_structure)
+        return TreeBasedEvaluationMechanism(pattern, tree_structure, eval_mechanism_params)
 
     def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern]):
         raise Exception("Unsupported")

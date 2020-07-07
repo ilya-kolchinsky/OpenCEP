@@ -85,3 +85,23 @@ cep.run(events) # potentially blocking call
 matches = cep.get_pattern_match_stream()
 file_output(matches, 'output.txt')
 ```
+
+
+# Negation Operator: 
+
+There are two different modes available that can be chosen through modifying the eval_mechanism_params as below:
+```
+#First option
+eval_mechanism_params = EvaluationMechanismParameters(eval_mechanism_type, NegationMode.POST_PROCESSING)
+#Second option
+eval_mechanism_params = EvaluationMechanismParameters(eval_mechanism_type, NegationMode.FIRST_CHANCE)
+
+cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
+
+```
+
+
+Note: 
+   By default, the mode is set to PostProcessing mode, even if there isn't any negative event in the pattern, it should have no effect.
+
+   For different events that arrives at the exact same time, the first one in the input is considered to have arrived before.
