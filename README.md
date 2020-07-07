@@ -87,7 +87,7 @@ file_output(matches, 'output.txt')
 ```
 
 
-Negation Operator: 
+# Negation Operator: 
 
 There are two different modes available that can be chosen through modifying the eval_mechanism_params as below:
 ```
@@ -95,6 +95,7 @@ There are two different modes available that can be chosen through modifying the
 eval_mechanism_params = EvaluationMechanismParameters(eval_mechanism_type, NegationMode.POST_PROCESSING)
 #Second option
 eval_mechanism_params = EvaluationMechanismParameters(eval_mechanism_type, NegationMode.FIRST_CHANCE)
+
 cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
 
 ```
