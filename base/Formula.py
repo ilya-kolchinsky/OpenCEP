@@ -153,6 +153,9 @@ class EqFormula(AtomicFormula):
             return EqFormula(left_term, right_term)
 
     def get_events_in_a_condition_with(self, name: str):
+        """
+        Returns names of all events involved in the same condition as the event sent in param
+        """
         right_term = self.right_term
         left_term = self.left_term
         if left_term is None or right_term is None:
@@ -176,6 +179,9 @@ class NotEqFormula(AtomicFormula):
             return NotEqFormula(left_term, right_term)
 
     def get_events_in_a_condition_with(self, name: str):
+        """
+        Returns names of all events involved in the same condition as the event sent in param
+        """
         right_term = self.right_term
         left_term = self.left_term
         if left_term is None or right_term is None:
@@ -198,6 +204,9 @@ class GreaterThanFormula(AtomicFormula):
             return GreaterThanFormula(left_term, right_term)
 
     def get_events_in_a_condition_with(self, name: str):
+        """
+        Returns names of all events involved in the same condition as the event sent in param
+        """
         right_term = self.right_term
         left_term = self.left_term
         if left_term is None or right_term is None:
@@ -220,6 +229,9 @@ class SmallerThanFormula(AtomicFormula):
             return SmallerThanFormula(left_term, right_term)
 
     def get_events_in_a_condition_with(self, name: str):
+        """
+        Returns names of all events involved in the same condition as the event sent in param
+        """
         right_term = self.right_term
         left_term = self.left_term
         if left_term is None or right_term is None:
@@ -242,6 +254,9 @@ class GreaterThanEqFormula(AtomicFormula):
             return GreaterThanEqFormula(left_term, right_term)
 
     def get_events_in_a_condition_with(self, name: str):
+        """
+        Returns names of all events involved in the same condition as the event sent in param
+        """
         right_term = self.right_term
         left_term = self.left_term
         if left_term is None or right_term is None:
@@ -264,6 +279,9 @@ class SmallerThanEqFormula(AtomicFormula):
             return SmallerThanEqFormula(left_term, right_term)
 
     def get_events_in_a_condition_with(self, name: str):
+        """
+        Returns names of all events involved in the same condition as the event sent in param
+        """
         right_term = self.right_term
         left_term = self.left_term
         if left_term is None or right_term is None:
@@ -309,6 +327,9 @@ class AndFormula(BinaryLogicOpFormula):
             return right_formula
 
     def get_events_in_a_condition_with(self, name: str):
+        """
+        Returns names of all events involved in the same condition as the event sent in param
+        """
         right_formula = self.right_formula.get_events_in_a_condition_with(name)
         left_formula = self.left_formula.get_events_in_a_condition_with(name)
         if left_formula is not None and right_formula is not None:

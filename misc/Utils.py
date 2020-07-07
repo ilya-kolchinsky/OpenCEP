@@ -241,6 +241,9 @@ def get_index(first_event_def):
     return first_event_def[1].index
 
 def find_positive_events_before(p: NegationOperator, set: set, origin: list):
+    """
+    Add to the set the name of all events appearing before p in the original pattern
+    """
     for e in origin:
         if e == p:
             break

@@ -24,7 +24,7 @@ nasdaqEventStream = file_input("test/EventFiles/NASDAQ_LONG.txt", MetastockDataF
 
 custom = file_input("test/EventFiles/custom.txt", MetastockDataFormatter())
 custom2 = file_input("test/EventFiles/custom2.txt", MetastockDataFormatter())
-longer = file_input("test/EventFiles/Longer.txt", MetastockDataFormatter())
+custom3 = file_input("test/EventFiles/custom3.txt", MetastockDataFormatter())
 
 def numOfLinesInPattern(file):
     """
@@ -59,7 +59,6 @@ def compareFiles(path1: str, path2: str):
     # quick check, if both files don't return the same counter, or if both files are empty
     if counter1 != counter2:
         closeFiles(file1, file2)
-        print('dif counters')
         return False
     elif counter1 == counter2 and counter1 == 0:
         closeFiles(file1, file2)
@@ -166,9 +165,9 @@ def runTest(testName, patterns, createTestFile=False,
 
     # nathan
     listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle"]
-    listHalfShort = ["OneNotEnd", "MultipleNotEnd", "DUMMYOneNotEnd"]
-    listCustom = ["MultipleNotBeginAndEnd", "DUMMYMultipleNotBeginAndEnd"]
-    listCustom2 = ["DUMMYsimpleNot", "simpleNot", "NotEverywhere"]
+    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
+    listCustom = ["MultipleNotBeginAndEnd"]
+    listCustom2 = ["simpleNot"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
@@ -177,9 +176,12 @@ def runTest(testName, patterns, createTestFile=False,
         events = custom.duplicate()
     elif testName in listCustom2:
         events = custom2.duplicate()
+    elif testName == "NotEverywhere":
+        events = custom3.duplicate()
 
+    # easy way to change negation mode in tests
     eval_mechanism_params = EvaluationMechanismParameters(EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                                          NegationMode.POST_PROCESSING)
+                                                          NegationMode.FIRST_CHANCE)
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
@@ -191,9 +193,7 @@ def runTest(testName, patterns, createTestFile=False,
                                                    "Succeeded" if compareFiles(actual_matches_path,
                                                                                expected_matches_path) else "Failed",
                                                    running_time))
-
-    # os.remove(actual_matches_path)
-
+    os.remove(actual_matches_path)
 
 
 def oneArgumentsearchTest(createTestFile=False):
@@ -800,254 +800,6 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
     runTest('nonFrequencyTailored1', [pattern], createTestFile,
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, events=nasdaqEventStream)
 
-<<<<<<< HEAD
-
-def evaTest():
-    pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), NegationOperator(QItem("GOOG", "c"))]),
-        AndFormula(
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                               IdentifierTerm("b", lambda x: x["Opening Price"])),
-            GreaterThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]), AtomicTerm(135))
-        ),
-        timedelta.max
-    )
-    extraShortEventStream = file_input("test/EventFiles/PROBLEM.txt", MetastockDataFormatter())
-
-    events = extraShortEventStream.duplicate()
-    eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
-    cep = CEP([pattern], eval_mechanism_type)
-    print('EVA_SUCCESS')
-    running_time = cep.run(events)
-    matches = cep.get_pattern_match_stream()
-    extraShort = 'PROBLEM'
-    file_output(matches, 'PROBLEMMatches.txt')
-
-    expected_matches_path = "test/TestsExpected/PROBLEMMatches.txt"
-    actual_matches_path = "test/Matches/PROBLEMMatches.txt"
-
-    print("Test %s result: %s, Time Passed: %s" % (extraShort,
-                                                   "Succeeded" if fileCompare(actual_matches_path,
-                                                                              expected_matches_path) else "Failed",
-                                                   running_time))
-    # os.remove(actual_matches_path)
-
-
-def NegAtTheBeginningThatDoesntInvalidatesMatchesTest():
-    pattern = Pattern(
-        SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMZN", "b"), QItem("GOOG", "c")]),
-        AndFormula(
-            AndFormula(
-                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
-                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                                   IdentifierTerm("c", lambda x: x["Opening Price"]))
-            ),
-            GreaterThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]),
-                               AtomicTerm(35))
-        ),
-        timedelta.max
-    )
-    extraShortEventStream = file_input("test/EventFiles/JustShort.txt", MetastockDataFormatter())
-
-    events = extraShortEventStream.duplicate()
-    eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
-    cep = CEP([pattern], eval_mechanism_type)
-    running_time = cep.run(events)
-    matches = cep.get_pattern_match_stream()
-    name = 'NegAtTheBeginningThatDoesntInvalidatesMatchesTest'
-    file_output(matches, '%sMatches.txt' % name)
-
-    expected_matches_path = "test/TestsExpected/%sMatches.txt" % name
-    actual_matches_path = "test/Matches/%sMatches.txt" % name
-    print("Test %s result: %s, Time Passed: %s" % (name,
-                                                   "Succeeded" if fileCompare(actual_matches_path,
-                                                                              expected_matches_path) else "Failed",
-                                                   running_time))
-    # os.remove(actual_matches_path)
-
-
-def googleAscendPatternSearchTestWITHNEG():
-    """
-    This pattern is looking for a short ascend in the Google peak prices.
-    PATTERN SEQ(GoogleStockPriceUpdate a, GoogleStockPriceUpdate b, GoogleStockPriceUpdate c)
-    WHERE a.PeakPrice < b.PeakPrice AND b.PeakPrice < c.PeakPrice
-    WITHIN 3 minutes
-    """
-    googleAscendPattern = Pattern(
-        SeqOperator(
-            [NegationOperator(QItem("GGGGG", "l")), QItem("GOOG", "a"), QItem("GOOG", "b"), QItem("GOOG", "c")]),
-        AndFormula(
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
-                               IdentifierTerm("b", lambda x: x["Peak Price"])),
-            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
-                               IdentifierTerm("c", lambda x: x["Peak Price"]))
-        ),
-        timedelta(minutes=3)
-    )
-
-    extraShortEventStream = file_input("test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
-
-    events = extraShortEventStream.duplicate()
-    eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
-    cep = CEP([googleAscendPattern], eval_mechanism_type)
-    running_time = cep.run(events)
-    matches = cep.get_pattern_match_stream()
-    name = 'googleAscend'
-    file_output(matches, '%sMatches.txt' % name)
-
-    expected_matches_path = "test/TestsExpected/%sMatches.txt" % name
-    actual_matches_path = "test/Matches/%sMatches.txt" % name
-    print("Test %s result: %s, Time Passed: %s" % (name,
-                                                   "Succeeded" if fileCompare(actual_matches_path,
-                                                                              expected_matches_path) else "Failed",
-                                                   running_time))
-    os.remove(actual_matches_path)
-
-
-def PROBLEM():
-    pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
-        AndFormula(
-            AndFormula(
-                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
-                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                                   IdentifierTerm("c", lambda x: x["Opening Price"]))
-            ),
-            GreaterThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]),
-                               AtomicTerm(35))
-        ),
-        timedelta.max
-    )
-    extraShortEventStream = file_input("test/EventFiles/PROBLEM.txt", MetastockDataFormatter())
-
-    events = extraShortEventStream.duplicate()
-    eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
-    cep = CEP([pattern], eval_mechanism_type)
-    running_time = cep.run(events)
-    matches = cep.get_pattern_match_stream()
-    name = 'PROBLEM'
-    file_output(matches, '%sMatches.txt' % name)
-
-    # expected_matches = generate_matches(pattern, extraShortEventStream)
-    # EXPECTEDfile_output(expected_matches, '%sMatches.txt' % name)
-
-    expected_matches_path = "test/TestsExpected/%sMatches.txt" % name
-    actual_matches_path = "test/Matches/%sMatches.txt" % name
-    print("Test %s result: %s, Time Passed: %s" % (name,
-                                                   "Succeeded" if fileCompare(actual_matches_path,
-                                                                              expected_matches_path) else "Failed",
-                                                   running_time))
-    # os.remove(actual_matches_path)
-
-
-def MultipleNegTest():
-    pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), NegationOperator(QItem("AN", "f")),
-                     NegationOperator(QItem("AllN", "m")), QItem("GOOG", "c")]),
-        AndFormula(
-            AndFormula(
-                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
-                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                                   IdentifierTerm("c", lambda x: x["Opening Price"]))
-            ),
-            GreaterThanFormula(IdentifierTerm("f", lambda x: x["Opening Price"]),
-                               AtomicTerm(35))
-        ),
-        timedelta.max
-    )
-    extraShortEventStream = file_input("test/EventFiles/JustShort.txt", MetastockDataFormatter())
-
-    events = extraShortEventStream.duplicate()
-    eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
-    cep = CEP([pattern], eval_mechanism_type)
-    running_time = cep.run(events)
-    matches = cep.get_pattern_match_stream()
-    name = 'MultipleNeg'
-    file_output(matches, '%sMatches.txt' % name)
-
-    # expected_matches = generate_matches(pattern, extraShortEventStream)
-    # EXPECTEDfile_output(expected_matches, '%sMatches.txt' % name)
-
-    expected_matches_path = "test/TestsExpected/%sMatches.txt" % name
-    actual_matches_path = "test/Matches/%sMatches.txt" % name
-    print("Test %s result: %s, Time Passed: %s" % (name,
-                                                   "Succeeded" if fileCompare(actual_matches_path,
-                                                                              expected_matches_path) else "Failed",
-                                                   running_time))
-    # os.remove(actual_matches_path)
-
-
-def OtherTest():
-    pattern = Pattern(
-        SeqOperator([NegationOperator(QItem("AAPL", "a")), NegationOperator(QItem("AMZN", "b")),
-                     QItem("GOOG", "c"), QItem("G", "f")]),
-        # SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMZN", "b"), NegationOperator(QItem("AllN", "m")),
-        #             QItem("GOOG", "c"), NegationOperator(QItem("AN", "f")), NegationOperator(QItem("MMAN", "p"))]),
-        AndFormula(SmallerThanFormula(IdentifierTerm("f", lambda x: x["Opening Price"]),
-                                      IdentifierTerm("c", lambda x: x["Opening Price"])),
-                   SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                                      AtomicTerm(100))
-
-                   ),
-        timedelta.max
-    )
-    extraShortEventStream = file_input("test/EventFiles/Longer.txt", MetastockDataFormatter())
-
-    events = extraShortEventStream.duplicate()
-    eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
-    cep = CEP([pattern], eval_mechanism_type)
-    running_time = cep.run(events)
-    matches = cep.get_pattern_match_stream()
-    name = 'OtherTest'
-    file_output(matches, '%sMatches.txt' % name)
-
-    # expected_matches = generate_matches(pattern, extraShortEventStream)
-    # EXPECTEDfile_output(expected_matches, '%sMatches.txt' % name)
-
-    expected_matches_path = "test/TestsExpected/%sMatches.txt" % name
-    actual_matches_path = "test/Matches/%sMatches.txt" % name
-    print("Test %s result: %s, Time Passed: %s" % (name,
-                                                   "Succeeded" if fileCompare(actual_matches_path,
-                                                                              expected_matches_path) else "Failed",
-                                                   running_time))
-    # os.remove(actual_matches_path)
-
-
-def OtherTestNat():
-    pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x"))]),
-        AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                               IdentifierTerm("b", lambda x: x["Opening Price"])),
-            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
-        timedelta(minutes=5)
-    )
-    extraShortEventStream = file_input("test/EventFiles/JustShort.txt", MetastockDataFormatter())
-
-    events = extraShortEventStream.duplicate()
-    eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE
-    cep = CEP([pattern], eval_mechanism_type)
-    running_time = cep.run(events)
-    matches = cep.get_pattern_match_stream()
-    name = 'OtherTestNat'
-    file_output(matches, '%sMatches.txt' % name)
-
-    # expected_matches = generate_matches(pattern, extraShortEventStream)
-    # EXPECTEDfile_output(expected_matches, '%sMatches.txt' % name)
-
-    expected_matches_path = "test/TestsExpected/%sMatches.txt" % name
-    actual_matches_path = "test/Matches/%sMatches.txt" % name
-    print("Test %s result: %s, Time Passed: %s" % (name,
-                                                   "Succeeded" if fileCompare(actual_matches_path,
-                                                                              expected_matches_path) else "Failed",
-                                                   running_time))
-    # os.remove(actual_matches_path)
-
-
 # ON NASDAQ SHORT
 def OneNotAtTheBeginningTest(createTestFile=False):
     """
@@ -1280,7 +1032,7 @@ def OneNotAtTheEndWithStatsTest(createTestFile=False):
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"GOOG": 1, "AAPL": 2, "AMZN": 3, "TYP1": 4})
     runTest("OneNotEnd", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
 
-
+# ON CUSTOM3
 def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
 
     pattern = Pattern(
@@ -1295,26 +1047,8 @@ def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
     )
     runTest("NotEverywhere", [pattern], createTestFile, EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE)
 
-# comment to commit and push
-# greedyPatternSearchTest()
-# evaTest()
-# NegAtTheBeginningThatDoesntInvalidatesMatchesTest()
-# googleAscendPatternSearchTestWITHNEG()
-# PROBLEM()
-# MultipleNegTest()
-
-
-# out = compareFiles('test/Matches/dpB1MatcheMatch.txt', 'test/Matches/dpB1MatchesExpect.txt')
-# print(out)
-
-#OtherTestNat()
-
-
-#DUMMYsimpleNotTest()
 
 OneNotAtTheEndWithStatsTest()
-
-
 simpleNotTest()
 
 # ON NASDAQ SHORT
@@ -1329,15 +1063,9 @@ MultipleNotAtTheEndTest()
 
 # ON CUSTOM
 MultipleNotBeginAndEndTest()
-
-# DUMMYPatternSearchTest_MultipleNotBeginAndEnd()
-
-
-
-
 testWithMultipleNotAtBeginningMiddleEnd()
 
-"""
+
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
@@ -1371,4 +1099,4 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
-"""
+
