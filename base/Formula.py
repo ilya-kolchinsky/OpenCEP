@@ -264,14 +264,14 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
 
         for attr in simplified_lhs.abstract_terms:
             if attr["is_id"]:
-                if(priorities.__contains__(attr["term"].name)):
+                if priorities.__contains__(attr["term"].name):
                     rank *= priorities[attr["term"].name]
                 else:
                     rank +=1
 
         for attr in simplified_rhs.abstract_terms:
             if attr["is_id"]:
-                if(priorities.__contains__(attr["term"].name)):
+                if priorities.__contains__(attr["term"].name):
                     rank *= priorities[attr["term"].name]
                 else:
                     rank +=1
@@ -441,8 +441,8 @@ class BinaryLogicOpFormula(Formula):  # AND: A < B AND C < D
         return atomic_formulas
 
     def dismantle(self):
-        if(self.formula_to_sort_by is None):
-            return None,None,None
+        if self.formula_to_sort_by is None:
+            return None, None, None
 
         return (
             self.formula_to_sort_by.left_term,
@@ -468,8 +468,8 @@ class AndFormula(BinaryLogicOpFormula):  # AND: A < B AND C < D
     def __repr__(self):
         return "{} AND {}".format(self.left_formula, self.right_formula)
 
-    def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict = {}):
-        if (not self.seperatable_formulas):
+    def simplify_formula(self, lhs_vars: set, rhs_vars: set, priorities: dict):
+        if not self.seperatable_formulas:
             return None
         
         # here we know the formulas is of structure (f1 and f2 and f3 and... and fn)

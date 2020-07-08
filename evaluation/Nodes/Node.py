@@ -58,7 +58,6 @@ class Node(ABC):
     def add_partial_match(self, pm: PartialMatch):
         """
         Registers a new partial match at this node.
-        In case of DefaultStorage (without optimization) the insertion is by the timestamp, O(log n).
         In case of SortedStorage the insertion is by timestamp or condition, O(log n).
         In case of UnsortedStorage the insertion is directly at the end, O(1).
         """
