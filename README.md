@@ -36,7 +36,7 @@ This short documentation will be updated regularly.
     * The pattern structure - e.g., SEQ(A, B, C) or AND(X, Y).
     * The formula that must be satisfied by the atomic items in the pattern structure.
     * The time window within which the atomic items in the pattern structure should appear in the stream.
-
+* Partial Matches are stored in a storage unit which is by default unsorted, for a tree based evaluation mechanism, the user can provide TreeStorageParameters object via the eval_mechanism_params, and according to the configured params, the storage unit can be sorted for optimization.
 # Examples
 Defining a pattern:
 ```
@@ -84,4 +84,24 @@ Applying an existing CEP object on an event stream and storing the resulting pat
 cep.run(events) # potentially blocking call
 matches = cep.get_pattern_match_stream()
 file_output(matches, 'output.txt')
+```
+
+Providing TreeStorageParameters to sort the storage:
+```
+storage_params = TreeStorageParameters(sort_storage=True,
+  attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
+
+""" 
+configures the storage to sort the PMs (sort_storage == TRUE)
+in case of a AND between two formulas we sort according to the attributes which are specified with the higher priority - wise to specify priorities according to the events frequencies and the expected percentage of the attributes which will NOT fullfil the condition for example if a is frequent and rarely his condition is met it is wise to specify a with high priority. notice that the priority is per attribute.
+"""
+
+
+eval_mechanism_params=TreeBasedEvaluationMechanismParameters (storage_params=storage_params)
+
+#can be any tree based evaluation parameters, just make sure to provide storage_params
+
+
+cep = CEP(pattern, EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+        eval_mechanism_params)
 ```

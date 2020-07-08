@@ -1,7 +1,8 @@
-from evaluation.Storage import SortedStorage, UnsortedStorage
+from evaluation.Storage import SortedStorage, UnsortedStorage, EquationSides
 from evaluation.PartialMatch import PartialMatch
 from collections.abc import Sequence, Iterable, Sized, Container
 from datetime import time, datetime, timedelta
+from base.Formula import RelopTypes
 
 
 """
@@ -92,7 +93,7 @@ class TestSortedStorage:
             self.pm_list.append(PartialMatch([Event(i, "type", self.dt + timedelta(i * 10))]))
 
     def test_add(self):
-        s = SortedStorage(lambda x: x.first_timestamp, "<", "left", True)
+        s = SortedStorage(lambda x: x.first_timestamp, "<", EquationSides.left, True)
         s.add(self.pm_list[1])
         s.add(self.pm_list[9])
         s.add(self.pm_list[0])
@@ -112,7 +113,7 @@ class TestSortedStorage:
         self.test_get_smaller_or_equal()
 
     def test_get_equal(self):
-        s = SortedStorage(lambda x: x.first_timestamp, "==", "left", True)
+        s = SortedStorage(lambda x: x.first_timestamp, RelopTypes.Equal, EquationSides.left, True)
         for i in range(10):
             s.add(self.pm_list[i])
         for i in reversed(range(10)):
@@ -125,7 +126,7 @@ class TestSortedStorage:
         assert result_pms[1] == self.pm_list[7], "SortedStorage: get_equal returned incorrect pm[1]"
 
     def test_get_unequal(self):
-        s = SortedStorage(lambda x: x.first_timestamp, "!=", "left", True)
+        s = SortedStorage(lambda x: x.first_timestamp, RelopTypes.NotEqual, EquationSides.left, True)
         for i in range(10):
             s.add(self.pm_list[i])
         for i in reversed(range(10)):
@@ -142,7 +143,7 @@ class TestSortedStorage:
             assert result_pms[i] != self.pm_list[0], "SortedStorage: get_unequal returned incorrect pm[i]"
 
     def test_get_greater(self):
-        s = SortedStorage(lambda x: x.first_timestamp, ">", "left", True)
+        s = SortedStorage(lambda x: x.first_timestamp, RelopTypes.Greater, EquationSides.left, True)
         for i in range(10):
             s.add(self.pm_list[i])
         for i in reversed(range(7)):
@@ -159,7 +160,7 @@ class TestSortedStorage:
             ), "SortedStorage: get_greater returned incorrect pm[i]"
 
     def test_get_smaller(self):
-        s = SortedStorage(lambda x: x.first_timestamp, "<", "left", True)
+        s = SortedStorage(lambda x: x.first_timestamp, RelopTypes.Smaller, EquationSides.left, True)
         for i in range(1):
             s.add(self.pm_list[i])
         for i in reversed(range(8)):
@@ -176,7 +177,7 @@ class TestSortedStorage:
             ), "SortedStorage: get_smaller returned incorrect pm[i]"
 
     def test_get_greater_or_equal(self):
-        s = SortedStorage(lambda x: x.first_timestamp, ">=", "left", True)
+        s = SortedStorage(lambda x: x.first_timestamp, RelopTypes.GreaterEqual, EquationSides.left, True)
         for i in range(8):
             s.add(self.pm_list[i])
         for i in reversed(range(2)):
@@ -195,7 +196,7 @@ class TestSortedStorage:
         ), "SortedStorage: get_greater_or_equal returned incorrect pm[1]"
 
     def test_get_smaller_or_equal(self):
-        s = SortedStorage(lambda x: x.first_timestamp, "<=", "left", True)
+        s = SortedStorage(lambda x: x.first_timestamp, RelopTypes.SmallerEqual, EquationSides.left, True)
         for j in range(7):
             for i in reversed(range(2)):
                 s.add(self.pm_list[i])
