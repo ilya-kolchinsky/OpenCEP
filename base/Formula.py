@@ -1,5 +1,24 @@
 from abc import ABC  # Abstract Base Class
 import copy
+from enum import Enum
+
+class RelopTypes(Enum):
+    """
+    The various RELOPs for a condition in a formula.
+    """
+    Equal = 0,
+    NotEqual = 1,
+    Greater = 2,
+    GreaterEqual = 3,
+    Smaller = 4,
+    SmallerEqual = 5
+
+class TermSign(Enum):
+    """
+    The various RELOPs for a condition in a formula.
+    """
+    Positive = 0,
+    Negative = 1
 
 
 class Term(ABC):
@@ -21,7 +40,7 @@ class AtomicTerm(Term):
     def __init__(self, value: object):
         self.value = value
         self.simplifiable = True
-        self.abstract_terms = [{"sign": 1, "term": self, "is_id": False}]
+        self.abstract_terms = [{"sign": TermSign.Positive, "term": self, "is_id": False}]
 
     def eval(self, binding: dict = None):
         return self.value
@@ -41,7 +60,7 @@ class IdentifierTerm(Term):
         self.name = name
         self.getattr_func = getattr_func
         self.simplifiable = True
-        self.abstract_terms = [{"sign": 1, "term": self, "is_id": True}]
+        self.abstract_terms = [{"sign": TermSign.Positive, "term": self, "is_id": True}]
 
     def eval(self, binding: dict = None):
         if not type(binding) == dict or self.name not in binding:
@@ -70,7 +89,7 @@ class BinaryOperationTerm(Term):
         new_lhs_terms = copy.deepcopy(lhs.abstract_terms)
         if is_Minus:
             for item in new_rhs_terms:
-                item["sign"] = -item["sign"]
+                item["sign"] = TermSign.Negative if item["sign"]==TermSign.Positive else TermSign.Positive
         self.abstract_terms = new_lhs_terms + new_rhs_terms
 
     def eval(self, binding: dict = None):
@@ -171,7 +190,8 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
         self.right_term = right_term
         self.relation_op = relation_op
         self.seperatable_formulas = True
-
+        self.Const_PriorityRankinginitialization = 1
+        
     def eval(self, binding: dict = None):
         return self.relation_op(self.left_term.eval(binding), self.right_term.eval(binding))
 
@@ -218,20 +238,20 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
     def consume_terms(self, terms, same_side_term, other_side_term, curr_side_vars):
         for cur_term in terms:
             if cur_term["is_id"]:
-                if cur_term["sign"] == 1:  # plus
+                if cur_term["sign"] == TermSign.Positive:
                     if cur_term["term"].name in curr_side_vars:
                         same_side_term = PlusTerm(same_side_term, cur_term["term"])
                     else:  # opposite side of the equation, gets opposite sign
                         other_side_term = MinusTerm(other_side_term, cur_term["term"])
-                else:  # minus
+                else:  # Negative
                     if cur_term["term"].name in curr_side_vars:
                         same_side_term = MinusTerm(same_side_term, cur_term["term"])
                     else:  # opposite side of the equation, gets opposite sign
                         other_side_term = PlusTerm(other_side_term, cur_term["term"])
             else:  # atomic term
-                if cur_term["sign"] == 1:  # plus
+                if cur_term["sign"] == TermSign.Positive:
                     same_side_term = PlusTerm(same_side_term, cur_term["term"])
-                else:  # minus
+                else:  # Negative
                     same_side_term = MinusTerm(same_side_term, cur_term["term"])
         return (same_side_term, other_side_term)
 
@@ -260,21 +280,21 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
         if simplified_lhs is None:
             return -1
         
-        rank = 1
+        rank = self.Const_PriorityRankinginitialization
 
         for attr in simplified_lhs.abstract_terms:
             if attr["is_id"]:
                 if priorities.__contains__(attr["term"].name):
                     rank *= priorities[attr["term"].name]
                 else:
-                    rank +=1
+                    rank += self.Const_PriorityRankinginitialization
 
         for attr in simplified_rhs.abstract_terms:
             if attr["is_id"]:
                 if priorities.__contains__(attr["term"].name):
                     rank *= priorities[attr["term"].name]
                 else:
-                    rank +=1
+                    rank += self.Const_PriorityRankinginitialization
         
         return rank
 
@@ -297,7 +317,7 @@ class EqFormula(AtomicFormula):
         return "{} == {}".format(self.left_term, self.right_term)
 
     def get_relop(self):
-        return "=="
+        return RelopTypes.Equal
 
 class NotEqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -318,7 +338,7 @@ class NotEqFormula(AtomicFormula):
         return "{} != {}".format(self.left_term, self.right_term)
 
     def get_relop(self):
-        return "!="
+        return RelopTypes.NotEqual
 
 class GreaterThanFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -339,7 +359,7 @@ class GreaterThanFormula(AtomicFormula):
         return "{} > {}".format(self.left_term, self.right_term)
 
     def get_relop(self):
-        return ">"
+        return RelopTypes.Greater
 
 class SmallerThanFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -360,7 +380,7 @@ class SmallerThanFormula(AtomicFormula):
         return "{} < {}".format(self.left_term, self.right_term)
 
     def get_relop(self):
-        return "<"
+        return RelopTypes.Smaller
 
 class GreaterThanEqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -381,7 +401,7 @@ class GreaterThanEqFormula(AtomicFormula):
         return "{} >= {}".format(self.left_term, self.right_term)
 
     def get_relop(self):
-        return ">="
+        return RelopTypes.GreaterEqual
 
 class SmallerThanEqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -402,7 +422,7 @@ class SmallerThanEqFormula(AtomicFormula):
         return "{} <= {}".format(self.left_term, self.right_term)
 
     def get_relop(self):
-        return "<="
+        return RelopTypes.SmallerEqual
 
 class BinaryLogicOpFormula(Formula):  # AND: A < B AND C < D
     """

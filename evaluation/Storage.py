@@ -7,8 +7,16 @@ from datetime import datetime, timedelta
 from typing import List
 from evaluation.PartialMatch import PartialMatch
 from misc.Utils import find_partial_match_by_timestamp
+from base.Formula import RelopTypes
+from enum import Enum
 
-
+class EquationSides(Enum):
+    """
+    The various RELOPs for a condition in a formula.
+    """
+    left = 0,
+    right = 1
+    
 class Storage(MutableSequence):
     """
     Abstract class for storing partial matches
@@ -140,22 +148,22 @@ class SortedStorage(Storage):
     def _get_smaller_or_equal(self, value):
         return self._get_smaller(value) + self._get_equal(value)
 
-    def _choose_get_function(self, relop, equation_side):
+    def _choose_get_function(self, relop: RelopTypes, equation_side):
         assert relop is not None
-        if relop == "==":
+        if relop == RelopTypes.Equal:
             return self._get_equal
-        if relop == "!=":
+        if relop == RelopTypes.NotEqual:
             return self._get_unequal
 
-        if relop == ">":
-            return self._get_greater if equation_side == "left" else self._get_smaller
-        if relop == "<":
-            return self._get_smaller if equation_side == "left" else self._get_greater
+        if relop == RelopTypes.Greater:
+            return self._get_greater if equation_side == EquationSides.left else self._get_smaller
+        if relop == RelopTypes.Smaller:
+            return self._get_smaller if equation_side == EquationSides.left else self._get_greater
 
-        if relop == ">=":
-            return self._get_greater_or_equal if equation_side == "left" else self._get_smaller_or_equal
-        if relop == "<=":
-            return self._get_smaller_or_equal if equation_side == "left" else self._get_greater_or_equal
+        if relop == RelopTypes.GreaterEqual:
+            return self._get_greater_or_equal if equation_side == EquationSides.left else self._get_smaller_or_equal
+        if relop == RelopTypes.SmallerEqual:
+            return self._get_smaller_or_equal if equation_side == EquationSides.left else self._get_greater_or_equal
 
 
 class UnsortedStorage(Storage):

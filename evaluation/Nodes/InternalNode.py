@@ -2,11 +2,11 @@ from evaluation.Nodes.Node import Node
 from typing import List, Tuple
 from datetime import timedelta, datetime
 from base.Event import Event
-from base.Formula import Formula, AtomicFormula, TrueFormula
+from base.Formula import Formula, AtomicFormula, TrueFormula, RelopTypes
 from evaluation.PartialMatch import PartialMatch
 from base.PatternStructure import SeqOperator, QItem
 from misc.Utils import merge, merge_according_to, is_sorted
-from evaluation.Storage import SortedStorage, UnsortedStorage, TreeStorageParameters
+from evaluation.Storage import SortedStorage, UnsortedStorage, TreeStorageParameters, EquationSides
 
 
 class InternalNode(Node):
@@ -160,8 +160,8 @@ class AndNode(InternalNode):
                 {right_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
             )
 
-        self._left_subtree.create_storage_unit(storage_params, left_sorting_key, relop, "left")
-        self._right_subtree.create_storage_unit(storage_params, right_sorting_key, relop, "right")
+        self._left_subtree.create_storage_unit(storage_params, left_sorting_key, relop, EquationSides.left)
+        self._right_subtree.create_storage_unit(storage_params, right_sorting_key, relop, EquationSides.right)
 
 
 class SeqNode(InternalNode):
@@ -212,22 +212,22 @@ class SeqNode(InternalNode):
         if max_left < min_right:  # 3)
             left_sort = -1
             right_sort = 0
-            relop = "<="
+            relop = RelopTypes.SmallerEqual
         elif max_right < min_left:  # 4)
             left_sort = 0
             right_sort = -1
-            relop = ">="
+            relop = RelopTypes.GreaterEqual
         elif min_left < min_right:  # 1)
-            relop = "<="
+            relop = RelopTypes.SmallerEqual
         elif min_right < min_left:  # 2)
-            relop = ">="
+            relop = RelopTypes.GreaterEqual
 
         assert relop is not None
         left_sort_by_first_timestamp = True if left_sort == 0 else False
         right_sort_by_first_timestamp = True if right_sort == 0 else False
         self._left_subtree.create_storage_unit(
-            storage_params, lambda pm: pm.events[left_sort].timestamp, relop, "left", left_sort_by_first_timestamp
+            storage_params, lambda pm: pm.events[left_sort].timestamp, relop, EquationSides.left, left_sort_by_first_timestamp
         )
         self._right_subtree.create_storage_unit(
-            storage_params, lambda pm: pm.events[right_sort].timestamp, relop, "right", right_sort_by_first_timestamp
+            storage_params, lambda pm: pm.events[right_sort].timestamp, relop, EquationSides.right, right_sort_by_first_timestamp
         )
