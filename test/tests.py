@@ -653,7 +653,7 @@ def sortedStorageBenchMarkTest(createTestFile=False):
                     IdentifierTerm("m", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])
                 ),
                 GreaterThanEqFormula(
-                    IdentifierTerm("b", lambda x: x["Lowest Price"]), IdentifierTerm("b", lambda x: x["Lowest Price"])
+                    IdentifierTerm("m", lambda x: x["Lowest Price"]), IdentifierTerm("b", lambda x: x["Lowest Price"])
                 ),
             ),
         ),

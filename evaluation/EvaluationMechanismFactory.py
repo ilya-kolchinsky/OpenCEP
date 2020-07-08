@@ -36,7 +36,7 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
     shared Parameters for the Tree Based evaluation mechanism builders.
     """
     def __init__(self, eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-                storage_params: TreeStorageParameters = None):
+                storage_params: TreeStorageParameters = TreeStorageParameters()):
         super().__init__(eval_mechanism_type)
         self.storage_params = storage_params
 
