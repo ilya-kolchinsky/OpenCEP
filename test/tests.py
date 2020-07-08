@@ -1,7 +1,7 @@
 import os
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
-    IterativeImprovementEvaluationMechanismParameters
+    IterativeImprovementEvaluationMechanismParameters, TreeBasedEvaluationMechanismParameters
 from misc.IOUtils import file_input, file_output
 from misc.Stocks import MetastockDataFormatter
 from misc.Utils import generate_matches
@@ -77,7 +77,6 @@ def runTest(
     eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
     eval_mechanism_params=None,
     events=None,
-    storage_params=None,
 ):
     if createTestFile:
         createTest(testName, patterns, events)
@@ -85,7 +84,7 @@ def runTest(
         events = nasdaqEventStream.duplicate()
     else:
         events = events.duplicate()
-    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, storage_params=storage_params)
+    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
     file_output(matches, '%sMatches.txt' % testName)
@@ -103,7 +102,6 @@ def runBenchMark(
     eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
     eval_mechanism_params=None,
     events=None,
-    storage_params=None,
 ):
     """
     this runs a bench mark ,since some outputs for benchmarks are very large,
@@ -113,7 +111,7 @@ def runBenchMark(
         events = nasdaqEventStream.duplicate()
     else:
         events = events.duplicate()
-    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, storage_params=storage_params)
+    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
     print("Bench Mark %s completed, Time Passed: %s" % (testName, running_time))
     runTest.over_all_time += running_time
@@ -630,11 +628,15 @@ def sortedStorageTest(createTestFile=False):
         ),
         timedelta.max,
     )
+
+    storage_params = TreeStorageParameters(True, clean_expired_every=500)
+
     runTest(
         "sortedStorageTest",
         [pattern],
         createTestFile,
         eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+        eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params),
         events=nasdaqEventStream,
     )
 
@@ -648,10 +650,10 @@ def sortedStorageBenchMarkTest(createTestFile=False):
             ),
             AndFormula(
                 GreaterThanEqFormula(
-                    IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])
+                    IdentifierTerm("m", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])
                 ),
                 GreaterThanEqFormula(
-                    IdentifierTerm("b", lambda x: x["Lowest Price"]), IdentifierTerm("m", lambda x: x["Lowest Price"])
+                    IdentifierTerm("b", lambda x: x["Lowest Price"]), IdentifierTerm("b", lambda x: x["Lowest Price"])
                 ),
             ),
         ),
@@ -659,8 +661,8 @@ def sortedStorageBenchMarkTest(createTestFile=False):
     )
     runBenchMark("sortedStorageBenchMark - default storage", [pattern])
 
-    storage_params = TreeStorageParameters(True, {"a": 122, "b": 139, "c": 104, "m": 139})
-    runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], storage_params=storage_params)
+    storage_params = TreeStorageParameters(True, {"a": 122, "b": 200, "c": 104, "m": 139})
+    runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params))
 
 
 # region Unit Tests

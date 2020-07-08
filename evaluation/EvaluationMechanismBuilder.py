@@ -11,7 +11,7 @@ class EvaluationMechanismBuilder(ABC):
     and/or other parameters.
     """
 
-    def build_single_pattern_eval_mechanism(self, pattern: Pattern, storage_params: TreeStorageParameters):
+    def build_single_pattern_eval_mechanism(self, pattern: Pattern):
         pass
 
     def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern]):

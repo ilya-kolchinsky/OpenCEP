@@ -31,8 +31,17 @@ class EvaluationMechanismParameters:
     def __init__(self, eval_mechanism_type: EvaluationMechanismTypes):
         self.type = eval_mechanism_type
 
+class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
+    """
+    shared Parameters for the Tree Based evaluation mechanism builders.
+    """
+    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+                storage_params: TreeStorageParameters = None):
+        super().__init__(eval_mechanism_type)
+        self.storage_params = storage_params
 
-class IterativeImprovementEvaluationMechanismParameters(EvaluationMechanismParameters):
+
+class IterativeImprovementEvaluationMechanismParameters(TreeBasedEvaluationMechanismParameters):
     """
     Parameters for evaluation mechanism builders based on local search include the number of search steps, the
     choice of the neighborhood (step) function, and the way to generate the initial state.
@@ -56,8 +65,8 @@ class EvaluationMechanismFactory:
         eval_mechanism_type: EvaluationMechanismTypes,
         eval_mechanism_params: EvaluationMechanismParameters,
         pattern: Pattern,
-        storage_params: TreeStorageParameters,
     ):
+        storage_params = eval_mechanism_params.storage_params if isinstance(eval_mechanism_params,TreeBasedEvaluationMechanismParameters) else TreeStorageParameters()
         return EvaluationMechanismFactory.__create_eval_mechanism_builder(
             eval_mechanism_type, eval_mechanism_params
         ).build_single_pattern_eval_mechanism(pattern, storage_params)
