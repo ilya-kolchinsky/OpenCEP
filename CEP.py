@@ -37,7 +37,7 @@ class CEP:
         eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
         eval_mechanism_params: EvaluationMechanismParameters = None,
         performance_specs: PerformanceSpecifications = None,
-        storage_params: TreeStorageParameters = None,
+        storage_params = TreeStorageParameters(),
     ):
         """
         Constructor of the class.

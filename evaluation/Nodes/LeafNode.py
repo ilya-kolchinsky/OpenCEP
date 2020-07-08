@@ -5,7 +5,7 @@ from datetime import timedelta, datetime
 from base.Formula import TrueFormula, Formula
 from evaluation.PartialMatch import PartialMatch
 from base.PatternStructure import SeqOperator, QItem
-from evaluation.Storage import SortedStorage, UnsortedStorage, DefaultStorage
+from evaluation.Storage import SortedStorage, UnsortedStorage
 from evaluation.Storage import TreeStorageParameters
 
 
@@ -54,11 +54,7 @@ class LeafNode(Node):
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             relation_op=None, equation_side=None, sort_by_first_timestamp=False):
-        if storage_params is None or not storage_params.sort_storage:
-            self._partial_matches = DefaultStorage(in_leaf=True)
-            return
-
-        if sorting_key is None:
+        if not storage_params.sort_storage or sorting_key is None:
             self._partial_matches = UnsortedStorage(storage_params.clean_expired_every, True)
         else:
             self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side,

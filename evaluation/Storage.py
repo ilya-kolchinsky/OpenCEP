@@ -158,30 +158,6 @@ class SortedStorage(Storage):
             return self._get_smaller_or_equal if equation_side == "left" else self._get_greater_or_equal
 
 
-class DefaultStorage(SortedStorage):
-    """
-    This class is the default storage that sorts partial matches by their first timestamp.
-    """
-    def __init__(self, in_leaf=False):
-        self._container = []
-        self._key = lambda x: x
-        self._in_leaf = in_leaf
-        self._sorted_by_first_timestamp = True
-
-    def get(self, value):
-        return self._container
-
-    def add(self, pm):
-        if self._in_leaf:
-            self._container.append(pm)
-        else:
-            index = find_partial_match_by_timestamp(self._container, pm.first_timestamp)
-            self._container.insert(index, pm)
-
-    def try_clean_expired_partial_matches(self, timestamp: datetime):
-        self._clean_expired_partial_matches(timestamp)
-
-
 class UnsortedStorage(Storage):
     """
     This class stores partial matches unsorted.
@@ -224,8 +200,17 @@ class TreeStorageParameters:
         self,
         sort_storage: bool = False,
         attributes_priorities: dict = {},
-        clean_expired_every: int = 0,
+        clean_expired_every: int = 100,
     ):
+        if sort_storage is None:
+            sort_storage = False
+
+        if attributes_priorities is None:
+             attributes_priorities = {}
+
+        if clean_expired_every <= 0:
+            raise Exception('clean_expired_every should be positive.')
+
         self.sort_storage = sort_storage
         self.attributes_priorities = attributes_priorities
         self.clean_expired_every = clean_expired_every

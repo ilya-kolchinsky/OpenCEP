@@ -77,7 +77,7 @@ def runTest(
     eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
     eval_mechanism_params=None,
     events=None,
-    storage_params=None,
+    storage_params=TreeStorageParameters(),
 ):
     if createTestFile:
         createTest(testName, patterns, events)
@@ -103,7 +103,7 @@ def runBenchMark(
     eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
     eval_mechanism_params=None,
     events=None,
-    storage_params=None,
+    storage_params=TreeStorageParameters(),
 ):
     """
     this runs a bench mark ,since some outputs for benchmarks are very large,
