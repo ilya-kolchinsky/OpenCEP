@@ -36,6 +36,12 @@ This short documentation will be updated regularly.
     * The pattern structure - e.g., SEQ(A, B, C) or AND(X, Y).
     * The formula that must be satisfied by the atomic items in the pattern structure.
     * The time window within which the atomic items in the pattern structure should appear in the stream.
+* Allows to receive data asynchronously.
+* Allows to receive data asynchronously.
+* To use the asynchronous run, you need to insert the parameter is_async=True to the CEP.run method
+```
+cep.run(stream, is_async=True, "output_file.txt", streaming.__time_limit)
+```
 
 # Examples
 Defining a pattern:
@@ -84,4 +90,33 @@ Applying an existing CEP object on an event stream and storing the resulting pat
 cep.run(events) # potentially blocking call
 matches = cep.get_pattern_match_stream()
 file_output(matches, 'output.txt')
+```
+
+#Twitter Stream
+###<ins>Authentication</ins>
+In order to receive and use a stream from twitter, credentials are needed. Insert your credentials in TwitterCredentials.py
+###<ins>Creating a twitter stream</ins>
+To create a twitter stream, a creation of TweetsStreamSessionInput class is needed. After creating the class above, use the get_stream_queue method while supplying a list of words as parameters that will determine the income tweets through the stream.
+###<ins>Tweet formation in CEP</ins>
+The formation of a tweet is defined in Tweets.py (see documentation). The tweet keys are described there based on the overview of a tweet in https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object
+###<ins>Using the timeout feature</ins>
+In order to use the timeout feature, insert a timeout parameter when creating a TweetsStreamSessionInput.
+For example: TweetsStreamSessionInput(time_out=10) if you want to stop receiving data from the stream after 10 seconds and stop the CEP run
+# Examples
+Creating a TweetsStreamSessionInput object:
+time_limit is time (in seconds) you want the streaming will run (optional).
+```
+streaming = TweetsStreamSessionInput(time_limit=x)
+```
+Get the stream queue (Stream object) of the tweets. 
+In this example we search tweets that include the word "corona":
+```
+stream_queue = streaming.get_stream_queue(['corona'])
+```
+After you created a queue, you can run the CEP. 
+Provide a path to the file you want the results will print to, and the time_limit above (optional):
+```
+cep = CEP([pattern],
+          EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, None)
+cep.run(stream_queue, is_async=True, file_path="output.txt", time_limit=x)
 ```

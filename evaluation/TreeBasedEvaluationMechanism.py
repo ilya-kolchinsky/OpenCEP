@@ -11,12 +11,16 @@ from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_
 from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
+import time
+# or
+import os
 
 
 class Node(ABC):
     """
     This class represents a single node of an evaluation tree.
     """
+
     def __init__(self, sliding_window: timedelta, parent):
         self._parent = parent
         self._sliding_window = sliding_window
@@ -101,6 +105,7 @@ class LeafNode(Node):
     """
     A leaf node is responsible for a single event type of the pattern.
     """
+
     def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_qitem: QItem, parent: Node):
         super().__init__(sliding_window, parent)
         self.__leaf_index = leaf_index
@@ -145,6 +150,7 @@ class InternalNode(Node):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
+
     def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, parent)
@@ -265,6 +271,7 @@ class SeqNode(InternalNode):
     In addition to checking the time window and condition like the basic node does, SeqNode also verifies the order
     of arrival of the events in the partial matches it constructs.
     """
+
     def _set_event_definitions(self,
                                left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
         self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
@@ -288,6 +295,7 @@ class Tree:
     Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree structure"
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     """
+
     def __init__(self, tree_structure: tuple, pattern: Pattern):
         # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
         self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
@@ -318,10 +326,13 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
+
     def __init__(self, pattern: Pattern, tree_structure: tuple):
         self.__tree = Tree(tree_structure, pattern)
 
-    def eval(self, events: Stream, matches: Stream):
+    def eval(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
+        # or yotam
+        start_time = time.time()
         event_types_listeners = {}
         # register leaf listeners for event types.
         for leaf in self.__tree.get_leaves():
@@ -333,10 +344,18 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
         # Send events to listening leaves.
         for event in events:
+            if time_limit is not None:
+                if time.time() - start_time > time_limit:
+                    matches.close()
+                    return
             if event.event_type in event_types_listeners.keys():
                 for leaf in event_types_listeners[event.event_type]:
                     leaf.handle_event(event)
                     for match in self.__tree.get_matches():
                         matches.add_item(PatternMatch(match))
-
+                        if is_async:
+                            f = open("output8.txt", "a", encoding='utf-8')
+                            for itr in match:
+                                f.write("%s \n" % str(itr.payload))
+                            f.close()
         matches.close()
