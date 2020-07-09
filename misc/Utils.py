@@ -7,7 +7,7 @@ from typing import List
 
 from base.Pattern import Pattern
 from base.PatternStructure import QItem
-from itertools import combinations
+from itertools import combinations, chain
 from base.PatternStructure import SeqOperator
 from base.PatternMatch import PatternMatch
 from copy import deepcopy
@@ -34,10 +34,10 @@ def find_partial_match_by_timestamp(partial_matches: List[PartialMatch], timesta
     end = length - 1
     while start <= end:
         mid = (start + end) // 2
-        mid_date = partial_matches[mid].first_timestamp
-        if partial_matches[mid - 1].first_timestamp < timestamp <= mid_date:
+        mid_timestamp = partial_matches[mid].first_timestamp
+        if partial_matches[mid - 1].first_timestamp < timestamp <= mid_timestamp:
             return mid
-        elif timestamp > mid_date:
+        elif timestamp > mid_timestamp:
             start = mid + 1
         else:
             end = mid - 1
@@ -133,8 +133,8 @@ def merge_according_to(arr1: list, arr2: list, actual1: list, actual2: list, key
     Used in a partial match merge function - the reorders are given, and the partial matches is merged
     according to the reorders.
     """
-    if len(arr1) != len(actual1) or len(arr2) != len(actual2):
-        raise Exception()
+    # if len(arr1) != len(actual1) or len(arr2) != len(actual2):
+    #     raise Exception()
 
     new_len = len(arr1) + len(arr2)
     ret = []
@@ -179,16 +179,16 @@ def generate_matches(pattern: Pattern, stream: Stream):
     It is used as our test creator.
     """
     args = pattern.structure.args
-    types = {qitem.eventType for qitem in args}
+    types = {qitem.event_type for qitem in args}
     is_seq = (pattern.structure.get_top_operator() == SeqOperator)
     events = {}
     matches = []
     for event in stream:
-        if event.eventType in types:
-            if event.eventType in events.keys():
-                events[event.eventType].append(event)
+        if event.event_type in types:
+            if event.event_type in events.keys():
+                events[event.event_type].append(event)
             else:
-                events[event.eventType] = [event]
+                events[event.event_type] = [event]
     generate_matches_recursive(pattern, events, is_seq, [], datetime.max, datetime.min, matches, {})
     return matches
 
@@ -203,15 +203,15 @@ def generate_matches_recursive(pattern: Pattern, events: dict, is_seq: bool, mat
                 matches.append(PatternMatch(deepcopy(match)))
     else:
         qitem = pattern.structure.args[loop]
-        for event in events[qitem.eventType]:
-            min_date = min(min_event_timestamp, event.date)
-            max_date = max(max_event_timestamp, event.date)
-            binding[qitem.name] = event.event
-            if max_date - min_date <= pattern.window:
-                if not is_seq or len(match) == 0 or match[-1].date <= event.date:
+        for event in events[qitem.event_type]:
+            min_timestamp = min(min_event_timestamp, event.timestamp)
+            max_timestamp = max(max_event_timestamp, event.timestamp)
+            binding[qitem.name] = event.payload
+            if max_timestamp - min_timestamp <= pattern.window:
+                if not is_seq or len(match) == 0 or match[-1].timestamp <= event.timestamp:
                     match.append(event)
-                    generate_matches_recursive(pattern, events, is_seq, match, min_date, max_date, matches, binding,
-                                               loop + 1)
+                    generate_matches_recursive(pattern, events, is_seq, match, min_timestamp, max_timestamp, matches,
+                                               binding, loop + 1)
                     del match[-1]
         del binding[qitem.name]
 
@@ -230,3 +230,50 @@ def does_match_exist(matches: list, match: list):
             if is_equal:
                 return True
     return False
+
+
+def powerset_generator(iterable, new_partial_match, _filter, min_size, max_size):
+    """
+    Power set GENERATOR helper function used in KleeneClosure.
+    Example:
+        powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)
+        added support for min_size and max_size
+    """
+    s = list(iterable)
+    if len(s) == 0:
+        return None
+
+    b = chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
+    for item in b:
+        if _filter(item, new_partial_match, min_size, max_size) is not None:
+            yield item
+
+
+"""
+this section is a custom-made power-set generator method
+we did not see any optimization using this method so we left it unattended for now
+"""
+
+
+def count_set_bits(n):
+    count = 0
+    while n:
+        count += n & 1
+        n >>= 1
+    return count
+
+
+def power_set(iterable, min_size, max_size):
+    result = []
+    num_subsets = 2**len(iterable)
+    # every iteration creates ONE subset
+    for current in range(1, num_subsets):
+        current_subset = []
+        if min_size <= count_set_bits(current) <= max_size:
+            for j in range(len(iterable)):
+                # test if jth bit is on - if it is on add element to current subset
+                if (current >> j) % 2 == 1:
+                    current_subset.append(iterable[j])
+            result.append(current_subset)
+    for item in result:
+        yield item

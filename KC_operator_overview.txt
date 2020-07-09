@@ -1,0 +1,46 @@
+
+This document describes the development process on the KleeneClosure operator within the CEP project.
+
+Requirement:
+	Add support to KleeneClosure (repetition) operator to the CEP evaluation tree.
+	
+Description:
+
+1) 
+	redefined the tree structure class hierarchy.
+	redefinition of the class hierarchy is compared at old_hierarchy.jpg and new_hierarchy.jpg to show the differences.
+	this change required changing existing node class protocols and behaviors.
+	
+2) 
+	added KleeneClosure node as an UnaryNode with full implementation.
+	The implementation is based on the generated power-set from the child node events.
+	The power-set generation may be overridden, and currently implements no duplications filter (misc/Utils.py).
+	Prefix tree elimination for events was discussed, and may be implemented when the abstract Node class will support condition activation.
+	The power-set generator is defined once using itertools implementation, and below a robust method for creating the power-set. The robust version does not implement any filter as of now,
+	as we did not see any change in performance comparing both methods. The generator is lazily evaluated, and optimizing it seems to result in poor performance.
+
+3) 
+	refactored the Tree class construction method.
+	Old version did not support nested node types (only flat patterns were allowed). 
+	This constraint had to be modified as the only operation provided by previous solution was:
+	
+	a = QItem()
+	KC(KC(KC(KC(....KC(a)...)
+	
+	operation such as Seq(KC(a)) was not supported and led to indexing errors.
+	
+	new tree structure obeys previously defined logic (flat patterns tree structure remains the same),
+	but now it also supports nested patterns.
+	The change is described in the presentation CEP-KC-structuralTest.pptx.
+
+4)
+	added structural tests to provide debugging for different tree structures
+	added a test to showcase the new operator functionality, as compared with 1 of the previous tests that did not implement this operator.
+	
+5) 
+	changed hard-coded paths to use python's os.path for cross-platform path support.
+	The only path that requires modification is the path defined at misc/IOUtils. Currently using python's os.getcwd() to determine
+	working directory, this is of-course not error-proof as os.getCwd() may hold values different from the project's base directory.
+
+6) 
+	fixed minor issues with test file creation (misc/Utils.py) as attempting to generate a test file generated an error.

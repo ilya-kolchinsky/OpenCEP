@@ -3,12 +3,14 @@ from datetime import timedelta, datetime
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, QItem
 from base.Formula import TrueFormula, Formula
+# from evaluation.LeftDeepTreeBuilders import LeftDeepTreeBuilder
 from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
 from typing import List, Tuple
 from base.Event import Event
-from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_by_timestamp
+from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_by_timestamp, powerset_generator
 from base.PatternMatch import PatternMatch
+from base.PatternStructure import *
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
 
@@ -141,14 +143,67 @@ class LeafNode(Node):
             self._parent.handle_new_partial_match(self)
 
 
-class InternalNode(Node):
+class InternalNode(Node, ABC):
+    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None):
+        super().__init__(sliding_window, parent)
+        self._event_defs = event_defs
+
+    def get_event_definitions(self):
+        return self._event_defs
+
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        """
+        Validates the condition stored in this node on the given set of events.
+        """
+        binding = {
+            self._event_defs[i][1].name: events_for_new_match[i].payload for i in range(len(self._event_defs))
+        }
+        return self._condition.eval(binding)
+
+    def get_leaves(self):
+        raise NotImplementedError()
+
+    def apply_formula(self, formula: Formula):
+        raise NotImplementedError()
+
+
+class UnaryNode(InternalNode, ABC):
+
+    def __init__(self, sliding_window: timedelta, parent: Node = None, child: Node = None):
+        super().__init__(sliding_window, parent)
+        self._child = child
+
+    def get_leaves(self):
+        result = []
+        if self._child is None:
+            raise Exception("Unary Node with no child")
+
+        result += self._child.get_leaves()
+        return result
+
+    def _set_event_definitions(self, event_defs: List[Tuple[int, QItem]]):
+        self._event_defs = event_defs
+
+    def apply_formula(self, formula: Formula):
+        names = {item[1].name for item in self._event_defs}
+        condition = formula.get_formula_of(names)
+        self._condition = condition if condition else TrueFormula()
+        self._child.apply_formula(self._condition)
+
+    def set_subtrees(self, child: Node):
+        self._child = child
+        self._set_event_definitions(self._child.get_event_definitions())
+
+    def handle_new_partial_match(self, partial_match_source: Node):
+        raise NotImplementedError()
+
+
+class BinaryNode(InternalNode, ABC):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
-                 left: Node = None, right: Node = None):
+    def __init__(self, sliding_window: timedelta, parent: Node = None, left: Node = None, right: Node = None):
         super().__init__(sliding_window, parent)
-        self._event_defs = event_defs
         self._left_subtree = left
         self._right_subtree = right
 
@@ -167,15 +222,12 @@ class InternalNode(Node):
         self._left_subtree.apply_formula(self._condition)
         self._right_subtree.apply_formula(self._condition)
 
-    def get_event_definitions(self):
-        return self._event_defs
-
     def _set_event_definitions(self,
                                left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
         """
         A helper function for collecting the event definitions from subtrees. To be overridden by subclasses.
         """
-        self._event_defs = left_event_defs + right_event_defs
+        raise NotImplementedError()
 
     def set_subtrees(self, left: Node, right: Node):
         """
@@ -185,6 +237,53 @@ class InternalNode(Node):
         self._right_subtree = right
         self._set_event_definitions(self._left_subtree.get_event_definitions(),
                                     self._right_subtree.get_event_definitions())
+
+    def handle_new_partial_match(self, partial_match_source: Node):
+        raise NotImplementedError()
+
+
+class AndNode(BinaryNode):
+    """
+    An internal node representing an "AND" operator.
+    """
+    def _set_event_definitions(self,
+                               left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
+        """
+        A helper function for collecting the event definitions from subtrees. To be overridden by subclasses.
+        """
+        self._event_defs = left_event_defs + right_event_defs
+
+    def _merge_events_for_new_match(self,
+                                    first_event_defs: List[Tuple[int, QItem]],
+                                    second_event_defs: List[Tuple[int, QItem]],
+                                    first_event_list: List[Event],
+                                    second_event_list: List[Event]):
+        """
+        Creates a list of events to be included in a new partial match.
+        """
+        if self._event_defs[0][0] == first_event_defs[0][0]:
+            return first_event_list + second_event_list
+        if self._event_defs[0][0] == second_event_defs[0][0]:
+            return second_event_list + first_event_list
+        raise Exception()
+
+    def _try_create_new_match(self,
+                              first_partial_match: PartialMatch, second_partial_match: PartialMatch,
+                              first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
+        """
+        Verifies all the conditions for creating a new partial match and creates it if all constraints are satisfied.
+        """
+        if self._sliding_window != timedelta.max and \
+                abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
+            return
+        events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
+                                                                first_partial_match.events, second_partial_match.events)
+
+        if not self._validate_new_match(events_for_new_match):
+            return
+        self.add_partial_match(PartialMatch(events_for_new_match))
+        if self._parent is not None:
+            self._parent.handle_new_partial_match(self)
 
     def handle_new_partial_match(self, partial_match_source: Node):
         """
@@ -210,6 +309,24 @@ class InternalNode(Node):
         for partialMatch in partial_matches_to_compare:
             self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs)
 
+
+class SeqNode(BinaryNode):
+    """
+    An internal node representing a "SEQ" (sequence) operator.
+    In addition to checking the time window and condition like the basic node does, SeqNode also verifies the order
+    of arrival of the events in the partial matches it constructs.
+    """
+    def _set_event_definitions(self, left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
+        self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
+
+    def _merge_events_for_new_match(self,
+                                    first_event_defs: List[Tuple[int, QItem]],
+                                    second_event_defs: List[Tuple[int, QItem]],
+                                    first_event_list: List[Event],
+                                    second_event_list: List[Event]):
+        return merge_according_to(first_event_defs, second_event_defs,
+                                  first_event_list, second_event_list, key=lambda x: x[0])
+
     def _try_create_new_match(self,
                               first_partial_match: PartialMatch, second_partial_match: PartialMatch,
                               first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
@@ -228,59 +345,121 @@ class InternalNode(Node):
         if self._parent is not None:
             self._parent.handle_new_partial_match(self)
 
-    def _merge_events_for_new_match(self,
-                                    first_event_defs: List[Tuple[int, QItem]],
-                                    second_event_defs: List[Tuple[int, QItem]],
-                                    first_event_list: List[Event],
-                                    second_event_list: List[Event]):
-        """
-        Creates a list of events to be included in a new partial match.
-        """
-        if self._event_defs[0][0] == first_event_defs[0][0]:
-            return first_event_list + second_event_list
-        if self._event_defs[0][0] == second_event_defs[0][0]:
-            return second_event_list + first_event_list
-        raise Exception()
-
-    def _validate_new_match(self, events_for_new_match: List[Event]):
-        """
-        Validates the condition stored in this node on the given set of events.
-        """
-        binding = {
-            self._event_defs[i][1].name: events_for_new_match[i].payload for i in range(len(self._event_defs))
-        }
-        return self._condition.eval(binding)
-
-
-class AndNode(InternalNode):
-    """
-    An internal node representing an "AND" operator.
-    """
-    pass
-
-
-class SeqNode(InternalNode):
-    """
-    An internal node representing a "SEQ" (sequence) operator.
-    In addition to checking the time window and condition like the basic node does, SeqNode also verifies the order
-    of arrival of the events in the partial matches it constructs.
-    """
-    def _set_event_definitions(self,
-                               left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
-        self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
-
-    def _merge_events_for_new_match(self,
-                                    first_event_defs: List[Tuple[int, QItem]],
-                                    second_event_defs: List[Tuple[int, QItem]],
-                                    first_event_list: List[Event],
-                                    second_event_list: List[Event]):
-        return merge_according_to(first_event_defs, second_event_defs,
-                                  first_event_list, second_event_list, key=lambda x: x[0])
-
     def _validate_new_match(self, events_for_new_match: List[Event]):
         if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
             return False
         return super()._validate_new_match(events_for_new_match)
+
+    def handle_new_partial_match(self, partial_match_source: Node):
+        """
+        Internal node's update for a new partial match in one of the subtrees.
+        """
+        if partial_match_source == self._left_subtree:
+            other_subtree = self._right_subtree
+        elif partial_match_source == self._right_subtree:
+            other_subtree = self._left_subtree
+        else:
+            raise Exception()  # should never happen
+
+        new_partial_match = partial_match_source.get_last_unhandled_partial_match()
+        first_event_defs = partial_match_source.get_event_definitions()
+        other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
+        partial_matches_to_compare = other_subtree.get_partial_matches()
+        second_event_defs = other_subtree.get_event_definitions()
+
+        self.clean_expired_partial_matches(new_partial_match.last_timestamp)
+        # given a partial match from one subtree, for each partial match
+        # in the other subtree we check for new partial matches in this node.
+        for partialMatch in partial_matches_to_compare:
+            self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs)
+
+
+class KleeneClosureNode(UnaryNode):
+    """
+    An internal node representing a "KC" (KleeneClosure) operator.
+    In addition to checking the time window and condition like the basic node does, KleeneClosureNode also verifies that
+    no duplicated events are sent and filters matches based on previously failed prefixes (PREFIX NOT YET IMPLEMENTED).
+    """
+    def __init__(self, sliding_window: timedelta, min_size, max_size, parent: Node = None):
+        super().__init__(sliding_window, parent)
+        self._min_size = min_size
+        self._max_size = max_size
+
+    def partial_match_from_partial_match_set(self, power_match):
+        min_timestamp = None
+        max_timestamp = None
+
+        cur_event = []
+
+        for match in power_match:
+            min_timestamp = match.first_timestamp if not min_timestamp else min(min_timestamp, match.first_timestamp)
+            max_timestamp = match.last_timestamp if not max_timestamp else max(max_timestamp, match.last_timestamp)
+            cur_event.extend(match.events)
+
+        return PartialMatch(cur_event)
+
+    def _try_create_new_match(self, new_partial_match: PartialMatch, power_match: PartialMatch,
+                              event_defs: List[Tuple[int, QItem]]):
+        """
+        Gather all satisfied conditions and create a new partial match for every new item in the events powerset
+        """
+
+        if power_match is None:
+            return
+
+        if self._sliding_window != timedelta.max and \
+                abs(new_partial_match.last_timestamp - power_match.first_timestamp) > self._sliding_window:
+            return
+
+        events_for_new_match = power_match.events
+
+        # TODO: when condition on every node is implemented (part of the Node abstract class) it is possible
+        #   to add a verification method and prefix elimination here to check conditions between events.
+        #   As of now, there is no need to validate the events here as this is a mere wrapper to the underlying node.
+        #   Every event that is passed to KC node is an event that satisfied the conditions at the child node.
+        self.add_partial_match(PartialMatch(events_for_new_match))
+        if self._parent is not None:
+            self._parent.handle_new_partial_match(self)
+
+    def handle_new_partial_match(self, partial_match_source: Node):
+        if self._child is None:
+            raise Exception()  # should never happen
+
+        new_partial_match = self._child.get_last_unhandled_partial_match()
+        event_defs = self._child.get_event_definitions()
+
+        self._child.clean_expired_partial_matches(new_partial_match.last_timestamp)
+
+        # generates a list of sets (using a generator) that pass provided filter.
+        child_matches_powerset = powerset_generator(self._child.get_partial_matches(), new_partial_match,
+                                                    self.partial_match_filter, self._min_size, self._max_size)
+        for partialMatch in child_matches_powerset:
+            partial_match = self.partial_match_from_partial_match_set(partialMatch)
+            self._try_create_new_match(new_partial_match, partial_match, event_defs)
+
+    """
+    filter method for the power-set generator. 
+    return None if the generated set does not meet requirements, or the generated set if it passes all filters.
+    """
+    @staticmethod
+    def partial_match_filter(current_generated_set, new_match, min_size, max_size):
+        if new_match is None:
+            raise Exception("Illegal new match for partial match filter")
+        if min_size <= 0:
+            raise Exception("Illegal min_size argument for partial match set")
+        if max_size < min_size:
+            raise Exception("Illegal max_size argument for partial match set")
+
+        # ensure matches are never re-used (newest match must exist in the generated set and there is no way
+        # previously generated matches will contain this new event)
+        if new_match not in current_generated_set:
+            return None
+
+        # enforce min_size and max_size constraints
+        if not (min_size <= len(current_generated_set) <= max_size):
+            return None
+
+        return current_generated_set
 
 
 class Tree:
@@ -289,8 +468,7 @@ class Tree:
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     """
     def __init__(self, tree_structure: tuple, pattern: Pattern):
-        # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
-        self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
+        self.__root = Tree.__construct_tree(pattern.structure.get_top_operator(),
                                             tree_structure, pattern.structure.args, pattern.window)
         self.__root.apply_formula(pattern.condition)
 
@@ -302,16 +480,82 @@ class Tree:
             yield self.__root.consume_first_partial_match().events
 
     @staticmethod
-    def __construct_tree(is_sequence: bool, tree_structure: tuple or int, args: List[QItem],
+    def __generate_new_node(node_type, sliding_window, parent, min_size=1, max_size=5):
+        if node_type == SeqOperator:
+            return SeqNode(sliding_window, parent)
+        elif node_type == AndOperator:
+            return AndNode(sliding_window, parent)
+        elif node_type == KleeneClosureOperator:
+            return KleeneClosureNode(sliding_window, min_size, max_size, parent)
+        elif node_type == OrOperator:
+            raise Exception("Not Yet Implemented")
+        elif node_type == NegationOperator:
+            raise Exception("Not Yet Implemented")
+        else:
+            raise Exception("Unknown Operator discovered.")
+
+    @staticmethod
+    def __construct_tree(root_type, tree_structure: tuple or int, args: List[PatternStructure],
                          sliding_window: timedelta, parent: Node = None):
+        # handle current operator
         if type(tree_structure) == int:
-            return LeafNode(sliding_window, tree_structure, args[tree_structure], parent)
-        current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
+            if args[tree_structure].get_top_operator() == QItem:
+                if root_type != KleeneClosureOperator or isinstance(parent, KleeneClosureNode):
+                    return LeafNode(sliding_window, tree_structure, args[tree_structure], parent)
+                else:
+                    current = Tree.__generate_new_node(root_type, sliding_window, parent)
+                    child = LeafNode(sliding_window, tree_structure, args[tree_structure], current)
+                    current.set_subtrees(child)
+                    return current
+            else:
+                if args[tree_structure].get_top_operator() == KleeneClosureOperator:
+                    current = Tree.__generate_new_node(args[tree_structure].get_top_operator(), sliding_window, parent)
+                    nested_evaluation_order = Tree._create_evaluation_order(args[tree_structure])
+                    nested_tree_structure = Tree.__build_tree_from_order(nested_evaluation_order)
+                    child = Tree.__construct_tree(args[tree_structure].get_top_operator(), nested_tree_structure,
+                                                  args[tree_structure].args, sliding_window, current)
+                    current.set_subtrees(child)  # Unary node
+                    return current
+                else:
+                    nested_evaluation_order = Tree._create_evaluation_order(args[tree_structure])
+                    nested_tree_structure = Tree.__build_tree_from_order(nested_evaluation_order)
+                    if parent is None:
+                        parent = Tree.__generate_new_node(root_type, sliding_window, parent)
+                        child = Tree.__construct_tree(args[tree_structure].get_top_operator(), nested_tree_structure,
+                                                      args[tree_structure].args, sliding_window, parent)
+                        parent.set_subtrees(child)
+                        return parent
+                    else:
+                        return Tree.__construct_tree(args[tree_structure].get_top_operator(), nested_tree_structure,
+                                                     args[tree_structure].args, sliding_window, parent)
+
+        current = Tree.__generate_new_node(root_type, sliding_window, parent)
+
         left_structure, right_structure = tree_structure
-        left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current)
-        right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current)
+        left = Tree.__construct_tree(root_type, left_structure, args, sliding_window, current)
+        right = Tree.__construct_tree(root_type, right_structure, args, sliding_window, current)
         current.set_subtrees(left, right)
+
         return current
+
+    # TODO: implemented here as construct_tree is a static method and we cannot deffer the dynamic tree type.
+    #  currently implemented this method for trivial left deep tree only.
+    @staticmethod
+    def _create_evaluation_order(pattern):
+        if isinstance(pattern, QItem):
+            return [0]
+        args_num = len(pattern.args)
+        return list(range(args_num))
+
+    @staticmethod
+    def __build_tree_from_order(order: List[int]):
+        """
+        Builds a left-deep tree structure from a given order.
+        """
+        ret = order[0]
+        for i in range(1, len(order)):
+            ret = (ret, order[i])
+        return ret
 
 
 class TreeBasedEvaluationMechanism(EvaluationMechanism):
