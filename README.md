@@ -93,13 +93,13 @@ file_output(matches, 'output.txt')
 ```
 
 #Twitter Stream
-###<ins>Authentication</ins>
+###Authentication
 In order to receive and use a stream from twitter, credentials are needed. Insert your credentials in TwitterCredentials.py
-###<ins>Creating a twitter stream</ins>
+###Creating a twitter stream
 To create a twitter stream, a creation of TweetsStreamSessionInput class is needed. After creating the class above, use the get_stream_queue method while supplying a list of words as parameters that will determine the income tweets through the stream.
-###<ins>Tweet formation in CEP</ins>
+###Tweet formation in CEP
 The formation of a tweet is defined in Tweets.py (see documentation). The tweet keys are described there based on the overview of a tweet in https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object
-###<ins>Using the timeout feature</ins>
+###Using the timeout feature
 In order to use the timeout feature, insert a timeout parameter when creating a TweetsStreamSessionInput.
 For example: TweetsStreamSessionInput(time_out=10) if you want to stop receiving data from the stream after 10 seconds and stop the CEP run
 # Examples
