@@ -14,11 +14,12 @@ class RelopTypes(Enum):
     SmallerEqual = 5
 
 class TermSign(Enum):
-    """
-    The various RELOPs for a condition in a formula.
-    """
     Positive = 0,
     Negative = 1
+
+class EquationSides(Enum):
+    left = 0,
+    right = 1
 
 
 class Term(ABC):

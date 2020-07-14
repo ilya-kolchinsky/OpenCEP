@@ -4,8 +4,7 @@ from datetime import timedelta, datetime
 from base.Formula import TrueFormula, Formula
 from evaluation.PartialMatch import PartialMatch
 from misc.Utils import find_partial_match_by_timestamp
-from evaluation.Storage import Storage
-from evaluation.Storage import TreeStorageParameters
+from evaluation.Storage import Storage, SortedStorage, UnsortedStorage, TreeStorageParameters
 
 
 class Node(ABC):
@@ -89,7 +88,8 @@ class Node(ABC):
         Returns the specifications of all events collected by this tree - to be implemented by subclasses.
         """
         raise NotImplementedError()
-
+    
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             relation_op=None, equation_side=None, sort_by_first_timestamp=False):
         raise NotImplementedError()
+    

@@ -2,11 +2,11 @@ from evaluation.Nodes.Node import Node
 from typing import List, Tuple
 from datetime import timedelta, datetime
 from base.Event import Event
-from base.Formula import Formula, AtomicFormula, TrueFormula, RelopTypes
+from base.Formula import Formula, AtomicFormula, TrueFormula, RelopTypes, EquationSides
 from evaluation.PartialMatch import PartialMatch
 from base.PatternStructure import SeqOperator, QItem
 from misc.Utils import merge, merge_according_to, is_sorted
-from evaluation.Storage import SortedStorage, UnsortedStorage, TreeStorageParameters, EquationSides
+from evaluation.Storage import SortedStorage, UnsortedStorage, TreeStorageParameters
 
 
 class InternalNode(Node):
@@ -123,10 +123,52 @@ class InternalNode(Node):
         }
         return self._condition.eval(binding)
 
-    def _init_storage_unit(self, sort_storage, sorting_key, relation_op, equation_side, 
-                           clean_expired_every, sort_by_first_timestamp=False):
+    def _get_condition_based_sorting_keys(self, attributes_priorities):
+        left_sorting_key, right_sorting_key, relop = None, None, None
+        
+        left_event_defs = self._left_subtree.get_event_definitions()
+        right_event_defs = self._right_subtree.get_event_definitions()
+        left_event_names = {item[1].name for item in left_event_defs}
+        right_event_names = {item[1].name for item in right_event_defs}
+        simple_formula = self._condition.simplify_formula(left_event_names, right_event_names,attributes_priorities)
+        if simple_formula is not None:
+            left_term, relop, right_term = simple_formula.dismantle()
+            left_sorting_key = lambda pm: left_term.eval(
+                {left_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
+            )
+            right_sorting_key = lambda pm: right_term.eval(
+                {right_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
+            )
+
+        return left_sorting_key, right_sorting_key, relop
+
+    def _get_sequence_based_sorting_keys(self):
+        left_event_defs = self._left_subtree.get_event_definitions()
+        right_event_defs = self._right_subtree.get_event_definitions()
+        # comparing min and max leaf index of two subtrees
+        min_left = min(left_event_defs, key=lambda x: x[0])[0]  # [ { ] } or [ { } ]
+        max_left = max(left_event_defs, key=lambda x: x[0])[0]  # { [ } ] or { [ ] }
+        min_right = min(right_event_defs, key=lambda x: x[0])[0]  # [ ] { }
+        max_right = max(right_event_defs, key=lambda x: x[0])[0]  # { } [ ]
+
+        if max_left < min_right:  # 3)
+            left_sort, right_sort, relop = -1, 0, RelopTypes.SmallerEqual
+        elif max_right < min_left:  # 4)
+            left_sort, right_sort, relop = 0, -1, RelopTypes.GreaterEqual
+        elif min_left < min_right:  # 1)
+            left_sort, right_sort, relop = 0, 0, RelopTypes.SmallerEqual
+        elif min_right < min_left:  # 2)
+            left_sort, right_sort, relop = 0, 0, RelopTypes.GreaterEqual
+        assert relop is not None
+        left_sorting_key = lambda pm: pm.events[left_sort].timestamp
+        right_sorting_key = lambda pm: pm.events[right_sort].timestamp
+        # left/right_sort == 0 means that left/right subtree will be sorted by first timestamp
+        return left_sorting_key, right_sorting_key, relop, (left_sort == 0), (right_sort == 0)
+
+    def _init_storage_unit(self, sort_storage, sorting_key, relation_op, equation_side, clean_expired_every,
+                           sort_by_first_timestamp=False):
         if not sort_storage or sorting_key is None:
-            self._partial_matches = UnsortedStorage(clean_expired_every)
+            self._partial_matches = UnsortedStorage(clean_expired_every, sorting_key)
         else:
             self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side,
                                                   clean_expired_every, sort_by_first_timestamp)
@@ -137,31 +179,13 @@ class AndNode(InternalNode):
     """
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable=None,
                             relation_op=None, equation_side=None, sort_by_first_timestamp=False):
-        self._init_storage_unit(storage_params.sort_storage, sorting_key, relation_op, equation_side, storage_params.clean_expired_every)
-
-        left_sorting_key = None
-        right_sorting_key = None
-        relop = None
-
-        left_event_defs = self._left_subtree.get_event_definitions()
-        right_event_defs = self._right_subtree.get_event_definitions()
-        left_event_names = {item[1].name for item in left_event_defs}
-        right_event_names = {item[1].name for item in right_event_defs}
-
-        simple_formula = self._condition.simplify_formula(left_event_names, right_event_names,
-                                                          storage_params.attributes_priorities)
-
-        if simple_formula is not None:
-            left_term, relop, right_term = simple_formula.dismantle()
-            left_sorting_key = lambda pm: left_term.eval(
-                {left_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
-            )
-            right_sorting_key = lambda pm: right_term.eval(
-                {right_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
-            )
-
-        self._left_subtree.create_storage_unit(storage_params, left_sorting_key, relop, EquationSides.left)
-        self._right_subtree.create_storage_unit(storage_params, right_sorting_key, relop, EquationSides.right)
+        self._init_storage_unit(storage_params.sort_storage, sorting_key, relation_op, equation_side,
+                                storage_params.clean_expired_every)
+        left_key, right_key, relop = None, None, None                                
+        if storage_params.sort_storage:
+            left_key, right_key, relop = self._get_condition_based_sorting_keys(storage_params.attributes_priorities)
+        self._left_subtree.create_storage_unit(storage_params, left_key, relop, EquationSides.left)
+        self._right_subtree.create_storage_unit(storage_params, right_key, relop, EquationSides.right)
 
 
 class SeqNode(InternalNode):
@@ -198,36 +222,14 @@ class SeqNode(InternalNode):
         """
         self._init_storage_unit(storage_params.sort_storage, sorting_key, relation_op, equation_side,
                                 storage_params.clean_expired_every, sort_by_first_timestamp)
-
-        left_event_defs = self._left_subtree.get_event_definitions()
-        right_event_defs = self._right_subtree.get_event_definitions()
-        # comparing min and max leaf index of two subtrees
-        min_left = min(left_event_defs, key=lambda x: x[0])[0]  # [ { ] } or [ { } ]
-        max_left = max(left_event_defs, key=lambda x: x[0])[0]  # { [ } ] or { [ ] }
-        min_right = min(right_event_defs, key=lambda x: x[0])[0]  # [ ] { }
-        max_right = max(right_event_defs, key=lambda x: x[0])[0]  # { } [ ]
-        left_sort = 0
-        right_sort = 0
-        relop = None
-        if max_left < min_right:  # 3)
-            left_sort = -1
-            right_sort = 0
-            relop = RelopTypes.SmallerEqual
-        elif max_right < min_left:  # 4)
-            left_sort = 0
-            right_sort = -1
-            relop = RelopTypes.GreaterEqual
-        elif min_left < min_right:  # 1)
-            relop = RelopTypes.SmallerEqual
-        elif min_right < min_left:  # 2)
-            relop = RelopTypes.GreaterEqual
-
+        left_key, right_key, relop = None, None, None
+        left_sort_by_first_timestamp, right_sort_by_first_timestamp = False, False
+        # finding sorting keys in case user requested to sort by conditon
+        if storage_params.sort_by_condition:
+            left_key, right_key, relop = self._get_condition_based_sorting_keys(storage_params.attributes_priorities)
+        # in case sorting by condition is impossible we sort by timestamp
+        if relop is None:
+            left_key, right_key, relop, left_sort_by_first_timestamp, right_sort_by_first_timestamp = self._get_sequence_based_sorting_keys()
         assert relop is not None
-        left_sort_by_first_timestamp = True if left_sort == 0 else False
-        right_sort_by_first_timestamp = True if right_sort == 0 else False
-        self._left_subtree.create_storage_unit(
-            storage_params, lambda pm: pm.events[left_sort].timestamp, relop, EquationSides.left, left_sort_by_first_timestamp
-        )
-        self._right_subtree.create_storage_unit(
-            storage_params, lambda pm: pm.events[right_sort].timestamp, relop, EquationSides.right, right_sort_by_first_timestamp
-        )
+        self._left_subtree.create_storage_unit(storage_params, left_key, relop, EquationSides.left, left_sort_by_first_timestamp)
+        self._right_subtree.create_storage_unit(storage_params, right_key, relop, EquationSides.right, right_sort_by_first_timestamp)

@@ -7,15 +7,9 @@ from datetime import datetime, timedelta
 from typing import List
 from evaluation.PartialMatch import PartialMatch
 from misc.Utils import find_partial_match_by_timestamp
-from base.Formula import RelopTypes
+from base.Formula import RelopTypes, EquationSides
 from enum import Enum
 
-class EquationSides(Enum):
-    """
-    The various RELOPs for a condition in a formula.
-    """
-    left = 0,
-    right = 1
     
 class Storage(MutableSequence):
     """
@@ -171,9 +165,12 @@ class UnsortedStorage(Storage):
     This class stores partial matches unsorted.
     It is used when it's difficult to specify an order that helps when receiving partial mitches.
     """
-    def __init__(self, clean_up_every: int, in_leaf=False):
+    def __init__(self, clean_up_every: int, key=None, in_leaf=False):
         self._container = []
-        self._key = lambda x: x
+        if key is None:
+            self._key = lambda x: x
+        else:
+            self._key = key
         self._in_leaf = in_leaf
         self._clean_up_every = clean_up_every
         self._access_count = 0
@@ -209,6 +206,7 @@ class TreeStorageParameters:
         sort_storage: bool = False,
         attributes_priorities: dict = {},
         clean_expired_every: int = 100,
+        sort_by_condition_on_attributes: bool = False
     ):
         if sort_storage is None:
             sort_storage = False
@@ -218,7 +216,12 @@ class TreeStorageParameters:
 
         if clean_expired_every <= 0:
             raise Exception('clean_expired_every should be positive.')
+        
+        if sort_by_condition_on_attributes is None:
+            sort_by_condition_on_attributes = False
 
         self.sort_storage = sort_storage
         self.attributes_priorities = attributes_priorities
         self.clean_expired_every = clean_expired_every
+        self.sort_by_condition = sort_by_condition_on_attributes
+        

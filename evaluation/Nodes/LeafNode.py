@@ -52,11 +52,18 @@ class LeafNode(Node):
         if self._parent is not None:
             self._parent.handle_new_partial_match(self)
 
-    def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
-                            relation_op=None, equation_side=None, sort_by_first_timestamp=False):
-        if not storage_params.sort_storage or sorting_key is None:
-            self._partial_matches = UnsortedStorage(storage_params.clean_expired_every, True)
+    def _init_storage_unit(self, sort_storage, sorting_key, relation_op, equation_side, clean_expired_every,
+                           sort_by_first_timestamp=False):
+        # in leaf nodes we don't check storage_params.sort_storage because in case of a sequence pattern
+        # we still want to use SortedStorage by timestamp even if storage_params.sort_storage is False.
+        if sorting_key is None:
+            self._partial_matches = UnsortedStorage(clean_expired_every, None, True)
         else:
             self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side,
-                                                  storage_params.clean_expired_every, sort_by_first_timestamp, True)
-            
+                                                  clean_expired_every, sort_by_first_timestamp, True)
+
+    def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                            relation_op=None, equation_side=None, sort_by_first_timestamp=False):
+        self._init_storage_unit(storage_params.sort_storage, sorting_key, relation_op, equation_side,
+                                storage_params.clean_expired_every)
+    

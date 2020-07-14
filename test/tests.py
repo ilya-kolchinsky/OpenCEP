@@ -659,7 +659,7 @@ def sortedStorageBenchMarkTest(createTestFile=False):
         ),
         timedelta.max,
     )
-    runBenchMark("sortedStorageBenchMark - default storage", [pattern])
+    runBenchMark("sortedStorageBenchMark - unsorted storage", [pattern])
 
     storage_params = TreeStorageParameters(sort_storage=True, attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
     runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params))
@@ -714,7 +714,7 @@ sortedStorageTest()
 
 # region - Bench Marks
 
-sortedStorageBenchMarkTest()
+# sortedStorageBenchMarkTest()
 
 # endregion
 
