@@ -331,7 +331,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         self.__tree = Tree(tree_structure, pattern)
 
     def eval(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
-        # or yotam
         start_time = time.time()
         event_types_listeners = {}
         # register leaf listeners for event types.
@@ -354,7 +353,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     for match in self.__tree.get_matches():
                         matches.add_item(PatternMatch(match))
                         if is_async:
-                            f = open("output8.txt", "a", encoding='utf-8')
+                            f = open(file_path, "a", encoding='utf-8')
                             for itr in match:
                                 f.write("%s \n" % str(itr.payload))
                             f.close()

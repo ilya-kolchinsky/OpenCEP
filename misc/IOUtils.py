@@ -3,7 +3,7 @@ from misc.Tweets import MetatweetDataFormatter
 from base.Event import Event
 from queue import Queue
 import tweepy
-import misc.TweeterApiTokensSecrets
+import misc.TwitterCredentials
 import json
 import time
 
@@ -117,10 +117,10 @@ class TweetsStreamSessionInput:
     """
 
     def __init__(self, time_limit=None):
-        self.__auth = tweepy.OAuthHandler(misc.TweeterApiTokensSecrets.api_key,
-                                          misc.TweeterApiTokensSecrets.api_secret_key)
-        self.__auth.set_access_token(misc.TweeterApiTokensSecrets.access_token,
-                                     misc.TweeterApiTokensSecrets.api_token_secret)
+        self.__auth = tweepy.OAuthHandler(misc.TwitterCredentials.api_key,
+                                          misc.TwitterCredentials.api_secret_key)
+        self.__auth.set_access_token(misc.TwitterCredentials.access_token,
+                                     misc.TwitterCredentials.api_token_secret)
         self.__api = tweepy.API(self.__auth)
         try:
             self.__api.verify_credentials()

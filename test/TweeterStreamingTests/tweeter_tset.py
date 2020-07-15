@@ -29,4 +29,4 @@ stream_queue = streaming.get_stream_queue(['corona'])
 
 cep = CEP([pattern_retweet],
           EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, None)
-cep.run(stream_queue, is_async=True, file_path="output8.txt")
+cep.run(stream_queue, is_async=True, file_path="output.txt")
