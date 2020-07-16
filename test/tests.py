@@ -582,7 +582,7 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, events=nasdaqEventStream)
 
 
-oneArgumentsearchTest()
+#oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
 amazonInstablePatternSearchTest()

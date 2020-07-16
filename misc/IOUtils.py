@@ -55,7 +55,8 @@ def file_input(file_path: str, data_formatter: DataFormatter) -> Stream:
     * Each line will be split on "," and the resulting array will be stored in an "Event",
       and the keys are determined from the given list "KeyMap".
     """
-    with open(file_path, "r") as f:
+    new_path = "../" + file_path
+    with open(new_path, "r") as f:
         content = f.readlines()
     events = Stream()
     for line in content:

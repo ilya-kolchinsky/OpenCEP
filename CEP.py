@@ -27,7 +27,10 @@ class CEP:
     def __init__(self, patterns: List[Pattern],
                  eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
                  eval_mechanism_params: EvaluationMechanismParameters = None,
-                 performance_specs: PerformanceSpecifications = None):
+                 performance_specs: PerformanceSpecifications = None,
+                 # reoptimizing_decision : ReoptimizingDecisionParams(Will include type and extra paratmeters if needed
+                 # for example it will have (ReoptimizationDecisionTypes.STATIC_THRESHOLD_BASED, threshold)
+                 ):
         """
         Constructor of the class.
         """
@@ -40,6 +43,10 @@ class CEP:
                                                                                                patterns[0])
         self.__pattern_matches = None
         self.__performance_specs = performance_specs
+
+        # Added Yotam
+        self.__optimizer = Optimizer()
+        # Added Yotam
 
     def run(self, event_stream: Stream):
         """
