@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="22d63adc-55ad-4aea-a89d-ab608c78b6ae" name="Default Changelist" comment="Optimizer additions">
+      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/OpenCEP.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dictionaries/Yotam.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="Adaptive_CEp" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1aAaKhnjo32g0spJVe0WBlKzpr5" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.path.for.package.tslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RunManager">
+    <configuration name="tests" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="OpenCEP" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test/tests.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.tests" />
+        <item itemvalue="Python.tests" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="22d63adc-55ad-4aea-a89d-ab608c78b6ae" name="Default Changelist" comment="" />
+      <created>1586180789953</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1586180789953</updated>
+      <workItem from="1586180795211" duration="1689000" />
+      <workItem from="1586240165178" duration="1000" />
+      <workItem from="1586278810398" duration="852000" />
+      <workItem from="1586606272018" duration="279000" />
+      <workItem from="1586607337829" duration="70000" />
+      <workItem from="1587304683123" duration="1486000" />
+      <workItem from="1587729169113" duration="2035000" />
+      <workItem from="1587795578433" duration="655000" />
+      <workItem from="1587806171517" duration="696000" />
+      <workItem from="1587882369763" duration="484000" />
+      <workItem from="1587883125802" duration="164000" />
+      <workItem from="1587883291651" duration="568000" />
+      <workItem from="1587884299387" duration="4038000" />
+      <workItem from="1587931249053" duration="114000" />
+      <workItem from="1587964697488" duration="220000" />
+      <workItem from="1590333399322" duration="584000" />
+      <workItem from="1592308173466" duration="5326000" />
+      <workItem from="1592468771478" duration="11737000" />
+      <workItem from="1592493994071" duration="181000" />
+      <workItem from="1593764782797" duration="7640000" />
+      <workItem from="1593931411560" duration="259000" />
+      <workItem from="1593932010568" duration="7753000" />
+      <workItem from="1594112291543" duration="2811000" />
+      <workItem from="1594799311647" duration="4173000" />
+      <workItem from="1594835403647" duration="116000" />
+      <workItem from="1594882924765" duration="8988000" />
+      <workItem from="1594907889319" duration="522000" />
+    </task>
+    <task id="LOCAL-00001" summary="No changes. Just for checking">
+      <created>1586181040201</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1586181040201</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Optimizer additions">
+      <created>1594908033212</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1594908033212</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="No changes. Just for checking" />
+    <MESSAGE value="Optimizer additions" />
+    <option name="LAST_COMMIT_MESSAGE" value="Optimizer additions" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="361" y="247" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1594822602240">
+      <screen x="0" y="23" width="1440" height="829" />
+    </state>
+    <state x="361" y="247" key="#com.intellij.fileTypes.FileTypeChooser/0.23.1440.829@0.23.1440.829" timestamp="1594822602240" />
+    <state x="415" y="64" key="#tests" timestamp="1586606278789">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="415" y="64" key="#tests/0.0.1440.900@0.0.1440.900" timestamp="1586606278789" />
+    <state x="303" y="38" key="CommitChangelistDialog2" timestamp="1594908165343">
+      <screen x="0" y="23" width="1440" height="831" />
+    </state>
+    <state x="303" y="38" key="CommitChangelistDialog2/0.23.1440.831@0.23.1440.831" timestamp="1594908165343" />
+    <state x="144" y="94" key="DiffContextDialog" timestamp="1594907524667">
+      <screen x="0" y="23" width="1440" height="830" />
+    </state>
+    <state x="144" y="94" key="DiffContextDialog/0.23.1440.830@0.23.1440.830" timestamp="1594907524667" />
+    <state width="1398" height="212" key="GridCell.Tab.0.bottom" timestamp="1592493490972">
+      <screen x="0" y="23" width="1440" height="829" />
+    </state>
+    <state width="1398" height="245" key="GridCell.Tab.0.bottom/0.0.1440.900@0.0.1440.900" timestamp="1586607412131" />
+    <state width="1398" height="212" key="GridCell.Tab.0.bottom/0.23.1440.829@0.23.1440.829" timestamp="1592493490972" />
+    <state width="1398" height="212" key="GridCell.Tab.0.center" timestamp="1592493490972">
+      <screen x="0" y="23" width="1440" height="829" />
+    </state>
+    <state width="1398" height="245" key="GridCell.Tab.0.center/0.0.1440.900@0.0.1440.900" timestamp="1586607412129" />
+    <state width="1398" height="212" key="GridCell.Tab.0.center/0.23.1440.829@0.23.1440.829" timestamp="1592493490972" />
+    <state width="1398" height="212" key="GridCell.Tab.0.left" timestamp="1592493490971">
+      <screen x="0" y="23" width="1440" height="829" />
+    </state>
+    <state width="1398" height="245" key="GridCell.Tab.0.left/0.0.1440.900@0.0.1440.900" timestamp="1586607412129" />
+    <state width="1398" height="212" key="GridCell.Tab.0.left/0.23.1440.829@0.23.1440.829" timestamp="1592493490971" />
+    <state width="1398" height="212" key="GridCell.Tab.0.right" timestamp="1592493490972">
+      <screen x="0" y="23" width="1440" height="829" />
+    </state>
+    <state width="1398" height="245" key="GridCell.Tab.0.right/0.0.1440.900@0.0.1440.900" timestamp="1586607412130" />
+    <state width="1398" height="212" key="GridCell.Tab.0.right/0.23.1440.829@0.23.1440.829" timestamp="1592493490972" />
+    <state width="1398" height="288" key="GridCell.Tab.1.bottom" timestamp="1592493490968">
+      <screen x="0" y="23" width="1440" height="829" />
+    </state>
+    <state width="1398" height="288" key="GridCell.Tab.1.bottom/0.23.1440.829@0.23.1440.829" timestamp="1592493490968" />
+    <state width="1398" height="288" key="GridCell.Tab.1.center" timestamp="1592493490967">
+      <screen x="0" y="23" width="1440" height="829" />
+    </state>
+    <state width="1398" height="288" key="GridCell.Tab.1.center/0.23.1440.829@0.23.1440.829" timestamp="1592493490967" />
+    <state width="1398" height="288" key="GridCell.Tab.1.left" timestamp="1592493490967">
+      <screen x="0" y="23" width="1440" height="829" />
+    </state>
+    <state width="1398" height="288" key="GridCell.Tab.1.left/0.23.1440.829@0.23.1440.829" timestamp="1592493490967" />
+    <state width="1398" height="288" key="GridCell.Tab.1.right" timestamp="1592493490967">
+      <screen x="0" y="23" width="1440" height="829" />
+    </state>
+    <state width="1398" height="288" key="GridCell.Tab.1.right/0.23.1440.829@0.23.1440.829" timestamp="1592493490967" />
+    <state x="544" y="160" key="MultipleFileMergeDialog" timestamp="1594907629494">
+      <screen x="0" y="23" width="1440" height="830" />
+    </state>
+    <state x="544" y="160" key="MultipleFileMergeDialog/0.23.1440.830@0.23.1440.830" timestamp="1594907629494" />
+    <state x="221" y="104" key="SettingsEditor" timestamp="1587883558456">
+      <screen x="0" y="23" width="1440" height="822" />
+    </state>
+    <state x="221" y="89" key="SettingsEditor/0.0.1440.900@0.0.1440.900" timestamp="1586607388342" />
+    <state x="221" y="104" key="SettingsEditor/0.23.1440.822@0.23.1440.822" timestamp="1587883558456" />
+    <state x="320" y="177" key="Vcs.Push.Dialog.v2" timestamp="1594908415403">
+      <screen x="0" y="23" width="1440" height="831" />
+    </state>
+    <state x="320" y="177" key="Vcs.Push.Dialog.v2/0.23.1440.831@0.23.1440.831" timestamp="1594908415403" />
+    <state x="397" y="283" key="com.intellij.ide.util.TipDialog" timestamp="1594907891872">
+      <screen x="0" y="23" width="1440" height="831" />
+    </state>
+    <state x="397" y="280" key="com.intellij.ide.util.TipDialog/0.23.1440.822@0.23.1440.822" timestamp="1587964888363" />
+    <state x="397" y="281" key="com.intellij.ide.util.TipDialog/0.23.1440.825@0.23.1440.825" timestamp="1587795579405" />
+    <state x="397" y="281" key="com.intellij.ide.util.TipDialog/0.23.1440.827@0.23.1440.827" timestamp="1590333400570" />
+    <state x="397" y="282" key="com.intellij.ide.util.TipDialog/0.23.1440.829@0.23.1440.829" timestamp="1594882959291" />
+    <state x="397" y="282" key="com.intellij.ide.util.TipDialog/0.23.1440.830@0.23.1440.830" timestamp="1587729392708" />
+    <state x="397" y="283" key="com.intellij.ide.util.TipDialog/0.23.1440.831@0.23.1440.831" timestamp="1594907891872" />
+    <state x="397" y="283" key="com.intellij.ide.util.TipDialog/0.23.1440.833@0.23.1440.833" timestamp="1586278828211" />
+    <state x="378" y="192" width="683" height="491" key="find.popup" timestamp="1594822474113">
+      <screen x="0" y="23" width="1440" height="829" />
+    </state>
+    <state x="378" y="191" width="683" height="486" key="find.popup/0.23.1440.822@0.23.1440.822" timestamp="1587883326584" />
+    <state x="378" y="191" width="683" height="487" key="find.popup/0.23.1440.823@0.23.1440.823" timestamp="1587889549849" />
+    <state x="378" y="192" width="683" height="491" key="find.popup/0.23.1440.829@0.23.1440.829" timestamp="1594822474113" />
+    <state x="378" y="192" width="683" height="492" key="find.popup/0.23.1440.830@0.23.1440.830" timestamp="1593773626518" />
+    <state x="466" y="157" key="git4idea.branch.GitSmartOperationDialog" timestamp="1594907545079">
+      <screen x="0" y="23" width="1440" height="830" />
+    </state>
+    <state x="466" y="157" key="git4idea.branch.GitSmartOperationDialog/0.23.1440.830@0.23.1440.830" timestamp="1594907545079" />
+    <state x="385" y="176" width="670" height="676" key="search.everywhere.popup" timestamp="1594822613059">
+      <screen x="0" y="23" width="1440" height="829" />
+    </state>
+    <state x="385" y="176" width="670" height="676" key="search.everywhere.popup/0.23.1440.829@0.23.1440.829" timestamp="1594822613059" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/evaluation/TreeBasedEvaluationMechanism.py</url>
+          <line>327</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/CEP.py</url>
+          <line>50</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/OpenCEP$tests.coverage" NAME="tests Coverage Results" MODIFIED="1592482937193" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
+  </component>
+</project>
