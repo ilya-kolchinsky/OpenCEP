@@ -180,8 +180,8 @@ def runTest(testName, patterns, createTestFile=False,
         events = custom3.duplicate()
 
     # easy way to change negation mode in tests
-    eval_mechanism_params = EvaluationMechanismParameters(EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                                          NegationMode.FIRST_CHANCE)
+    #eval_mechanism_params = EvaluationMechanismParameters(EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+    #                                                      NegationMode.FIRST_CHANCE)
 
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)

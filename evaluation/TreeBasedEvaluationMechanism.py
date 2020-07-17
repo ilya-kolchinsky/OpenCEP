@@ -15,6 +15,8 @@ from evaluation.EvaluationMechanism import EvaluationMechanism, NegationMode
 from queue import Queue
 
 
+
+#this comment is a test
 class Node(ABC):
     """
     This class represents a single node of an evaluation tree.
