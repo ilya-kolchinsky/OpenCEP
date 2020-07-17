@@ -5,7 +5,7 @@ by invoking the rest of the system components.
 from misc.IOUtils import Stream
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters, \
-    EvaluationMechanismTypes, EvaluationMechanismFactory, NegationMode
+    EvaluationMechanismTypes, EvaluationMechanismFactory
 from typing import List
 from datetime import datetime
 
@@ -26,7 +26,7 @@ class CEP:
     """
     def __init__(self, patterns: List[Pattern],
                  eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-                 eval_mechanism_params: EvaluationMechanismParameters = EvaluationMechanismParameters(),
+                 eval_mechanism_params: EvaluationMechanismParameters = None,
                  performance_specs: PerformanceSpecifications = None):
         """
         Constructor of the class.
@@ -35,16 +35,11 @@ class CEP:
             raise Exception("No patterns are provided")
         if len(patterns) > 1:
             raise NotImplementedError("Multi-pattern support is not yet available")
-
-
         self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
                                                                                                eval_mechanism_params,
                                                                                                patterns[0])
-
         self.__pattern_matches = None
         self.__performance_specs = performance_specs
-
-
 
     def run(self, event_stream: Stream):
         """

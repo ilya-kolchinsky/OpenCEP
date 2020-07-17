@@ -107,6 +107,10 @@ class LeafNode(Node):
         self.__event_name = leaf_qitem.name
         self.__event_type = leaf_qitem.event_type
 
+        # We added an index for every QItem according to its place in the pattern to get the right order in
+        # field "event_def"
+        self.qitem_index = leaf_qitem.get_event_index()
+
     def get_leaves(self):
         return [self]
 
@@ -251,7 +255,6 @@ class InternalNode(Node):
         }
         return self._condition.eval(binding)
 
-
 class AndNode(InternalNode):
     """
     An internal node representing an "AND" operator.
@@ -283,6 +286,38 @@ class SeqNode(InternalNode):
         return super()._validate_new_match(events_for_new_match)
 
 
+class InternalNegationNode(InternalNode):
+    """
+    An internal node representing a  NegationOperator.
+    """
+    def __init__(self, sliding_window: timedelta, is_last: bool, top_operator, parent: Node = None,
+                 event_defs: List[Tuple[int, QItem]] = None,
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, parent, event_defs, left, right)
+
+        """
+        Negation operators that have no "positive" operators after them in the pattern have the flag is_last on
+        """
+        self.is_last = is_last
+        self.top_operator = top_operator
+
+        """
+        Contains PMs that match the pattern, but may be invalidated by a negative event later (when the pattern ends
+        with a not operator)
+        We wait for them to exceed the time window and therefore can't be invalidated anymore
+        """
+        self.waiting_for_time_out = []
+
+        """
+        Contains PMs that match the whole pattern and were in waiting_for_timeout, and now can't be invalidated anymore
+        When we finish all the stream of events we handle them and put them in the output
+        
+        nathan = we need this field (instead of putting the matches directly in root.partial_match) because these are 
+        expired match : they will be removed from root.partial_match when we call clean_expired
+        """
+        self.matches_to_handle_at_EOF = []
+
+
 class Tree:
     """
     Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree structure"
@@ -294,12 +329,70 @@ class Tree:
                                             tree_structure, pattern.structure.args, pattern.window)
         self.__root.apply_formula(pattern.condition)
 
+        root = self.__root
+        # nathan : we may send directly self.__root in param and not need root
+        self.__root = self.create_negation_Tree(root, pattern)
+
+    def create_negation_Tree(self, root: Node, pattern: Pattern):
+        """
+        We add the negative nodes at the end of the tree
+        """
+        top_operator = pattern.origin_structure.get_top_operator()
+        negative_event_list = pattern.negative_event.get_args()
+        # contains only not operators
+        origin_event_list = pattern.origin_structure.get_args()
+        # contains the original pattern with all operators
+
+        positive_event_list = pattern.structure.get_args()
+        leaf_index = len(positive_event_list)
+        # we use this leaf_index in the constructor of LeafNode to be sure that each leaf index is unique
+        # BUT: it's doesn't reflect the place of that event in the pattern (like it should ?) when negation nodes are involved
+        # for negation nodes we use custom made index: qitem_index
+
+        for p in negative_event_list:
+            if len(negative_event_list) - negative_event_list.index(p) \
+                    == len(origin_event_list) - origin_event_list.index(p):
+                temporal_root = InternalNegationNode(pattern.window, is_last=True, top_operator=top_operator)
+            else:
+                temporal_root = InternalNegationNode(pattern.window, is_last=False, top_operator=top_operator)
+
+            qitem = p.get_args()
+            neg_event = LeafNode(pattern.window, leaf_index, qitem, temporal_root)
+            temporal_root.set_subtrees(root, neg_event)
+            neg_event.set_parent(temporal_root)
+            root.set_parent(temporal_root)
+            root = root._parent
+            leaf_index += 1
+
+            # apply_formula manually for negation nodes
+            # nathan : check later if needed
+            names = {item[1].name for item in root._event_defs}
+            condition = pattern.condition.get_formula_of(names)
+            root._condition = condition if condition else TrueFormula()
+
+        self.__root = root
+        return self.__root
+
     def get_leaves(self):
         return self.__root.get_leaves()
 
     def get_matches(self):
         while self.__root.has_partial_matches():
             yield self.__root.consume_first_partial_match().events
+
+    def get_root(self):
+        return self.__root
+
+    def handle_EOF(self, matches: Stream):
+        """
+        We add as matches all the PMs for which there was a risk to be invalidated later.
+        Now we finished the input stream so there is no more risk !
+        """
+        for match in self.__root.matches_to_handle_at_EOF:
+            matches.add_item(PatternMatch(match.events))
+        node = self.__root.get_first_last_negative_node()
+        for match in node.waiting_for_time_out:
+            matches.add_item(PatternMatch(match.events))
 
     @staticmethod
     def __construct_tree(is_sequence: bool, tree_structure: tuple or int, args: List[QItem],
@@ -339,4 +432,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     for match in self.__tree.get_matches():
                         matches.add_item(PatternMatch(match))
 
+        # Now that we finished the input stream, if there were some PMs risking to be invalidated by a negative event
+        # at the end of the pattern, we handle them now
+        if type(self.__tree.get_root()) == InternalNegationNode and self.__tree.get_root().is_last:
+            self.__tree.handle_EOF(matches)
         matches.close()

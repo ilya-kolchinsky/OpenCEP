@@ -9,7 +9,7 @@ from evaluation.LeftDeepTreeBuilders import *
 from evaluation.BushyTreeBuilders import *
 from datetime import timedelta
 from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, AtomicTerm, AndFormula, TrueFormula
-from base.PatternStructure import AndOperator, SeqOperator, QItem
+from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
 from base.Pattern import Pattern
 
 nasdaqEventStreamShort = file_input("test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
@@ -581,6 +581,52 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
     runTest('nonFrequencyTailored1', [pattern], createTestFile,
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, events=nasdaqEventStream)
 
+# ON CUSTOM
+def MultipleNotBeginAndEndTest(createTestFile=False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > b.OpeningPrice
+        AND b.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([NegationOperator(QItem("TYP1", "x")),
+                     NegationOperator(QItem("TYP4", "t")),
+                     QItem("AAPL", "a"), QItem("AMZN", "b"),
+                     QItem("GOOG", "c"),
+                     NegationOperator(QItem("TYP2", "y")),
+                     NegationOperator(QItem("TYP3", "z"))]),
+        AndFormula(
+            AndFormula(
+                GreaterThanFormula(IdentifierTerm("x", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
+                SmallerThanFormula(IdentifierTerm("y", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("c", lambda x: x["Opening Price"]))),
+            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("a", lambda x: x["Opening Price"]))
+        ),
+        timedelta(minutes=5)
+    )
+    runTest("MultipleNotBeginAndEnd", [pattern], createTestFile)
+
+
+# ON CUSTOM3
+def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
+
+    pattern = Pattern(
+        SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMAZON", "b"), NegationOperator(QItem("GOOG", "c")),
+                     QItem("FB", "d"), NegationOperator(QItem("TYP1", "x"))]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    runTest("NotEverywhere", [pattern], createTestFile, EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE)
+
+MultipleNotBeginAndEndTest()
+testWithMultipleNotAtBeginningMiddleEnd()
 
 oneArgumentsearchTest()
 simplePatternSearchTest()

@@ -230,3 +230,7 @@ def does_match_exist(matches: list, match: list):
             if is_equal:
                 return True
     return False
+
+
+def get_index(first_event_def):
+    return first_event_def[1].index
