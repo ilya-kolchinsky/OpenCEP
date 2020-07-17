@@ -3,12 +3,12 @@ This file contains various useful functions utilized by different project module
 """
 
 from datetime import datetime
-from typing import List, Tuple
+from typing import List
 
 from base.Pattern import Pattern
 from base.PatternStructure import QItem
 from itertools import combinations
-from base.PatternStructure import SeqOperator, NegationOperator
+from base.PatternStructure import SeqOperator
 from base.PatternMatch import PatternMatch
 from copy import deepcopy
 
@@ -158,8 +158,6 @@ def merge_according_to(arr1: list, arr2: list, actual1: list, actual2: list, key
 
     return ret
 
-#def sort_according_to(arr1: list, arr2: list, actual1: list, actual2: list, key: callable = lambda x: x):
-
 
 def is_sorted(arr: list, key: callable = lambda x: x):
     """
@@ -174,9 +172,6 @@ def is_sorted(arr: list, key: callable = lambda x: x):
 
     return True
 
-def generate_matches_with_negation(pattern, stream):
-    matches = generate_matches(pattern, stream)
-    
 
 def generate_matches(pattern: Pattern, stream: Stream):
     """
@@ -184,16 +179,16 @@ def generate_matches(pattern: Pattern, stream: Stream):
     It is used as our test creator.
     """
     args = pattern.structure.args
-    types = {qitem.event_type for qitem in args}
+    types = {qitem.eventType for qitem in args}
     is_seq = (pattern.structure.get_top_operator() == SeqOperator)
     events = {}
     matches = []
     for event in stream:
-        if event.event_type in types:
-            if event.event_type in events.keys():
-                events[event.event_type].append(event)
+        if event.eventType in types:
+            if event.eventType in events.keys():
+                events[event.eventType].append(event)
             else:
-                events[event.event_type] = [event]
+                events[event.eventType] = [event]
     generate_matches_recursive(pattern, events, is_seq, [], datetime.max, datetime.min, matches, {})
     return matches
 
@@ -208,12 +203,12 @@ def generate_matches_recursive(pattern: Pattern, events: dict, is_seq: bool, mat
                 matches.append(PatternMatch(deepcopy(match)))
     else:
         qitem = pattern.structure.args[loop]
-        for event in events[qitem.event_type]:
-            min_date = min(min_event_timestamp, event.timestamp)
-            max_date = max(max_event_timestamp, event.timestamp)
-            binding[qitem.name] = event.payload
+        for event in events[qitem.eventType]:
+            min_date = min(min_event_timestamp, event.date)
+            max_date = max(max_event_timestamp, event.date)
+            binding[qitem.name] = event.event
             if max_date - min_date <= pattern.window:
-                if not is_seq or len(match) == 0 or match[-1].timestamp <= event.timestamp:
+                if not is_seq or len(match) == 0 or match[-1].date <= event.date:
                     match.append(event)
                     generate_matches_recursive(pattern, events, is_seq, match, min_date, max_date, matches, binding,
                                                loop + 1)
@@ -235,17 +230,3 @@ def does_match_exist(matches: list, match: list):
             if is_equal:
                 return True
     return False
-
-
-def get_index(first_event_def):
-    return first_event_def[1].index
-
-def find_positive_events_before(p: NegationOperator, set: set, origin: list):
-    """
-    Add to the set the name of all events appearing before p in the original pattern
-    """
-    for e in origin:
-        if e == p:
-            break
-        if type(e) != NegationOperator:
-            set.add(e.get_event_name())

@@ -1,6 +1,5 @@
 from abc import ABC
 from misc.IOUtils import Stream
-from enum import Enum
 
 
 class EvaluationMechanism(ABC):
@@ -10,9 +9,3 @@ class EvaluationMechanism(ABC):
     """
     def eval(self, events: Stream, matches: Stream):
         pass
-
-class NegationMode(Enum):
-
-    POST_PROCESSING = 0,
-    FIRST_CHANCE = 1
-

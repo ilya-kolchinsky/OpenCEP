@@ -7,7 +7,6 @@ from evaluation.IterativeImprovement import IterativeImprovementType
 from evaluation.LeftDeepTreeBuilders import IterativeImprovementInitType, TrivialLeftDeepTreeBuilder, \
     AscendingFrequencyTreeBuilder, GreedyLeftDeepTreeBuilder, IterativeImprovementLeftDeepTreeBuilder, \
     DynamicProgrammingLeftDeepTreeBuilder
-from evaluation.EvaluationMechanism import NegationMode
 
 
 class EvaluationMechanismTypes(Enum):
@@ -27,12 +26,9 @@ class EvaluationMechanismTypes(Enum):
 class EvaluationMechanismParameters:
     """
     Parameters for the evaluation mechanism builder.
-
     """
-    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-                 negation_mode: NegationMode = NegationMode.POST_PROCESSING):
+    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes):
         self.type = eval_mechanism_type
-        self.negation_mode = negation_mode
 
 
 class IterativeImprovementEvaluationMechanismParameters(EvaluationMechanismParameters):
@@ -59,7 +55,7 @@ class EvaluationMechanismFactory:
                                             pattern: Pattern):
         return EvaluationMechanismFactory. \
             __create_eval_mechanism_builder(eval_mechanism_type, eval_mechanism_params). \
-            build_single_pattern_eval_mechanism(pattern, eval_mechanism_params)
+            build_single_pattern_eval_mechanism(pattern)
 
     @staticmethod
     def build_multi_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,

@@ -12,7 +12,7 @@ from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
 
-# comment to test commit/push to our branch
+
 class Node(ABC):
     """
     This class represents a single node of an evaluation tree.
