@@ -82,7 +82,6 @@ class Node(ABC):
             self.waiting_for_time_out = sorted(self.waiting_for_time_out, key=lambda x: x.first_timestamp)
             count = find_partial_match_by_timestamp(self.waiting_for_time_out, last_timestamp - self._sliding_window)
             node = self.get_root()
-
             node.matches_to_handle_at_EOF.extend(self.waiting_for_time_out[:count])
             self.waiting_for_time_out = self.waiting_for_time_out[count:]
 
@@ -280,6 +279,7 @@ class InternalNode(Node):
         }
         return self._condition.eval(binding)
 
+
 class AndNode(InternalNode):
     """
     An internal node representing an "AND" operator.
@@ -336,8 +336,8 @@ class InternalNegationNode(InternalNode):
         """
         Contains PMs that match the whole pattern and were in waiting_for_timeout, and now can't be invalidated anymore
         When we finish all the stream of events we handle them and put them in the output
-        
-        nathan = we need this field (instead of putting the matches directly in root.partial_match) because these are 
+        Is used only in root
+        We need this field (instead of putting the matches directly in root.partial_match) because these are 
         expired match : they will be removed from root.partial_match when we call clean_expired
         """
         self.matches_to_handle_at_EOF = []
@@ -346,8 +346,9 @@ class InternalNegationNode(InternalNode):
                                left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
         self._event_defs = merge(left_event_defs, right_event_defs, key=get_index)
 
+    # In an InternalNegationNode, the event_def represents all the positives events plus the negative event we are currently checking
     def get_event_definitions(self):  # to support multiple neg
-        return self._left_subtree.get_event_definitions()  # à verifier
+        return self._left_subtree.get_event_definitions()
 
     def _try_create_new_match(self,
                               first_partial_match: PartialMatch, second_partial_match: PartialMatch,
@@ -366,19 +367,51 @@ class InternalNegationNode(InternalNode):
                 return False
         elif self.top_operator == OrOperator:
             """
-                To be implemented later when class OrNode will be implemented
+            To be implemented later when class OrNode will be implemented
             """
             raise NotImplementedError()
 
         return self._validate_new_match(events_for_new_match)
 
+    def handle_new_partial_match(self, partial_match_source: Node):
+        if partial_match_source == self._left_subtree:
+            other_subtree = self._right_subtree
+            if self.is_last:
+                new_partial_match = partial_match_source.get_last_unhandled_partial_match()
+                self.waiting_for_time_out.append(new_partial_match)
+                return
+        elif partial_match_source == self._right_subtree:
+            if self.is_last:
+                self.handle_PM_with_negation_at_the_end(partial_match_source)
+            return
+        else:
+            raise Exception()  # should never happen
+
+        # we arrive here only if the new partial match is a positive event
+        new_partial_match = partial_match_source.get_last_unhandled_partial_match()
+        first_event_defs = partial_match_source.get_event_definitions()
+        other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
+
+        partial_matches_to_compare = other_subtree.get_partial_matches()
+        second_event_defs = other_subtree.get_event_definitions()
+        self.clean_expired_partial_matches(new_partial_match.last_timestamp)
+
+        for partialMatch in partial_matches_to_compare:
+            # for every negative event, we want to check if it invalidates new_partial_match
+            if self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs):
+                return
+
+        self.add_partial_match(new_partial_match)
+        if self._parent is not None:
+            self._parent.handle_new_partial_match(self)
+
     def handle_PM_with_negation_at_the_end(self, partial_match_source: Node):
         """
-        Customized handle_new_partial_matches function in case of a new pm matching a not operator at the end of the pattern:
+        Customized handle_new_partial_match function for partial matches waiting for negative events at the end of the pattern:
         The PMs to compare come from "get_waiting_for_timeout" and not from "get_partial_matches": these are PMs that
-        match the pattern but may be invalidated by a later not operator at the end of a pattern.
+        match the pattern but may be invalidated by a later negative event at the end of a pattern.
         We check which ones have been invalidated and we discard them. The others will be final matches once there are
-        no future not event that can invalidate them == when the time window has ended
+        no future not event that can invalidate them == when the time window has ended or EOF
         """
 
         other_subtree = self.get_first_last_negative_node()
@@ -409,45 +442,6 @@ class InternalNegationNode(InternalNode):
         else:
             return self
 
-    def get_waiting_for_time_out(self):
-        if type(self._left_subtree) == InternalNegationNode and self._left_subtree.is_last:
-            return self._left_subtree.get_waiting_for_time_out()
-        else:
-            return self.waiting_for_time_out
-
-    def handle_new_partial_match(self, partial_match_source: Node):
-        if partial_match_source == self._left_subtree:
-            other_subtree = self._right_subtree
-            if self.is_last:
-                new_partial_match = partial_match_source.get_last_unhandled_partial_match()
-                self.waiting_for_time_out.append(new_partial_match)
-                return
-        elif partial_match_source == self._right_subtree:
-            if self.is_last:
-                self.handle_PM_with_negation_at_the_end(partial_match_source)
-            return
-        else:
-            raise Exception()  # should never happen
-
-        # we arrive here only if the new partial match is a positive event
-        new_partial_match = partial_match_source.get_last_unhandled_partial_match()  # A1 et C1
-        first_event_defs = partial_match_source.get_event_definitions()
-        other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
-
-        partial_matches_to_compare = other_subtree.get_partial_matches()  # B
-        second_event_defs = other_subtree.get_event_definitions()
-        self.clean_expired_partial_matches(new_partial_match.last_timestamp)
-
-        for partialMatch in partial_matches_to_compare:
-            # for every negative event, we want to check if it invalidates new_partial_match
-            if self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs):
-                return
-
-        self.add_partial_match(new_partial_match)
-        if self._parent is not None:
-            self._parent.handle_new_partial_match(self)
-
-
 class Tree:
     """
     Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree structure"
@@ -460,15 +454,14 @@ class Tree:
 
         self.__root.apply_formula(pattern.condition)
 
-        if len(pattern.negative_event.get_args()) != 0:
+        if pattern.negative_event.get_args():
             root = self.__root
-            # nathan : we may send directly self.__root in param and not need root
             self.__root = self.create_negation_Tree(root, pattern)
 
 
     def create_negation_Tree(self, root: Node, pattern: Pattern):
         """
-        We add the negative nodes at the end of the tree
+        We add the negative nodes at the root of the tree
         """
         top_operator = pattern.origin_structure.get_top_operator()
         negative_event_list = pattern.negative_event.get_args()
@@ -491,17 +484,17 @@ class Tree:
 
             qitem = p.get_args()
             neg_event = LeafNode(pattern.window, leaf_index, qitem, temporal_root)
+            leaf_index += 1
             temporal_root.set_subtrees(root, neg_event)
             neg_event.set_parent(temporal_root)
             root.set_parent(temporal_root)
             root = root._parent
-            leaf_index += 1
 
             # apply_formula manually for negation nodes
-            # nathan : check later if needed
             names = {item[1].name for item in root._event_defs}
             condition = pattern.condition.get_formula_of(names)
             root._condition = condition if condition else TrueFormula()
+            neg_event.apply_formula(pattern.condition)
 
         self.__root = root
         return self.__root
@@ -569,4 +562,5 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         # at the end of the pattern, we handle them now
         if type(self.__tree.get_root()) == InternalNegationNode and self.__tree.get_root().is_last:
             self.__tree.handle_EOF(matches)
+
         matches.close()

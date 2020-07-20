@@ -232,5 +232,5 @@ def does_match_exist(matches: list, match: list):
     return False
 
 
-def get_index(first_event_def):
-    return first_event_def[1].index
+def get_index(event_def):
+    return event_def[1].index

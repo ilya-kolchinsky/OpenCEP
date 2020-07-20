@@ -121,7 +121,6 @@ def runTest(testName, patterns, createTestFile = False,
     else:
         events = events.duplicate()
 
-    # nathan
     listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle"]
     listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd"]
@@ -710,7 +709,7 @@ def simpleNotTest(createTestFile=False):
 
 
 # ON NASDAQ SHORT
-def MultipleNotInTheMiddle(createTestFile=False):
+def MultipleNotInTheMiddleTest(createTestFile=False):
     """
         PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
         WHERE   a.OpeningPrice > b.OpeningPrice
@@ -831,18 +830,15 @@ def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    runTest("NotEverywhere", [pattern], createTestFile, EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE)
+    runTest("NotEverywhere", [pattern], createTestFile)
 
 
 simpleNotTest()
-
-MultipleNotInTheMiddle()
+MultipleNotInTheMiddleTest()
 OneNotAtTheBeginningTest()
 MultipleNotAtTheBeginningTest()
-
 OneNotAtTheEndTest()
 MultipleNotAtTheEndTest()
-
 MultipleNotBeginAndEndTest()
 testWithMultipleNotAtBeginningMiddleEnd()
 
