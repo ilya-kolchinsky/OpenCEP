@@ -1,8 +1,0 @@
-{'Stock Ticker': 'AAPL', 'Date': 200802010905, 'Opening Price': 40}
-{'Stock Ticker': 'AMZN', 'Date': 200802010909, 'Opening Price': 20}
-{'Stock Ticker': 'GOOG', 'Date': 200802010910, 'Opening Price': 39}
-
-{'Stock Ticker': 'AAPL', 'Date': 200802010906, 'Opening Price': 50}
-{'Stock Ticker': 'AMZN', 'Date': 200802010909, 'Opening Price': 20}
-{'Stock Ticker': 'GOOG', 'Date': 200802010910, 'Opening Price': 39}
-
