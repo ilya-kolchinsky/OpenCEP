@@ -11,6 +11,7 @@ from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_
 from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
+import time
 
 
 class Node(ABC):
@@ -321,7 +322,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     def __init__(self, pattern: Pattern, tree_structure: tuple):
         self.__tree = Tree(tree_structure, pattern)
 
-    def eval(self, events: Stream, matches: Stream):
+    def eval(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
+        start_time = time.time()
         event_types_listeners = {}
         # register leaf listeners for event types.
         for leaf in self.__tree.get_leaves():
@@ -333,10 +335,19 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
         # Send events to listening leaves.
         for event in events:
+            if time_limit is not None:
+                if time.time() - start_time > time_limit:
+                    matches.close()
+                    return
             if event.event_type in event_types_listeners.keys():
                 for leaf in event_types_listeners[event.event_type]:
                     leaf.handle_event(event)
                     for match in self.__tree.get_matches():
                         matches.add_item(PatternMatch(match))
-
+                        if is_async:
+                            f = open(file_path, "a", encoding='utf-8')
+                            for itr in match:
+                                f.write("%s \n" % str(itr.payload))
+                            f.write("\n")
+                            f.close()
         matches.close()
