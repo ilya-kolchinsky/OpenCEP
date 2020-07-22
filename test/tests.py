@@ -101,9 +101,9 @@ def simplePatternSearchTest(createTestFile = False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
         AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
@@ -270,9 +270,9 @@ def multiplePatternSearchTest(createTestFile = False):
 
 def nonFrequencyPatternSearchTest(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
         AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
@@ -280,9 +280,9 @@ def nonFrequencyPatternSearchTest(createTestFile = False):
 
 def frequencyPatternSearchTest(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
         AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
@@ -291,9 +291,9 @@ def frequencyPatternSearchTest(createTestFile = False):
 
 def arrivalRatesPatternSearchTest(createTestFile = False):
     pattern = Pattern(
-    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]), 
+    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
     AndFormula(
-        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
         GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
     timedelta(minutes=5)
     )
@@ -302,9 +302,9 @@ def arrivalRatesPatternSearchTest(createTestFile = False):
 
 def nonFrequencyPatternSearch2Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("LOCM", "a"), QItem("AMZN", "b"), QItem("AAPL", "c")]), 
+        SeqOperator([QItem("LOCM", "a"), QItem("AMZN", "b"), QItem("AAPL", "c")]),
         AndFormula(
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
@@ -312,9 +312,9 @@ def nonFrequencyPatternSearch2Test(createTestFile = False):
 
 def frequencyPatternSearch2Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("LOCM", "a"), QItem("AMZN", "b"), QItem("AAPL", "c")]), 
+        SeqOperator([QItem("LOCM", "a"), QItem("AMZN", "b"), QItem("AAPL", "c")]),
         AndFormula(
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
@@ -323,7 +323,7 @@ def frequencyPatternSearch2Test(createTestFile = False):
 
 def nonFrequencyPatternSearch3Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AAPL", "b"), QItem("AAPL", "c"), QItem("LOCM", "d")]), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AAPL", "b"), QItem("AAPL", "c"), QItem("LOCM", "d")]),
         TrueFormula(),
         timedelta(minutes=5)
     )
@@ -331,7 +331,7 @@ def nonFrequencyPatternSearch3Test(createTestFile = False):
 
 def frequencyPatternSearch3Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AAPL", "b"), QItem("AAPL", "c"), QItem("LOCM", "d")]), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AAPL", "b"), QItem("AAPL", "c"), QItem("LOCM", "d")]),
         TrueFormula(),
         timedelta(minutes=5)
     )
@@ -340,7 +340,7 @@ def frequencyPatternSearch3Test(createTestFile = False):
 
 def nonFrequencyPatternSearch4Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c"), QItem("LOCM", "d")]), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c"), QItem("LOCM", "d")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -348,7 +348,7 @@ def nonFrequencyPatternSearch4Test(createTestFile = False):
 
 def frequencyPatternSearch4Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c"), QItem("LOCM", "d")]), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c"), QItem("LOCM", "d")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -357,7 +357,7 @@ def frequencyPatternSearch4Test(createTestFile = False):
 
 def nonFrequencyPatternSearch5Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]), 
+        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -365,16 +365,16 @@ def nonFrequencyPatternSearch5Test(createTestFile = False):
 
 def frequencyPatternSearch5Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]), 
+        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"LOCM": 1, "AAPL": 2}) # {"AAPL": 460, "LOCM": 219}
     runTest("frequency5", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
-    
-def frequencyPatternSearch6Test(createTestFile = False):    
+
+def frequencyPatternSearch6Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]), 
+        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -615,3 +615,10 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
+
+# Twitter tests
+try:
+    from TweeterTest import run_tweeter_sanity_check
+    run_tweeter_sanity_check()
+except ImportError:  # tweepy might not be installed
+    pass

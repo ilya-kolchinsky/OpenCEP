@@ -1,3 +1,5 @@
+from base.Event import Event
+from misc.IOUtils import Stream
 from plugin.twitter.Tweets import MetatweetDataFormatter
 import tweepy
 import plugin.twitter.TwitterCredentials
@@ -59,6 +61,8 @@ class TweetsStreamSessionInput:
     stream, and return a Stream queue 
     """
     def get_stream_queue(self, search_words_list: list):
-        stream = tweepy.Stream(self.__api.auth, listener=self.__my_stream_listener)
-        stream.filter(track=search_words_list, is_async=True)
+        self.__tweet_stream.filter(track=search_words_list, is_async=True)
         return self.__my_stream_listener.get_tweets_stream()
+
+    def disconnect(self):
+        return self.__tweet_stream.disconnect()
