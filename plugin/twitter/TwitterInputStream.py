@@ -1,6 +1,6 @@
 from base.Event import Event
 from misc.IOUtils import Stream
-from plugin.twitter.Tweets import MetatweetDataFormatter
+from plugin.twitter.TwitterDataFormatter import TweetDataFormatter
 import tweepy
 import plugin.twitter.TwitterCredentials
 import json
@@ -20,7 +20,7 @@ class MyStreamListener(tweepy.StreamListener):
             self.__time_limit = None
 
         self.__tweets_stream = Stream()
-        self.__data_formatter = MetatweetDataFormatter()
+        self.__data_formatter = TweetDataFormatter()
 
     def on_status(self, status):
         raw_data = json.dumps(status._json)

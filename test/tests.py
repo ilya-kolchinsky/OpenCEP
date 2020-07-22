@@ -618,7 +618,7 @@ frequencyTailoredPatternSearchTest()
 
 # Twitter tests
 try:
-    from TweeterTest import run_tweeter_sanity_check
+    from TwitterTest import run_tweeter_sanity_check
     run_tweeter_sanity_check()
 except ImportError:  # tweepy might not be installed
     pass

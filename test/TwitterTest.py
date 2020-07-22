@@ -1,5 +1,6 @@
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes
+from plugin.twitter.TwitterDataFormatter import TWEET_TYPE
 from plugin.twitter.TwitterInputStream import TweetsStreamSessionInput
 from datetime import timedelta
 from base.Formula import EqFormula, IdentifierTerm, AtomicTerm, AndFormula, NotEqFormula
@@ -14,12 +15,13 @@ def run_tweeter_sanity_check():
     PATTERN SEQ(Tweet a, Tweet b)
     WHERE a.Retweeted_Status_Id != None AND a.ID != b.ID AND a.Retweeted_Status_Id == b.Retweeted_Status_Id
     """
+    get_retweeted_status_function = lambda x: x["retweeted_status"] if "retweeted_status" in x else None
     pattern_retweet = Pattern(
-        SeqOperator([QItem('1', "a"), QItem('1', "b")]),
-        AndFormula(NotEqFormula(IdentifierTerm("a", lambda x: x["ID"]), IdentifierTerm("b", lambda x: x["ID"])),
-                   AndFormula(NotEqFormula(IdentifierTerm("a", lambda x: x["Retweeted_Status_Id"]), AtomicTerm(None)),
-                   EqFormula(IdentifierTerm("a", lambda x: x["Retweeted_Status_Id"]),
-                             IdentifierTerm("b", lambda x: x["Retweeted_Status_Id"])))),
+        SeqOperator([QItem(TWEET_TYPE, "a"), QItem(TWEET_TYPE, "b")]),
+        AndFormula(NotEqFormula(IdentifierTerm("a", lambda x: x["id"]), IdentifierTerm("b", lambda x: x["id"])),
+                   AndFormula(NotEqFormula(IdentifierTerm("a", get_retweeted_status_function), AtomicTerm(None)),
+                              EqFormula(IdentifierTerm("a", get_retweeted_status_function),
+                                        IdentifierTerm("b", get_retweeted_status_function)))),
         timedelta(minutes=30)
     )
 
@@ -33,3 +35,7 @@ def run_tweeter_sanity_check():
         print("Test twitterSanityCheck result: Succeeded, Time Passed: %s" % (running_time,))
     finally:
         streaming.disconnect()
+
+
+if __name__ == "__main__":
+    run_tweeter_sanity_check()
