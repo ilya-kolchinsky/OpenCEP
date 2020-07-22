@@ -8,7 +8,7 @@ from base.PatternStructure import SeqOperator, QItem
 from base.Pattern import Pattern
 
 
-def run_tweeter_sanity_check():
+def run_twitter_sanity_check():
     """
     This basic test invokes a simple pattern looking for two tweets that retweeted the same tweet.
     It might help finding users with common interests.
@@ -38,4 +38,4 @@ def run_tweeter_sanity_check():
 
 
 if __name__ == "__main__":
-    run_tweeter_sanity_check()
+    run_twitter_sanity_check()
