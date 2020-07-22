@@ -1,11 +1,9 @@
 from CEP import CEP
-from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
-    IterativeImprovementEvaluationMechanismParameters
+from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes
 from misc.IOUtils import TweetsStreamSessionInput
-from misc.Tweets import MetatweetDataFormatter
 from datetime import timedelta
 from base.Formula import EqFormula, IdentifierTerm, AtomicTerm, AndFormula, NotEqFormula
-from base.PatternStructure import AndOperator, SeqOperator, QItem
+from base.PatternStructure import SeqOperator, QItem
 from base.Pattern import Pattern
 
 """

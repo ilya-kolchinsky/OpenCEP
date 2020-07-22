@@ -1,16 +1,11 @@
 import os
 from CEP import CEP
-from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
-    IterativeImprovementEvaluationMechanismParameters
-from misc.IOUtils import file_input, file_output
-from misc.Tweets import MetatweetDataFormatter
+from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes
+from misc.IOUtils import file_output
 from misc.Utils import generate_matches
-from evaluation.LeftDeepTreeBuilders import *
-from evaluation.BushyTreeBuilders import *
 from datetime import timedelta
-from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, \
-    EqFormula, IdentifierTerm, AtomicTerm, AndFormula, TrueFormula
-from base.PatternStructure import AndOperator, SeqOperator, QItem
+from base.Formula import GreaterThanFormula, IdentifierTerm, AtomicTerm
+from base.PatternStructure import SeqOperator, QItem
 from base.Pattern import Pattern
 from misc.IOUtils import TweetsStreamSessionInput
 

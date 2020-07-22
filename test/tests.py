@@ -3,7 +3,7 @@ from CEP import CEP
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
     IterativeImprovementEvaluationMechanismParameters
 from misc.IOUtils import file_input, file_output
-from misc.Stocks import MetastockDataFormatter
+from plugin.stocks.Stocks import MetastockDataFormatter
 from misc.Utils import generate_matches
 from evaluation.LeftDeepTreeBuilders import *
 from evaluation.BushyTreeBuilders import *
