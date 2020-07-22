@@ -75,15 +75,18 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree using a greedy strategy that selects at each step the event type that minimizes the cost
     function.
     """
-    def _create_evaluation_order(self, pattern: Pattern):
-        if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivityMatrix, arrivalRates) = pattern.statistics
-        else:
-            raise MissingStatisticsException()
+    def build_single_pattern_eval_mechanism(self, pattern: Pattern, order):
+        """
+        order is the new plan generated in the Optimizer
+        """
+        tree_structure = self.__build_tree_from_order(order)
+        return TreeBasedEvaluationMechanism(pattern, tree_structure)
+
+    def create_evaluation_order(self, selectivityMatrix, arrivalRates):
         return self.calculate_greedy_order(selectivityMatrix, arrivalRates)
 
     @staticmethod
-    def calculate_greedy_order(selectivity_matrix: List[List[float]], arrival_rates: List[int]):
+    def _calculate_greedy_order(selectivity_matrix: List[List[float]], arrival_rates: List[int]):
         """
         At any step we will only consider the intermediate partial matches size,
         even without considering the sliding window, because the result is independent of it.
@@ -120,6 +123,62 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
                 left_to_add.add(to_add_start)
 
         return new_order
+
+
+class AdaptiveGreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
+    """
+    Creates a left-deep tree using a greedy strategy that selects at each step the event type that minimizes the cost
+    function.
+    """
+    def build_single_pattern_eval_mechanism(self, pattern: Pattern, order):
+        """
+        order is the new plan generated in the Optimizer
+        """
+        tree_structure = self.__build_tree_from_order(order)
+        return TreeBasedEvaluationMechanism(pattern, tree_structure)
+
+    def create_evaluation_order(self, selectivityMatrix, arrivalRates):
+        return self.calculate_greedy_order(selectivityMatrix, arrivalRates)
+
+    @staticmethod
+    def _calculate_greedy_order(selectivity_matrix: List[List[float]], arrival_rates: List[int]):
+        """
+        At any step we will only consider the intermediate partial matches size,
+        even without considering the sliding window, because the result is independent of it.
+        For each unselected item, we will calculate the speculated
+        effect to the partial matches, and choose the one with minimal increase.
+        We don't even need to calculate the cost function.
+        """
+        size = len(selectivity_matrix)
+        if size == 1:
+            return [0]
+
+        new_order = []
+        left_to_add = set(range(len(selectivity_matrix)))
+        while len(left_to_add) > 0:
+            # create first nominee to add.
+            to_add = to_add_start = left_to_add.pop()
+            min_change_factor = selectivity_matrix[to_add][to_add]
+            for j in new_order:
+                min_change_factor *= selectivity_matrix[to_add][j]
+
+            # find minimum change factor and its according index.
+            for i in left_to_add:
+                change_factor = selectivity_matrix[i][i] * arrival_rates[i]
+                for j in new_order:
+                    change_factor *= selectivity_matrix[i][j]
+                if change_factor < min_change_factor:
+                    min_change_factor = change_factor
+                    to_add = i
+            new_order.append(to_add)
+
+            # if it wasn't the first nominee, then we need to fix the starting speculation we did.
+            if to_add != to_add_start:
+                left_to_add.remove(to_add)
+                left_to_add.add(to_add_start)
+
+        return new_order
+
 
 
 class IterativeImprovementInitType(Enum):

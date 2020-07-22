@@ -1,17 +1,31 @@
+from abc import ABC
+from evaluation.LeftDeepTreeBuilders import GreedyLeftDeepTreeBuilder
+from base.Pattern import Pattern
+from evaluation.EvaluationMechanismFactory import EvaluationMechanismFactory
 
-class SortingAlgorithm:
+
+class PlanGenerationAlgorithm(ABC):
+    def generate_plan(self, SC_data):
+        pass
+
+
+class GreedyAlgorithm(PlanGenerationAlgorithm):
+    """
+    This plan generation algorithm is for Invariant based decisions
+    """
     def __init__(self):
-        return
+        self.builder = GreedyLeftDeepTreeBuilder()
 
     def generate_plan(self, SC_data):
-        return sorted(SC_data.datas) # NEED TO CHECK HOW STAS SENDS HER DATA SO I CAN CHANGE ACCORDINGLY
+        return self.builder.create_evaluation_order(SC_data.selectivity_matrix, SC_data.rates)
+
+    def build_final_plan_for_evaluation(self, pattern: Pattern, new_plan):
+        return self.builder.build_single_pattern_eval_mechanism(pattern, new_plan)
 
 
-
-
-
-class TreeBuildingType:
-    def __init__(self):
-        return
-
-    def build_tree(self):
+class PlanBuilder(PlanGenerationAlgorithm):
+    """
+    Will build a plan according to
+    """
+    def build_final_plan_for_evaluation(self, eval_mechanism_type, pattern):
+        return EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type, None, pattern)

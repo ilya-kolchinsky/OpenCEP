@@ -1,51 +1,56 @@
-from enum import Enum
-from optimizer.Optimizer import StatisticsCollectorDataTypes
+from misc.StatisticsTypes import StatisticsTypes
+from optimizer.ReoptimizingDecision import InvariantBasedDecision
 
-class CompareSigns(Enum):
-    SMALLER = 0 ,
-    SMALLER_EQUAL = 1
 
-class RateBasedInvariants:
+class GreedyAlgorithmBasedInvariants(InvariantBasedDecision):
     def __init__(self):
-        self.invariants = [] # is a list containing elements: (event_a, event_b, compare_sign: CompareSigns)
+        self.invariants = []  # is a list containing elements: (event_a, event_b, compare_sign: CompareSigns)
 
     @staticmethod
-    def __compare_events(event_a_rate, event_b_rate, compare_sign: CompareSigns):
-        if compare_sign == 0:
-            return event_a_rate < event_b_rate
-        if compare_sign == 1:
-            return event_a_rate <= event_b_rate
-        else:
-            raise NotImplementedError()
+    def deciding_condition(building_block, SC_data, approved_events):
+        event1 = building_block[0]
+        event2 = building_block[1]
+        event1_value = SC_data.rates[event1] * SC_data.selectivity_matrix[event1][event1]
+        event2_value = SC_data.rates[event2] * SC_data.selectivity_matrix[event2][event2]
+        for p_k in approved_events:
+            event1_value *= SC_data.selectivity_matrix[p_k][event1]
+            event2_value *= SC_data.selectivity_matrix[p_k][event2]
+        return event1_value <= event2_value
 
-    def decision(self, SC_data: StatisticsCollectorData):
+    def decision(self, SC_data):
+        """
+        Checking if any of the invariants has been violated. If yes then initiate reoptimization
+        """
+        approved_events = []
         if len(self.invariants) == 0:
-            self.gen_new_invariants(SC_data)
             return True
         else:
-            for deciding_condition in self.invariants:
+            for building_block in self.invariants:
                 """
                 I need to see how i'll receive the information about the events from the statistics collector
                 and then take the rates of the events in the deciding block and call self.__compare_events
                 with their rates
                 """
-                if not self.__compare_events(EVENT_A_RATE, EVENT_B_RATE, deciding_condition[2]):
+                if not self.deciding_condition(building_block, SC_data, approved_events):
+                    approved_events.clear()
                     return True
+                approved_events.append(building_block[0])
+        approved_events.clear()
         return False
 
-    def gen_new_invariants(self, events_sorted):
+    def gen_new_invariants(self, ordered_events):
+        """
+        Inserting the ordered events into as invariants
+        """
         self.invariants = []
-        for i in range(len(events_sorted) - 1): # MAKE SURE RUNS ACCORDINGLY (need to run until the before last element)
-            if events_sorted[i] < events_sorted[i + 1]:
-                self.invariants.append((events_sorted[i], events_sorted[i + 1],CompareSigns.SMALLER))
-            elif events_sorted[i] <= events_sorted[i + 1]:
-                self.invariants.append((events_sorted[i], events_sorted[i + 1],CompareSigns.SMALLER_EQUAL))
-            else:       # JUST FOR TESTING #@!#@!#@!#!@#!@#
-                print("Error : events_sorted not sorted!!")
+        for i in range(len(ordered_events) - 1):  # MAKE SURE RUNS ACCORDINGLY (need to run until the before last element)
+            self.invariants.append((ordered_events[i], ordered_events[i + 1]))
         return
 
-def create_invariant_based_on_data_type(SC_data_type: StatisticsCollectorDataTypes):
-    if SC_data_type == StatisticsCollectorDataTypes.EVENTS_RATE:
-        return RateBasedInvariants()
+
+def create_invariant_based_on_data_type(SC_data_type: StatisticsTypes):
+    if SC_data_type == StatisticsTypes.ARRIVAL_RATES:
+        return GreedyAlgorithmBasedInvariants()
     else:
         raise NotImplementedError()
+

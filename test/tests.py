@@ -11,6 +11,8 @@ from datetime import timedelta
 from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, AtomicTerm, AndFormula, TrueFormula
 from base.PatternStructure import AndOperator, SeqOperator, QItem
 from base.Pattern import Pattern
+from optimizer.ReoptimizingDecision import ReoptimizationDecisionTypes
+
 
 nasdaqEventStreamShort = file_input("test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
 nasdaqEventStreamMedium = file_input("test/EventFiles/NASDAQ_MEDIUM.txt", MetastockDataFormatter())
@@ -66,6 +68,19 @@ def createTest(testName, patterns, events=None):
     print("Finished creating test %s" % testName)
 
 
+class ReoptimizationParameters:
+    def __init__(self, reoptimization_type: ReoptimizationDecisionTypes, data):
+        self.type = reoptimization_type
+        if reoptimization_type == ReoptimizationDecisionTypes.UNCONDITIONAL_PERIODICAL_ADAPTATION:
+            self.time_limit = data
+        elif reoptimization_type == ReoptimizationDecisionTypes.STATIC_THRESHOLD_BASED:
+            self.threshold = data
+        elif reoptimization_type == ReoptimizationDecisionTypes.INVARIANT_BASED:
+            pass
+        else:
+            print("Yotam: Data is not correct, fix it")
+
+
 def runTest(testName, patterns, createTestFile = False,
             eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
             eval_mechanism_params = None, events = None):
@@ -75,7 +90,9 @@ def runTest(testName, patterns, createTestFile = False,
         events = nasdaqEventStream.duplicate()
     else:
         events = events.duplicate()
-    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
+    reoptimization_parameters = ReoptimizationParameters(ReoptimizationDecisionTypes.INVARIANT_BASED, None)
+    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, None, reoptimization_parameters,
+              )
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
     file_output(matches, '%sMatches.txt' % testName)
@@ -584,6 +601,7 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
 
 #oneArgumentsearchTest()
 simplePatternSearchTest()
+"""
 googleAscendPatternSearchTest()
 amazonInstablePatternSearchTest()
 msftDrivRacePatternSearchTest()
@@ -615,3 +633,4 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
+"""

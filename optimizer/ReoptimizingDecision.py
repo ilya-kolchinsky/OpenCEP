@@ -1,7 +1,8 @@
 from enum import Enum
 import time
-from optimizer.Invariants import create_invariant_based_on_data_type
-from optimizer.Optimizer import StatisticsCollectorDataTypes
+from misc.StatisticsTypes import StatisticsTypes
+from abc import ABC
+
 
 class ReoptimizationDecisionTypes(Enum):
     """
@@ -17,7 +18,7 @@ class UnconditionalPeriodicalAdaptationDecision:
         self.time_limit = time_limit
         self.start_time = time.time()
 
-    def decision(self, SC_data: StatisticsCollectorData, data_type) -> bool:
+    def decision(self, SC_data) -> bool:
         """
         Doesn't need any parameters, they are here just for generics
         """
@@ -27,52 +28,35 @@ class UnconditionalPeriodicalAdaptationDecision:
         else:
             return False
 
-class StaticThresholdBasedDecision:
+
+class StaticThresholdBasedDecision(ABC):
     def __init__(self, threshold):
         self.threshold = threshold
-        self.prev_data = None
-        #self.events_rate =     Should be an array of rates in the order (by name) of the events and  initialized to something
 
-    def decision(self, SC_data: StatisticsCollectorData, data_type) -> bool:
+    def decision(self, SC_data) -> bool:
         """
-        Go over self.events_rate and current_events_rate and check if the difference between them is
-        higher than the threshold. If yes then initiate reoptimization
+        Go over the previous data and the current data and checks if the difference between them is
+        higher than the threshold. If yes, returns True, otherwise returns No
         """
-        previous_data = self.prev_data      # temp variable
-        self.prev_data = SC_data
-        if previous_data is None:
-            return True                     # Meaning CEP doesn't have a plan yet and it needs to be generated
-        else:
-            for event_data in SC_data.datas:
-                if abs(event_data - previous_data) > self.threshold:
-                    return True
-        return False
+        pass
 
 
-class InvariantBasedDecision:
-    def __init__(self, SC_data_type: StatisticsCollectorDataTypes):
-        """
-        Initializing the invariants based on the paper- with BBCs and DSCs
-        """
-        self.invariant_based_on_type = create_invariant_based_on_data_type(SC_data_type)
-        #self.data_type = data_type
-        #self.prev_data = None
+class InvariantBasedDecision(ABC):
+    """
+    A generic class for creating an invariant based decision.
+    """
 
-    def decision(self, SC_data: StatisticsCollectorData, data_type) -> bool:
+    def decision(self, SC_data) -> bool:
         """
         Checking if any of the invariants has been violated. If yes then initiate reoptimization
         """
-        if self.prev_data is None:
-            return True
-        else:
-            return self.invariant_based_on_type.decision(SC_data)
+        pass
 
     def gen_new_invariants(self, new_plan):
         """
-        Getting the new plan generated and saving it as prev_plan for later checking if an invariant has been
-        violated
+        Getting the new generated plan and create invariants according to it
         """
-        self.invariant_based_on_type.gen_new_invariants(new_plan)
+        pass
 """
 It's IMPORTANT to separate the decision function for each type of evaluation mechanism type.
 For a Tree based plans, ordered based plan...

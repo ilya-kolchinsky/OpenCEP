@@ -8,7 +8,7 @@ from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters,
     EvaluationMechanismTypes, EvaluationMechanismFactory
 from typing import List
 from datetime import datetime
-
+from optimizer.ReoptimizingDecision import ReoptimizationDecisionTypes
 
 class PerformanceSpecifications:
     """
@@ -25,14 +25,15 @@ class CEP:
     The evaluation mechanism is created according to the parameters specified in the constructor.
     """
     def __init__(self, patterns: List[Pattern],
+                 reoptimizing_decision_params: ReoptimizationDecisionTypes,
                  eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
                  eval_mechanism_params: EvaluationMechanismParameters = None,
-                 performance_specs: PerformanceSpecifications = None,
-                 # reoptimizing_decision : ReoptimizingDecisionParams(Will include type and extra paratmeters if needed
-                 # for example it will have (ReoptimizationDecisionTypes.STATIC_THRESHOLD_BASED, threshold)
+                 performance_specs: PerformanceSpecifications = None
                  ):
         """
         Constructor of the class.
+        reoptimizing_decision_params will include type and extra paratmeters if needed
+        for example it will have (ReoptimizationDecisionTypes.STATIC_THRESHOLD_BASED, threshold)
         """
         if patterns is None:
             raise Exception("No patterns are provided")
@@ -45,7 +46,7 @@ class CEP:
         self.__performance_specs = performance_specs
 
         # Added Yotam
-        self.__optimizer = Optimizer()
+        self.__optimizer = Optimizer(patterns[0].statistics_type, reoptimizing_decision_params, patterns[0])
         # Added Yotam
 
     def run(self, event_stream: Stream):
