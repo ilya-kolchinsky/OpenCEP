@@ -20,10 +20,13 @@ DEFAULT_SECONDARY_SELECTION_STRATEGY = SelectionStrategies.MATCH_SINGLE
 
 class ConsumptionPolicy:
     """
-    The ConsumptionPolicy object contains the policies that filter certain partial matches:
-    - a SingleTypes object that contains the Types that will be unique in the result of patrial matches
-    - a set of "event names" that indicate that the event will come strictly after the previous event
-    - a "event name" of the specific point in the sequence from which: prohibiting any pattern matching while a single partial match is active
+    This class provides the consumption/selection policies for event detection:
+    - a selection strategy (match an event with the next event, with a single event only, or with any event);
+    - if a limiting selection strategy is selected (not "match with any"), an optional list of event types
+    for which this strategy will be valid - the rest will still be handled with multiple matches allowed;
+    - a list of event name sequences for which strict contiguity in the input must be enforced;
+    - a list of event names whose appearance must freeze creation of new partial matches until they are either matched
+    or expired.
     """
     def __init__(self,
                  primary_selection_strategy: SelectionStrategies = None,

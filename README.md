@@ -17,10 +17,10 @@ This short documentation will be updated regularly.
 * [X] Multiple algorithms for constructing the CEP graph
 * [X] Generic dataset schema
 * [X] Generic input/output interface (With support for File-based input/output)
+* [X] A variety of selection and consumption policies
 * [ ] Negation operator support
 * [ ] Kleene closure operator support
 * [ ] "Partial sequence" support
-* [ ] A variety of selection and consumption policies
 * [ ] Performance optimizations based on the 'lazy evaluation' principle
 * [ ] Adaptive complex event processing
 * [ ] Multi-pattern support
@@ -86,48 +86,51 @@ matches = cep.get_pattern_match_stream()
 file_output(matches, 'output.txt')
 ```
 
-### Three different, independent mechanisms for providing "less-than-all-possible-results" semantics ###
+# Advanced configuration settings
+## Consumption policies and selection strategies
 
-First mechanism: limiting a primitive event to only appear in a single full match
+OpenCEP supports a variety of consumption policies provided using the ConsumptionPolicy parameter in the pattern definition.
+
+The following pattern definition limiting all primitive events to only appear in a single full match.
 ```
 pattern = Pattern(
     SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
     TrueFormula(),
     timedelta(minutes=5),
-    ConsumptionPolicies(single = {"AAPL", "AMZN"}, Mechanisms.type1)# Prevent events  of type "AAPL" or "AMZN" from appearing twice
+    ConsumptionPolicy(primary_selection_strategy = SelectionStrategies.MATCH_SINGLE)
 )
 ```
-
-Second mechanism: Defining strict patterns:
+This selection strategy further limits the pattern detection process, only allowing to match produce a single intermediate partial match containing an event. 
 ```
 pattern = Pattern(
     SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
     TrueFormula(),
     timedelta(minutes=5),
-    ConsumptionPolicies(strict = {"a", "b", "c"})
+    ConsumptionPolicy(primary_selection_strategy = SelectionStrategies.MATCH_NEXT)
 )
 ```
-
-Alternatively, each pair of successive event types can be manually defined to skip any number of events in between:
+It is also possible to enforce either MATCH_NEXT or MATCH_SINGLE on a subset of event types. 
 ```
 pattern = Pattern(
     SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
-    AndFormula(
-        EqFormula(
-            IdentifierTerm("a", lambda x: x["Index"]), 
-            MinusTerm(IdentifierTerm("b", lambda x: x["Index"]), AtomicTerm(1))
-        ),
-        EqFormula(
-            IdentifierTerm("b", lambda x: x["Index"]), 
-            MinusTerm(IdentifierTerm("c", lambda x: x["Index"]), AtomicTerm(1))
-        )
-    ),
-    timedelta(minutes=5)
+    TrueFormula(),
+    timedelta(minutes=5),
+    ConsumptionPolicy(single=["AMZN", "AVID"], 
+                        secondary_selection_strategy = SelectionStrategies.MATCH_NEXT)
 )
 ```
-
-Third mechanism: Prohibiting any pattern matching while a partial match is active,
-while a user is able to define a specific point in a sequence from which this behavior must be enforced:
+This consumption policy specifies a list of events that must be contiguous in the input stream, i.e., 
+no other unrelated event is allowed to appear in between.
+```
+pattern = Pattern(
+    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+    TrueFormula(),
+    timedelta(minutes=5),
+    ConsumptionPolicy(contiguous=["a", "b", "c"])
+)
+```
+The following example instructs the framework to prohibit creation of new partial matches
+from the point a new "b" event is accepted and until it is either matched or expired.
 
 ```
 # Enforce mechanism from the first event in the sequence
@@ -137,6 +140,6 @@ pattern = Pattern(
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
         GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
     timedelta(minutes=5),
-    ConsumptionPolicies(skip = "b")
+    ConsumptionPolicy(freeze="b")
 )
 ```

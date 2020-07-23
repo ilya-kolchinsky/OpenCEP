@@ -9,13 +9,14 @@ from misc.StatisticsTypes import StatisticsTypes
 from base.PatternStructure import SeqOperator, QItem
 from misc.ConsumptionPolicy import ConsumptionPolicy
 
+
 class Pattern:
     """
     A pattern has several fields:
     - a structure represented by a tree of operators over the primitive events (e.g., SEQ(A,B*, AND(C, NOT(D), E)));
     - a condition to be satisfied by the primitive events (might consist of multiple nested conditions);
-    - a time window for the pattern matches to occur within.
-    - a ConsumptionPolicy object that contains the policies that filter certain partial matches
+    - a time window for the pattern matches to occur within;
+    - a ConsumptionPolicy object that contains the policies that filter certain partial matches.
     A pattern can also carry statistics with it, in order to enable advanced
     tree construction mechanisms - this is hopefully a temporary hack.
     """
@@ -100,7 +101,7 @@ class Pattern:
         """
         return self.__extract_flat_sequences_aux(self.structure)
 
-    def __extract_flat_sequences_aux(self, pattern_structure: PatternStructure) -> List[List[str]]:
+    def __extract_flat_sequences_aux(self, pattern_structure: PatternStructure) -> List[List[str]] or None:
         """
         An auxiliary method for extracting flat sequences from the pattern.
         """
