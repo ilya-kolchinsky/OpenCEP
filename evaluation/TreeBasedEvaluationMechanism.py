@@ -137,6 +137,18 @@ class LeafNode(Node):
         """
         return self.__event_type
 
+    def get_event_name(self):
+        """
+        Returns the name of events processed by this leaf.
+        """
+        return self.__event_name
+
+    def set_leaf_index(self, index: int):
+        """
+        Change the leaf_index of the leaf
+        """
+        self.__leaf_index = index
+
     def handle_event(self, event: Event):
         """
         Inserts the given event to this leaf.
@@ -361,18 +373,16 @@ class InternalNegationNode(InternalNode):
                 abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
             return
 
-        events_for_new_match = merge_according_to(first_event_defs, second_event_defs,
-                                                  first_partial_match.events, second_partial_match.events,
-                                                  key=get_index)
-
         if self.top_operator == SeqOperator:
+            events_for_new_match = merge_according_to(first_event_defs, second_event_defs,
+                                                      first_partial_match.events, second_partial_match.events,
+                                                      key=get_index)
             if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
                 return False
-        elif self.top_operator == OrOperator:
-            """
-            To be implemented later when class OrNode will be implemented
-            """
-            raise NotImplementedError()
+        else:
+            events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
+                                                                    first_partial_match.events,
+                                                                    second_partial_match.events)
 
         return self._validate_new_match(events_for_new_match)
 
@@ -461,7 +471,6 @@ class Tree:
             root = self.__root
             self.__root = self.create_negation_Tree(root, pattern)
 
-
     def create_negation_Tree(self, root: Node, pattern: Pattern):
         """
         We add the negative nodes at the root of the tree
@@ -532,6 +541,7 @@ class Tree:
         left_structure, right_structure = tree_structure
         left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current)
         right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current)
+
         current.set_subtrees(left, right)
         return current
 

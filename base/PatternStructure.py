@@ -124,26 +124,8 @@ class NegationOperator(PatternStructure):
     def __init__(self, arg: PatternStructure):
         self.arg = arg
 
-        # # To support composite patterns, change this to a list of all events_name and their type
-        # self.name = self.get_event_name()
-        # self.event_type = self.get_event_type()
-
     def get_args(self):
         return self.arg
-
-    # def get_event_name(self):
-    #     if type(self.arg) == QItem:
-    #         return self.get_args().name
-    #     # To support composite patterns add for the other operators, implement else
-    #     else:
-    #         raise NotImplementedError()  # should not happen for simple patterns
-    #
-    # def get_event_type(self):
-    #     if type(self.arg) == QItem:
-    #         return self.get_args().event_type
-    #     # To support composite patterns add for the other operators
-    #     else:
-    #         raise NotImplementedError()  # should not happen for simple patterns
 
     def get_event_index(self):
         if type(self.arg) == QItem:
@@ -152,9 +134,4 @@ class NegationOperator(PatternStructure):
             raise NotImplementedError()  # should not happen for simple patterns
 
     def set_qitem_index(self, index: int):
-        # if type(self.arg) == QItem:
-        #     return self.arg.set_qitem_index(index)
-        # else:
-        #     raise NotImplementedError() #should not happen for simple patterns
-
         return self.arg.set_qitem_index(index)
