@@ -171,6 +171,12 @@ class LeafNode(Node):
         """
         return self.__event_type
 
+    def get_event_name(self):
+        """
+        Returns the name under which the events processed by this leaf appear in the pattern.
+        """
+        return self.__event_name
+
     def handle_event(self, event: Event):
         """
         Inserts the given event to this leaf.
@@ -392,75 +398,103 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     def __init__(self, pattern: Pattern, tree_structure: tuple):
         self.__tree = Tree(tree_structure, pattern)
-        # Partial match skipping mechanism variables
-        self.__skip_leaves, self.__stop_new_sequences_leaf = self.__get_skip_leaves(pattern)
-        self.__first_leaf = self.__tree.get_leaves()[0]
-        self.__should_skip_leaf = False
+        self.__pattern = pattern
+        self.__freeze_map = {}
+        self.__active_freezers = []
+        self.__event_types_listeners = {}
+
+        if pattern.consumption_policies is not None and pattern.consumption_policies.freeze is not None:
+            self.__init_freeze_map()
 
     def eval(self, events: Stream, matches: Stream):
-        event_types_listeners = {}
-        # register leaf listeners for event types.
-        for leaf in self.__tree.get_leaves():
-            event_type = leaf.get_event_type()
-            if event_type in event_types_listeners.keys():
-                event_types_listeners[event_type].append(leaf)
-            else:
-                event_types_listeners[event_type] = [leaf]
-
-        # Send events to listening leaves.
+        """
+        Activates the tree evaluation mechanism on the input event stream and reports all found patter matches to the
+        given output stream.
+        """
+        self.__register_event_listeners()
         for event in events:
-            if event.event_type in event_types_listeners.keys():
-                for leaf in event_types_listeners[event.event_type]:
-                    if self.__skip_partial_matches(leaf, event) == False:
-                        leaf.handle_event(event)
-                        for match in self.__tree.get_matches():
-                            matches.add_item(PatternMatch(match))
+            if event.event_type not in self.__event_types_listeners.keys():
+                continue
+            self.__remove_expired_freezers(event)
+            for leaf in self.__event_types_listeners[event.event_type]:
+                if self.__should_ignore_events_on_leaf(leaf):
+                    continue
+                self.__try_register_freezer(event, leaf)
+                leaf.handle_event(event)
+                for match in self.__tree.get_matches():
+                    matches.add_item(PatternMatch(match))
+                    self.__remove_matched_freezers(match)
 
         matches.close()
 
-    def __get_skip_leaves(self, pattern: Pattern) -> (LeafNode, LeafNode):
+    def __register_event_listeners(self):
         """
-        If the mechanism(prohibiting any pattern matching while a single partial match is active) 
-        is enabled then this function will return a set of leaves, which precede or equal the user 
-        specified leaf, that will be skipped and the leaf that the user specified from which this 
-        mechanism must be enforced
+        Register leaf listeners for event types.
         """
-        skip_leaves, stop_new_sequences_leaf = set(), None
-        if pattern.consumption_policies:
-            args = pattern.structure.args
-            for i in range(len(args)):
-                if args[i].name == pattern.consumption_policies.skip:
-                    for leaf in self.__tree.get_leaves():
-                        index = leaf.get_leaf_index()
-                        if index <= i:
-                            skip_leaves.add(leaf)
-                        if index == i:
-                            stop_new_sequences_leaf = leaf
-        return skip_leaves, stop_new_sequences_leaf
+        self.__event_types_listeners = {}
+        for leaf in self.__tree.get_leaves():
+            event_type = leaf.get_event_type()
+            if event_type in self.__event_types_listeners.keys():
+                self.__event_types_listeners[event_type].append(leaf)
+            else:
+                self.__event_types_listeners[event_type] = [leaf]
 
-    def __skip_partial_matches(self, leaf: LeafNode, event: Event) -> bool:
+    def __init_freeze_map(self):
         """
-        Toggles "self.__should_skip_leaf" that indicates the state of the mechanism(skipping or not).
-        Meaning that this function prevents a start of a new sequence, 
-        until all current partial matches are completed.
-        This function returns True if the current leaf should be skipped and False otherwise.
+        For each event type specified by the user to be a 'freezer', that is, an event type whose appearance blocks
+        initialization of new sequences until it is either matched or expires, this method calculates the list of
+        leaves to be disabled.
         """
-        if not self.__skip_leaves or self.__stop_new_sequences_leaf == None: #Always skip if mechanism disabled
+        sequences = self.__pattern.extract_flat_sequences()
+        for freezer_event_name in self.__pattern.consumption_policies.freeze:
+            current_event_name_set = set()
+            for sequence in sequences:
+                if freezer_event_name not in sequence:
+                    continue
+                for name in sequence:
+                    current_event_name_set.add(name)
+                    if name == freezer_event_name:
+                        break
+            if len(current_event_name_set) > 0:
+                self.__freeze_map[freezer_event_name] = current_event_name_set
+
+    def __should_ignore_events_on_leaf(self, leaf: LeafNode):
+        """
+        If the 'freeze' consumption policy is enabled, checks whether the given event should be dropped based on it.
+        """
+        if len(self.__freeze_map) == 0:
+            # freeze option disabled
             return False
-        if self.__should_skip_leaf:
-            if leaf not in self.__skip_leaves:
-                return False
-            else:
-                leaf.clean_expired_partial_matches(event.timestamp)
-                if leaf.has_partial_matches():
+        for freezer in self.__active_freezers:
+            for freezer_leaf in self.__event_types_listeners[freezer.event_type]:
+                if freezer_leaf.get_event_name() not in self.__freeze_map:
+                    continue
+                if leaf.get_event_name() in self.__freeze_map[freezer_leaf.get_event_name()]:
                     return True
-                else:
-                    if leaf != self.__stop_new_sequences_leaf or leaf != self.__first_leaf:
-                        self.__should_skip_leaf = False
-                    return False
-        elif self.__should_skip_leaf == False:
-            if leaf != self.__stop_new_sequences_leaf:
-                return False
-            else:
-                self.__should_skip_leaf = True
-                return False
+        return False
+
+    def __try_register_freezer(self, event: Event, leaf: LeafNode):
+        """
+        Check whether the current event is a freezer event, and, if positive, register it.
+        """
+        if leaf.get_event_name() in self.__freeze_map.keys():
+            self.__active_freezers.append(event)
+
+    def __remove_matched_freezers(self, match: List[Event]):
+        """
+        Removes the freezers that have been matched.
+        """
+        if len(self.__freeze_map) == 0:
+            # freeze option disabled
+            return False
+        self.__active_freezers = [freezer for freezer in self.__active_freezers if freezer not in match]
+
+    def __remove_expired_freezers(self, event: Event):
+        """
+        Removes the freezers that have been expired.
+        """
+        if len(self.__freeze_map) == 0:
+            # freeze option disabled
+            return False
+        self.__active_freezers = [freezer for freezer in self.__active_freezers
+                                  if event.timestamp - freezer.timestamp <= self.__pattern.window]

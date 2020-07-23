@@ -21,11 +21,18 @@ class ConsumptionPolicies:
     - a set of "event names" that indicate that the event will come strictly after the previous event
     - a "event name" of the specific point in the sequence from which: prohibiting any pattern matching while a single partial match is active
     """
-    def __init__(self, single: SingleTypes = None, contiguous: List[str] or List[List[str]] = None, skip: str = None):
+    def __init__(self,
+                 single: SingleTypes = None,
+                 contiguous: List[str] or List[List[str]] = None,
+                 freeze: str or List[str] = None):
         self.single = single
         if contiguous is not None and len(contiguous) > 0 and type(contiguous[0]) == str:
             # syntactic sugar - provide a list instead of a list containing one list
             self.contiguous = [contiguous]
         else:
             self.contiguous = contiguous
-        self.skip = skip
+        if freeze is not None and type(freeze) == str:
+            # syntactic sugar - provide a string instead of a list containing one string
+            self.freeze = [freeze]
+        else:
+            self.freeze = freeze

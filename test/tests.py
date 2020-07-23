@@ -643,7 +643,7 @@ def contiguousPolicy2PatternSearchTest(createTestFile = False):
     )
     runTest("contiguousPolicyMultipleLists", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
-def skipPolicyPatternSearchTest(createTestFile = False):
+def freezePolicyPatternSearchTest(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > c.OpeningPrice
@@ -653,11 +653,11 @@ def skipPolicyPatternSearchTest(createTestFile = False):
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
         timedelta(minutes=5),
-        ConsumptionPolicies(skip="a")
+        ConsumptionPolicies(freeze="a")
     )
-    runTest("skipPolicy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+    runTest("freezePolicy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
-def skipPolicy2PatternSearchTest(createTestFile = False):
+def freezePolicy2PatternSearchTest(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > c.OpeningPrice
@@ -667,9 +667,9 @@ def skipPolicy2PatternSearchTest(createTestFile = False):
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
         timedelta(minutes=5),
-        ConsumptionPolicies(skip="b")
+        ConsumptionPolicies(freeze="b")
     )
-    runTest("skipPolicy2", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+    runTest("freezePolicy2", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
 
 oneArgumentsearchTest()
@@ -711,6 +711,6 @@ singleType1PolicyPatternSearchTest()
 singleType2PolicyPatternSearchTest()
 contiguousPolicyPatternSearchTest()
 contiguousPolicy2PatternSearchTest()
-skipPolicyPatternSearchTest()
-skipPolicy2PatternSearchTest()
+freezePolicyPatternSearchTest()
+freezePolicy2PatternSearchTest()
 
