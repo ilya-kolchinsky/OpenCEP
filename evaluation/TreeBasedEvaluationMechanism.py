@@ -13,6 +13,9 @@ from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
 from misc.ConsumptionPolicy import *
 
+import time
+
+
 
 class Node(ABC):
     """
@@ -397,13 +400,18 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         if pattern.consumption_policy is not None and pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
 
-    def eval(self, events: Stream, matches: Stream):
+    def eval(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
         """
         Activates the tree evaluation mechanism on the input event stream and reports all found patter matches to the
         given output stream.
         """
         self.__register_event_listeners()
+        start_time = time.time()
         for event in events:
+            if time_limit is not None:
+                if time.time() - start_time > time_limit:
+                    matches.close()
+                    return
             if event.event_type not in self.__event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
@@ -412,10 +420,15 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     continue
                 self.__try_register_freezer(event, leaf)
                 leaf.handle_event(event)
-                for match in self.__tree.get_matches():
-                    matches.add_item(PatternMatch(match))
-                    self.__remove_matched_freezers(match)
-
+            for match in self.__tree.get_matches():
+                matches.add_item(PatternMatch(match))
+                self.__remove_matched_freezers(match)
+                if is_async:
+                        f = open(file_path, "a", encoding='utf-8')
+                        for itr in match:
+                            f.write("%s \n" % str(itr.payload))
+                        f.write("\n")
+                        f.close()
         matches.close()
 
     def __register_event_listeners(self):
