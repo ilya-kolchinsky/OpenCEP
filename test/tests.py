@@ -615,7 +615,7 @@ def singleType2PolicyPatternSearchTest(createTestFile = False):
     )
     runTest("singleType2Policy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
-def strictPolicyPatternSearchTest(createTestFile = False):
+def contiguousPolicyPatternSearchTest(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > c.OpeningPrice
@@ -625,9 +625,23 @@ def strictPolicyPatternSearchTest(createTestFile = False):
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
         timedelta(minutes=5),
-        ConsumptionPolicies(strict={"a", "b", "c"})
+        ConsumptionPolicies(contiguous=["a", "b", "c"])
     )
-    runTest("strictPolicy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+    runTest("contiguousPolicySingleList", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
+def contiguousPolicy2PatternSearchTest(createTestFile = False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
+        timedelta(minutes=5),
+        ConsumptionPolicies(contiguous=[["a", "b"],["b", "c"]])
+    )
+    runTest("contiguousPolicyMultipleLists", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
 def skipPolicyPatternSearchTest(createTestFile = False):
     """
@@ -685,8 +699,8 @@ iiRandomPatternSearchTest()
 iiRandom2PatternSearchTest()
 iiGreedyPatternSearchTest()
 iiGreedy2PatternSearchTest()
-#zStreamOrdPatternSearchTest()
-#zStreamPatternSearchTest()
+zStreamOrdPatternSearchTest()
+zStreamPatternSearchTest()
 dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
@@ -695,7 +709,8 @@ frequencyTailoredPatternSearchTest()
 #Consumption Policies Tests
 singleType1PolicyPatternSearchTest()
 singleType2PolicyPatternSearchTest()
-strictPolicyPatternSearchTest()
+contiguousPolicyPatternSearchTest()
+contiguousPolicy2PatternSearchTest()
 skipPolicyPatternSearchTest()
 skipPolicy2PatternSearchTest()
 

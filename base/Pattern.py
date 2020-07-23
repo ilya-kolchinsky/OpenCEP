@@ -1,3 +1,4 @@
+from base.Event import Event
 from base.Formula import Formula, EqFormula, IdentifierTerm, MinusTerm, AtomicTerm, AndFormula
 from base.PatternStructure import PatternStructure
 from datetime import timedelta
@@ -24,33 +25,48 @@ class Pattern:
         self.statistics = None
         self.consumption_policies = consumption_policies
 
-        if consumption_policies:
-            #Check that skip policies are enforced only on SeqOperator
-            if consumption_policies.skip:
-                if(pattern_structure.get_top_operator() != SeqOperator):
-                    raise Exception("Skip policies only work with SeqOperator")
-            #Adjust formula if qitems are "strict"
-            if consumption_policies.strict:
-                self.set_strict_formulas(pattern_structure)
+        if consumption_policies is not None:
+            # Check that skip policies are enforced only on SeqOperator
+            if consumption_policies.skip is not None and pattern_structure.get_top_operator() != SeqOperator:
+                raise Exception("Skip policies only work with SeqOperator")
+            if consumption_policies.contiguous is not None:
+                self.__init_strict_formulas(pattern_structure)
 
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         self.statistics_type = statistics_type
         self.statistics = statistics
 
-    def set_strict_formulas(self, pattern_structure: PatternStructure):
-        #Adjust formula if qitems are "strict"
+    def __init_strict_formulas(self, pattern_structure: PatternStructure):
+        """
+        Augment the pattern with the contiguity constraints specified as a part of the consumption policy.
+        """
+        if pattern_structure.get_top_operator() == QItem:
+            return
         args = pattern_structure.args
         for i in range(len(args)):
-            if(args[i].get_top_operator() == SeqOperator):
-                self.set_strict_formulas(args[i])
-        if(pattern_structure.get_top_operator() == SeqOperator):
-            for event_name in self.consumption_policies.strict:
-                for i in range(len(args) - 1):
-                    if(args[i + 1].name == event_name and args[i].get_top_operator() == QItem and args[i + 1].get_top_operator() == QItem):
-                        self.condition = AndFormula(
-                            self.condition,
-                            EqFormula(
-                                IdentifierTerm(args[i].name, lambda x: x["Index"]), 
-                                MinusTerm(IdentifierTerm(args[i + 1].name, lambda x: x["Index"]), AtomicTerm(1))
-                            )
-                        )
+            self.__init_strict_formulas(args[i])
+        if pattern_structure.get_top_operator() != SeqOperator:
+            return
+        for contiguous_sequence in self.consumption_policies.contiguous:
+            for i in range(len(contiguous_sequence) - 1):
+                for j in range(len(args) - 1):
+                    if args[i].get_top_operator() != QItem or args[i + 1].get_top_operator() != QItem:
+                        continue
+                    if contiguous_sequence[i] != args[j].name:
+                        continue
+                    if contiguous_sequence[i + 1] != args[j + 1].name:
+                        raise Exception("Contiguity constraints contradict the pattern structure: " +
+                                        "%s must follow %s" % (contiguous_sequence[i], contiguous_sequence[i + 1]))
+                    self.__add_contiguity_condition(args[i].name, args[i + 1].name)
+
+    def __add_contiguity_condition(self, first_name: str, second_name: str):
+        """
+        Augment the pattern condition with a contiguity constraint between the given event names.
+        """
+        self.condition = AndFormula(
+            self.condition,
+            EqFormula(
+                IdentifierTerm(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
+                MinusTerm(IdentifierTerm(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]), AtomicTerm(1))
+            )
+        )

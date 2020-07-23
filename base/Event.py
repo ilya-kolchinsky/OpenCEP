@@ -8,13 +8,15 @@ class Event:
     attributes using an appropriate data formatter.
     """
 
-    eventIndex = 0
+    # used in order to assign a serial number to each event that enters the system
+    counter = 0
+
+    # this is a temporal hack to support strict contiguity
+    INDEX_ATTRIBUTE_NAME = "InternalIndexAttributeName"
 
     def __init__(self, raw_data: str, data_formatter: DataFormatter):
         self.payload = data_formatter.parse_event(raw_data)
-        if('Index' in self.payload.keys()):
-            raise Exception('The key "Index" in the event payload is reserved')
-        self.payload['Index'] = Event.eventIndex
         self.event_type = data_formatter.get_event_type(self.payload)
         self.timestamp = data_formatter.get_event_timestamp(self.payload)
-        Event.eventIndex += 1
+        self.payload[Event.INDEX_ATTRIBUTE_NAME] = Event.counter
+        Event.counter += 1
