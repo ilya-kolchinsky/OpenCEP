@@ -644,12 +644,6 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
 
 # ON CUSTOM
 def MultipleNotBeginAndEndTest(createTestFile=False):
-    """
-    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
-    WHERE   a.OpeningPrice > b.OpeningPrice
-        AND b.OpeningPrice > c.OpeningPrice
-    WITHIN 5 minutes
-    """
     pattern = Pattern(
         SeqOperator([NegationOperator(QItem("TYP1", "x")),
                      NegationOperator(QItem("TYP4", "t")),
@@ -670,31 +664,8 @@ def MultipleNotBeginAndEndTest(createTestFile=False):
     )
     runTest("MultipleNotBeginAndEnd", [pattern], createTestFile)
 
-
-# ON CUSTOM3
-def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
-
-    pattern = Pattern(
-        SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMAZON", "b"), NegationOperator(QItem("GOOG", "c")),
-                     QItem("FB", "d"), NegationOperator(QItem("TYP1", "x"))]),
-        AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                               IdentifierTerm("b", lambda x: x["Opening Price"])),
-            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
-        timedelta(minutes=5)
-    )
-    runTest("NotEverywhere", [pattern], createTestFile, EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE)
-
-
 # ON custom2
 def simpleNotTest(createTestFile=False):
-    """
-    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
-    WHERE   a.OpeningPrice > b.OpeningPrice
-        AND b.OpeningPrice > c.OpeningPrice
-    WITHIN 5 minutes
-    """
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
         AndFormula(
@@ -710,12 +681,6 @@ def simpleNotTest(createTestFile=False):
 
 # ON NASDAQ SHORT
 def MultipleNotInTheMiddleTest(createTestFile=False):
-    """
-        PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
-        WHERE   a.OpeningPrice > b.OpeningPrice
-            AND b.OpeningPrice > c.OpeningPrice
-        WITHIN 5 minutes
-        """
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("LI", "d")), QItem("AMZN", "b"),
                      NegationOperator(QItem("FB", "e")), QItem("GOOG", "c")]),
@@ -738,12 +703,6 @@ def MultipleNotInTheMiddleTest(createTestFile=False):
 
 # ON NASDAQ SHORT
 def OneNotAtTheBeginningTest(createTestFile=False):
-    """
-    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
-    WHERE   a.OpeningPrice > b.OpeningPrice
-        AND b.OpeningPrice > c.OpeningPrice
-    WITHIN 5 minutes
-    """
     pattern = Pattern(
         SeqOperator([NegationOperator(QItem("TYP1", "x")), QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
         AndFormula(
@@ -758,12 +717,6 @@ def OneNotAtTheBeginningTest(createTestFile=False):
 
 # ON NASDAQ SHORT
 def MultipleNotAtTheBeginningTest(createTestFile=False):
-    """
-    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
-    WHERE   a.OpeningPrice > b.OpeningPrice
-        AND b.OpeningPrice > c.OpeningPrice
-    WITHIN 5 minutes
-    """
     pattern = Pattern(
         SeqOperator([NegationOperator(QItem("TYP1", "x")), NegationOperator(QItem("TYP2", "y")),
                      NegationOperator(QItem("TYP3", "z")), QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
@@ -779,12 +732,6 @@ def MultipleNotAtTheBeginningTest(createTestFile=False):
 
 # ON NASDAQ *HALF* SHORT
 def OneNotAtTheEndTest(createTestFile=False):
-    """
-    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
-    WHERE   a.OpeningPrice > b.OpeningPrice
-        AND b.OpeningPrice > c.OpeningPrice
-    WITHIN 5 minutes
-    """
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x"))]),
         AndFormula(
@@ -799,12 +746,6 @@ def OneNotAtTheEndTest(createTestFile=False):
 
 # ON NASDAQ *HALF* SHORT
 def MultipleNotAtTheEndTest(createTestFile=False):
-    """
-    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
-    WHERE   a.OpeningPrice > b.OpeningPrice
-        AND b.OpeningPrice > c.OpeningPrice
-    WITHIN 5 minutes
-    """
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x")),
                      NegationOperator(QItem("TYP2", "y")), NegationOperator(QItem("TYP3", "z"))]),
@@ -819,7 +760,6 @@ def MultipleNotAtTheEndTest(createTestFile=False):
 
 # ON CUSTOM3
 def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
-
     pattern = Pattern(
         SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMAZON", "b"), NegationOperator(QItem("GOOG", "c")),
                      QItem("FB", "d"), NegationOperator(QItem("TYP1", "x"))]),

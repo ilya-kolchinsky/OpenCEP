@@ -17,7 +17,10 @@ class PatternStructure(ABC):
     def get_args(self):
         raise NotImplementedError()
 
-    def create_top_operator(self):
+    def add_arg(self, pattern):
+        raise NotImplementedError()
+
+    def duplicate_top_operator(self):
         if self.get_top_operator() == SeqOperator:
             return SeqOperator([])
         elif self.get_top_operator() == AndOperator:

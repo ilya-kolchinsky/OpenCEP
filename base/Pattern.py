@@ -29,8 +29,8 @@ class Pattern:
         negative_event contains only the negative events of the pattern.
         """
         self.origin_structure = pattern_structure
-        self.structure = pattern_structure.create_top_operator()
-        self.negative_event = pattern_structure.create_top_operator()
+        self.structure = pattern_structure.duplicate_top_operator()
+        self.negative_event = pattern_structure.duplicate_top_operator()
 
         self.split_structures()
 
@@ -51,3 +51,6 @@ class Pattern:
                 self.negative_event.add_arg(p)
             else:
                 self.structure.add_arg(p)
+
+        if not self.structure.get_args():
+            raise Exception("No positive events")

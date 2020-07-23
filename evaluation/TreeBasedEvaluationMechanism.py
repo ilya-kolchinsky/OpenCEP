@@ -70,21 +70,6 @@ class Node(ABC):
         count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window)
         self._partial_matches = self._partial_matches[count:]
 
-        """
-        "waiting for timeout" contains matches that may be invalidated by a future negative event
-        if the timestamp has passed, they can't be invalidated anymore,
-        therefore we remove them from waiting for timeout
-        and we put them in the field "matches to handle at eof" of the root,
-        for it to put it in the matches at the end of the program
-        """
-
-        if type(self) == InternalNegationNode and self.is_last:
-            self.waiting_for_time_out = sorted(self.waiting_for_time_out, key=lambda x: x.first_timestamp)
-            count = find_partial_match_by_timestamp(self.waiting_for_time_out, last_timestamp - self._sliding_window)
-            node = self.get_root()
-            node.matches_to_handle_at_EOF.extend(self.waiting_for_time_out[:count])
-            self.waiting_for_time_out = self.waiting_for_time_out[count:]
-
     def add_partial_match(self, pm: PartialMatch):
         """
         Registers a new partial match at this node.
@@ -341,6 +326,24 @@ class InternalNegationNode(InternalNode):
         expired match : they will be removed from root.partial_match when we call clean_expired
         """
         self.matches_to_handle_at_EOF = []
+
+    def clean_expired_partial_matches(self, last_timestamp: datetime):
+        super().clean_expired_partial_matches(last_timestamp)
+
+        """
+        "waiting for timeout" contains matches that may be invalidated by a future negative event
+        if the timestamp has passed, they can't be invalidated anymore,
+        therefore we remove them from waiting for timeout
+        and we put them in the field "matches to handle at eof" of the root,
+        for it to put it in the matches at the end of the program
+        """
+
+        if self.is_last:
+            self.waiting_for_time_out = sorted(self.waiting_for_time_out, key=lambda x: x.first_timestamp)
+            count = find_partial_match_by_timestamp(self.waiting_for_time_out, last_timestamp - self._sliding_window)
+            node = self.get_root()
+            node.matches_to_handle_at_EOF.extend(self.waiting_for_time_out[:count])
+            self.waiting_for_time_out = self.waiting_for_time_out[count:]
 
     def _set_event_definitions(self,
                                left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
