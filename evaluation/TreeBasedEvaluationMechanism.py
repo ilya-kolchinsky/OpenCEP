@@ -25,10 +25,10 @@ class Node(ABC):
         self._condition = TrueFormula()
         # matches that were not yet pushed to the parent for further processing
         self._unhandled_partial_matches = Queue()
-        # Variables for the first mechanism
-        # First mechanism: limiting a primitive event to only appear in a single full match
-        self._single_event_types = set() # Set of event types that will only appear in a single full match
-        self._filtered_events = set() # Events that were added to a partial match and cannot be added again
+        # set of event types that will only appear in a single full match
+        self._single_event_types = set()
+        # events that were added to a partial match and cannot be added again
+        self._filtered_events = set()
 
     def consume_first_partial_match(self):
         """
@@ -60,58 +60,71 @@ class Node(ABC):
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
         Removes partial matches whose earliest timestamp violates the time window constraint.
-        Return the expired partial matches.
+        Also removes the expired filtered events if the "single" consumption policy is enabled.
         """
         if self._sliding_window == timedelta.max:
-            return []
+            return
         count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window)
-        expired_partial_matches = self._partial_matches[:count]
         self._partial_matches = self._partial_matches[count:]
-        return expired_partial_matches
+        if len(self._single_event_types) == 0:
+            # "single" consumption policy is disabled or no event types under the policy reach this node
+            return
+        self._filtered_events = set([event for event in self._filtered_events
+                                    if event.timestamp >= last_timestamp - self._sliding_window])
 
-    def clean_expired_filtered_events(self, event_type: str, expired_partial_matches: List):
+    def register_single_event_type(self, event_type: str):
         """
-        Removes all the filtered events all the way up to the root if the appropriate mechanism
-        is enabled.
+        Add the event type to the internal set of event types for which "single" consumption policy is enabled.
+        Recursively updates the ancestors of the node.
         """
-        pass
-        """
-        single_mechanism = self._tree.single_mechanism
-        if expired_partial_matches and single_mechanism and event_type in single_mechanism.single_types:
-            mechanism = single_mechanism.mechanism
-            current = self if mechanism == Mechanisms.type1 else self._tree.root if mechanism == Mechanisms.type2 else None
-            while current:
-                if current._filtered_events:
-                    for pm in expired_partial_matches:
-                        for event in pm.events:
-                            current._filtered_events.discard(event)
-                current = current._parent
-        """
+        self._single_event_types.add(event_type)
+        if self._parent is not None:
+            self._parent.register_single_event_type(event_type)
 
-    def add_partial_match(self, pm: PartialMatch) -> bool:
+    def __add_partial_match(self, pm: PartialMatch):
         """
         Registers a new partial match at this node.
         As of now, the insertion is always by the timestamp, and the partial matches are stored in a list sorted by
         timestamp. Therefore, the insertion operation is performed in O(log n).
-        Returns True if adding the partial match succeeded and False otherwise.
-        Will always return true if single event type limit mechanism is disabled.
         """
-        # Check if partial match can be added if single event type limit mechanism is enabled
-        if self._single_event_types:
-            new_filtered_events = set()
-            for event in pm.events:
-                if event.event_type in self._single_event_types: 
-                    if event in self._filtered_events:
-                        return False
-                    else:
-                        new_filtered_events.add(event)
-            self._filtered_events |= new_filtered_events
-        
         index = find_partial_match_by_timestamp(self._partial_matches, pm.first_timestamp)
         self._partial_matches.insert(index, pm)
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
+
+    def __can_add_partial_match(self, pm: PartialMatch) -> bool:
+        """
+        Returns True if the given partial match can be passed up the tree and False otherwise.
+        As of now, only the activation of the "single" consumption policy might prevent this method from returning True.
+        In addition, this method updates the filtered events set.
+        """
+        if len(self._single_event_types) == 0:
+            return True
+        new_filtered_events = set()
+        for event in pm.events:
+            if event.event_type not in self._single_event_types:
+                continue
+            if event in self._filtered_events:
+                # this event was already passed
+                return False
+            else:
+                # this event was not yet passed but should only be passed once - remember it
+                new_filtered_events.add(event)
+        self._filtered_events |= new_filtered_events
         return True
+
+    def _handle_partial_match(self, events: List[Event]):
+        """
+        Creates a new partial match from the list of events and propagates it up the tree.
+        """
+        if not self._validate_new_match(events):
+            return
+        new_partial_match = PartialMatch(events)
+        if not self.__can_add_partial_match(new_partial_match):
+            return
+        self.__add_partial_match(new_partial_match)
+        if self._parent is not None:
+            self._parent.handle_new_partial_match(self)
 
     def get_partial_matches(self):
         """
@@ -137,13 +150,11 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    def add_single_event_type(self, event_type: str):
+    def _validate_new_match(self, events_for_new_match: List[Event]):
         """
-        Add the event type to the set "_single_event_types" recursively up the tree
+        Validates the condition stored in this node on the given set of events.
         """
-        self._single_event_types.add(event_type)
-        if self._parent != None:
-            self._parent.add_single_event_type(event_type)
+        raise NotImplementedError()
 
 
 class LeafNode(Node):
@@ -184,30 +195,14 @@ class LeafNode(Node):
         Inserts the given event to this leaf.
         """
         self.clean_expired_partial_matches(event.timestamp)
+        self._handle_partial_match([event])
 
-        # get event's qitem and make a binding to evaluate formula for the new event.
-        binding = {self.__event_name: event.payload}
-
-        if not self._condition.eval(binding):
-            return
-
-        if self.add_partial_match(PartialMatch([event])):
-            if self._parent is not None:
-                self._parent.handle_new_partial_match(self)
-    
-    def get_leaf_index(self):
-        return self.__leaf_index
-
-    def clean_expired_partial_matches(self, last_timestamp: datetime):
+    def _validate_new_match(self, events_for_new_match: List[Event]):
         """
-        Removes partial matches whose earliest timestamp violates the time window constraint.
-        Also removes all the filtered events all the way up to the root if the appropriate mechanism
-        is enabled.
-        Return the expired partial matches.
+        Validates the condition stored in this node on the given set of events.
         """
-        expired_partial_matches = super().clean_expired_partial_matches(last_timestamp)
-        self.clean_expired_filtered_events(self.__event_type, expired_partial_matches)
-        return expired_partial_matches
+        binding = {self.__event_name: events_for_new_match[0].payload}
+        return self._condition.eval(binding)
 
 
 class InternalNode(Node):
@@ -290,12 +285,7 @@ class InternalNode(Node):
             return
         events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
                                                                 first_partial_match.events, second_partial_match.events)
-
-        if not self._validate_new_match(events_for_new_match):
-            return
-        if self.add_partial_match(PartialMatch(events_for_new_match)):
-            if self._parent is not None:
-                self._parent.handle_new_partial_match(self)
+        self._handle_partial_match(events_for_new_match)
 
     def _merge_events_for_new_match(self,
                                     first_event_defs: List[Tuple[int, QItem]],
@@ -362,12 +352,10 @@ class Tree:
         self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
                                             tree_structure, pattern.structure.args, pattern.window,
                                             None, pattern.consumption_policies)
-        self.single_mechanism = None
-        if pattern.consumption_policies and pattern.consumption_policies.single:
-            self.single_mechanism = pattern.consumption_policies.single
-            if pattern.consumption_policies.single.mechanism == Mechanisms.type2:
-                for event_type in pattern.consumption_policies.single.single_types:
-                    self.__root.add_single_event_type(event_type)
+        if pattern.consumption_policies is not None and \
+                pattern.consumption_policies.should_register_event_type_as_single(True):
+            for event_type in pattern.consumption_policies.single.single_types:
+                self.__root.register_single_event_type(event_type)
         self.__root.apply_formula(pattern.condition)
 
     def get_leaves(self):
@@ -381,9 +369,11 @@ class Tree:
     def __construct_tree(is_sequence: bool, tree_structure: tuple or int, args: List[QItem],
                          sliding_window: timedelta, parent: Node, consumption_policies: ConsumptionPolicies):
         if type(tree_structure) == int:
+            # we have reached a leaf
             event = args[tree_structure]
-            if consumption_policies and consumption_policies.single and consumption_policies.single.mechanism == Mechanisms.type1 and event.event_type in consumption_policies.single.single_types:
-                parent.add_single_event_type(event.event_type)
+            if consumption_policies is not None and \
+                    consumption_policies.should_register_event_type_as_single(False, event.event_type):
+                parent.register_single_event_type(event.event_type)
             return LeafNode(sliding_window, tree_structure, event, parent)
         current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
         left_structure, right_structure = tree_structure

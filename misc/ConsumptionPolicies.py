@@ -36,3 +36,14 @@ class ConsumptionPolicies:
             self.freeze = [freeze]
         else:
             self.freeze = freeze
+
+    def should_register_event_type_as_single(self, is_root: bool, event_type: str = None):
+        """
+        Returns True if the given parameters should activate the "single match only" policy on a tree node and
+        False otherwise.
+        """
+        if self.single is None:
+            return False
+        if self.single.mechanism == Mechanisms.type2:
+            return is_root and (event_type is None or event_type in self.single.single_types)
+        return event_type in self.single.single_types
