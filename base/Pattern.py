@@ -7,7 +7,7 @@ from base.PatternStructure import PatternStructure
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
 from base.PatternStructure import SeqOperator, QItem
-from misc.ConsumptionPolicies import ConsumptionPolicies
+from misc.ConsumptionPolicy import ConsumptionPolicy
 
 class Pattern:
     """
@@ -15,25 +15,46 @@ class Pattern:
     - a structure represented by a tree of operators over the primitive events (e.g., SEQ(A,B*, AND(C, NOT(D), E)));
     - a condition to be satisfied by the primitive events (might consist of multiple nested conditions);
     - a time window for the pattern matches to occur within.
-    - a ConsumptionPolicies object that contains the policies that filter certain partial matches
+    - a ConsumptionPolicy object that contains the policies that filter certain partial matches
     A pattern can also carry statistics with it, in order to enable advanced
     tree construction mechanisms - this is hopefully a temporary hack.
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Formula = None,
-                 time_window: timedelta = timedelta.max, consumption_policies: ConsumptionPolicies = None):        
+                 time_window: timedelta = timedelta.max, consumption_policy: ConsumptionPolicy = None):
         self.structure = pattern_structure
         self.condition = pattern_matching_condition
         self.window = time_window
         self.statistics_type = StatisticsTypes.NO_STATISTICS
         self.statistics = None
-        self.consumption_policies = consumption_policies
+        self.consumption_policy = consumption_policy
 
-        if consumption_policies is not None and consumption_policies.contiguous is not None:
-            self.__init_strict_formulas(pattern_structure)
+        if consumption_policy is not None:
+            if consumption_policy.single_event_strategy is not None and consumption_policy.single_types is None:
+                # must be initialized to contain all event types in the pattern
+                consumption_policy.single_types = self.get_all_event_types()
+            if consumption_policy.contiguous_names is not None:
+                self.__init_strict_formulas(pattern_structure)
 
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
+        """
+        Sets the statistical properties related to the events and conditions of this pattern.
+        """
         self.statistics_type = statistics_type
         self.statistics = statistics
+
+    def get_all_event_types(self):
+        """
+        Returns all event types in the pattern.
+        """
+        return set(self.__get_all_event_types_aux(self.structure))
+
+    def __get_all_event_types_aux(self, structure: PatternStructure):
+        """
+        An auxiliary method for returning all event types in the pattern.
+        """
+        if structure.get_top_operator() == QItem:
+            return [structure.event_type]
+        return reduce(lambda x, y: x+y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
 
     def __init_strict_formulas(self, pattern_structure: PatternStructure):
         """
@@ -46,7 +67,7 @@ class Pattern:
             self.__init_strict_formulas(args[i])
         if pattern_structure.get_top_operator() != SeqOperator:
             return
-        for contiguous_sequence in self.consumption_policies.contiguous:
+        for contiguous_sequence in self.consumption_policy.contiguous_names:
             for i in range(len(contiguous_sequence) - 1):
                 for j in range(len(args) - 1):
                     if args[i].get_top_operator() != QItem or args[i + 1].get_top_operator() != QItem:

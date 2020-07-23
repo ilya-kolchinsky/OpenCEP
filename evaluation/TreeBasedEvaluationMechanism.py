@@ -11,7 +11,7 @@ from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_
 from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
-from misc.ConsumptionPolicies import *
+from misc.ConsumptionPolicy import *
 
 
 class Node(ABC):
@@ -351,10 +351,10 @@ class Tree:
         # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
         self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
                                             tree_structure, pattern.structure.args, pattern.window,
-                                            None, pattern.consumption_policies)
-        if pattern.consumption_policies is not None and \
-                pattern.consumption_policies.should_register_event_type_as_single(True):
-            for event_type in pattern.consumption_policies.single.single_types:
+                                            None, pattern.consumption_policy)
+        if pattern.consumption_policy is not None and \
+                pattern.consumption_policy.should_register_event_type_as_single(True):
+            for event_type in pattern.consumption_policy.single_types:
                 self.__root.register_single_event_type(event_type)
         self.__root.apply_formula(pattern.condition)
 
@@ -367,18 +367,18 @@ class Tree:
 
     @staticmethod
     def __construct_tree(is_sequence: bool, tree_structure: tuple or int, args: List[QItem],
-                         sliding_window: timedelta, parent: Node, consumption_policies: ConsumptionPolicies):
+                         sliding_window: timedelta, parent: Node, consumption_policy: ConsumptionPolicy):
         if type(tree_structure) == int:
             # we have reached a leaf
             event = args[tree_structure]
-            if consumption_policies is not None and \
-                    consumption_policies.should_register_event_type_as_single(False, event.event_type):
+            if consumption_policy is not None and \
+                    consumption_policy.should_register_event_type_as_single(False, event.event_type):
                 parent.register_single_event_type(event.event_type)
             return LeafNode(sliding_window, tree_structure, event, parent)
         current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
         left_structure, right_structure = tree_structure
-        left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current, consumption_policies)
-        right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current, consumption_policies)
+        left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current, consumption_policy)
+        right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current, consumption_policy)
         current.set_subtrees(left, right)
         return current
 
@@ -394,7 +394,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         self.__active_freezers = []
         self.__event_types_listeners = {}
 
-        if pattern.consumption_policies is not None and pattern.consumption_policies.freeze is not None:
+        if pattern.consumption_policy is not None and pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
 
     def eval(self, events: Stream, matches: Stream):
@@ -437,7 +437,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         leaves to be disabled.
         """
         sequences = self.__pattern.extract_flat_sequences()
-        for freezer_event_name in self.__pattern.consumption_policies.freeze:
+        for freezer_event_name in self.__pattern.consumption_policy.freeze_names:
             current_event_name_set = set()
             for sequence in sequences:
                 if freezer_event_name not in sequence:

@@ -8,7 +8,7 @@ from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
 from misc.IOUtils import file_input, file_output
 from misc.Stocks import MetastockDataFormatter
 from misc.Utils import generate_matches
-from misc.ConsumptionPolicies import *
+from misc.ConsumptionPolicy import *
 from evaluation.LeftDeepTreeBuilders import *
 from evaluation.BushyTreeBuilders import *
 from datetime import timedelta
@@ -597,7 +597,7 @@ def singleType1PolicyPatternSearchTest(createTestFile = False):
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
         timedelta(minutes=5),
-        ConsumptionPolicies(single = SingleTypes({"AMZN"}, Mechanisms.type1))
+        ConsumptionPolicy(single="AMZN", secondary_selection_strategy=SelectionStrategies.MATCH_NEXT)
     )
     runTest("singleType1Policy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
@@ -611,7 +611,7 @@ def singleType2PolicyPatternSearchTest(createTestFile = False):
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
         timedelta(minutes=5),
-        ConsumptionPolicies(single = SingleTypes({"AMZN"}, Mechanisms.type2))
+        ConsumptionPolicy(single="AMZN", secondary_selection_strategy=SelectionStrategies.MATCH_SINGLE)
     )
     runTest("singleType2Policy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
@@ -625,7 +625,7 @@ def contiguousPolicyPatternSearchTest(createTestFile = False):
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
         timedelta(minutes=5),
-        ConsumptionPolicies(contiguous=["a", "b", "c"])
+        ConsumptionPolicy(contiguous=["a", "b", "c"])
     )
     runTest("contiguousPolicySingleList", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
@@ -639,7 +639,7 @@ def contiguousPolicy2PatternSearchTest(createTestFile = False):
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
         timedelta(minutes=5),
-        ConsumptionPolicies(contiguous=[["a", "b"],["b", "c"]])
+        ConsumptionPolicy(contiguous=[["a", "b"], ["b", "c"]])
     )
     runTest("contiguousPolicyMultipleLists", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
@@ -653,7 +653,7 @@ def freezePolicyPatternSearchTest(createTestFile = False):
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
         timedelta(minutes=5),
-        ConsumptionPolicies(freeze="a")
+        ConsumptionPolicy(freeze="a")
     )
     runTest("freezePolicy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
@@ -667,7 +667,7 @@ def freezePolicy2PatternSearchTest(createTestFile = False):
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
         timedelta(minutes=5),
-        ConsumptionPolicies(freeze="b")
+        ConsumptionPolicy(freeze="b")
     )
     runTest("freezePolicy2", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
