@@ -37,7 +37,7 @@ class SeqOperator(PatternStructure):
 
 
 class KleeneClosureOperator(PatternStructure):
-    def __init__(self, arg: PatternStructure, min_size=1, max_size=5):
+    def __init__(self, arg: PatternStructure, min_size=1, max_size=None):
         self.args = [arg]
         self.min_size = min_size
         self.max_size = max_size

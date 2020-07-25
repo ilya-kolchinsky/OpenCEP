@@ -413,13 +413,12 @@ class KleeneClosureNode(UnaryNode):
 
         events_for_new_match = power_match.events
 
-        # TODO: when condition on every node is implemented (part of the Node abstract class) it is possible
-        #   to add a verification method and prefix elimination here to check conditions between events.
-        #   As of now, there is no need to validate the events here as this is a mere wrapper to the underlying node.
-        #   Every event that is passed to KC node is an event that satisfied the conditions at the child node.
-        self.add_partial_match(PartialMatch(events_for_new_match))
+        # forward partial match to parent if exists or save in current node if this is the root node.
+        # very important for cases when KC node is the root node.
         if self._parent is not None:
             self._parent.handle_new_partial_match(self)
+        else:
+            self.add_partial_match(PartialMatch(events_for_new_match))
 
     def handle_new_partial_match(self, partial_match_source: Node):
         if self._child is None:
@@ -430,36 +429,14 @@ class KleeneClosureNode(UnaryNode):
 
         self._child.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
-        # generates a list of sets (using a generator) that pass provided filter.
-        child_matches_powerset = powerset_generator(self._child.get_partial_matches(), new_partial_match,
-                                                    self.partial_match_filter, self._min_size, self._max_size)
+        # generates a list of all subsets (using a generator).
+        child_partial_matches = self._child.get_partial_matches()
+        child_matches_powerset = powerset_generator(child_partial_matches[:-1],
+                                                    self._min_size, self._max_size)
+        child_matches_powerset = [item + [child_partial_matches[-1]] for item in child_matches_powerset]
         for partialMatch in child_matches_powerset:
             partial_match = self.partial_match_from_partial_match_set(partialMatch)
             self._try_create_new_match(new_partial_match, partial_match, event_defs)
-
-    """
-    filter method for the power-set generator. 
-    return None if the generated set does not meet requirements, or the generated set if it passes all filters.
-    """
-    @staticmethod
-    def partial_match_filter(current_generated_set, new_match, min_size, max_size):
-        if new_match is None:
-            raise Exception("Illegal new match for partial match filter")
-        if min_size <= 0:
-            raise Exception("Illegal min_size argument for partial match set")
-        if max_size < min_size:
-            raise Exception("Illegal max_size argument for partial match set")
-
-        # ensure matches are never re-used (newest match must exist in the generated set and there is no way
-        # previously generated matches will contain this new event)
-        if new_match not in current_generated_set:
-            return None
-
-        # enforce min_size and max_size constraints
-        if not (min_size <= len(current_generated_set) <= max_size):
-            return None
-
-        return current_generated_set
 
 
 class Tree:
@@ -497,17 +474,22 @@ class Tree:
     @staticmethod
     def __construct_tree(root_type, tree_structure: tuple or int, args: List[PatternStructure],
                          sliding_window: timedelta, parent: Node = None):
-        # handle current operator
+        # tree_structure is int when we need to build current nested node or leaf node, or when Unary operator arrives
         if type(tree_structure) == int:
+            # QItem found - NO NESTED operations needed.
             if args[tree_structure].get_top_operator() == QItem:
+                # no KC operations needed or KC node was already generated in previous nesting level -- create the leaf.
                 if root_type != KleeneClosureOperator or isinstance(parent, KleeneClosureNode):
                     return LeafNode(sliding_window, tree_structure, args[tree_structure], parent)
+                # handling KC child -- create the KC node and the child node, connect child and parent to KC node.
                 else:
                     current = Tree.__generate_new_node(root_type, sliding_window, parent)
                     child = LeafNode(sliding_window, tree_structure, args[tree_structure], current)
                     current.set_subtrees(child)
                     return current
+            # NESTED operator found -- recursively calling construct tree
             else:
+                # nested KC operator -- create KC operator, create subtree recursively and connect KC to child and parent.
                 if args[tree_structure].get_top_operator() == KleeneClosureOperator:
                     current = Tree.__generate_new_node(args[tree_structure].get_top_operator(), sliding_window, parent)
                     nested_evaluation_order = Tree._create_evaluation_order(args[tree_structure])
@@ -516,19 +498,23 @@ class Tree:
                                                   args[tree_structure].args, sliding_window, current)
                     current.set_subtrees(child)  # Unary node
                     return current
+                # nested operator - NOT KC.
                 else:
                     nested_evaluation_order = Tree._create_evaluation_order(args[tree_structure])
                     nested_tree_structure = Tree.__build_tree_from_order(nested_evaluation_order)
-                    if parent is None:
-                        parent = Tree.__generate_new_node(root_type, sliding_window, parent)
+                    # create wrapper KC node when parent is none and root is KC operator
+                    if root_type == KleeneClosureOperator and parent is None:
+                        current = Tree.__generate_new_node(root_type, sliding_window, parent)
                         child = Tree.__construct_tree(args[tree_structure].get_top_operator(), nested_tree_structure,
-                                                      args[tree_structure].args, sliding_window, parent)
-                        parent.set_subtrees(child)
-                        return parent
+                                                      args[tree_structure].args, sliding_window, current)
+                        current.set_subtrees(child)
+                        return current
                     else:
                         return Tree.__construct_tree(args[tree_structure].get_top_operator(), nested_tree_structure,
                                                      args[tree_structure].args, sliding_window, parent)
-
+        # continue creating nodes based on parent node for every item that still has tree_structure as tuple.
+        # this means we do not need to build this node yet, but rather keep building the tree infrastructure.
+        # NOTE: operators with 1 argument will NEVER get here, as they meet the condition type(tree_structure) == int.
         current = Tree.__generate_new_node(root_type, sliding_window, parent)
 
         left_structure, right_structure = tree_structure
@@ -538,8 +524,6 @@ class Tree:
 
         return current
 
-    # TODO: implemented here as construct_tree is a static method and we cannot deffer the dynamic tree type.
-    #  currently implemented this method for trivial left deep tree only.
     @staticmethod
     def _create_evaluation_order(pattern):
         if isinstance(pattern, QItem):

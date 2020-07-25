@@ -4,7 +4,6 @@ from queue import Queue
 import sys
 import os
 
-# TODO: only edit this variable when changing environment or execution directory
 current_project_directory = os.path.join(os.getcwd())
 print(current_project_directory)
 
@@ -75,7 +74,7 @@ def file_output(matches: list, output_file_name: str = 'matches.txt'):
     Writes output matches to a file in the subfolder "Matches".
     It supports any iterable as output matches.
     """
-    base_matches_directory = os.path.join(current_project_directory, 'test', 'Matches')
+    base_matches_directory = os.path.join(current_project_directory, 'Matches')
     if not os.path.exists(base_matches_directory):
         os.makedirs(base_matches_directory, exist_ok=True)
     with open(os.path.join(base_matches_directory, output_file_name), 'w') as f:

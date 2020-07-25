@@ -232,48 +232,17 @@ def does_match_exist(matches: list, match: list):
     return False
 
 
-def powerset_generator(iterable, new_partial_match, _filter, min_size, max_size):
+def powerset_generator(seq, min_size, max_size):
     """
-    Power set GENERATOR helper function used in KleeneClosure.
-    Example:
-        powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)
-        added support for min_size and max_size
+    Returns all the subsets of this set. This is a generator.
     """
-    s = list(iterable)
-    if len(s) == 0:
-        return None
+    if len(seq) <= 1:
+        yield seq
+        yield []
+    else:
+        for item in powerset_generator(seq[1:-1], min_size, max_size):
+            if min_size <= len(item) + 2 <= max_size:
+                yield [seq[0]] + item
+            if min_size <= len(item) + 1 <= max_size:
+                yield item
 
-    b = chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
-    for item in b:
-        if _filter(item, new_partial_match, min_size, max_size) is not None:
-            yield item
-
-
-"""
-this section is a custom-made power-set generator method
-we did not see any optimization using this method so we left it unattended for now
-"""
-
-
-def count_set_bits(n):
-    count = 0
-    while n:
-        count += n & 1
-        n >>= 1
-    return count
-
-
-def power_set(iterable, min_size, max_size):
-    result = []
-    num_subsets = 2**len(iterable)
-    # every iteration creates ONE subset
-    for current in range(1, num_subsets):
-        current_subset = []
-        if min_size <= count_set_bits(current) <= max_size:
-            for j in range(len(iterable)):
-                # test if jth bit is on - if it is on add element to current subset
-                if (current >> j) % 2 == 1:
-                    current_subset.append(iterable[j])
-            result.append(current_subset)
-    for item in result:
-        yield item

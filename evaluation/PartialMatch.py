@@ -12,10 +12,10 @@ class PartialMatch:
         self.last_timestamp = max(events, key=lambda x: x.timestamp).timestamp
         self.first_timestamp = min(events, key=lambda x: x.timestamp).timestamp
 
-    # TODO: implement a more accurate comparison operator for events list (prefix? duplications?)
-    # TODO: implement a more optimized way for the inclusion check
     def __eq__(self, other):
-        for event in self.events:
-            if event not in other.events:
+        if len(self.events) != len(other.events):
+            return False
+        for (event_self, event_other) in zip(self.events, other.events):
+            if event_self not in other.events or event_other not in self.events:
                 return False
         return True
