@@ -1,5 +1,6 @@
 from misc.StatisticsTypes import StatisticsTypes
 from optimizer.ReoptimizingDecision import InvariantBasedDecision
+from statisticsCollector.StatisticsCollector import Stat
 
 
 class GreedyAlgorithmBasedInvariants(InvariantBasedDecision):
@@ -7,31 +8,26 @@ class GreedyAlgorithmBasedInvariants(InvariantBasedDecision):
         self.invariants = []  # is a list containing elements: (event_a, event_b, compare_sign: CompareSigns)
 
     @staticmethod
-    def deciding_condition(building_block, SC_data, approved_events):
+    def deciding_condition(building_block, stat: Stat, approved_events):
         event1 = building_block[0]
         event2 = building_block[1]
-        event1_value = SC_data.rates[event1] * SC_data.selectivity_matrix[event1][event1]
-        event2_value = SC_data.rates[event2] * SC_data.selectivity_matrix[event2][event2]
+        event1_value = stat.arrival_rates[event1] * stat.selectivity_matrix[event1][event1]
+        event2_value = stat.arrival_rates[event2] * stat.selectivity_matrix[event2][event2]
         for p_k in approved_events:
-            event1_value *= SC_data.selectivity_matrix[p_k][event1]
-            event2_value *= SC_data.selectivity_matrix[p_k][event2]
+            event1_value *= stat.selectivity_matrix[p_k][event1]
+            event2_value *= stat.selectivity_matrix[p_k][event2]
         return event1_value <= event2_value
 
-    def decision(self, SC_data):
+    def decision(self, stat: Stat):
         """
         Checking if any of the invariants has been violated. If yes then initiate reoptimization
         """
         approved_events = []
-        if len(self.invariants) == 0:
+        if len(self.invariants) == 0:  # Meaning it's the first reoptimization decision and there are not invariants yet
             return True
         else:
             for building_block in self.invariants:
-                """
-                I need to see how i'll receive the information about the events from the statistics collector
-                and then take the rates of the events in the deciding block and call self.__compare_events
-                with their rates
-                """
-                if not self.deciding_condition(building_block, SC_data, approved_events):
+                if not self.deciding_condition(building_block, stat, approved_events):
                     approved_events.clear()
                     return True
                 approved_events.append(building_block[0])
@@ -48,8 +44,8 @@ class GreedyAlgorithmBasedInvariants(InvariantBasedDecision):
         return
 
 
-def create_invariant_based_on_data_type(SC_data_type: StatisticsTypes):
-    if SC_data_type == StatisticsTypes.ARRIVAL_RATES:
+def create_invariant_based_on_data_type(statistics_type: StatisticsTypes):
+    if statistics_type == StatisticsTypes.ARRIVAL_RATES:
         return GreedyAlgorithmBasedInvariants()
     else:
         raise NotImplementedError()

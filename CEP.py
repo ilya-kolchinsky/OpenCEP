@@ -9,6 +9,14 @@ from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters,
 from typing import List
 from datetime import datetime
 from optimizer.ReoptimizingDecision import ReoptimizationDecisionTypes
+from statisticsCollector.StatisticsCollector import StatisticsCollector, Stat
+from statisticsCollector.StatisticsTypes import StatisticsTypes
+from optimizer.Optimizer import Optimizer
+from AdaptiveConfigurationSettings import AdaptiveParameters
+from evaluation.AdaptiveTreeReplacementAlgorithm import StopAndReplaceTree,\
+    create_adaptive_evaluation_mechanism_by_type
+import time
+
 
 class PerformanceSpecifications:
     """
@@ -28,7 +36,8 @@ class CEP:
                  reoptimizing_decision_params: ReoptimizationDecisionTypes,
                  eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
                  eval_mechanism_params: EvaluationMechanismParameters = None,
-                 performance_specs: PerformanceSpecifications = None
+                 performance_specs: PerformanceSpecifications = None,
+                 is_adaptive=False, adaptive_parameters = None
                  ):
         """
         Constructor of the class.
@@ -39,15 +48,21 @@ class CEP:
             raise Exception("No patterns are provided")
         if len(patterns) > 1:
             raise NotImplementedError("Multi-pattern support is not yet available")
-        self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
+        if is_adaptive:
+            self.adaptive_parameters = adaptive_parameters
+            self.__statistics_collector = StatisticsCollector(patterns[0], adaptive_parameters.statistics_type,
+                                                              adaptive_parameters.window_coefficient,
+                                                              adaptive_parameters.k)
+            self.__optimizer = Optimizer(patterns[0], eval_mechanism_type, adaptive_parameters.statistics_type,
+                                         adaptive_parameters.reoptimizing_decision_params)
+            self.__eval_mechanism = create_adaptive_evaluation_mechanism_by_type(adaptive_parameters.tree_replacement_algorithm_type)
+        else:
+            self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
                                                                                                eval_mechanism_params,
                                                                                                patterns[0])
+        self.is_adaptive = is_adaptive
         self.__pattern_matches = None
         self.__performance_specs = performance_specs
-
-        # Added Yotam
-        self.__optimizer = Optimizer(patterns[0].statistics_type, reoptimizing_decision_params, patterns[0])
-        # Added Yotam
 
     def run(self, event_stream: Stream):
         """
@@ -56,7 +71,26 @@ class CEP:
         """
         self.__pattern_matches = Stream()
         start = datetime.now()
-        self.__eval_mechanism.eval(event_stream, self.__pattern_matches)
+        last_activated_statistics_collector_period = last_activated_optimizer_period = time.time()
+        stat = self.__statistics_collector.get_stat()
+        if self.is_adaptive:
+            for event in event_stream:
+                if time.time() - last_activated_statistics_collector_period >\
+                        self.adaptive_parameters.activate_statistics_collector_period:
+                    self.__statistics_collector.insert_event(event)
+                    stat = self.__statistics_collector.get_stat()
+                    last_activated_statistics_collector_period = time.time()
+                if time.time() - last_activated_optimizer_period >\
+                        self.adaptive_parameters.activate_optimizer_period:
+                    new_plan = self.__optimizer.run(stat)
+                    last_activated_optimizer_period = time.time()
+                else:
+                    new_plan = None
+                self.__eval_mechanism.eval(event, new_plan, self.__pattern_matches, self.__statistics_collector)
+            # After the loop
+            self.__pattern_matches.close()  # TODO: IMPORTANT!!
+        else:
+            self.__eval_mechanism.eval(event_stream, self.__pattern_matches)
         return (datetime.now() - start).total_seconds()
 
     def get_pattern_match(self):
