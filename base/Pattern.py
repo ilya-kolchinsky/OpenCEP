@@ -1,3 +1,5 @@
+from builtins import str
+
 from base.Formula import Formula
 from base.PatternStructure import PatternStructure
 from datetime import timedelta
@@ -41,12 +43,8 @@ class Pattern:
 
     def split_structures(self):
         origin_structure_args = self.origin_structure.get_args()
-        index = 0
         for i in range(len(origin_structure_args)):
             p = origin_structure_args[i]
-            index = p.set_qitem_index(index)
-            # the returned index is the one we want to use at next iteration : it's incremented in set_qitem_index
-            # no need to do index++
             if type(p) == NegationOperator:
                 self.negative_event.add_arg(p)
             else:
@@ -54,3 +52,15 @@ class Pattern:
 
         if not self.structure.get_args():
             raise Exception("No positive events")
+
+    def find_index_from_name(self, event_name: str):
+        """
+        Return the position of the event in the pattern
+        """
+        structure = self.origin_structure.get_args()
+        index = 0
+        for element in structure:
+            if element.get_event_name() == event_name:
+                return index
+            index += 1
+        return Exception("event name not found in pattern")

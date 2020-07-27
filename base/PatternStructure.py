@@ -20,6 +20,9 @@ class PatternStructure(ABC):
     def add_arg(self, pattern):
         raise NotImplementedError()
 
+    def get_event_name(self):
+        raise NotImplementedError()
+
     def duplicate_top_operator(self):
         if self.get_top_operator() == SeqOperator:
             return SeqOperator([])
@@ -34,29 +37,14 @@ class PatternStructure(ABC):
         else:
             raise Exception()  # should not happen
 
-    def set_qitem_index(self, index: int):
-        """
-        Set unique index to each qitem, to have events_def in the right order
-        Support composite pattern : each QItem_index in suboperator is unique in all the structure
-        Implemented by subclasses
-        """
-        raise NotImplementedError()
 
 class QItem(PatternStructure):
-    def __init__(self, event_type: str, name: str, index: int = None):
+    def __init__(self, event_type: str, name: str):
         self.event_type = event_type
         self.name = name
-        self.index = index
-
-    def set_qitem_index(self, index: int):
-        self.index = index
-        return index + 1
 
     def get_event_name(self):
         return self.name
-
-    def get_event_index(self):
-        return self.index
 
 
 class AndOperator(PatternStructure):
@@ -69,11 +57,6 @@ class AndOperator(PatternStructure):
     def add_arg(self, pattern: PatternStructure):
         self.args.append(pattern)
 
-    def set_qitem_index(self, index: int):
-        for i in range(len(self.args)):
-            self.args[i].set_qitem_index(index)
-            index = index + 1
-        return index
 
 class OrOperator(PatternStructure):
     def __init__(self, args: List[PatternStructure]):
@@ -85,11 +68,6 @@ class OrOperator(PatternStructure):
     def add_arg(self, pattern: PatternStructure):
         self.args.append(pattern)
 
-    def set_qitem_index(self, index: int):
-        for i in range(len(self.args)):
-            self.args[i].set_qitem_index(index)
-            index = index + 1
-        return index
 
 class SeqOperator(PatternStructure):
     def __init__(self, args: List[PatternStructure]):
@@ -101,11 +79,6 @@ class SeqOperator(PatternStructure):
     def add_arg(self, pattern: PatternStructure):
         self.args.append(pattern)
 
-    def set_qitem_index(self, index: int):
-        for i in range(len(self.args)):
-            self.args[i].set_qitem_index(index)
-            index = index + 1
-        return index
 
 class KleeneClosureOperator(PatternStructure):
     def __init__(self, arg: PatternStructure):
@@ -117,8 +90,6 @@ class KleeneClosureOperator(PatternStructure):
     def add_arg(self, pattern: PatternStructure):
         raise NotImplementedError()
 
-    def set_qitem_index(self, index: int):
-        raise NotImplementedError()
 
 class NegationOperator(PatternStructure):
     def __init__(self, arg: PatternStructure):
@@ -127,11 +98,9 @@ class NegationOperator(PatternStructure):
     def get_args(self):
         return self.arg
 
-    def get_event_index(self):
+    def get_event_name(self):
         if type(self.arg) == QItem:
-            return self.get_args().get_event_index()
+            return self.get_args().get_event_name()
         else:
             raise NotImplementedError()  # should not happen for simple patterns
 
-    def set_qitem_index(self, index: int):
-        return self.arg.set_qitem_index(index)

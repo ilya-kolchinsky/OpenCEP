@@ -7,7 +7,7 @@ from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
 from typing import List, Tuple
 from base.Event import Event
-from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_by_timestamp, get_index
+from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_by_timestamp
 from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
@@ -105,6 +105,8 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
+    def fix_eventdef(self, index: int, event_name: str):
+        raise NotImplementedError()
 
 class LeafNode(Node):
     """
@@ -116,10 +118,6 @@ class LeafNode(Node):
         self.__event_name = leaf_qitem.name
         self.__event_type = leaf_qitem.event_type
 
-        # We added an index for every QItem according to its place in the pattern to get the right order in
-        # field "event_def"
-        self.qitem_index = leaf_qitem.get_event_index()
-
     def get_leaves(self):
         return [self]
 
@@ -129,7 +127,7 @@ class LeafNode(Node):
             self._condition = condition
 
     def get_event_definitions(self):
-        return [(self.__leaf_index, QItem(self.__event_type, self.__event_name, self.qitem_index))]
+        return [(self.__leaf_index, QItem(self.__event_type, self.__event_name))]
 
     def get_event_type(self):
         """
@@ -142,6 +140,9 @@ class LeafNode(Node):
         Returns the name of events processed by this leaf.
         """
         return self.__event_name
+
+    def get_leaf_index(self):
+        return self.__leaf_index
 
     def set_leaf_index(self, index: int):
         """
@@ -210,6 +211,23 @@ class InternalNode(Node):
         self._right_subtree = right
         self._set_event_definitions(self._left_subtree.get_event_definitions(),
                                     self._right_subtree.get_event_definitions())
+
+    def fix_eventdef(self, index: int, event_name: str):
+        """
+        Change the index of the corresponding event_def (according to event_name) to the value that we received in param
+        """
+        founded = False
+        for i in range(len(self._event_defs)):
+            item = self._event_defs[i]
+            if event_name == item[1].name:
+                new_tuple = (index, item[1])
+                self._event_defs[i] = new_tuple
+                founded = True
+                break
+        if founded is False:
+            raise Exception("event_name not found in event def")
+        if self._parent is not None:
+            self._parent.fix_eventdef(index, event_name)
 
     def handle_new_partial_match(self, partial_match_source: Node):
         """
@@ -308,7 +326,7 @@ class SeqNode(InternalNode):
         return super()._validate_new_match(events_for_new_match)
 
 
-class InternalNegationNode(InternalNode):
+class NegationNode(InternalNode):
     """
     An internal node representing a  NegationOperator.
     """
@@ -359,9 +377,9 @@ class InternalNegationNode(InternalNode):
 
     def _set_event_definitions(self,
                                left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
-        self._event_defs = merge(left_event_defs, right_event_defs, key=get_index)
+        self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
 
-    # In an InternalNegationNode, the event_def represents all the positives events plus the negative event we are currently checking
+    # In an NegationNode, the event_def represents all the positives events plus the negative event we are currently checking
     def get_event_definitions(self):  # to support multiple neg
         return self._left_subtree.get_event_definitions()
 
@@ -376,7 +394,7 @@ class InternalNegationNode(InternalNode):
         if self.top_operator == SeqOperator:
             events_for_new_match = merge_according_to(first_event_defs, second_event_defs,
                                                       first_partial_match.events, second_partial_match.events,
-                                                      key=get_index)
+                                                      key=lambda x: x[0])
             if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
                 return False
         else:
@@ -450,7 +468,7 @@ class InternalNegationNode(InternalNode):
         of the Pattern. That's in that node that we keep the PMs that are waiting for timeout: we block them here,
         because if they go directly up to the root they are automatically added to the matches
         """
-        if type(self._left_subtree) == InternalNegationNode and self._left_subtree.is_last:
+        if type(self._left_subtree) == NegationNode and self._left_subtree.is_last:
             return self._left_subtree.get_first_last_negative_node()
         else:
             return self
@@ -468,8 +486,25 @@ class Tree:
         self.__root.apply_formula(pattern.condition)
 
         if pattern.negative_event.get_args():
+            self.reorder_leaf_index(pattern)
             root = self.__root
             self.__root = self.create_negation_Tree(root, pattern)
+
+    def reorder_leaf_index(self, pattern: Pattern):
+        """
+        Fix the values of the index in event_def according to the "true" position of the QItem in the original structure
+        """
+        leaves = self.get_leaves()
+        for i in range(len(leaves)):
+            leaf = leaves[i]
+            leaf_name = leaf.get_event_name()
+            index = pattern.find_index_from_name(leaf_name)
+            if index != leaf.get_leaf_index():
+                leaf.set_leaf_index(index)
+                if leaf._parent is not None:
+                    leaf._parent.fix_eventdef(index, leaf_name)
+                else:
+                    raise Exception("Leaf without a parent")
 
     def create_negation_Tree(self, root: Node, pattern: Pattern):
         """
@@ -481,22 +516,16 @@ class Tree:
         origin_event_list = pattern.origin_structure.get_args()
         # contains the original pattern with all operators
 
-        positive_event_list = pattern.structure.get_args()
-        leaf_index = len(positive_event_list)
-        # we use this leaf_index in the constructor of LeafNode to be sure that each leaf index is unique
-        # BUT: it's doesn't reflect the place of that event in the pattern (like it should ?) when negation nodes are involved
-        # for negation nodes we use custom made index: qitem_index
-
         for p in negative_event_list:
             if len(negative_event_list) - negative_event_list.index(p) \
                     == len(origin_event_list) - origin_event_list.index(p):
-                temporal_root = InternalNegationNode(pattern.window, is_last=True, top_operator=top_operator)
+                temporal_root = NegationNode(pattern.window, is_last=True, top_operator=top_operator)
             else:
-                temporal_root = InternalNegationNode(pattern.window, is_last=False, top_operator=top_operator)
+                temporal_root = NegationNode(pattern.window, is_last=False, top_operator=top_operator)
 
             qitem = p.get_args()
-            neg_event = LeafNode(pattern.window, leaf_index, qitem, temporal_root)
-            leaf_index += 1
+            index = pattern.find_index_from_name(qitem.get_event_name())
+            neg_event = LeafNode(pattern.window, index, qitem, temporal_root)
             temporal_root.set_subtrees(root, neg_event)
             neg_event.set_parent(temporal_root)
             root.set_parent(temporal_root)
@@ -573,7 +602,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
         # Now that we finished the input stream, if there were some PMs risking to be invalidated by a negative event
         # at the end of the pattern, we handle them now
-        if type(self.__tree.get_root()) == InternalNegationNode and self.__tree.get_root().is_last:
+        if type(self.__tree.get_root()) == NegationNode and self.__tree.get_root().is_last:
             self.__tree.handle_EOF(matches)
 
         matches.close()

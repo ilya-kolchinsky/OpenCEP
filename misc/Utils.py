@@ -231,6 +231,3 @@ def does_match_exist(matches: list, match: list):
                 return True
     return False
 
-
-def get_index(event_def):
-    return event_def[1].index
