@@ -26,7 +26,7 @@ class PatternStructure(ABC):
         """
         raise NotImplementedError()
 
-    def contains_event(self, event_name):
+    def contains_event(self, event_name: str):
         """
         Returns True if this structure contains an event specified by the given name and False otherwise.
         """
@@ -47,7 +47,7 @@ class QItem(PatternStructure):
     def __eq__(self, other):
         return type(self) == type(other) and self.name == other.name
 
-    def contains_event(self, event_name):
+    def contains_event(self, event_name: str):
         return self.name == event_name
 
 
@@ -61,7 +61,7 @@ class UnaryStructure(PatternStructure, ABC):
     def __eq__(self, other):
         return type(self) == type(other) and self.arg == other.arg
 
-    def contains_event(self, event_name):
+    def contains_event(self, event_name: str):
         return self.arg.contains_event(event_name)
 
 
@@ -91,7 +91,7 @@ class CompositeStructure(PatternStructure, ABC):
                 return False
         return True
 
-    def contains_event(self, event_name):
+    def contains_event(self, event_name: str):
         for arg in self.args:
             if arg.contains_event(event_name):
                 return True

@@ -1,11 +1,11 @@
 from abc import ABC
 from datetime import timedelta, datetime
 from base.Pattern import Pattern
-from base.PatternStructure import SeqOperator, QItem, OrOperator
+from base.PatternStructure import SeqOperator, QItem, OrOperator, NegationOperator
 from base.Formula import TrueFormula, Formula
 from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from base.Event import Event
 from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_by_timestamp
 from base.PatternMatch import PatternMatch
@@ -54,7 +54,7 @@ class Node(ABC):
 
     def get_root(self):
         """
-        Get root of tree
+        Returns the root of the tree.
         """
         node = self
         while node._parent is not None:
@@ -105,8 +105,6 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    def fix_eventdef(self, index: int, event_name: str):
-        raise NotImplementedError()
 
 class LeafNode(Node):
     """
@@ -142,11 +140,14 @@ class LeafNode(Node):
         return self.__event_name
 
     def get_leaf_index(self):
+        """
+        Returns the index of this leaf.
+        """
         return self.__leaf_index
 
     def set_leaf_index(self, index: int):
         """
-        Change the leaf_index of the leaf
+        Sets the index of this leaf.
         """
         self.__leaf_index = index
 
@@ -190,8 +191,8 @@ class InternalNode(Node):
         names = {item[1].name for item in self._event_defs}
         condition = formula.get_formula_of(names)
         self._condition = condition if condition else TrueFormula()
-        self._left_subtree.apply_formula(self._condition)
-        self._right_subtree.apply_formula(self._condition)
+        self._left_subtree.apply_formula(formula)
+        self._right_subtree.apply_formula(formula)
 
     def get_event_definitions(self):
         return self._event_defs
@@ -203,6 +204,18 @@ class InternalNode(Node):
         """
         self._event_defs = left_event_defs + right_event_defs
 
+    def get_left_subtree(self):
+        """
+        Returns the left subtree of this node.
+        """
+        return self._left_subtree
+
+    def get_right_subtree(self):
+        """
+        Returns the right subtree of this node.
+        """
+        return self._right_subtree
+
     def set_subtrees(self, left: Node, right: Node):
         """
         Sets the subtrees of this node.
@@ -211,23 +224,6 @@ class InternalNode(Node):
         self._right_subtree = right
         self._set_event_definitions(self._left_subtree.get_event_definitions(),
                                     self._right_subtree.get_event_definitions())
-
-    def fix_eventdef(self, index: int, event_name: str):
-        """
-        Change the index of the corresponding event_def (according to event_name) to the value that we received in param
-        """
-        founded = False
-        for i in range(len(self._event_defs)):
-            item = self._event_defs[i]
-            if event_name == item[1].name:
-                new_tuple = (index, item[1])
-                self._event_defs[i] = new_tuple
-                founded = True
-                break
-        if founded is False:
-            raise Exception("event_name not found in event def")
-        if self._parent is not None:
-            self._parent.fix_eventdef(index, event_name)
 
     def handle_new_partial_match(self, partial_match_source: Node):
         """
@@ -328,7 +324,7 @@ class SeqNode(InternalNode):
 
 class NegationNode(InternalNode):
     """
-    An internal node representing a  NegationOperator.
+    An internal node representing a negation operator.
     """
     def __init__(self, sliding_window: timedelta, is_last: bool, top_operator, parent: Node = None,
                  event_defs: List[Tuple[int, QItem]] = None,
@@ -484,62 +480,58 @@ class Tree:
         self.__root = Tree.__construct_tree(pattern.positive_structure.get_top_operator() == SeqOperator,
                                             tree_structure, pattern.positive_structure.args, pattern.window)
 
+        if pattern.negative_structure is not None:
+            self.__adjust_leaf_indices(pattern)
+            self.__add_negative_tree_structure(pattern)
+
         self.__root.apply_formula(pattern.condition)
 
-        if pattern.negative_structure is not None:
-            self.reorder_leaf_index(pattern)
-            root = self.__root
-            self.__root = self.create_negation_Tree(root, pattern)
+    def __adjust_leaf_indices(self, pattern: Pattern):
+        """
+        Fixes the values of the leaf indices in the positive tree to take the negative events into account.
+        """
+        leaf_mapping = {}
+        for leaf in self.get_leaves():
+            current_index = leaf.get_leaf_index()
+            correct_index = pattern.get_index_by_event_name(leaf.get_event_name())
+            leaf_mapping[current_index] = correct_index
+        self.__update_event_defs(self.__root, leaf_mapping)
 
-    def reorder_leaf_index(self, pattern: Pattern):
+    def __update_event_defs(self, node: Node, leaf_mapping: Dict[int, int]):
         """
-        Fix the values of the index in event_def according to the "true" position of the QItem in the original positive_structure
+        Recursively modifies the event indices in the tree specified by the given node.
         """
-        leaves = self.get_leaves()
-        for i in range(len(leaves)):
-            leaf = leaves[i]
-            leaf_name = leaf.get_event_name()
-            index = pattern.get_index_by_event_name(leaf_name)
-            if index != leaf.get_leaf_index():
-                leaf.set_leaf_index(index)
-                if leaf._parent is not None:
-                    leaf._parent.fix_eventdef(index, leaf_name)
-                else:
-                    raise Exception("Leaf without a parent")
+        if isinstance(node, LeafNode):
+            node.set_leaf_index(leaf_mapping[node.get_leaf_index()])
+            return
+        # this node is an internal node
+        event_defs = node.get_event_definitions()
+        # no list comprehension is used since we modify the original list
+        for i in range(len(event_defs)):
+            event_def = event_defs[i]
+            event_defs[i] = (leaf_mapping[event_def[0]], event_def[1])
+        self.__update_event_defs(node.get_left_subtree(), leaf_mapping)
+        self.__update_event_defs(node.get_right_subtree(), leaf_mapping)
 
-    def create_negation_Tree(self, root: Node, pattern: Pattern):
+    def __add_negative_tree_structure(self, pattern: Pattern):
         """
-        We add the negative nodes at the root of the tree
+        Adds the negative nodes at the root of the tree.
         """
         top_operator = pattern.full_structure.get_top_operator()
         negative_event_list = pattern.negative_structure.get_args()
-        # contains only not operators
-        origin_event_list = pattern.full_structure.get_args()
-        # contains the original pattern with all operators
-
-        for p in negative_event_list:
-            if len(negative_event_list) - negative_event_list.index(p) \
-                    == len(origin_event_list) - origin_event_list.index(p):
-                temporal_root = NegationNode(pattern.window, is_last=True, top_operator=top_operator)
-            else:
-                temporal_root = NegationNode(pattern.window, is_last=False, top_operator=top_operator)
-
-            qitem = p.arg
-            index = pattern.get_index_by_event_name(qitem.name)
-            neg_event = LeafNode(pattern.window, index, qitem, temporal_root)
-            temporal_root.set_subtrees(root, neg_event)
-            neg_event.set_parent(temporal_root)
-            root.set_parent(temporal_root)
-            root = root._parent
-
-            # apply_formula manually for negation nodes
-            names = {item[1].name for item in root._event_defs}
-            condition = pattern.condition.get_formula_of(names)
-            root._condition = condition if condition else TrueFormula()
-            neg_event.apply_formula(pattern.condition)
-
-        self.__root = root
-        return self.__root
+        current_root = self.__root
+        for negation_operator in negative_event_list:
+            new_root = NegationNode(pattern.window,
+                                    is_last=Tree.__is_unbounded_negative_event(pattern, negation_operator),
+                                    top_operator=top_operator)
+            negative_event = negation_operator.arg
+            leaf_index = pattern.get_index_by_event_name(negative_event.name)
+            negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root)
+            new_root.set_subtrees(current_root, negative_leaf)
+            negative_leaf.set_parent(new_root)
+            current_root.set_parent(new_root)
+            current_root = new_root
+        self.__root = current_root
 
     def get_leaves(self):
         return self.__root.get_leaves()
@@ -548,14 +540,16 @@ class Tree:
         while self.__root.has_partial_matches():
             yield self.__root.consume_first_partial_match().events
 
-    def get_root(self):
-        return self.__root
-
     def handle_EOF(self, matches: Stream):
         """
-        We add as matches all the PMs for which there was a risk to be invalidated later.
-        Now we finished the input stream so there is no more risk !
+        If this tree contains a negation node at its root that corresponds to the last event in a sequence
+        (or a negation event in a conjunction pattern), there are matches that wait for the time window to be closed
+        in order to make sure no negative event invalidates them.
+        This method is invoked following the end of the input stream. It flushes the full matches waiting to be reported
+        as there is no more risk for them to be dropped.
         """
+        if type(self.__root) != NegationNode or not self.__root.is_last:
+            return
         for match in self.__root.matches_to_handle_at_EOF:
             matches.add_item(PatternMatch(match.events))
         node = self.__root.get_first_last_negative_node()
@@ -565,6 +559,9 @@ class Tree:
     @staticmethod
     def __construct_tree(is_sequence: bool, tree_structure: tuple or int, args: List[QItem],
                          sliding_window: timedelta, parent: Node = None):
+        """
+        Constructs the actual evaluation tree given a tree structure.
+        """
         if type(tree_structure) == int:
             return LeafNode(sliding_window, tree_structure, args[tree_structure], parent)
         current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
@@ -574,6 +571,23 @@ class Tree:
 
         current.set_subtrees(left, right)
         return current
+
+    @staticmethod
+    def __is_unbounded_negative_event(pattern: Pattern, negation_operator: NegationOperator):
+        """
+        Returns True if the negative event represented by the given operator is unbounded (i.e., can appear after the
+        entire match is ready and invalidate it) and False otherwise.
+        """
+        if pattern.full_structure.get_top_operator() != SeqOperator:
+            return True
+        # for a sequence pattern, a negative event is unbounded if no positive events follow it
+        # the implementation below assumes a flat sequence
+        sequence_elements = pattern.full_structure.get_args()
+        operator_index = sequence_elements.index(negation_operator)
+        for i in range(operator_index + 1, len(sequence_elements)):
+            if isinstance(sequence_elements[i], QItem):
+                return False
+        return True
 
 
 class TreeBasedEvaluationMechanism(EvaluationMechanism):
@@ -603,7 +617,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
         # Now that we finished the input stream, if there were some PMs risking to be invalidated by a negative event
         # at the end of the pattern, we handle them now
-        if type(self.__tree.get_root()) == NegationNode and self.__tree.get_root().is_last:
-            self.__tree.handle_EOF(matches)
+        self.__tree.handle_EOF(matches)
 
         matches.close()
