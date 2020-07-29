@@ -23,6 +23,7 @@ custom = file_input("test/EventFiles/custom.txt", MetastockDataFormatter())
 custom2 = file_input("test/EventFiles/custom2.txt", MetastockDataFormatter())
 custom3 = file_input("test/EventFiles/custom3.txt", MetastockDataFormatter())
 
+
 def numOfLinesInPattern(file):
     """
     get num of lines in file until first blank line == num of lines in pattern
@@ -42,7 +43,6 @@ def closeFiles(file1, file2):
     file2.close()
 
 
-# fixed fileCompare
 def fileCompare(pathA, pathB):
     """
     Compare expected output and actual ouput
@@ -100,8 +100,9 @@ def fillSet(file, set: set, counter: int):
             list = []
             tmp = 0
 
+
 def createTest(testName, patterns, events=None):
-    if events == None:
+    if events is None:
         events = nasdaqEventStream.duplicate()
     else:
         events = events.duplicate()
@@ -643,7 +644,7 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, events=nasdaqEventStream)
 
 # ON CUSTOM
-def MultipleNotBeginAndEndTest(createTestFile=False):
+def multipleNotBeginAndEndTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([NegationOperator(QItem("TYP1", "x")),
                      NegationOperator(QItem("TYP4", "t")),
@@ -680,7 +681,7 @@ def simpleNotTest(createTestFile=False):
 
 
 # ON NASDAQ SHORT
-def MultipleNotInTheMiddleTest(createTestFile=False):
+def multipleNotInTheMiddleTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("LI", "d")), QItem("AMZN", "b"),
                      NegationOperator(QItem("FB", "e")), QItem("GOOG", "c")]),
@@ -702,7 +703,7 @@ def MultipleNotInTheMiddleTest(createTestFile=False):
 
 
 # ON NASDAQ SHORT
-def OneNotAtTheBeginningTest(createTestFile=False):
+def oneNotAtTheBeginningTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([NegationOperator(QItem("TYP1", "x")), QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
         AndFormula(
@@ -716,7 +717,7 @@ def OneNotAtTheBeginningTest(createTestFile=False):
 
 
 # ON NASDAQ SHORT
-def MultipleNotAtTheBeginningTest(createTestFile=False):
+def multipleNotAtTheBeginningTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([NegationOperator(QItem("TYP1", "x")), NegationOperator(QItem("TYP2", "y")),
                      NegationOperator(QItem("TYP3", "z")), QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
@@ -731,7 +732,7 @@ def MultipleNotAtTheBeginningTest(createTestFile=False):
 
 
 # ON NASDAQ *HALF* SHORT
-def OneNotAtTheEndTest(createTestFile=False):
+def oneNotAtTheEndTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x"))]),
         AndFormula(
@@ -745,7 +746,7 @@ def OneNotAtTheEndTest(createTestFile=False):
 
 
 # ON NASDAQ *HALF* SHORT
-def MultipleNotAtTheEndTest(createTestFile=False):
+def multipleNotAtTheEndTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x")),
                      NegationOperator(QItem("TYP2", "y")), NegationOperator(QItem("TYP3", "z"))]),
@@ -772,15 +773,6 @@ def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
     )
     runTest("NotEverywhere", [pattern], createTestFile)
 
-
-simpleNotTest()
-MultipleNotInTheMiddleTest()
-OneNotAtTheBeginningTest()
-MultipleNotAtTheBeginningTest()
-OneNotAtTheEndTest()
-MultipleNotAtTheEndTest()
-MultipleNotBeginAndEndTest()
-testWithMultipleNotAtBeginningMiddleEnd()
 
 oneArgumentsearchTest()
 simplePatternSearchTest()
@@ -809,9 +801,19 @@ iiRandomPatternSearchTest()
 iiRandom2PatternSearchTest()
 iiGreedyPatternSearchTest()
 iiGreedy2PatternSearchTest()
-#zStreamOrdPatternSearchTest()
-#zStreamPatternSearchTest()
+zStreamOrdPatternSearchTest()
+zStreamPatternSearchTest()
 dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
+
+# negation tests
+simpleNotTest()
+multipleNotInTheMiddleTest()
+oneNotAtTheBeginningTest()
+multipleNotAtTheBeginningTest()
+oneNotAtTheEndTest()
+multipleNotAtTheEndTest()
+multipleNotBeginAndEndTest()
+testWithMultipleNotAtBeginningMiddleEnd()
