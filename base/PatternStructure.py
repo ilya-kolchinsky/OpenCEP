@@ -5,102 +5,119 @@ The classes support nesting. Every operator class has its list of arguments.
 The QItem class has an event type and its name. The name is referred to in
 a pattern matching condition, represented as formula.
 """
-
 from abc import ABC
 from typing import List
 
 
 class PatternStructure(ABC):
+    """
+    The top class in the pattern structure hierarchy.
+    """
+
     def get_top_operator(self):
+        """
+        Returns the operator type at the top of this pattern structure.
+        """
         return type(self)
 
-    def get_args(self):
+    def duplicate(self):
+        """
+        Returns a deep copy of this pattern structure.
+        """
         raise NotImplementedError()
 
-    def add_arg(self, pattern):
+    def contains_event(self, event_name):
+        """
+        Returns True if this structure contains an event specified by the given name and False otherwise.
+        """
         raise NotImplementedError()
-
-    def get_event_name(self):
-        raise NotImplementedError()
-
-    def duplicate_top_operator(self):
-        if self.get_top_operator() == SeqOperator:
-            return SeqOperator([])
-        elif self.get_top_operator() == AndOperator:
-            return AndOperator([])
-        elif self.get_top_operator() == OrOperator:
-            return OrOperator([])
-        elif self.get_top_operator() == KleeneClosureOperator:
-            raise NotImplementedError()
-        elif self.get_top_operator() == NegationOperator:
-            raise Exception()  # should not happen since we use this on a structure free of negative events
-        else:
-            raise Exception()  # should not happen
 
 
 class QItem(PatternStructure):
+    """
+    Represents a simple primitive event, defined by a type and a name.
+    """
     def __init__(self, event_type: str, name: str):
-        self.event_type = event_type
+        self.type = event_type
         self.name = name
 
-    def get_event_name(self):
-        return self.name
+    def duplicate(self):
+        return QItem(self.type, self.name)
+
+    def __eq__(self, other):
+        return type(self) == type(other) and self.name == other.name
+
+    def contains_event(self, event_name):
+        return self.name == event_name
 
 
-class AndOperator(PatternStructure):
-    def __init__(self, args: List[PatternStructure]):
-        self.args = args
-
-    def get_args(self):
-        return self.args
-
-    def add_arg(self, pattern: PatternStructure):
-        self.args.append(pattern)
-
-
-class OrOperator(PatternStructure):
-    def __init__(self, args: List[PatternStructure]):
-        self.args = args
-
-    def get_args(self):
-        return self.args
-
-    def add_arg(self, pattern: PatternStructure):
-        self.args.append(pattern)
-
-
-class SeqOperator(PatternStructure):
-    def __init__(self, args: List[PatternStructure]):
-        self.args = args
-
-    def get_args(self):
-        return self.args
-
-    def add_arg(self, pattern: PatternStructure):
-        self.args.append(pattern)
-
-
-class KleeneClosureOperator(PatternStructure):
-    def __init__(self, arg: PatternStructure):
+class UnaryStructure(PatternStructure, ABC):
+    """
+    Represents a pattern structure with an unary operator at the top level.
+    """
+    def __init__(self, arg):
         self.arg = arg
 
-    def get_args(self):
-        return self.arg
+    def __eq__(self, other):
+        return type(self) == type(other) and self.arg == other.arg
 
-    def add_arg(self, pattern: PatternStructure):
+    def contains_event(self, event_name):
+        return self.arg.contains_event(event_name)
+
+
+class CompositeStructure(PatternStructure, ABC):
+    """
+    Represents a pattern structure with a multinary operator at the top level.
+    """
+    def __init__(self, args: List[PatternStructure]):
+        self.args = args
+
+    def get_args(self):
+        return self.args
+
+    def duplicate(self):
+        new_structure = self.duplicate_top_operator()
+        new_structure.args = [arg.duplicate() for arg in self.args]
+        return new_structure
+
+    def duplicate_top_operator(self):
         raise NotImplementedError()
 
+    def __eq__(self, other):
+        if type(self) != type(other) or len(self.args) != len(other.args):
+            return False
+        for i in range(len(self.args)):
+            if self.args[i] != other.args[i]:
+                return False
+        return True
 
-class NegationOperator(PatternStructure):
-    def __init__(self, arg: PatternStructure):
-        self.arg = arg
+    def contains_event(self, event_name):
+        for arg in self.args:
+            if arg.contains_event(event_name):
+                return True
+        return False
 
-    def get_args(self):
-        return self.arg
 
-    def get_event_name(self):
-        if type(self.arg) == QItem:
-            return self.get_args().get_event_name()
-        else:
-            raise NotImplementedError()  # should not happen for simple patterns
+class AndOperator(CompositeStructure):
+    def duplicate_top_operator(self):
+        return AndOperator([])
 
+
+class OrOperator(CompositeStructure):
+    def duplicate_top_operator(self):
+        return OrOperator([])
+
+
+class SeqOperator(CompositeStructure):
+    def duplicate_top_operator(self):
+        return SeqOperator([])
+
+
+class KleeneClosureOperator(UnaryStructure):
+    def duplicate(self):
+        return KleeneClosureOperator(self.arg.duplicate())
+
+
+class NegationOperator(UnaryStructure):
+    def duplicate(self):
+        return NegationOperator(self.arg.duplicate())

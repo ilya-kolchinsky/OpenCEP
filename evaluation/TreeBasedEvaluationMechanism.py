@@ -116,7 +116,7 @@ class LeafNode(Node):
         super().__init__(sliding_window, parent)
         self.__leaf_index = leaf_index
         self.__event_name = leaf_qitem.name
-        self.__event_type = leaf_qitem.event_type
+        self.__event_type = leaf_qitem.type
 
     def get_leaves(self):
         return [self]
@@ -473,32 +473,33 @@ class NegationNode(InternalNode):
         else:
             return self
 
+
 class Tree:
     """
-    Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree structure"
+    Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree positive_structure"
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     """
     def __init__(self, tree_structure: tuple, pattern: Pattern):
         # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
-        self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
-                                            tree_structure, pattern.structure.args, pattern.window)
+        self.__root = Tree.__construct_tree(pattern.positive_structure.get_top_operator() == SeqOperator,
+                                            tree_structure, pattern.positive_structure.args, pattern.window)
 
         self.__root.apply_formula(pattern.condition)
 
-        if pattern.negative_event.get_args():
+        if pattern.negative_structure is not None:
             self.reorder_leaf_index(pattern)
             root = self.__root
             self.__root = self.create_negation_Tree(root, pattern)
 
     def reorder_leaf_index(self, pattern: Pattern):
         """
-        Fix the values of the index in event_def according to the "true" position of the QItem in the original structure
+        Fix the values of the index in event_def according to the "true" position of the QItem in the original positive_structure
         """
         leaves = self.get_leaves()
         for i in range(len(leaves)):
             leaf = leaves[i]
             leaf_name = leaf.get_event_name()
-            index = pattern.find_index_from_name(leaf_name)
+            index = pattern.get_index_by_event_name(leaf_name)
             if index != leaf.get_leaf_index():
                 leaf.set_leaf_index(index)
                 if leaf._parent is not None:
@@ -510,10 +511,10 @@ class Tree:
         """
         We add the negative nodes at the root of the tree
         """
-        top_operator = pattern.origin_structure.get_top_operator()
-        negative_event_list = pattern.negative_event.get_args()
+        top_operator = pattern.full_structure.get_top_operator()
+        negative_event_list = pattern.negative_structure.get_args()
         # contains only not operators
-        origin_event_list = pattern.origin_structure.get_args()
+        origin_event_list = pattern.full_structure.get_args()
         # contains the original pattern with all operators
 
         for p in negative_event_list:
@@ -523,8 +524,8 @@ class Tree:
             else:
                 temporal_root = NegationNode(pattern.window, is_last=False, top_operator=top_operator)
 
-            qitem = p.get_args()
-            index = pattern.find_index_from_name(qitem.get_event_name())
+            qitem = p.arg
+            index = pattern.get_index_by_event_name(qitem.name)
             neg_event = LeafNode(pattern.window, index, qitem, temporal_root)
             temporal_root.set_subtrees(root, neg_event)
             neg_event.set_parent(temporal_root)
@@ -594,8 +595,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
         # Send events to listening leaves.
         for event in events:
-            if event.event_type in event_types_listeners.keys():
-                for leaf in event_types_listeners[event.event_type]:
+            if event.type in event_types_listeners.keys():
+                for leaf in event_types_listeners[event.type]:
                     leaf.handle_event(event)
                     for match in self.__tree.get_matches():
                         matches.add_item(PatternMatch(match))

@@ -1,66 +1,74 @@
-from builtins import str
-
 from base.Formula import Formula
-from base.PatternStructure import PatternStructure
+from base.PatternStructure import PatternStructure, QItem, CompositeStructure
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
+from base.PatternStructure import NegationOperator
 
-from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, AtomicTerm, AndFormula, TrueFormula
-from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator, OrOperator
 
 class Pattern:
     """
     A pattern has several fields:
-    - a structure represented by a tree of operators over the primitive events (e.g., SEQ(A,B*, AND(C, NOT(D), E)));
-    - a condition to be satisfied by the primitive events (might consist of multiple nested conditions);
-    - a time window for the pattern matches to occur within.
+    - A structure represented by a tree of operators over the primitive events (e.g., SEQ(A,B*, AND(C, NOT(D), E))).
+    The entire pattern structure is divided into a positive and a negative component to allow for different treatment
+    during evaluation.
+    - A condition to be satisfied by the primitive events. This condition might encapsulate multiple nested conditions.
+    - A time window for the pattern matches to occur within.
     A pattern can also carry statistics with it, in order to enable advanced
     tree construction mechanisms - this is hopefully a temporary hack.
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Formula = None,
                  time_window: timedelta = timedelta.max):
+        if not isinstance(pattern_structure, CompositeStructure):
+            raise Exception("The top pattern operator must be composite")
+        self.full_structure = pattern_structure
+        self.positive_structure = pattern_structure.duplicate()
+        self.negative_structure = self.__extract_negative_structure()
 
+        self.condition = pattern_matching_condition
         self.window = time_window
+
         self.statistics_type = StatisticsTypes.NO_STATISTICS
         self.statistics = None
-        self.condition = pattern_matching_condition
-
-        """
-        origin_structure is the pattern structure that we get in params - containing all the fields.
-        structure is the origin structure without the negative events.
-        negative_event contains only the negative events of the pattern.
-        """
-        self.origin_structure = pattern_structure
-        self.structure = pattern_structure.duplicate_top_operator()
-        self.negative_event = pattern_structure.duplicate_top_operator()
-
-        self.split_structures()
-
 
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         self.statistics_type = statistics_type
         self.statistics = statistics
 
-    def split_structures(self):
-        origin_structure_args = self.origin_structure.get_args()
-        for i in range(len(origin_structure_args)):
-            p = origin_structure_args[i]
-            if type(p) == NegationOperator:
-                self.negative_event.add_arg(p)
-            else:
-                self.structure.add_arg(p)
-
-        if not self.structure.get_args():
-            raise Exception("No positive events")
-
-    def find_index_from_name(self, event_name: str):
+    def __extract_negative_structure(self):
         """
-        Return the position of the event in the pattern
+        If the pattern definition includes negative events, this method extracts them into a dedicated
+        PatternStructure object. Otherwise, None is returned.
+        As of this version, nested negation operators and negation operators in non-flat patterns
+        are not supported. Also, the extracted negative events are put in a simple flat positive_structure.
         """
-        structure = self.origin_structure.get_args()
-        index = 0
-        for element in structure:
-            if element.get_event_name() == event_name:
-                return index
-            index += 1
-        return Exception("event name not found in pattern")
+        negative_structure = self.positive_structure.duplicate_top_operator()
+        for arg in self.positive_structure.get_args():
+            if type(arg) == NegationOperator:
+                # a negative event was found and needs to be extracted
+                negative_structure.args.append(arg)
+            elif type(arg) != QItem:
+                # TODO: nested operator support should be provided here
+                pass
+        if len(negative_structure.get_args()) == 0:
+            # the given pattern is entirely positive
+            return None
+        if len(negative_structure.get_args()) == len(self.positive_structure.get_args()):
+            raise Exception("The pattern contains no positive events")
+        # Remove all negative events from the positive structure
+        # TODO: support nested operators
+        for arg in negative_structure.get_args():
+            self.positive_structure.get_args().remove(arg)
+        return negative_structure
+
+    def get_index_by_event_name(self, event_name: str):
+        """
+        Returns the position of the given event name in the pattern.
+        Note: nested patterns are not yet supported.
+        """
+        found_positions = [index for (index, curr_structure) in enumerate(self.full_structure.get_args())
+                           if curr_structure.contains_event(event_name)]
+        if len(found_positions) == 0:
+            raise Exception("Event name %s not found in pattern" % (event_name,))
+        if len(found_positions) > 1:
+            raise Exception("Multiple appearances of the event name %s are found in the pattern" % (event_name,))
+        return found_positions[0]
