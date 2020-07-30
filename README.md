@@ -87,6 +87,22 @@ matches = cep.get_pattern_match_stream()
 file_output(matches, 'output.txt')
 ```
 
+## Negation Operator 
+
+The following is the example of a pattern containing a negation operator:
+
+```
+pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+
+
 # Advanced configuration settings
 ## Consumption policies and selection strategies
 
@@ -172,4 +188,5 @@ Provide a path to the file you want the results will print to, and the time_limi
 cep = CEP([pattern],
           EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, None)
 cep.run(stream_queue, is_async=True, file_path="output.txt", time_limit=x)
+
 ```

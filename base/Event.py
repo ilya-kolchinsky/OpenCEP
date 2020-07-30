@@ -16,7 +16,7 @@ class Event:
 
     def __init__(self, raw_data: str, data_formatter: DataFormatter):
         self.payload = data_formatter.parse_event(raw_data)
-        self.event_type = data_formatter.get_event_type(self.payload)
+        self.type = data_formatter.get_event_type(self.payload)
         self.timestamp = data_formatter.get_event_timestamp(self.payload)
         self.payload[Event.INDEX_ATTRIBUTE_NAME] = Event.counter
         Event.counter += 1

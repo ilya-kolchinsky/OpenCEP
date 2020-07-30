@@ -1,11 +1,11 @@
 from abc import ABC
 from datetime import timedelta, datetime
 from base.Pattern import Pattern
-from base.PatternStructure import SeqOperator, QItem
+from base.PatternStructure import SeqOperator, QItem, NegationOperator, AndOperator
 from base.Formula import TrueFormula, Formula
 from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from base.Event import Event
 from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_by_timestamp
 from base.PatternMatch import PatternMatch
@@ -21,6 +21,25 @@ class Node(ABC):
     """
     This class represents a single node of an evaluation tree.
     """
+
+    # A static variable specifying whether the system is allowed to delete expired matches.
+    # In several very special cases, it is required to switch off this functionality.
+    __enable_partial_match_expiration = True
+
+    @staticmethod
+    def _toggle_enable_partial_match_expiration(enable):
+        """
+        Sets the value of the __enable_partial_match_expiration flag.
+        """
+        Node.__enable_partial_match_expiration = enable
+
+    @staticmethod
+    def _is_partial_match_expiration_enabled():
+        """
+        Returns the static variable specifying whether match expiration is enabled.
+        """
+        return Node.__enable_partial_match_expiration
+
     def __init__(self, sliding_window: timedelta, parent):
         self._parent = parent
         self._sliding_window = sliding_window
@@ -60,12 +79,21 @@ class Node(ABC):
         """
         self._parent = parent
 
+    def get_root(self):
+        """
+        Returns the root of the tree.
+        """
+        node = self
+        while node._parent is not None:
+            node = node._parent
+        return node
+
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
         Removes partial matches whose earliest timestamp violates the time window constraint.
         Also removes the expired filtered events if the "single" consumption policy is enabled.
         """
-        if self._sliding_window == timedelta.max:
+        if not Node._is_partial_match_expiration_enabled():
             return
         count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window)
         self._partial_matches = self._partial_matches[count:]
@@ -84,7 +112,7 @@ class Node(ABC):
         if self._parent is not None:
             self._parent.register_single_event_type(event_type)
 
-    def __add_partial_match(self, pm: PartialMatch):
+    def _add_partial_match(self, pm: PartialMatch):
         """
         Registers a new partial match at this node.
         As of now, the insertion is always by the timestamp, and the partial matches are stored in a list sorted by
@@ -94,6 +122,44 @@ class Node(ABC):
         self._partial_matches.insert(index, pm)
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
+            self._parent.handle_new_partial_match(self)
+
+    def __can_add_partial_match(self, pm: PartialMatch) -> bool:
+        """
+        Returns True if the given partial match can be passed up the tree and False otherwise.
+        As of now, only the activation of the "single" consumption policy might prevent this method from returning True.
+        In addition, this method updates the filtered events set.
+        """
+        if len(self._single_event_types) == 0:
+            return True
+        new_filtered_events = set()
+        for event in pm.events:
+            if event.event_type not in self._single_event_types:
+                continue
+            if event in self._filtered_events:
+                # this event was already passed
+                return False
+            else:
+                # this event was not yet passed but should only be passed once - remember it
+                new_filtered_events.add(event)
+        self._filtered_events |= new_filtered_events
+        return True
+
+    def _validate_and_propagate_partial_match(self, events: List[Event]):
+        """
+        Creates a new partial match from the list of events, validates it, and propagates it up the tree.
+        """
+        if not self._validate_new_match(events):
+            return
+        self._propagate_partial_match(events)
+
+    def _propagate_partial_match(self, events: List[Event]):
+        """
+        Receives an already verified list of events for new partial match and propagates it up the tree.
+        """
+        new_partial_match = PartialMatch(events)
+        if self.__can_add_partial_match(new_partial_match):
+            self._add_partial_match(new_partial_match)
 
     def __can_add_partial_match(self, pm: PartialMatch) -> bool:
         """
@@ -135,6 +201,14 @@ class Node(ABC):
         """
         return self._partial_matches
 
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        """
+        Validates the condition stored in this node on the given set of events.
+        """
+        min_timestamp = min([event.timestamp for event in events_for_new_match])
+        max_timestamp = max([event.timestamp for event in events_for_new_match])
+        return max_timestamp - min_timestamp <= self._sliding_window
+
     def get_leaves(self):
         """
         Returns all leaves in this tree - to be implemented by subclasses.
@@ -168,7 +242,7 @@ class LeafNode(Node):
         super().__init__(sliding_window, parent)
         self.__leaf_index = leaf_index
         self.__event_name = leaf_qitem.name
-        self.__event_type = leaf_qitem.event_type
+        self.__event_type = leaf_qitem.type
 
     def get_leaves(self):
         return [self]
@@ -189,21 +263,35 @@ class LeafNode(Node):
 
     def get_event_name(self):
         """
-        Returns the name under which the events processed by this leaf appear in the pattern.
+        Returns the name of events processed by this leaf.
         """
         return self.__event_name
+
+    def get_leaf_index(self):
+        """
+        Returns the index of this leaf.
+        """
+        return self.__leaf_index
+
+    def set_leaf_index(self, index: int):
+        """
+        Sets the index of this leaf.
+        """
+        self.__leaf_index = index
 
     def handle_event(self, event: Event):
         """
         Inserts the given event to this leaf.
         """
         self.clean_expired_partial_matches(event.timestamp)
-        self._handle_partial_match([event])
+        self._validate_and_propagate_partial_match([event])
 
     def _validate_new_match(self, events_for_new_match: List[Event]):
         """
         Validates the condition stored in this node on the given set of events.
         """
+        if not super()._validate_new_match(events_for_new_match):
+            return False
         binding = {self.__event_name: events_for_new_match[0].payload}
         return self._condition.eval(binding)
 
@@ -231,8 +319,8 @@ class InternalNode(Node):
         names = {item[1].name for item in self._event_defs}
         condition = formula.get_formula_of(names)
         self._condition = condition if condition else TrueFormula()
-        self._left_subtree.apply_formula(self._condition)
-        self._right_subtree.apply_formula(self._condition)
+        self._left_subtree.apply_formula(formula)
+        self._right_subtree.apply_formula(formula)
 
     def get_event_definitions(self):
         return self._event_defs
@@ -243,6 +331,18 @@ class InternalNode(Node):
         A helper function for collecting the event definitions from subtrees. To be overridden by subclasses.
         """
         self._event_defs = left_event_defs + right_event_defs
+
+    def get_left_subtree(self):
+        """
+        Returns the left subtree of this node.
+        """
+        return self._left_subtree
+
+    def get_right_subtree(self):
+        """
+        Returns the right subtree of this node.
+        """
+        return self._right_subtree
 
     def set_subtrees(self, left: Node, right: Node):
         """
@@ -270,25 +370,23 @@ class InternalNode(Node):
         partial_matches_to_compare = other_subtree.get_partial_matches()
         second_event_defs = other_subtree.get_event_definitions()
 
-        self.clean_expired_partial_matches(new_partial_match.last_timestamp)
+        if self._parent is not None:
+            self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
         # given a partial match from one subtree, for each partial match
         # in the other subtree we check for new partial matches in this node.
-        for partialMatch in partial_matches_to_compare:
-            self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs)
+        self._try_create_new_matches(new_partial_match, partial_matches_to_compare, first_event_defs, second_event_defs)
 
-    def _try_create_new_match(self,
-                              first_partial_match: PartialMatch, second_partial_match: PartialMatch,
-                              first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
+    def _try_create_new_matches(self, new_partial_match: PartialMatch, partial_matches_to_compare: List[PartialMatch],
+                                first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
         """
-        Verifies all the conditions for creating a new partial match and creates it if all constraints are satisfied.
+        For each candidate pair of partial matches that can be joined to create a new one, verifies all the
+        necessary conditions creates new partial matches if all constraints are satisfied.
         """
-        if self._sliding_window != timedelta.max and \
-                abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
-            return
-        events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
-                                                                first_partial_match.events, second_partial_match.events)
-        self._handle_partial_match(events_for_new_match)
+        for partial_match in partial_matches_to_compare:
+            events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
+                                                                    new_partial_match.events, partial_match.events)
+            self._validate_and_propagate_partial_match(events_for_new_match)
 
     def _merge_events_for_new_match(self,
                                     first_event_defs: List[Tuple[int, QItem]],
@@ -308,6 +406,8 @@ class InternalNode(Node):
         """
         Validates the condition stored in this node on the given set of events.
         """
+        if not super()._validate_new_match(events_for_new_match):
+            return False
         binding = {
             self._event_defs[i][1].name: events_for_new_match[i].payload for i in range(len(self._event_defs))
         }
@@ -345,9 +445,199 @@ class SeqNode(InternalNode):
         return super()._validate_new_match(events_for_new_match)
 
 
+class NegationNode(InternalNode):
+    """
+    An internal node representing a negation operator.
+    This implementation heavily relies on the fact that, if any unbounded negation operators are defined in the
+    pattern, they are conveniently placed at the top of the tree forming a left-deep chain of nodes.
+    """
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool, top_operator, parent: Node = None,
+                 event_defs: List[Tuple[int, QItem]] = None,
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, parent, event_defs, left, right)
+
+        # aliases for the negative node subtrees to make the code more readable
+        # by construction, we always have the positive subtree on the left
+        self._positive_subtree = self._left_subtree
+        self._negative_subtree = self._right_subtree
+
+        # negation operators that can appear in the end of the match have this flag on
+        self.__is_unbounded = is_unbounded
+
+        # the multinary operator of the root node
+        self.__top_operator = top_operator
+
+        # a list of partial matches that can be invalidated by a negative event that will only arrive in future
+        self.__pending_partial_matches = []
+
+    def set_subtrees(self, left: Node, right: Node):
+        """
+        Updates the aliases following the changes in the subtrees.
+        """
+        super().set_subtrees(left, right)
+        self._positive_subtree = self._left_subtree
+        self._negative_subtree = self._right_subtree
+
+    def clean_expired_partial_matches(self, last_timestamp: datetime):
+        """
+        In addition to the normal functionality of this method, attempt to flush pending matches that can already
+        be propagated.
+        """
+        super().clean_expired_partial_matches(last_timestamp)
+        if self.__is_first_unbounded_negative_node():
+            self.flush_pending_matches(last_timestamp)
+
+    def flush_pending_matches(self, last_timestamp: datetime = None):
+        """
+        Releases the partial matches in the pending matches buffer. If the timestamp is provided, only releases
+        expired matches.
+        """
+        if last_timestamp is not None:
+            self.__pending_partial_matches = sorted(self.__pending_partial_matches, key=lambda x: x.first_timestamp)
+            count = find_partial_match_by_timestamp(self.__pending_partial_matches,
+                                                    last_timestamp - self._sliding_window)
+            matches_to_flush = self.__pending_partial_matches[:count]
+            self.__pending_partial_matches = self.__pending_partial_matches[count:]
+        else:
+            matches_to_flush = self.__pending_partial_matches
+
+        # since matches_to_flush could be expired, we need to temporarily disable timestamp checks
+        Node._toggle_enable_partial_match_expiration(False)
+        for partial_match in matches_to_flush:
+            super()._add_partial_match(partial_match)
+        Node._toggle_enable_partial_match_expiration(True)
+
+    def get_event_definitions(self):
+        """
+        This is an ugly temporary hack to support multiple chained negation operators. As this prevents different
+        negative events from having mutual conditions, this implementation is highly undesirable and will be removed
+        in future.
+        """
+        return self._positive_subtree.get_event_definitions()
+
+    def _try_create_new_matches(self, new_partial_match: PartialMatch, partial_matches_to_compare: List[PartialMatch],
+                                first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
+        """
+        The flow of this method is the opposite of the one its superclass implements. For each pair of a positive and a
+        negative partial match, we combine the two sides to form a new partial match, validate it, and then do nothing
+        if the validation succeeds (i.e., the negative part invalidated the positive one), and transfer the positive
+        match up the tree if the validation fails.
+        """
+        positive_events = new_partial_match.events
+        for partial_match in partial_matches_to_compare:
+            negative_events = partial_match.events
+            combined_event_list = self._merge_events_for_new_match(first_event_defs, second_event_defs,
+                                                                   positive_events, negative_events)
+            if self._validate_new_match(combined_event_list):
+                # this match should not be transferred
+                # TODO: the rejected positive partial match should be explicitly removed to save space
+                return
+        # no negative match invalidated the positive one - we can go on
+        self._propagate_partial_match(positive_events)
+
+    def _add_partial_match(self, pm: PartialMatch):
+        """
+        If this node can receive unbounded negative events and is the deepest node in the tree to do so, a
+        successfully evaluated partial match must be added to a dedicated waiting list rather than propagated normally.
+        """
+        if self.__is_first_unbounded_negative_node():
+            self.__pending_partial_matches.append(pm)
+        else:
+            super()._add_partial_match(pm)
+
+    def handle_new_partial_match(self, partial_match_source: Node):
+        """
+        For positive partial matches, activates the flow of the superclass. For negative partial matches, does nothing
+        for bounded events (as nothing should be done in this case), otherwise checks whether existing positive matches
+        must be invalidated and handles them accordingly.
+        """
+        if partial_match_source == self._positive_subtree:
+            # a new positive partial match has arrived
+            super().handle_new_partial_match(partial_match_source)
+            return
+        # a new negative partial match has arrived
+        if not self.__is_unbounded:
+            # no unbounded negatives - there is nothing to do
+            return
+
+        # this partial match contains unbounded negative events
+        first_unbounded_node = self.get_first_unbounded_negative_node()
+        positive_event_defs = first_unbounded_node.get_event_definitions()
+
+        unbounded_negative_partial_match = partial_match_source.get_last_unhandled_partial_match()
+        negative_event_defs = partial_match_source.get_event_definitions()
+
+        matches_to_keep = []
+        for positive_partial_match in first_unbounded_node.__pending_partial_matches:
+            combined_event_list = self._merge_events_for_new_match(positive_event_defs,
+                                                                   negative_event_defs,
+                                                                   positive_partial_match.events,
+                                                                   unbounded_negative_partial_match.events)
+            if not self._validate_new_match(combined_event_list):
+                # this positive match should still be kept
+                matches_to_keep.append(positive_partial_match)
+
+        first_unbounded_node.__pending_partial_matches = matches_to_keep
+
+    def get_first_unbounded_negative_node(self):
+        """
+        Returns the deepest unbounded node in the tree. This node keeps the partial matches that are pending release
+        due to the presence of unbounded negative events in the pattern.
+        """
+        if not self.__is_unbounded:
+            return None
+        return self if self.__is_first_unbounded_negative_node() \
+            else self._positive_subtree.get_first_unbounded_negative_node()
+
+    def __is_first_unbounded_negative_node(self):
+        """
+        Returns True if this node is the first unbounded negative node and False otherwise.
+        """
+        return self.__is_unbounded and \
+               (not isinstance(self._positive_subtree, NegationNode) or not self._positive_subtree.__is_unbounded)
+
+
+class NegativeAndNode(NegationNode):
+    """
+    An internal node representing a negative conjunction operator.
+    """
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool, parent: Node = None,
+                 event_defs: List[Tuple[int, QItem]] = None,
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, is_unbounded, AndOperator, parent, event_defs, left, right)
+
+
+class NegativeSeqNode(NegationNode):
+    """
+    An internal node representing a negative sequence operator.
+    Unfortunately, this class contains some code duplication from SeqNode to avoid diamond inheritance.
+    """
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool, parent: Node = None,
+                 event_defs: List[Tuple[int, QItem]] = None,
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, is_unbounded, SeqOperator, parent, event_defs, left, right)
+
+    def _set_event_definitions(self,
+                               left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
+        self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
+
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
+            return False
+        return super()._validate_new_match(events_for_new_match)
+
+    def _merge_events_for_new_match(self,
+                                    first_event_defs: List[Tuple[int, QItem]],
+                                    second_event_defs: List[Tuple[int, QItem]],
+                                    first_event_list: List[Event],
+                                    second_event_list: List[Event]):
+        return merge_according_to(first_event_defs, second_event_defs,
+                                  first_event_list, second_event_list, key=lambda x: x[0])
+
+
 class Tree:
     """
-    Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree structure"
+    Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree positive_structure"
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     """
     def __init__(self, tree_structure: tuple, pattern: Pattern):
@@ -355,11 +645,69 @@ class Tree:
         self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
                                             tree_structure, pattern.structure.args, pattern.window,
                                             None, pattern.consumption_policy)
+        
         if pattern.consumption_policy is not None and \
                 pattern.consumption_policy.should_register_event_type_as_single(True):
             for event_type in pattern.consumption_policy.single_types:
                 self.__root.register_single_event_type(event_type)
+            
+        if pattern.negative_structure is not None:
+            self.__adjust_leaf_indices(pattern)
+            self.__add_negative_tree_structure(pattern)
+
         self.__root.apply_formula(pattern.condition)
+
+    def __adjust_leaf_indices(self, pattern: Pattern):
+        """
+        Fixes the values of the leaf indices in the positive tree to take the negative events into account.
+        """
+        leaf_mapping = {}
+        for leaf in self.get_leaves():
+            current_index = leaf.get_leaf_index()
+            correct_index = pattern.get_index_by_event_name(leaf.get_event_name())
+            leaf_mapping[current_index] = correct_index
+        self.__update_event_defs(self.__root, leaf_mapping)
+
+    def __update_event_defs(self, node: Node, leaf_mapping: Dict[int, int]):
+        """
+        Recursively modifies the event indices in the tree specified by the given node.
+        """
+        if isinstance(node, LeafNode):
+            node.set_leaf_index(leaf_mapping[node.get_leaf_index()])
+            return
+        # this node is an internal node
+        event_defs = node.get_event_definitions()
+        # no list comprehension is used since we modify the original list
+        for i in range(len(event_defs)):
+            event_def = event_defs[i]
+            event_defs[i] = (leaf_mapping[event_def[0]], event_def[1])
+        self.__update_event_defs(node.get_left_subtree(), leaf_mapping)
+        self.__update_event_defs(node.get_right_subtree(), leaf_mapping)
+
+    def __add_negative_tree_structure(self, pattern: Pattern):
+        """
+        Adds the negative nodes at the root of the tree.
+        """
+        top_operator = pattern.full_structure.get_top_operator()
+        negative_event_list = pattern.negative_structure.get_args()
+        current_root = self.__root
+        for negation_operator in negative_event_list:
+            if top_operator == SeqOperator:
+                new_root = NegativeSeqNode(pattern.window,
+                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
+            elif top_operator == AndOperator:
+                new_root = NegativeAndNode(pattern.window,
+                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
+            else:
+                raise Exception("Unsupported operator for negation: %s" % (top_operator,))
+            negative_event = negation_operator.arg
+            leaf_index = pattern.get_index_by_event_name(negative_event.name)
+            negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root)
+            new_root.set_subtrees(current_root, negative_leaf)
+            negative_leaf.set_parent(new_root)
+            current_root.set_parent(new_root)
+            current_root = new_root
+        self.__root = current_root
 
     def get_leaves(self):
         return self.__root.get_leaves()
@@ -367,6 +715,22 @@ class Tree:
     def get_matches(self):
         while self.__root.has_partial_matches():
             yield self.__root.consume_first_partial_match().events
+
+    def get_last_matches(self):
+        """
+        After the system run is completed, retrieves and returns the last pending matches.
+        As of now, the only case in which such matches may exist is if a pattern contains an unbounded negative event
+        (e.g., SEQ(A,B,NOT(C)), in which case positive partial matches wait for timeout before proceeding to the root.
+        """
+        if not isinstance(self.__root, NegationNode):
+            return []
+        # this is the node that contains the pending matches
+        first_unbounded_negative_node = self.__root.get_first_unbounded_negative_node()
+        if first_unbounded_negative_node is None:
+            return []
+        first_unbounded_negative_node.flush_pending_matches()
+        # the pending matches were released and have hopefully reached the root
+        return self.get_matches()
 
     @staticmethod
     def __construct_tree(is_sequence: bool, tree_structure: tuple or int, args: List[QItem],
@@ -384,6 +748,23 @@ class Tree:
         right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current, consumption_policy)
         current.set_subtrees(left, right)
         return current
+
+    @staticmethod
+    def __is_unbounded_negative_event(pattern: Pattern, negation_operator: NegationOperator):
+        """
+        Returns True if the negative event represented by the given operator is unbounded (i.e., can appear after the
+        entire match is ready and invalidate it) and False otherwise.
+        """
+        if pattern.full_structure.get_top_operator() != SeqOperator:
+            return True
+        # for a sequence pattern, a negative event is unbounded if no positive events follow it
+        # the implementation below assumes a flat sequence
+        sequence_elements = pattern.full_structure.get_args()
+        operator_index = sequence_elements.index(negation_operator)
+        for i in range(operator_index + 1, len(sequence_elements)):
+            if isinstance(sequence_elements[i], QItem):
+                return False
+        return True
 
 
 class TreeBasedEvaluationMechanism(EvaluationMechanism):
@@ -429,6 +810,11 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                             f.write("%s \n" % str(itr.payload))
                         f.write("\n")
                         f.close()
+        
+        # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
+        # collect them now
+        for match in self.__tree.get_last_matches():
+            matches.add_item(PatternMatch(match))
         matches.close()
 
     def __register_event_listeners(self):
@@ -442,6 +828,21 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__event_types_listeners[event_type].append(leaf)
             else:
                 self.__event_types_listeners[event_type] = [leaf]
+
+        # Send events to listening leaves.
+        for event in events:
+            if event.type in event_types_listeners.keys():
+                for leaf in event_types_listeners[event.type]:
+                    leaf.handle_event(event)
+                    for match in self.__tree.get_matches():
+                        matches.add_item(PatternMatch(match))
+
+        # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
+        # collect them now
+        for match in self.__tree.get_last_matches():
+            matches.add_item(PatternMatch(match))
+
+        matches.close()
 
     def __init_freeze_map(self):
         """
