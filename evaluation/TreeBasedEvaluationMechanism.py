@@ -24,6 +24,10 @@ class Node(ABC):
         self._condition = TrueFormula()
         # matches that were not yet pushed to the parent for further processing
         self._unhandled_partial_matches = Queue()
+        # set of event types that will only appear in a single full match
+        self._single_event_types = set()
+        # events that were added to a partial match and cannot be added again
+        self._filtered_events = set()
 
     def consume_first_partial_match(self):
         """
@@ -64,11 +68,26 @@ class Node(ABC):
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
         Removes partial matches whose earliest timestamp violates the time window constraint.
+        Also removes the expired filtered events if the "single" consumption policy is enabled.
         """
         if self._sliding_window == timedelta.max:
             return
         count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window)
         self._partial_matches = self._partial_matches[count:]
+        if len(self._single_event_types) == 0:
+            # "single" consumption policy is disabled or no event types under the policy reach this node
+            return
+        self._filtered_events = set([event for event in self._filtered_events
+                                    if event.timestamp >= last_timestamp - self._sliding_window])
+
+    def register_single_event_type(self, event_type: str):
+        """
+        Add the event type to the internal set of event types for which "single" consumption policy is enabled.
+        Recursively updates the ancestors of the node.
+        """
+        self._single_event_types.add(event_type)
+        if self._parent is not None:
+            self._parent.register_single_event_type(event_type)
 
     def add_partial_match(self, pm: PartialMatch):
         """
@@ -80,6 +99,40 @@ class Node(ABC):
         self._partial_matches.insert(index, pm)
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
+
+    def __can_add_partial_match(self, pm: PartialMatch) -> bool:
+        """
+        Returns True if the given partial match can be passed up the tree and False otherwise.
+        As of now, only the activation of the "single" consumption policy might prevent this method from returning True.
+        In addition, this method updates the filtered events set.
+        """
+        if len(self._single_event_types) == 0:
+            return True
+        new_filtered_events = set()
+        for event in pm.events:
+            if event.event_type not in self._single_event_types:
+                continue
+            if event in self._filtered_events:
+                # this event was already passed
+                return False
+            else:
+                # this event was not yet passed but should only be passed once - remember it
+                new_filtered_events.add(event)
+        self._filtered_events |= new_filtered_events
+        return True
+
+    def _handle_partial_match(self, events: List[Event]):
+        """
+        Creates a new partial match from the list of events and propagates it up the tree.
+        """
+        if not self._validate_new_match(events):
+            return
+        new_partial_match = PartialMatch(events)
+        if not self.__can_add_partial_match(new_partial_match):
+            return
+        self.add_partial_match(new_partial_match)
+        if self._parent is not None:
+            self._parent.handle_new_partial_match(self)
 
     def get_partial_matches(self):
         """
@@ -102,6 +155,12 @@ class Node(ABC):
     def get_event_definitions(self):
         """
         Returns the specifications of all events collected by this tree - to be implemented by subclasses.
+        """
+        raise NotImplementedError()
+
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        """
+        Validates the condition stored in this node on the given set of events.
         """
         raise NotImplementedError()
 
@@ -156,16 +215,14 @@ class LeafNode(Node):
         Inserts the given event to this leaf.
         """
         self.clean_expired_partial_matches(event.timestamp)
+        self._handle_partial_match([event])
 
-        # get event's qitem and make a binding to evaluate formula for the new event.
-        binding = {self.__event_name: event.payload}
-
-        if not self._condition.eval(binding):
-            return
-
-        self.add_partial_match(PartialMatch([event]))
-        if self._parent is not None:
-            self._parent.handle_new_partial_match(self)
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        """
+        Validates the condition stored in this node on the given set of events.
+        """
+        binding = {self.__event_name: events_for_new_match[0].payload}
+        return self._condition.eval(binding)
 
 
 class InternalNode(Node):
@@ -261,11 +318,7 @@ class InternalNode(Node):
         events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
                                                                 first_partial_match.events, second_partial_match.events)
 
-        if not self._validate_new_match(events_for_new_match):
-            return
-        self.add_partial_match(PartialMatch(events_for_new_match))
-        if self._parent is not None:
-            self._parent.handle_new_partial_match(self)
+        self._handle_partial_match(events_for_new_match)
 
     def _merge_events_for_new_match(self,
                                     first_event_defs: List[Tuple[int, QItem]],
@@ -367,8 +420,7 @@ class NegationNode(InternalNode):
         if self.is_last:
             self.waiting_for_time_out = sorted(self.waiting_for_time_out, key=lambda x: x.first_timestamp)
             count = find_partial_match_by_timestamp(self.waiting_for_time_out, last_timestamp - self._sliding_window)
-            node = self.get_root()
-            node.matches_to_handle_at_EOF.extend(self.waiting_for_time_out[:count])
+            self.get_root().matches_to_handle_at_EOF.extend(self.waiting_for_time_out[:count])
             self.waiting_for_time_out = self.waiting_for_time_out[count:]
 
     def _set_event_definitions(self,
@@ -466,8 +518,7 @@ class NegationNode(InternalNode):
         """
         if type(self._left_subtree) == NegationNode and self._left_subtree.is_last:
             return self._left_subtree.get_first_last_negative_node()
-        else:
-            return self
+        return self
 
 
 class Tree:
