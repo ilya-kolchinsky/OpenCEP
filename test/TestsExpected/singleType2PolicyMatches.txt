@@ -1,16 +1,16 @@
-{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700, 'Index': 1}
-{'Stock Ticker': 'AMZN', 'Date': 200802010901, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450, 'Index': 2}
-{'Stock Ticker': 'AVID', 'Date': 200802010901, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200, 'Index': 3}
+{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700, 'InternalIndexAttributeName': 1}
+{'Stock Ticker': 'AMZN', 'Date': 200802010901, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450, 'InternalIndexAttributeName': 2}
+{'Stock Ticker': 'AVID', 'Date': 200802010901, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200, 'InternalIndexAttributeName': 3}
 
-{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700, 'Index': 1}
-{'Stock Ticker': 'AMZN', 'Date': 200802010902, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700, 'Index': 4}
-{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200, 'Index': 6}
+{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700, 'InternalIndexAttributeName': 1}
+{'Stock Ticker': 'AMZN', 'Date': 200802010902, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700, 'InternalIndexAttributeName': 4}
+{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200, 'InternalIndexAttributeName': 6}
 
-{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700, 'Index': 1}
-{'Stock Ticker': 'AMZN', 'Date': 200802010903, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450, 'Index': 5}
-{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200, 'Index': 6}
+{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700, 'InternalIndexAttributeName': 1}
+{'Stock Ticker': 'AMZN', 'Date': 200802010903, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450, 'InternalIndexAttributeName': 5}
+{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200, 'InternalIndexAttributeName': 6}
 
-{'Stock Ticker': 'AAPL', 'Date': 200802010907, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700, 'Index': 7}
-{'Stock Ticker': 'AMZN', 'Date': 200802010907, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450, 'Index': 8}
-{'Stock Ticker': 'AVID', 'Date': 200802010908, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200, 'Index': 9}
+{'Stock Ticker': 'AAPL', 'Date': 200802010907, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700, 'InternalIndexAttributeName': 7}
+{'Stock Ticker': 'AMZN', 'Date': 200802010907, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450, 'InternalIndexAttributeName': 8}
+{'Stock Ticker': 'AVID', 'Date': 200802010908, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200, 'InternalIndexAttributeName': 9}
 

@@ -18,11 +18,12 @@ class Pattern:
     during evaluation.
     - A condition to be satisfied by the primitive events. This condition might encapsulate multiple nested conditions.
     - A time window for the pattern matches to occur within.
+    - a ConsumptionPolicy object that contains the policies that filter certain partial matches.
     A pattern can also carry statistics with it, in order to enable advanced
     tree construction mechanisms - this is hopefully a temporary hack.
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Formula,
-                 time_window: timedelta):
+                 time_window: timedelta, consumption_policy: ConsumptionPolicy = None):
         if not isinstance(pattern_structure, CompositeStructure):
             raise Exception("The top pattern operator must be composite")
         self.full_structure = pattern_structure
@@ -93,14 +94,14 @@ class Pattern:
         """
         Returns all event types in the pattern.
         """
-        return set(self.__get_all_event_types_aux(self.structure))
+        return set(self.__get_all_event_types_aux(self.full_structure))
 
     def __get_all_event_types_aux(self, structure: PatternStructure):
         """
         An auxiliary method for returning all event types in the pattern.
         """
         if structure.get_top_operator() == QItem:
-            return [structure.event_type]
+            return [structure.type]
         return reduce(lambda x, y: x+y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
 
     def __init_strict_formulas(self, pattern_structure: PatternStructure):
@@ -145,7 +146,7 @@ class Pattern:
         in the pattern SEQ(A,AND(B,C),D) there are two hidden sequences [A,B,D] and [A,C,D], but this method will
         not return them as of now.
         """
-        return self.__extract_flat_sequences_aux(self.structure)
+        return self.__extract_flat_sequences_aux(self.positive_structure)
 
     def __extract_flat_sequences_aux(self, pattern_structure: PatternStructure) -> List[List[str]] or None:
         """
