@@ -17,6 +17,25 @@ class Node(ABC):
     """
     This class represents a single node of an evaluation tree.
     """
+
+    # A static variable specifying whether the system is allowed to delete expired matches.
+    # In several very special cases, it is required to switch off this functionality.
+    __enable_partial_match_expiration = True
+
+    @staticmethod
+    def _toggle_enable_partial_match_expiration(enable):
+        """
+        Sets the value of the __enable_partial_match_expiration flag.
+        """
+        Node.__enable_partial_match_expiration = enable
+
+    @staticmethod
+    def _is_partial_match_expiration_enabled():
+        """
+        Returns the static variable specifying whether match expiration is enabled.
+        """
+        return Node.__enable_partial_match_expiration
+
     def __init__(self, sliding_window: timedelta, parent):
         self._parent = parent
         self._sliding_window = sliding_window
@@ -70,6 +89,8 @@ class Node(ABC):
         Removes partial matches whose earliest timestamp violates the time window constraint.
         Also removes the expired filtered events if the "single" consumption policy is enabled.
         """
+        if not Node._is_partial_match_expiration_enabled():
+            return
         count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window)
         self._partial_matches = self._partial_matches[count:]
         if len(self._single_event_types) == 0:
@@ -87,7 +108,7 @@ class Node(ABC):
         if self._parent is not None:
             self._parent.register_single_event_type(event_type)
 
-    def add_partial_match(self, pm: PartialMatch):
+    def _add_partial_match(self, pm: PartialMatch):
         """
         Registers a new partial match at this node.
         As of now, the insertion is always by the timestamp, and the partial matches are stored in a list sorted by
@@ -97,6 +118,7 @@ class Node(ABC):
         self._partial_matches.insert(index, pm)
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
+            self._parent.handle_new_partial_match(self)
 
     def __can_add_partial_match(self, pm: PartialMatch) -> bool:
         """
@@ -119,24 +141,35 @@ class Node(ABC):
         self._filtered_events |= new_filtered_events
         return True
 
-    def _handle_partial_match(self, events: List[Event]):
+    def _validate_and_propagate_partial_match(self, events: List[Event]):
         """
-        Creates a new partial match from the list of events and propagates it up the tree.
+        Creates a new partial match from the list of events, validates it, and propagates it up the tree.
         """
         if not self._validate_new_match(events):
             return
+        self._propagate_partial_match(events)
+
+    def _propagate_partial_match(self, events: List[Event]):
+        """
+        Receives an already verified list of events for new partial match and propagates it up the tree.
+        """
         new_partial_match = PartialMatch(events)
-        if not self.__can_add_partial_match(new_partial_match):
-            return
-        self.add_partial_match(new_partial_match)
-        if self._parent is not None:
-            self._parent.handle_new_partial_match(self)
+        if self.__can_add_partial_match(new_partial_match):
+            self._add_partial_match(new_partial_match)
 
     def get_partial_matches(self):
         """
         Returns the currently stored partial matches.
         """
         return self._partial_matches
+
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        """
+        Validates the condition stored in this node on the given set of events.
+        """
+        min_timestamp = min([event.timestamp for event in events_for_new_match])
+        max_timestamp = max([event.timestamp for event in events_for_new_match])
+        return max_timestamp - min_timestamp <= self._sliding_window
 
     def get_leaves(self):
         """
@@ -153,12 +186,6 @@ class Node(ABC):
     def get_event_definitions(self):
         """
         Returns the specifications of all events collected by this tree - to be implemented by subclasses.
-        """
-        raise NotImplementedError()
-
-    def _validate_new_match(self, events_for_new_match: List[Event]):
-        """
-        Validates the condition stored in this node on the given set of events.
         """
         raise NotImplementedError()
 
@@ -213,12 +240,14 @@ class LeafNode(Node):
         Inserts the given event to this leaf.
         """
         self.clean_expired_partial_matches(event.timestamp)
-        self._handle_partial_match([event])
+        self._validate_and_propagate_partial_match([event])
 
     def _validate_new_match(self, events_for_new_match: List[Event]):
         """
         Validates the condition stored in this node on the given set of events.
         """
+        if not super()._validate_new_match(events_for_new_match):
+            return False
         binding = {self.__event_name: events_for_new_match[0].payload}
         return self._condition.eval(binding)
 
@@ -297,25 +326,23 @@ class InternalNode(Node):
         partial_matches_to_compare = other_subtree.get_partial_matches()
         second_event_defs = other_subtree.get_event_definitions()
 
-        self.clean_expired_partial_matches(new_partial_match.last_timestamp)
+        if self._parent is not None:
+            self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
         # given a partial match from one subtree, for each partial match
         # in the other subtree we check for new partial matches in this node.
-        for partialMatch in partial_matches_to_compare:
-            self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs)
+        self._try_create_new_matches(new_partial_match, partial_matches_to_compare, first_event_defs, second_event_defs)
 
-    def _try_create_new_match(self,
-                              first_partial_match: PartialMatch, second_partial_match: PartialMatch,
-                              first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
+    def _try_create_new_matches(self, new_partial_match: PartialMatch, partial_matches_to_compare: List[PartialMatch],
+                                first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
         """
-        Verifies all the conditions for creating a new partial match and creates it if all constraints are satisfied.
+        For each candidate pair of partial matches that can be joined to create a new one, verifies all the
+        necessary conditions creates new partial matches if all constraints are satisfied.
         """
-        if abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
-            return
-        events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
-                                                                first_partial_match.events, second_partial_match.events)
-
-        self._handle_partial_match(events_for_new_match)
+        for partial_match in partial_matches_to_compare:
+            events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
+                                                                    new_partial_match.events, partial_match.events)
+            self._validate_and_propagate_partial_match(events_for_new_match)
 
     def _merge_events_for_new_match(self,
                                     first_event_defs: List[Tuple[int, QItem]],
@@ -335,6 +362,8 @@ class InternalNode(Node):
         """
         Validates the condition stored in this node on the given set of events.
         """
+        if not super()._validate_new_match(events_for_new_match):
+            return False
         binding = {
             self._event_defs[i][1].name: events_for_new_match[i].payload for i in range(len(self._event_defs))
         }
@@ -394,31 +423,32 @@ class NegationNode(InternalNode):
         """
         self.waiting_for_time_out = []
 
-        """
-        Contains PMs that match the whole pattern and were in waiting_for_timeout, and now can't be invalidated anymore
-        When we finish all the stream of events we handle them and put them in the output
-        Is used only in root
-        We need this field (instead of putting the matches directly in root.partial_match) because these are 
-        expired match : they will be removed from root.partial_match when we call clean_expired
-        """
-        self.matches_to_handle_at_EOF = []
-
     def clean_expired_partial_matches(self, last_timestamp: datetime):
+        """
+        In addition to the normal functionality of this method, attempt to flush pending matches that can already
+        be propagated.
+        """
         super().clean_expired_partial_matches(last_timestamp)
+        if self.__is_first_unbounded_negative_node():
+            self.flush_pending_matches(last_timestamp)
 
+    def flush_pending_matches(self, last_timestamp: datetime = None):
         """
-        "waiting for timeout" contains matches that may be invalidated by a future negative event
-        if the timestamp has passed, they can't be invalidated anymore,
-        therefore we remove them from waiting for timeout
-        and we put them in the field "matches to handle at eof" of the root,
-        for it to put it in the matches at the end of the program
+        Releases the partial matches in the pending matches buffer. If the timestamp is provided, only releases
+        expired matches.
         """
-
-        if self.is_last:
+        if last_timestamp is not None:
             self.waiting_for_time_out = sorted(self.waiting_for_time_out, key=lambda x: x.first_timestamp)
             count = find_partial_match_by_timestamp(self.waiting_for_time_out, last_timestamp - self._sliding_window)
-            self.get_root().matches_to_handle_at_EOF.extend(self.waiting_for_time_out[:count])
+            matches_to_flush = self.waiting_for_time_out[:count]
             self.waiting_for_time_out = self.waiting_for_time_out[count:]
+        else:
+            matches_to_flush = self.waiting_for_time_out
+        # since matches_to_flush could be expired, we need to temporarily disable timestamp checks
+        Node._toggle_enable_partial_match_expiration(False)
+        for partial_match in matches_to_flush:
+            super()._add_partial_match(partial_match)
+        Node._toggle_enable_partial_match_expiration(True)
 
     def _set_event_definitions(self,
                                left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
@@ -428,93 +458,101 @@ class NegationNode(InternalNode):
     def get_event_definitions(self):  # to support multiple neg
         return self._left_subtree.get_event_definitions()
 
-    def _try_create_new_match(self,
-                              first_partial_match: PartialMatch, second_partial_match: PartialMatch,
-                              first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
+    def _try_create_new_matches(self, new_partial_match: PartialMatch, partial_matches_to_compare: List[PartialMatch],
+                                first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
+        """
+        The flow of this method is the opposite of the one its superclass implements. For each pair of a positive and a
+        negative partial match, we combine the two sides to form a new partial match, validate it, and then do nothing
+        if the validation succeeds (i.e., the negative part invalidated the positive one), and transfer the positive
+        match up the tree if the validation fails.
+        """
+        positive_events = new_partial_match.events
+        for partial_match in partial_matches_to_compare:
+            negative_events = partial_match.events
+            combined_event_list = self._merge_events_for_new_match(first_event_defs, second_event_defs,
+                                                                   positive_events, negative_events)
+            if self._validate_new_match(combined_event_list):
+                # this match should not be transferred
+                # TODO: the rejected positive partial match should be explicitly removed to save space
+                return
+        # no negative match invalidated the positive one - we can go on
+        self._propagate_partial_match(positive_events)
 
-        if abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
-            return
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        if self.top_operator == SeqOperator and not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
+            return False
+        return super()._validate_new_match(events_for_new_match)
 
+    def _merge_events_for_new_match(self,
+                                    first_event_defs: List[Tuple[int, QItem]],
+                                    second_event_defs: List[Tuple[int, QItem]],
+                                    first_event_list: List[Event],
+                                    second_event_list: List[Event]):
         if self.top_operator == SeqOperator:
-            events_for_new_match = merge_according_to(first_event_defs, second_event_defs,
-                                                      first_partial_match.events, second_partial_match.events,
-                                                      key=lambda x: x[0])
-            if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
-                return False
-        else:
-            events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
-                                                                    first_partial_match.events,
-                                                                    second_partial_match.events)
+            return merge_according_to(first_event_defs, second_event_defs,
+                                      first_event_list, second_event_list, key=lambda x: x[0])
+        return super()._merge_events_for_new_match(first_event_defs, second_event_defs,
+                                                   first_event_list, second_event_list)
 
-        return self._validate_new_match(events_for_new_match)
+    def _add_partial_match(self, pm: PartialMatch):
+        """
+        If this node can receive unbounded negative events and is the deepest node in the tree to do so, a
+        successfully evaluated partial match must be added to a dedicated waiting list rather than propagated normally.
+        """
+        if self.__is_first_unbounded_negative_node():
+            self.waiting_for_time_out.append(pm)
+        else:
+            super()._add_partial_match(pm)
 
     def handle_new_partial_match(self, partial_match_source: Node):
+        """
+        For positive partial matches, activates the flow of the superclass. For negative partial matches, does nothing
+        for bounded events (as nothing should be done in this case), otherwise checks whether existing positive matches
+        must be invalidated and handles them accordingly.
+        """
         if partial_match_source == self._left_subtree:
-            other_subtree = self._right_subtree
-            if self.is_last:
-                new_partial_match = partial_match_source.get_last_unhandled_partial_match()
-                self.waiting_for_time_out.append(new_partial_match)
-                return
-        elif partial_match_source == self._right_subtree:
-            if self.is_last:
-                self.handle_PM_with_negation_at_the_end(partial_match_source)
+            # a new positive partial match has arrived
+            super().handle_new_partial_match(partial_match_source)
             return
-        else:
-            raise Exception()  # should never happen
+        # a new negative partial match has arrived
+        if not self.is_last:
+            # no unbounded negatives - there is nothing to do
+            return
 
-        # we arrive here only if the new partial match is a positive event
-        new_partial_match = partial_match_source.get_last_unhandled_partial_match()
-        first_event_defs = partial_match_source.get_event_definitions()
-        other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
+        # this partial match contains unbounded negative events
+        first_unbounded_node = self.get_first_unbounded_negative_node()
+        positive_event_defs = first_unbounded_node.get_event_definitions()
 
-        partial_matches_to_compare = other_subtree.get_partial_matches()
-        second_event_defs = other_subtree.get_event_definitions()
-        self.clean_expired_partial_matches(new_partial_match.last_timestamp)
-
-        for partialMatch in partial_matches_to_compare:
-            # for every negative event, we want to check if it invalidates new_partial_match
-            if self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs):
-                return
-
-        self.add_partial_match(new_partial_match)
-        if self._parent is not None:
-            self._parent.handle_new_partial_match(self)
-
-    def handle_PM_with_negation_at_the_end(self, partial_match_source: Node):
-        """
-        Customized handle_new_partial_match function for partial matches waiting for negative events at the end of the pattern:
-        The PMs to compare come from "get_waiting_for_timeout" and not from "get_partial_matches": these are PMs that
-        match the pattern but may be invalidated by a later negative event at the end of a pattern.
-        We check which ones have been invalidated and we discard them. The others will be final matches once there are
-        no future not event that can invalidate them == when the time window has ended or EOF
-        """
-
-        other_subtree = self.get_first_last_negative_node()
-
-        new_partial_match = partial_match_source.get_last_unhandled_partial_match()
-        first_event_defs = partial_match_source.get_event_definitions()
-        other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
-
-        partial_matches_to_compare = other_subtree.waiting_for_time_out
-        second_event_defs = other_subtree.get_event_definitions()
-        self.clean_expired_partial_matches(new_partial_match.last_timestamp)
+        unbounded_negative_partial_match = partial_match_source.get_last_unhandled_partial_match()
+        negative_event_defs = partial_match_source.get_event_definitions()
 
         matches_to_keep = []
-        for partialMatch in partial_matches_to_compare:
-            if not self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs):
-                matches_to_keep.append(partialMatch)
+        for positive_partial_match in first_unbounded_node.waiting_for_time_out:
+            combined_event_list = self._merge_events_for_new_match(positive_event_defs,
+                                                                   negative_event_defs,
+                                                                   positive_partial_match.events,
+                                                                   unbounded_negative_partial_match.events)
+            if not self._validate_new_match(combined_event_list):
+                # this positive match should still be kept
+                matches_to_keep.append(positive_partial_match)
 
-        other_subtree.waiting_for_time_out = matches_to_keep
+        first_unbounded_node.waiting_for_time_out = matches_to_keep
 
-    def get_first_last_negative_node(self):
+    def get_first_unbounded_negative_node(self):
         """
-        This function descends in the tree and returns the first Node that is not a NegationNode at the end
-        of the Pattern. That's in that node that we keep the PMs that are waiting for timeout: we block them here,
-        because if they go directly up to the root they are automatically added to the matches
+        Returns the deepest unbounded node in the tree. This node keeps the partial matches that are pending release
+        due to the presence of unbounded negative events in the pattern.
         """
-        if type(self._left_subtree) == NegationNode and self._left_subtree.is_last:
-            return self._left_subtree.get_first_last_negative_node()
-        return self
+        if not self.is_last:
+            return None
+        return self if self.__is_first_unbounded_negative_node() \
+            else self._left_subtree.get_first_unbounded_negative_node()
+
+    def __is_first_unbounded_negative_node(self):
+        """
+        Returns True if this node is the first unbounded negative node and False otherwise.
+        """
+        return self.is_last and (type(self._left_subtree) != NegationNode or not self._left_subtree.is_last)
 
 
 class Tree:
@@ -587,21 +625,21 @@ class Tree:
         while self.__root.has_partial_matches():
             yield self.__root.consume_first_partial_match().events
 
-    def handle_EOF(self, matches: Stream):
+    def get_last_matches(self):
         """
-        If this tree contains a negation node at its root that corresponds to the last event in a sequence
-        (or a negation event in a conjunction pattern), there are matches that wait for the time window to be closed
-        in order to make sure no negative event invalidates them.
-        This method is invoked following the end of the input stream. It flushes the full matches waiting to be reported
-        as there is no more risk for them to be dropped.
+        After the system run is completed, retrieves and returns the last pending matches.
+        As of now, the only case in which such matches may exist is if a pattern contains an unbounded negative event
+        (e.g., SEQ(A,B,NOT(C)), in which case positive partial matches wait for timeout before proceeding to the root.
         """
-        if type(self.__root) != NegationNode or not self.__root.is_last:
-            return
-        for match in self.__root.matches_to_handle_at_EOF:
-            matches.add_item(PatternMatch(match.events))
-        node = self.__root.get_first_last_negative_node()
-        for match in node.waiting_for_time_out:
-            matches.add_item(PatternMatch(match.events))
+        if not isinstance(self.__root, NegationNode):
+            return []
+        # this is the node that contains the pending matches
+        first_unbounded_negative_node = self.__root.get_first_unbounded_negative_node()
+        if first_unbounded_negative_node is None:
+            return []
+        first_unbounded_negative_node.flush_pending_matches()
+        # the pending matches were released and have hopefully reached the root
+        return self.get_matches()
 
     @staticmethod
     def __construct_tree(is_sequence: bool, tree_structure: tuple or int, args: List[QItem],
@@ -662,8 +700,9 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     for match in self.__tree.get_matches():
                         matches.add_item(PatternMatch(match))
 
-        # Now that we finished the input stream, if there were some PMs risking to be invalidated by a negative event
-        # at the end of the pattern, we handle them now
-        self.__tree.handle_EOF(matches)
+        # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
+        # collect them now
+        for match in self.__tree.get_last_matches():
+            matches.add_item(PatternMatch(match))
 
         matches.close()
