@@ -16,7 +16,6 @@ from misc.ConsumptionPolicy import *
 import time
 
 
-
 class Node(ABC):
     """
     This class represents a single node of an evaluation tree.
@@ -134,7 +133,7 @@ class Node(ABC):
             return True
         new_filtered_events = set()
         for event in pm.events:
-            if event.event_type not in self._single_event_types:
+            if event.type not in self._single_event_types:
                 continue
             if event in self._filtered_events:
                 # this event was already passed
@@ -160,40 +159,6 @@ class Node(ABC):
         new_partial_match = PartialMatch(events)
         if self.__can_add_partial_match(new_partial_match):
             self._add_partial_match(new_partial_match)
-
-    def __can_add_partial_match(self, pm: PartialMatch) -> bool:
-        """
-        Returns True if the given partial match can be passed up the tree and False otherwise.
-        As of now, only the activation of the "single" consumption policy might prevent this method from returning True.
-        In addition, this method updates the filtered events set.
-        """
-        if len(self._single_event_types) == 0:
-            return True
-        new_filtered_events = set()
-        for event in pm.events:
-            if event.event_type not in self._single_event_types:
-                continue
-            if event in self._filtered_events:
-                # this event was already passed
-                return False
-            else:
-                # this event was not yet passed but should only be passed once - remember it
-                new_filtered_events.add(event)
-        self._filtered_events |= new_filtered_events
-        return True
-
-    def _handle_partial_match(self, events: List[Event]):
-        """
-        Creates a new partial match from the list of events and propagates it up the tree.
-        """
-        if not self._validate_new_match(events):
-            return
-        new_partial_match = PartialMatch(events)
-        if not self.__can_add_partial_match(new_partial_match):
-            return
-        self.__add_partial_match(new_partial_match)
-        if self._parent is not None:
-            self._parent.handle_new_partial_match(self)
 
     def get_partial_matches(self):
         """
@@ -224,12 +189,6 @@ class Node(ABC):
     def get_event_definitions(self):
         """
         Returns the specifications of all events collected by this tree - to be implemented by subclasses.
-        """
-        raise NotImplementedError()
-
-    def _validate_new_match(self, events_for_new_match: List[Event]):
-        """
-        Validates the condition stored in this node on the given set of events.
         """
         raise NotImplementedError()
 
@@ -642,8 +601,8 @@ class Tree:
     """
     def __init__(self, tree_structure: tuple, pattern: Pattern):
         # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
-        self.__root = Tree.__construct_tree(pattern.structure.get_top_operator() == SeqOperator,
-                                            tree_structure, pattern.structure.args, pattern.window,
+        self.__root = Tree.__construct_tree(pattern.positive_structure.get_top_operator() == SeqOperator,
+                                            tree_structure, pattern.positive_structure.args, pattern.window,
                                             None, pattern.consumption_policy)
         
         if pattern.consumption_policy is not None and \
@@ -739,8 +698,8 @@ class Tree:
             # we have reached a leaf
             event = args[tree_structure]
             if consumption_policy is not None and \
-                    consumption_policy.should_register_event_type_as_single(False, event.event_type):
-                parent.register_single_event_type(event.event_type)
+                    consumption_policy.should_register_event_type_as_single(False, event.type):
+                parent.register_single_event_type(event.type)
             return LeafNode(sliding_window, tree_structure, event, parent)
         current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
         left_structure, right_structure = tree_structure
@@ -793,10 +752,10 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 if time.time() - start_time > time_limit:
                     matches.close()
                     return
-            if event.event_type not in self.__event_types_listeners.keys():
+            if event.type not in self.__event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
-            for leaf in self.__event_types_listeners[event.event_type]:
+            for leaf in self.__event_types_listeners[event.type]:
                 if self.__should_ignore_events_on_leaf(leaf):
                     continue
                 self.__try_register_freezer(event, leaf)
@@ -829,21 +788,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             else:
                 self.__event_types_listeners[event_type] = [leaf]
 
-        # Send events to listening leaves.
-        for event in events:
-            if event.type in event_types_listeners.keys():
-                for leaf in event_types_listeners[event.type]:
-                    leaf.handle_event(event)
-                    for match in self.__tree.get_matches():
-                        matches.add_item(PatternMatch(match))
-
-        # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
-        # collect them now
-        for match in self.__tree.get_last_matches():
-            matches.add_item(PatternMatch(match))
-
-        matches.close()
-
     def __init_freeze_map(self):
         """
         For each event type specified by the user to be a 'freezer', that is, an event type whose appearance blocks
@@ -871,7 +815,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             # freeze option disabled
             return False
         for freezer in self.__active_freezers:
-            for freezer_leaf in self.__event_types_listeners[freezer.event_type]:
+            for freezer_leaf in self.__event_types_listeners[freezer.type]:
                 if freezer_leaf.get_event_name() not in self.__freeze_map:
                     continue
                 if leaf.get_event_name() in self.__freeze_map[freezer_leaf.get_event_name()]:

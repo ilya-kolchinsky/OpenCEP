@@ -1,7 +1,4 @@
 import sys, os, pathlib
-currentPath = pathlib.Path(os.path.dirname(__file__))
-absolutePath = str(currentPath.parent)
-sys.path.append(absolutePath)
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
     IterativeImprovementEvaluationMechanismParameters
@@ -16,6 +13,9 @@ from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFo
 from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
 from base.Pattern import Pattern
 
+currentPath = pathlib.Path(os.path.dirname(__file__))
+absolutePath = str(currentPath.parent)
+sys.path.append(absolutePath)
 
 nasdaqEventStreamTiny = file_input(absolutePath, "test/EventFiles/NASDAQ_TINY.txt", MetastockDataFormatter())
 nasdaqEventStreamShort = file_input(absolutePath, "test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
@@ -24,10 +24,10 @@ nasdaqEventStreamFrequencyTailored = file_input(absolutePath, "test/EventFiles/N
 nasdaqEventStream_AAPL_AMZN_GOOG = file_input(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt", MetastockDataFormatter())
 nasdaqEventStream = file_input(absolutePath, "test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
 
-nasdaqEventStreamHalfShort = file_input("test/EventFiles/NASDAQ_HALF_SHORT.txt", MetastockDataFormatter())
-custom = file_input("test/EventFiles/custom.txt", MetastockDataFormatter())
-custom2 = file_input("test/EventFiles/custom2.txt", MetastockDataFormatter())
-custom3 = file_input("test/EventFiles/custom3.txt", MetastockDataFormatter())
+nasdaqEventStreamHalfShort = file_input(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt", MetastockDataFormatter())
+custom = file_input(absolutePath, "test/EventFiles/custom.txt", MetastockDataFormatter())
+custom2 = file_input(absolutePath, "test/EventFiles/custom2.txt", MetastockDataFormatter())
+custom3 = file_input(absolutePath, "test/EventFiles/custom3.txt", MetastockDataFormatter())
 
 
 def numOfLinesInPattern(file):
