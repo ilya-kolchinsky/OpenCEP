@@ -16,8 +16,8 @@ class Pattern:
     A pattern can also carry statistics with it, in order to enable advanced
     tree construction mechanisms - this is hopefully a temporary hack.
     """
-    def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Formula = None,
-                 time_window: timedelta = timedelta.max):
+    def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Formula,
+                 time_window: timedelta):
         if not isinstance(pattern_structure, CompositeStructure):
             raise Exception("The top pattern operator must be composite")
         self.full_structure = pattern_structure

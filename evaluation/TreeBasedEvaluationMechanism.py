@@ -70,8 +70,6 @@ class Node(ABC):
         Removes partial matches whose earliest timestamp violates the time window constraint.
         Also removes the expired filtered events if the "single" consumption policy is enabled.
         """
-        if self._sliding_window == timedelta.max:
-            return
         count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window)
         self._partial_matches = self._partial_matches[count:]
         if len(self._single_event_types) == 0:
@@ -312,8 +310,7 @@ class InternalNode(Node):
         """
         Verifies all the conditions for creating a new partial match and creates it if all constraints are satisfied.
         """
-        if self._sliding_window != timedelta.max and \
-                abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
+        if abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
             return
         events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
                                                                 first_partial_match.events, second_partial_match.events)
@@ -435,8 +432,7 @@ class NegationNode(InternalNode):
                               first_partial_match: PartialMatch, second_partial_match: PartialMatch,
                               first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
 
-        if self._sliding_window != timedelta.max and \
-                abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
+        if abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
             return
 
         if self.top_operator == SeqOperator:

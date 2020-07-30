@@ -151,7 +151,7 @@ def oneArgumentsearchTest(createTestFile = False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a")]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
-        timedelta.max
+        timedelta(minutes=120)
     )
     runTest("one", [pattern], createTestFile)
 
@@ -251,7 +251,8 @@ def amazonSpecificPatternSearchTest(createTestFile = False):
     """
     amazonSpecificPattern = Pattern(
         SeqOperator([QItem("AMZN", "a")]),
-        EqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(73))
+        EqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(73)),
+        timedelta(minutes=120)
     )
     runTest('amazonSpecific', [amazonSpecificPattern], createTestFile)
 
@@ -624,7 +625,7 @@ def frequencyTailoredPatternSearchTest(createTestFile = False):
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))
         ),
-        timedelta.max
+        timedelta(minutes=360)
     )
     frequencyDict = {"MSFT": 256, "DRIV": 257, "CBRL": 1}
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, frequencyDict)
@@ -638,7 +639,7 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))
         ),
-        timedelta.max
+        timedelta(minutes=360)
     )
     runTest('nonFrequencyTailored1', [pattern], createTestFile,
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, events=nasdaqEventStream)
