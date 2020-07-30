@@ -12,16 +12,25 @@ from base.Pattern import Pattern
 from misc.Statistics import calculate_left_deep_tree_cost_function, MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
+from statisticsCollector.StatisticsCollector import Stat
+from copy import deepcopy
+# TODO Remove the optional statistics lists
 
 
-class LeftDeepTreeBuilder(EvaluationMechanismBuilder):
+class AdaptiveLeftDeepTreeBuilder(EvaluationMechanismBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-    def build_single_pattern_eval_mechanism(self, pattern: Pattern):
-        order = self._create_evaluation_order(pattern)
+    def build_adaptive_single_pattern_eval_mechanism(self, pattern: Pattern, stat: Stat, is_using_invariants):
+        if is_using_invariants:
+            order, invariants = self._create_evaluation_order(pattern, stat, is_using_invariants)
+        else:
+            order = self._create_evaluation_order(pattern, stat, is_using_invariants)
         tree_structure = self.__build_tree_from_order(order)
-        return TreeBasedEvaluationMechanism(pattern, tree_structure)
+        if is_using_invariants:
+            return TreeBasedEvaluationMechanism(pattern, tree_structure), invariants
+        else:
+            return TreeBasedEvaluationMechanism(pattern, tree_structure)
 
     def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern]):
         raise Exception("Unsupported")
@@ -36,32 +45,39 @@ class LeftDeepTreeBuilder(EvaluationMechanismBuilder):
             ret = (ret, order[i])
         return ret
 
-    def _create_evaluation_order(self, pattern: Pattern):
+    def _create_evaluation_order(self, pattern: Pattern, stat: Stat, is_using_invariants):
         """
         To be implemented by subclasses.
         """
         raise NotImplementedError()
 
 
-class TrivialLeftDeepTreeBuilder(LeftDeepTreeBuilder):
+class AdaptiveTrivialLeftDeepTreeBuilder(AdaptiveLeftDeepTreeBuilder):
     """
     Creates a left-deep tree following the pattern-specified order.
     """
-    def _create_evaluation_order(self, pattern: Pattern):
+    def __init__(self):
+        self.optional_statistics = []
+
+    def _create_evaluation_order(self, pattern: Pattern, stat=None, is_using_invariants=False):
         args_num = len(pattern.structure.args)
         return list(range(args_num))
 
 
-class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
+class AdaptiveAscendingFrequencyTreeBuilder(AdaptiveLeftDeepTreeBuilder):
     """
     Creates a left-deep tree following the order of ascending arrival rates of the event types.
     """
-    def _create_evaluation_order(self, pattern: Pattern):
-        if pattern.statistics_type == StatisticsTypes.FREQUENCY_DICT:
-            frequency_dict = pattern.statistics
-            order = get_order_by_occurrences(pattern.structure.args, frequency_dict)
-        elif pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
-            arrival_rates = pattern.statistics
+    def __init__(self):
+        self.optional_statistics = [StatisticsTypes.FREQUENCY_DICT, StatisticsTypes.ARRIVAL_RATES]
+
+    def _create_evaluation_order(self, pattern: Pattern, stat: Stat, is_using_invariants):
+        if stat.statistics_type == StatisticsTypes.FREQUENCY_DICT:
+            raise NotImplementedError()
+            frequency_dict = pattern.statistics  # previous code (Should be removed once implemented)
+            order = get_order_by_occurrences(pattern.structure.args, frequency_dict)  # previous code
+        elif stat.statistics_type == StatisticsTypes.ARRIVAL_RATES:
+            arrival_rates = stat.arrival_rates
             # create an index-arrival rate binding and sort according to arrival rate.
             sorted_order = sorted([(i, arrival_rates[i]) for i in range(len(arrival_rates))], key=lambda x: x[1])
             order = [x for x, y in sorted_order]  # create order from sorted binding.
@@ -70,20 +86,24 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
         return order
 
 
-class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
+class AdaptiveGreedyLeftDeepTreeBuilder(AdaptiveLeftDeepTreeBuilder):
     """
     Creates a left-deep tree using a greedy strategy that selects at each step the event type that minimizes the cost
     function.
     """
-    def _create_evaluation_order(self, pattern: Pattern):
-        if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivityMatrix, arrivalRates) = pattern.statistics
+    def __init__(self):
+        self.optional_statistics = [StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES]
+
+    def _create_evaluation_order(self, pattern: Pattern, stat: Stat, is_using_invariants):
+        if stat.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+            selectivityMatrix = stat.selectivity_matrix
+            arrivalRates = stat.arrival_rates
         else:
             raise MissingStatisticsException()
-        return self.calculate_greedy_order(selectivityMatrix, arrivalRates)
+        return self.calculate_greedy_order(selectivityMatrix, arrivalRates, is_using_invariants)
 
     @staticmethod
-    def calculate_greedy_order(selectivity_matrix: List[List[float]], arrival_rates: List[int]):
+    def calculate_greedy_order(selectivity_matrix: List[List[float]], arrival_rates: List[int], is_using_invariants):
         """
         At any step we will only consider the intermediate partial matches size,
         even without considering the sliding window, because the result is independent of it.
@@ -91,6 +111,7 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
         effect to the partial matches, and choose the one with minimal increase.
         We don't even need to calculate the cost function.
         """
+        invariants = []
         size = len(selectivity_matrix)
         if size == 1:
             return [0]
@@ -100,18 +121,34 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
         while len(left_to_add) > 0:
             # create first nominee to add.
             to_add = to_add_start = left_to_add.pop()
-            min_change_factor = selectivity_matrix[to_add][to_add]  # TODO I THINK SHOULD BE MULTIPLIED BY THE RATE TOO
+            min_change_factor = selectivity_matrix[to_add][to_add] * arrival_rates[
+                to_add]  # TODO I THINK SHOULD BE MULTIPLIED BY THE RATE TOO (I ADDED THE ARRIVAL RATES)
             for j in new_order:
                 min_change_factor *= selectivity_matrix[to_add][j]
+            smallest_difference = min_change_factor  # The initial value. Higher than the values that need to be checked later
 
-            # find minimum change factor and its according index.
-            for i in left_to_add:
-                change_factor = selectivity_matrix[i][i] * arrival_rates[i]
-                for j in new_order:
-                    change_factor *= selectivity_matrix[i][j]
-                if change_factor < min_change_factor:
-                    min_change_factor = change_factor
-                    to_add = i
+            if len(left_to_add) != 0:
+                minimal_invariant_in_iteration = (
+                to_add, list(left_to_add)[0], deepcopy(new_order))  # Yotam NOT SURE ABOUT THE list()
+                # find minimum change factor and its according index.
+                for i in left_to_add:
+                    change_factor = selectivity_matrix[i][i] * arrival_rates[i]
+                    for j in new_order:
+                        change_factor *= selectivity_matrix[i][j]
+                    if change_factor < min_change_factor:
+                        smallest_difference = min_change_factor - change_factor
+                        minimal_invariant_in_iteration = (i, to_add, deepcopy(new_order))  # Yotam
+                        min_change_factor = change_factor
+                        to_add = i
+                    # Yotam
+                    else:
+                        if change_factor - min_change_factor < smallest_difference:
+                            minimal_invariant_in_iteration = (to_add, i, deepcopy(new_order))
+                            smallest_difference = change_factor - min_change_factor
+                    # Yotam
+            else:  # left to add is empty
+                minimal_invariant_in_iteration = (to_add, None, None)
+            invariants.append(minimal_invariant_in_iteration)
             new_order.append(to_add)
 
             # if it wasn't the first nominee, then we need to fix the starting speculation we did.
@@ -119,35 +156,41 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
                 left_to_add.remove(to_add)
                 left_to_add.add(to_add_start)
 
-        return new_order
+        if is_using_invariants:
+            return new_order, invariants
+        else:
+            return new_order
 
 
-class IterativeImprovementInitType(Enum):
+class AdaptiveIterativeImprovementInitType(Enum):
     RANDOM = 0
     GREEDY = 1
 
 
-class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
+class AdaptiveIterativeImprovementLeftDeepTreeBuilder(AdaptiveLeftDeepTreeBuilder):
     """
     Creates a left-deep tree using the iterative improvement procedure.
     """
     def __init__(self, step_limit: int,
                  ii_type: IterativeImprovementType = IterativeImprovementType.SWAP_BASED,
-                 init_type: IterativeImprovementInitType = IterativeImprovementInitType.RANDOM):
+                 init_type: AdaptiveIterativeImprovementInitType = AdaptiveIterativeImprovementInitType.RANDOM):
         self.__iterative_improvement = IterativeImprovementAlgorithmBuilder.create_ii_algorithm(ii_type)
         self.__initType = init_type
         self.__step_limit = step_limit
+        #
+        self.optional_statistics = [StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES]
 
-    def _create_evaluation_order(self, pattern: Pattern):
-        if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivityMatrix, arrivalRates) = pattern.statistics
+    def _create_evaluation_order(self, pattern: Pattern, stat: Stat, is_using_invariants):
+        if stat.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+            selectivityMatrix = stat.selectivity_matrix
+            arrivalRates = stat.arrival_rates
         else:
             raise MissingStatisticsException()
         order = None
-        if self.__initType == IterativeImprovementInitType.RANDOM:
+        if self.__initType == AdaptiveIterativeImprovementInitType.RANDOM:
             order = self.__get_random_order(len(arrivalRates))
-        elif self.__initType == IterativeImprovementInitType.GREEDY:
-            order = GreedyLeftDeepTreeBuilder.calculate_greedy_order(selectivityMatrix, arrivalRates)
+        elif self.__initType == AdaptiveIterativeImprovementInitType.GREEDY:
+            order = AdaptiveGreedyLeftDeepTreeBuilder.calculate_greedy_order(selectivityMatrix, arrivalRates, is_using_invariants)
         return self.__iterative_improvement.execute(self.__step_limit, order, selectivityMatrix, arrivalRates,
                                                     pattern.window.total_seconds())
 
@@ -165,16 +208,20 @@ class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
         return order
 
 
-class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
+class AdaptiveDynamicProgrammingLeftDeepTreeBuilder(AdaptiveLeftDeepTreeBuilder):
     """
     Creates a left-deep tree using a dynamic programming algorithm.
     """
-    def _create_evaluation_order(self, pattern: Pattern):
-        if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivityMatrix, arrivalRates) = pattern.statistics
+    def __init__(self):
+        self.optional_statistics = [StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES]
+
+    def _create_evaluation_order(self, pattern: Pattern, stat: Stat, is_using_invariants):
+        if stat.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+            selectivityMatrix = stat.selectivity_matrix
+            arrivalRates = stat.arrival_rates
         else:
             raise MissingStatisticsException()
-        return DynamicProgrammingLeftDeepTreeBuilder.find_order(selectivityMatrix, arrivalRates,
+        return AdaptiveDynamicProgrammingLeftDeepTreeBuilder.find_order(selectivityMatrix, arrivalRates,
                                                                 pattern.window.total_seconds())
 
     @staticmethod

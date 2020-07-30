@@ -66,11 +66,11 @@ class EvaluationMechanismFactory:
 
     @staticmethod
     def build_adaptive_single_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,
-                                            eval_mechanism_params: EvaluationMechanismParameters,
-                                            pattern: Pattern, stat: Stat):
+                                                     eval_mechanism_params: EvaluationMechanismParameters,
+                                                     pattern: Pattern, stat: Stat, is_using_invariants):
         return EvaluationMechanismFactory. \
             __create_adaptive_eval_mechanism_builder(eval_mechanism_type, eval_mechanism_params). \
-            build_adaptive_single_pattern_eval_mechanism(pattern, stat)
+            build_adaptive_single_pattern_eval_mechanism(pattern, stat, is_using_invariants)
 
     @staticmethod
     def build_multi_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,

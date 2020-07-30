@@ -13,7 +13,7 @@ class EvaluationMechanismBuilder(ABC):
     def build_single_pattern_eval_mechanism(self, pattern: Pattern):
         pass
 
-    def build_adaptive_single_pattern_eval_mechanism(self, pattern: Pattern, stat: Stat):
+    def build_adaptive_single_pattern_eval_mechanism(self, pattern: Pattern, stat: Stat, is_using_invariants):
         pass
 
     def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern]):

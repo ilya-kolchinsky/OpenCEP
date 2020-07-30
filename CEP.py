@@ -55,7 +55,11 @@ class CEP:
                                                               adaptive_parameters.k)
             self.__optimizer = Optimizer(patterns[0], eval_mechanism_type, adaptive_parameters.statistics_type,
                                          adaptive_parameters.reoptimizing_decision_params)
-            self.__eval_mechanism = create_adaptive_evaluation_mechanism_by_type(adaptive_parameters.tree_replacement_algorithm_type)
+            initial_tree = EvaluationMechanismFactory.build_adaptive_single_pattern_eval_mechanism(
+                                                                        EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                                                        None, patterns[0], None, False)
+            self.__eval_mechanism = create_adaptive_evaluation_mechanism_by_type(adaptive_parameters.tree_replacement_algorithm_type,
+                                                                                 patterns[0], initial_tree)
         else:
             self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
                                                                                                eval_mechanism_params,

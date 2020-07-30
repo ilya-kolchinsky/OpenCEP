@@ -40,35 +40,49 @@ class Optimizer:
         else:
             raise NotImplementedError()
 
-    @staticmethod
-    def __create_plan_generation_algorithm(eval_mechanism_type: EvaluationMechanismTypes):
-        if eval_mechanism_type == EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE:
-            return GreedyAlgorithm()  # A specific builder for Invariants hence different from the rest
-        else:
-            return PlanBuilder()
-
-    """
-    def input_check_from_the_user(self, eval_mechanism_type: EvaluationMechanismTypes,
-                                  reoptimizing_decision_type: ReoptimizationDecisionTypes):
-        if eval_mechanism_type == EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE and \
-                reoptimizing_decision_type != ReoptimizationDecisionTypes.INVARIANT_BASED:
-            raise Exception("Invalid user input")
-        if reoptimizing_decision_type == ReoptimizationDecisionTypes.INVARIANT_BASED and \
-                eval_mechanism_type != EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE:
-            raise NotImplementedError()
-        # ADD MORE CHECKS IF NEEDED (CHANGE LATER)
-    """
-
     def run(self, stat: Stat):
+        is_using_invariants = False
+        if self.reoptimizing_decision_type == ReoptimizationDecisionTypes.INVARIANT_BASED:
+            is_using_invariants = True
         if self.reoptimizing_decision.decision(stat):
-            # new_plan = self.plan_generation_algorithm.generate_plan(stat)
-            return EvaluationMechanismFactory.build_adaptive_single_pattern_eval_mechanism(self.evaluation_mechanism_type,
-                                                                                           None, self.pattern, stat)
+            if is_using_invariants:
+                new_plan, new_invariants = EvaluationMechanismFactory.build_adaptive_single_pattern_eval_mechanism(
+                                                                                        self.evaluation_mechanism_type,
+                                                                                        None, self.pattern, stat,
+                                                                                        is_using_invariants)
+                self.reoptimizing_decision.set_new_invariants(new_invariants)
+            else:
+                new_plan = EvaluationMechanismFactory.build_adaptive_single_pattern_eval_mechanism(
+                                                                                        self.evaluation_mechanism_type,
+                                                                                        None, self.pattern, stat,
+                                                                                        is_using_invariants)
+            return new_plan
         else:
             return None
 
+
     """
-    JUST FOR TESTING
+    A function for testing
     """
-    def testing_decisions(self, stat: Stat):
-        return self.reoptimizing_decision.decision(stat)
+    def testing_invariants(self, stat: Stat):
+        is_using_invariants = False
+        if self.reoptimizing_decision_type == ReoptimizationDecisionTypes.INVARIANT_BASED:
+            is_using_invariants = True
+        if self.reoptimizing_decision.decision(stat):
+            if is_using_invariants:
+                new_plan, new_invariants = EvaluationMechanismFactory.build_adaptive_single_pattern_eval_mechanism(
+                                                                                        self.evaluation_mechanism_type,
+                                                                                        None, self.pattern, stat,
+                                                                                        is_using_invariants)
+                self.reoptimizing_decision.set_new_invariants(new_invariants)
+            else:
+                new_plan = EvaluationMechanismFactory.build_adaptive_single_pattern_eval_mechanism(
+                                                                                        self.evaluation_mechanism_type,
+                                                                                        None, self.pattern, stat,
+                                                                                        is_using_invariants)
+            if is_using_invariants:
+                return new_plan, new_invariants
+            else:
+                return new_plan
+        else:
+            return None, None

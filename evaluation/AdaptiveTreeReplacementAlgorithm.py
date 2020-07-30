@@ -15,15 +15,19 @@ from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
 from evaluation.AdaptiveTreeBasedEvaluationMechanism import Tree, AdaptiveTreeBasedEvaluationMechanism
+import time
 
 
 class TreeReplacementAlgorithmTypes(Enum):
-    STOP_AND_REPLACE_TREE = 0,
+    IMMEDIATE_REPLACE_TREE = 0,
     SIMULTANEOUSLY_RUN_TWO_TREES = 1,
     COMMON_PARTS_SHARE = 2
 
 
-def CompareMatches(match1: List[Event], match2: List[Event]):
+"""
+Compare 2 matches according to their events
+"""
+def compare_matches(match1: List[Event], match2: List[Event]):
     if len(match1) != len(match2):
         return False
     for event1 in match1:
@@ -31,20 +35,28 @@ def CompareMatches(match1: List[Event], match2: List[Event]):
             return False
     return True
 
+
+"""
+Creating an adaptive evaluation mechanism according to the tree replacement algorithm type
+"""
 def create_adaptive_evaluation_mechanism_by_type(handler_type: TreeReplacementAlgorithmTypes, pattern: Pattern,
-                                                 tree_structure: tuple):
-    if handler_type == TreeReplacementAlgorithmTypes.STOP_AND_REPLACE_TREE:
-        return StopAndReplaceTree(pattern, tree_structure)
+                                                 initial_tree: Tree):
+    if handler_type == TreeReplacementAlgorithmTypes.IMMEDIATE_REPLACE_TREE:
+        return ImmediateReplaceTree(pattern, initial_tree)
     if handler_type == TreeReplacementAlgorithmTypes.SIMULTANEOUSLY_RUN_TWO_TREES:
         return
     if handler_type == TreeReplacementAlgorithmTypes.COMMON_PARTS_SHARE:
         raise NotImplementedError()
 
-class StopAndReplaceTree(AdaptiveTreeBasedEvaluationMechanism):
-    def __init__(self, pattern: Pattern, tree_structure: tuple):
-        self.active_events = Stream()  # A stream of the current events
-        super().__init__(pattern, tree_structure)
 
+class ImmediateReplaceTree(AdaptiveTreeBasedEvaluationMechanism):
+    def __init__(self, pattern: Pattern, initial_tree: Tree):
+        self.active_events = Stream()  # A stream of the current events
+        super().__init__(pattern, initial_tree)
+
+    """
+    Removing out of date events from the stream active_events
+    """
     def __remove_expired_events(self, curr_time: datetime):
         while self.active_events.count != 0:
             last_event = self.active_events.first()
@@ -53,9 +65,13 @@ class StopAndReplaceTree(AdaptiveTreeBasedEvaluationMechanism):
             else:
                 return
 
+    """
+    Inserting the events from the active_events stream into the new tree to be replaced 
+    and handling the partial matches in it
+    """
     def __update_current_events_in_new_tree(self, new_tree):
         self.__tree = new_tree
-        self.event_types_listeners = super().find_event_types_listeners()
+        self.event_types_listeners = super().find_event_types_listeners(self.__tree)
         for event in self.active_events:
             if event.event_type in self.event_types_listeners.keys():
                 for leaf in self.event_types_listeners[event.event_type]:
@@ -107,4 +123,48 @@ class StopAndReplaceTree(AdaptiveTreeBasedEvaluationMechanism):
         return match_count
 
 
-#  class Simultan
+class SimultaneouslyRunTwoTrees(AdaptiveTreeBasedEvaluationMechanism):
+    def __init__(self, pattern: Pattern, initial_tree: Tree):
+        super().__init__(pattern, initial_tree)
+        self.__tree2 = None
+        self.event_types_listeners2 = None
+        self.tree2_create_time = None
+
+    def eval(self, event: Event, new_tree: Tree, matches: Stream, statistics_collector: StatisticsCollector):
+        # TODO: When a non None new_tree arrive, we replace it with self.__tree2
+        # Checking if tree 1 should be replaced with tree 2 because the time window expired
+        # If replacement is needed then initialize tree1 with tree2 data
+        if self.__tree2 is not None:
+            if time.time() - self.tree2_create_time > self.pattern.window:
+                self.__tree = self.__tree2
+                self.event_types_listeners = self.event_types_listeners2
+                self.__tree2 = None
+                self.event_types_listeners2 = None
+                self.tree2_create_time = None
+        # Checking if a new plan was received from Optimizer
+        if new_tree is not None:
+            self.__tree2 = new_tree
+            self.event_types_listeners2 = self.find_event_types_listeners(self.__tree2)
+            self.tree2_create_time = time.time()
+        # Insert and handles the incoming event in tree1
+        if event.event_type in self.event_types_listeners.keys():
+            for leaf in self.event_types_listeners[event.event_type]:
+                leaf.handle_event(event)
+                for match in self.__tree.get_matches():
+                    matches.add_item(PatternMatch(match))
+        if self.__tree2 is not None:
+            # Insert and handles the incoming event in tree2
+            if event.event_type in self.event_types_listeners2.keys():
+                for leaf in self.event_types_listeners2[event.event_type]:
+                    leaf.handle_event(event)
+                    for match in self.__tree2.get_matches():
+                        match_exists = False
+                        for tree1_match in self.__tree.get_matches():
+                            if compare_matches(match, tree1_match):
+                                match_exists = True
+                                break
+                        if match_exists is False:
+                            matches.add_item(PatternMatch(match))
+
+
+

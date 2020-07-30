@@ -201,8 +201,6 @@ class InternalNode(Node):
         new_partial_match = partial_match_source.get_last_unhandled_partial_match()
         first_event_defs = partial_match_source.get_event_definitions()
         other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
-        ###StasNeiman
-        # maybe here
         partial_matches_to_compare = other_subtree.get_partial_matches()
         second_event_defs = other_subtree.get_event_definitions()
 
@@ -228,8 +226,6 @@ class InternalNode(Node):
         if not self._validate_new_match(events_for_new_match):
             return
         self.add_partial_match(PartialMatch(events_for_new_match))
-        ###StasNeiman
-        ###here here here
         if self._parent is not None:
             self._parent.handle_new_partial_match(self)
 
@@ -322,19 +318,20 @@ class Tree:
         current.set_subtrees(left, right)
         return current
 
+
 class AdaptiveTreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
-    def __init__(self, pattern: Pattern, tree_structure: tuple):
-        self.__tree = Tree(tree_structure, pattern)
+    def __init__(self, pattern: Pattern, initial_tree: Tree):
+        self.__tree = initial_tree
         self.pattern = pattern
         self.event_types_listeners = self.find_event_types_listeners()
 
-    def find_event_types_listeners(self):
+    def find_event_types_listeners(self, tree: Tree):
         event_types_listeners = {}
         # register leaf listeners for event types.
-        for leaf in self.__tree.get_leaves():
+        for leaf in tree.get_leaves():
             event_type = leaf.get_event_type()
             if event_type in event_types_listeners.keys():
                 event_types_listeners[event_type].append(leaf)
