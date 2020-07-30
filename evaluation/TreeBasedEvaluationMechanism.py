@@ -1,7 +1,7 @@
 from abc import ABC
 from datetime import timedelta, datetime
 from base.Pattern import Pattern
-from base.PatternStructure import SeqOperator, QItem, OrOperator, NegationOperator
+from base.PatternStructure import SeqOperator, QItem, NegationOperator, AndOperator
 from base.Formula import TrueFormula, Formula
 from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
@@ -404,24 +404,35 @@ class SeqNode(InternalNode):
 class NegationNode(InternalNode):
     """
     An internal node representing a negation operator.
+    This implementation heavily relies on the fact that, if any unbounded negation operators are defined in the
+    pattern, they are conveniently placed at the top of the tree forming a left-deep chain of nodes.
     """
-    def __init__(self, sliding_window: timedelta, is_last: bool, top_operator, parent: Node = None,
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool, top_operator, parent: Node = None,
                  event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, parent, event_defs, left, right)
 
-        """
-        Negation operators that have no "positive" operators after them in the pattern have the flag is_last on
-        """
-        self.is_last = is_last
-        self.top_operator = top_operator
+        # aliases for the negative node subtrees to make the code more readable
+        # by construction, we always have the positive subtree on the left
+        self._positive_subtree = self._left_subtree
+        self._negative_subtree = self._right_subtree
 
+        # negation operators that can appear in the end of the match have this flag on
+        self.__is_unbounded = is_unbounded
+
+        # the multinary operator of the root node
+        self.__top_operator = top_operator
+
+        # a list of partial matches that can be invalidated by a negative event that will only arrive in future
+        self.__pending_partial_matches = []
+
+    def set_subtrees(self, left: Node, right: Node):
         """
-        Contains PMs that match the pattern, but may be invalidated by a negative event later (when the pattern ends
-        with a not operator)
-        We wait for them to exceed the time window and therefore can't be invalidated anymore
+        Updates the aliases following the changes in the subtrees.
         """
-        self.waiting_for_time_out = []
+        super().set_subtrees(left, right)
+        self._positive_subtree = self._left_subtree
+        self._negative_subtree = self._right_subtree
 
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
@@ -438,25 +449,27 @@ class NegationNode(InternalNode):
         expired matches.
         """
         if last_timestamp is not None:
-            self.waiting_for_time_out = sorted(self.waiting_for_time_out, key=lambda x: x.first_timestamp)
-            count = find_partial_match_by_timestamp(self.waiting_for_time_out, last_timestamp - self._sliding_window)
-            matches_to_flush = self.waiting_for_time_out[:count]
-            self.waiting_for_time_out = self.waiting_for_time_out[count:]
+            self.__pending_partial_matches = sorted(self.__pending_partial_matches, key=lambda x: x.first_timestamp)
+            count = find_partial_match_by_timestamp(self.__pending_partial_matches,
+                                                    last_timestamp - self._sliding_window)
+            matches_to_flush = self.__pending_partial_matches[:count]
+            self.__pending_partial_matches = self.__pending_partial_matches[count:]
         else:
-            matches_to_flush = self.waiting_for_time_out
+            matches_to_flush = self.__pending_partial_matches
+
         # since matches_to_flush could be expired, we need to temporarily disable timestamp checks
         Node._toggle_enable_partial_match_expiration(False)
         for partial_match in matches_to_flush:
             super()._add_partial_match(partial_match)
         Node._toggle_enable_partial_match_expiration(True)
 
-    def _set_event_definitions(self,
-                               left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
-        self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
-
-    # In an NegationNode, the event_def represents all the positives events plus the negative event we are currently checking
-    def get_event_definitions(self):  # to support multiple neg
-        return self._left_subtree.get_event_definitions()
+    def get_event_definitions(self):
+        """
+        This is an ugly temporary hack to support multiple chained negation operators. As this prevents different
+        negative events from having mutual conditions, this implementation is highly undesirable and will be removed
+        in future.
+        """
+        return self._positive_subtree.get_event_definitions()
 
     def _try_create_new_matches(self, new_partial_match: PartialMatch, partial_matches_to_compare: List[PartialMatch],
                                 first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
@@ -478,29 +491,13 @@ class NegationNode(InternalNode):
         # no negative match invalidated the positive one - we can go on
         self._propagate_partial_match(positive_events)
 
-    def _validate_new_match(self, events_for_new_match: List[Event]):
-        if self.top_operator == SeqOperator and not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
-            return False
-        return super()._validate_new_match(events_for_new_match)
-
-    def _merge_events_for_new_match(self,
-                                    first_event_defs: List[Tuple[int, QItem]],
-                                    second_event_defs: List[Tuple[int, QItem]],
-                                    first_event_list: List[Event],
-                                    second_event_list: List[Event]):
-        if self.top_operator == SeqOperator:
-            return merge_according_to(first_event_defs, second_event_defs,
-                                      first_event_list, second_event_list, key=lambda x: x[0])
-        return super()._merge_events_for_new_match(first_event_defs, second_event_defs,
-                                                   first_event_list, second_event_list)
-
     def _add_partial_match(self, pm: PartialMatch):
         """
         If this node can receive unbounded negative events and is the deepest node in the tree to do so, a
         successfully evaluated partial match must be added to a dedicated waiting list rather than propagated normally.
         """
         if self.__is_first_unbounded_negative_node():
-            self.waiting_for_time_out.append(pm)
+            self.__pending_partial_matches.append(pm)
         else:
             super()._add_partial_match(pm)
 
@@ -510,12 +507,12 @@ class NegationNode(InternalNode):
         for bounded events (as nothing should be done in this case), otherwise checks whether existing positive matches
         must be invalidated and handles them accordingly.
         """
-        if partial_match_source == self._left_subtree:
+        if partial_match_source == self._positive_subtree:
             # a new positive partial match has arrived
             super().handle_new_partial_match(partial_match_source)
             return
         # a new negative partial match has arrived
-        if not self.is_last:
+        if not self.__is_unbounded:
             # no unbounded negatives - there is nothing to do
             return
 
@@ -527,7 +524,7 @@ class NegationNode(InternalNode):
         negative_event_defs = partial_match_source.get_event_definitions()
 
         matches_to_keep = []
-        for positive_partial_match in first_unbounded_node.waiting_for_time_out:
+        for positive_partial_match in first_unbounded_node.__pending_partial_matches:
             combined_event_list = self._merge_events_for_new_match(positive_event_defs,
                                                                    negative_event_defs,
                                                                    positive_partial_match.events,
@@ -536,23 +533,62 @@ class NegationNode(InternalNode):
                 # this positive match should still be kept
                 matches_to_keep.append(positive_partial_match)
 
-        first_unbounded_node.waiting_for_time_out = matches_to_keep
+        first_unbounded_node.__pending_partial_matches = matches_to_keep
 
     def get_first_unbounded_negative_node(self):
         """
         Returns the deepest unbounded node in the tree. This node keeps the partial matches that are pending release
         due to the presence of unbounded negative events in the pattern.
         """
-        if not self.is_last:
+        if not self.__is_unbounded:
             return None
         return self if self.__is_first_unbounded_negative_node() \
-            else self._left_subtree.get_first_unbounded_negative_node()
+            else self._positive_subtree.get_first_unbounded_negative_node()
 
     def __is_first_unbounded_negative_node(self):
         """
         Returns True if this node is the first unbounded negative node and False otherwise.
         """
-        return self.is_last and (type(self._left_subtree) != NegationNode or not self._left_subtree.is_last)
+        return self.__is_unbounded and \
+               (not isinstance(self._positive_subtree, NegationNode) or not self._positive_subtree.__is_unbounded)
+
+
+class NegativeAndNode(NegationNode):
+    """
+    An internal node representing a negative conjunction operator.
+    """
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool, parent: Node = None,
+                 event_defs: List[Tuple[int, QItem]] = None,
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, is_unbounded, AndOperator, parent, event_defs, left, right)
+
+
+class NegativeSeqNode(NegationNode):
+    """
+    An internal node representing a negative sequence operator.
+    Unfortunately, this class contains some code duplication from SeqNode to avoid diamond inheritance.
+    """
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool, parent: Node = None,
+                 event_defs: List[Tuple[int, QItem]] = None,
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, is_unbounded, SeqOperator, parent, event_defs, left, right)
+
+    def _set_event_definitions(self,
+                               left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
+        self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
+
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
+            return False
+        return super()._validate_new_match(events_for_new_match)
+
+    def _merge_events_for_new_match(self,
+                                    first_event_defs: List[Tuple[int, QItem]],
+                                    second_event_defs: List[Tuple[int, QItem]],
+                                    first_event_list: List[Event],
+                                    second_event_list: List[Event]):
+        return merge_according_to(first_event_defs, second_event_defs,
+                                  first_event_list, second_event_list, key=lambda x: x[0])
 
 
 class Tree:
@@ -606,9 +642,14 @@ class Tree:
         negative_event_list = pattern.negative_structure.get_args()
         current_root = self.__root
         for negation_operator in negative_event_list:
-            new_root = NegationNode(pattern.window,
-                                    is_last=Tree.__is_unbounded_negative_event(pattern, negation_operator),
-                                    top_operator=top_operator)
+            if top_operator == SeqOperator:
+                new_root = NegativeSeqNode(pattern.window,
+                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
+            elif top_operator == AndOperator:
+                new_root = NegativeAndNode(pattern.window,
+                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
+            else:
+                raise Exception("Unsupported operator for negation: %s" % (top_operator,))
             negative_event = negation_operator.arg
             leaf_index = pattern.get_index_by_event_name(negative_event.name)
             negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root)

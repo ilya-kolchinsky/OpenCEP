@@ -85,9 +85,9 @@ cep.run(events) # potentially blocking call
 matches = cep.get_pattern_match_stream()
 file_output(matches, 'output.txt')
 ```
-# Negation Operator 
+## Negation Operator 
 
-Support negation operator in Post Processing mode:
+The following is the example of a pattern containing a negation operator:
 
 ```
 pattern = Pattern(
@@ -101,6 +101,3 @@ pattern = Pattern(
     )
 
 ```
-
-
-Note: For different events that arrives at the exact same time, the first one in the input is considered to have arrived before.
