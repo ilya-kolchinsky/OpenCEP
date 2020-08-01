@@ -9,6 +9,9 @@ a pattern matching condition, represented as formula.
 from abc import ABC
 from typing import List
 
+KC_MIN_SIZE = 1
+KC_MAX_SIZE = None
+
 
 class PatternStructure(ABC):
     def get_top_operator(self):
@@ -37,7 +40,7 @@ class SeqOperator(PatternStructure):
 
 
 class KleeneClosureOperator(PatternStructure):
-    def __init__(self, arg: PatternStructure, min_size=1, max_size=None):
+    def __init__(self, arg: PatternStructure, min_size=KC_MIN_SIZE, max_size=KC_MAX_SIZE):
         self.args = [arg]
         self.min_size = min_size
         self.max_size = max_size
