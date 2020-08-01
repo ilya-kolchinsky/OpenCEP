@@ -176,7 +176,7 @@ identical to the first test in the file, with 1 exception - the QItem object is 
 """
 def oneArgumentsearchTestKleeneClosure(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([KleeneClosureOperator(QItem("AAPL", "a"))]),
+        SeqOperator([KleeneClosureOperator(QItem("AAPL", "a"), min_size=1, max_size=5)]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
         timedelta(minutes=5)
     )
@@ -190,30 +190,6 @@ def MinMax_0_TestKleeneClosure(createTestFile=False):
         timedelta(minutes=5)
     )
     runTest("MinMax_0_", [pattern], createTestFile, events=nasdaqEventStreamTiny)
-
-# def MinMax_1_TestKleeneClosure(createTestFile=False):
-#     pattern = Pattern(
-#         SeqOperator([KleeneClosureOperator(QItem("AAPL", "a"))]),
-#         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
-#         timedelta(minutes=5)
-#     )
-#     runTest("oneArgumentKC", [pattern], createTestFile)
-#
-# def MinMax_2_TestKleeneClosure(createTestFile=False):
-#     pattern = Pattern(
-#         SeqOperator([KleeneClosureOperator(QItem("AAPL", "a"))]),
-#         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
-#         timedelta(minutes=5)
-#     )
-#     runTest("oneArgumentKC", [pattern], createTestFile)
-#
-# def oneArgumentsearchTestKleeneClosure(createTestFile=False):
-#     pattern = Pattern(
-#         SeqOperator([KleeneClosureOperator(QItem("AAPL", "a"))]),
-#         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
-#         timedelta(minutes=5)
-#     )
-#     runTest("oneArgumentKC", [pattern], createTestFile)
 
 
 # ------------------------------------------------------

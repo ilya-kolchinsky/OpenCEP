@@ -402,7 +402,6 @@ class KleeneClosureNode(UnaryNode):
         super().__init__(sliding_window, parent)
         self._min_size = min_size
         self._max_size = max_size
-        print(self._min_size, self._max_size)
 
     def partial_match_from_partial_match_set(self, power_match):
         min_timestamp = None

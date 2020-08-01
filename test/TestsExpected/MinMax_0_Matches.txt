@@ -1,0 +1,40 @@
+{'Stock Ticker': 'GOOG', 'Date': 200802010900, 'Opening Price': 532.04, 'Peak Price': 532.04, 'Lowest Price': 530.51, 'Close Price': 530.51, 'Volume': 17665}
+
+{'Stock Ticker': 'GOOG', 'Date': 200802010900, 'Opening Price': 532.04, 'Peak Price': 532.04, 'Lowest Price': 530.51, 'Close Price': 530.51, 'Volume': 17665}
+{'Stock Ticker': 'GOOG', 'Date': 200802010901, 'Opening Price': 530.53, 'Peak Price': 531.15, 'Lowest Price': 530.01, 'Close Price': 530.42, 'Volume': 14915}
+
+{'Stock Ticker': 'GOOG', 'Date': 200802010901, 'Opening Price': 530.53, 'Peak Price': 531.15, 'Lowest Price': 530.01, 'Close Price': 530.42, 'Volume': 14915}
+
+{'Stock Ticker': 'GOOG', 'Date': 200802010900, 'Opening Price': 532.04, 'Peak Price': 532.04, 'Lowest Price': 530.51, 'Close Price': 530.51, 'Volume': 17665}
+{'Stock Ticker': 'GOOG', 'Date': 200802010902, 'Opening Price': 530.33, 'Peak Price': 530.33, 'Lowest Price': 529.33, 'Close Price': 530.21, 'Volume': 15794}
+
+{'Stock Ticker': 'GOOG', 'Date': 200802010901, 'Opening Price': 530.53, 'Peak Price': 531.15, 'Lowest Price': 530.01, 'Close Price': 530.42, 'Volume': 14915}
+{'Stock Ticker': 'GOOG', 'Date': 200802010902, 'Opening Price': 530.33, 'Peak Price': 530.33, 'Lowest Price': 529.33, 'Close Price': 530.21, 'Volume': 15794}
+
+{'Stock Ticker': 'GOOG', 'Date': 200802010902, 'Opening Price': 530.33, 'Peak Price': 530.33, 'Lowest Price': 529.33, 'Close Price': 530.21, 'Volume': 15794}
+
+{'Stock Ticker': 'GOOG', 'Date': 200802010900, 'Opening Price': 532.04, 'Peak Price': 532.04, 'Lowest Price': 530.51, 'Close Price': 530.51, 'Volume': 17665}
+{'Stock Ticker': 'GOOG', 'Date': 200802010903, 'Opening Price': 530.08, 'Peak Price': 530.25, 'Lowest Price': 530, 'Close Price': 530.25, 'Volume': 7828}
+
+{'Stock Ticker': 'GOOG', 'Date': 200802010901, 'Opening Price': 530.53, 'Peak Price': 531.15, 'Lowest Price': 530.01, 'Close Price': 530.42, 'Volume': 14915}
+{'Stock Ticker': 'GOOG', 'Date': 200802010903, 'Opening Price': 530.08, 'Peak Price': 530.25, 'Lowest Price': 530, 'Close Price': 530.25, 'Volume': 7828}
+
+{'Stock Ticker': 'GOOG', 'Date': 200802010902, 'Opening Price': 530.33, 'Peak Price': 530.33, 'Lowest Price': 529.33, 'Close Price': 530.21, 'Volume': 15794}
+{'Stock Ticker': 'GOOG', 'Date': 200802010903, 'Opening Price': 530.08, 'Peak Price': 530.25, 'Lowest Price': 530, 'Close Price': 530.25, 'Volume': 7828}
+
+{'Stock Ticker': 'GOOG', 'Date': 200802010903, 'Opening Price': 530.08, 'Peak Price': 530.25, 'Lowest Price': 530, 'Close Price': 530.25, 'Volume': 7828}
+
+{'Stock Ticker': 'GOOG', 'Date': 200802010900, 'Opening Price': 532.04, 'Peak Price': 532.04, 'Lowest Price': 530.51, 'Close Price': 530.51, 'Volume': 17665}
+{'Stock Ticker': 'GOOG', 'Date': 200802010904, 'Opening Price': 530.05, 'Peak Price': 530.83, 'Lowest Price': 530, 'Close Price': 530.09, 'Volume': 6340}
+
+{'Stock Ticker': 'GOOG', 'Date': 200802010901, 'Opening Price': 530.53, 'Peak Price': 531.15, 'Lowest Price': 530.01, 'Close Price': 530.42, 'Volume': 14915}
+{'Stock Ticker': 'GOOG', 'Date': 200802010904, 'Opening Price': 530.05, 'Peak Price': 530.83, 'Lowest Price': 530, 'Close Price': 530.09, 'Volume': 6340}
+
+{'Stock Ticker': 'GOOG', 'Date': 200802010902, 'Opening Price': 530.33, 'Peak Price': 530.33, 'Lowest Price': 529.33, 'Close Price': 530.21, 'Volume': 15794}
+{'Stock Ticker': 'GOOG', 'Date': 200802010904, 'Opening Price': 530.05, 'Peak Price': 530.83, 'Lowest Price': 530, 'Close Price': 530.09, 'Volume': 6340}
+
+{'Stock Ticker': 'GOOG', 'Date': 200802010903, 'Opening Price': 530.08, 'Peak Price': 530.25, 'Lowest Price': 530, 'Close Price': 530.25, 'Volume': 7828}
+{'Stock Ticker': 'GOOG', 'Date': 200802010904, 'Opening Price': 530.05, 'Peak Price': 530.83, 'Lowest Price': 530, 'Close Price': 530.09, 'Volume': 6340}
+
+{'Stock Ticker': 'GOOG', 'Date': 200802010904, 'Opening Price': 530.05, 'Peak Price': 530.83, 'Lowest Price': 530, 'Close Price': 530.09, 'Volume': 6340}
+
