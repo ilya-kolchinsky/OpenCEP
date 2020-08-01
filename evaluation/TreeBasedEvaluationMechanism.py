@@ -431,9 +431,9 @@ class KleeneClosureNode(UnaryNode):
 
         # generates a list of all subsets (using a generator).
         child_partial_matches = self._child.get_partial_matches()
-        child_matches_powerset = powerset_generator(child_partial_matches[:-1],
-                                                    self._min_size, self._max_size)
-        child_matches_powerset = [item + [child_partial_matches[-1]] for item in child_matches_powerset]
+        # create child event power-set
+        child_matches_powerset = powerset_generator(child_partial_matches, self._min_size, self._max_size)
+
         for partialMatch in child_matches_powerset:
             partial_match = self.partial_match_from_partial_match_set(partialMatch)
             self._try_create_new_match(new_partial_match, partial_match, event_defs)
@@ -445,7 +445,8 @@ class Tree:
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     """
     def __init__(self, tree_structure: tuple, pattern: Pattern):
-        self.__root = Tree.__construct_tree(pattern.structure.get_top_operator(),
+        self.__current_leaf_number = 0
+        self.__root = self.__construct_tree(pattern.structure.get_top_operator(),
                                             tree_structure, pattern.structure.args, pattern.window)
         self.__root.apply_formula(pattern.condition)
 
@@ -471,8 +472,7 @@ class Tree:
         else:
             raise Exception("Unknown Operator discovered.")
 
-    @staticmethod
-    def __construct_tree(root_type, tree_structure: tuple or int, args: List[PatternStructure],
+    def __construct_tree(self, root_type, tree_structure: tuple or int, args: List[PatternStructure],
                          sliding_window: timedelta, parent: Node = None):
         # tree_structure is int when we need to build current nested node or leaf node, or when Unary operator arrives
         if type(tree_structure) == int:
@@ -480,55 +480,58 @@ class Tree:
             if args[tree_structure].get_top_operator() == QItem:
                 # no KC operations needed or KC node was already generated in previous nesting level -- create the leaf.
                 if root_type != KleeneClosureOperator or isinstance(parent, KleeneClosureNode):
-                    return LeafNode(sliding_window, tree_structure, args[tree_structure], parent)
+                    leaf = LeafNode(sliding_window, self.__current_leaf_number, args[tree_structure], parent)
+                    self.__current_leaf_number += 1
+                    return leaf
+
                 # handling KC child -- create the KC node and the child node, connect child and parent to KC node.
-                else:
-                    current = Tree.__generate_new_node(root_type, sliding_window, parent)
-                    child = LeafNode(sliding_window, tree_structure, args[tree_structure], current)
-                    current.set_subtrees(child)
-                    return current
+                current = self.__generate_new_node(KleeneClosureOperator, sliding_window, parent,
+                                                   args[tree_structure].min_size, args[tree_structure].max_size)
+                child = LeafNode(sliding_window, self.__current_leaf_number, args[tree_structure], current)
+                self.__current_leaf_number += 1
+                current.set_subtrees(child)
+                return current
             # NESTED operator found -- recursively calling construct tree
-            else:
-                # nested KC operator -- create KC operator, create subtree recursively and connect KC to child and parent.
-                if args[tree_structure].get_top_operator() == KleeneClosureOperator:
-                    current = Tree.__generate_new_node(args[tree_structure].get_top_operator(), sliding_window, parent)
-                    nested_evaluation_order = Tree._create_evaluation_order(args[tree_structure])
-                    nested_tree_structure = Tree.__build_tree_from_order(nested_evaluation_order)
-                    child = Tree.__construct_tree(args[tree_structure].get_top_operator(), nested_tree_structure,
-                                                  args[tree_structure].args, sliding_window, current)
-                    current.set_subtrees(child)  # Unary node
-                    return current
-                # nested operator - NOT KC.
-                else:
-                    nested_evaluation_order = Tree._create_evaluation_order(args[tree_structure])
-                    nested_tree_structure = Tree.__build_tree_from_order(nested_evaluation_order)
-                    # create wrapper KC node when parent is none and root is KC operator
-                    if root_type == KleeneClosureOperator and parent is None:
-                        current = Tree.__generate_new_node(root_type, sliding_window, parent)
-                        child = Tree.__construct_tree(args[tree_structure].get_top_operator(), nested_tree_structure,
-                                                      args[tree_structure].args, sliding_window, current)
-                        current.set_subtrees(child)
-                        return current
-                    else:
-                        return Tree.__construct_tree(args[tree_structure].get_top_operator(), nested_tree_structure,
-                                                     args[tree_structure].args, sliding_window, parent)
+            # nested KC operator -- create KC operator, create subtree recursively and connect KC to child and parent.
+            if args[tree_structure].get_top_operator() == KleeneClosureOperator:
+                current = self.__generate_new_node(KleeneClosureOperator, sliding_window, parent,
+                                                   args[tree_structure].min_size, args[tree_structure].max_size)
+                nested_evaluation_order = self._create_evaluation_order(args[tree_structure])
+                nested_tree_structure = self.__build_tree_from_order(nested_evaluation_order)
+                child = self.__construct_tree(args[tree_structure].get_top_operator(), nested_tree_structure,
+                                              args[tree_structure].args, sliding_window, current)
+                current.set_subtrees(child)  # Unary node
+                return current
+            # nested operator - NOT KC.
+            nested_evaluation_order = self._create_evaluation_order(args[tree_structure])
+            nested_tree_structure = self.__build_tree_from_order(nested_evaluation_order)
+            # create wrapper KC node when parent is none and root is KC operator
+            if root_type == KleeneClosureOperator and parent is None:
+                current = self.__generate_new_node(KleeneClosureOperator, sliding_window, parent,
+                                                   args[tree_structure].min_size, args[tree_structure].max_size)
+                child = self.__construct_tree(args[tree_structure].get_top_operator(), nested_tree_structure,
+                                              args[tree_structure].args, sliding_window, current)
+                current.set_subtrees(child)
+                return current
+
+            return self.__construct_tree(args[tree_structure].get_top_operator(), nested_tree_structure,
+                                         args[tree_structure].args, sliding_window, parent)
         # continue creating nodes based on parent node for every item that still has tree_structure as tuple.
         # this means we do not need to build this node yet, but rather keep building the tree infrastructure.
         # NOTE: operators with 1 argument will NEVER get here, as they meet the condition type(tree_structure) == int.
-        current = Tree.__generate_new_node(root_type, sliding_window, parent)
+        current = self.__generate_new_node(root_type, sliding_window, parent)
 
         left_structure, right_structure = tree_structure
-        left = Tree.__construct_tree(root_type, left_structure, args, sliding_window, current)
-        right = Tree.__construct_tree(root_type, right_structure, args, sliding_window, current)
+        left = self.__construct_tree(root_type, left_structure, args, sliding_window, current)
+        right = self.__construct_tree(root_type, right_structure, args, sliding_window, current)
         current.set_subtrees(left, right)
-
         return current
 
     @staticmethod
-    def _create_evaluation_order(pattern):
-        if isinstance(pattern, QItem):
+    def _create_evaluation_order(pattern_structure):
+        if isinstance(pattern_structure, QItem):
             return [0]
-        args_num = len(pattern.args)
+        args_num = len(pattern_structure.args)
         return list(range(args_num))
 
     @staticmethod
