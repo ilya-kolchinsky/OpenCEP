@@ -526,13 +526,13 @@ class Tree:
                     # handling KC child -- create the KC node and the child node, connect child and parent to KC node.
                     current = self.__generate_new_node(KleeneClosureOperator, sliding_window, parent,
                                                        root_operator.min_size, root_operator.max_size)
-                    child = LeafNode(sliding_window, self.__current_leaf_number, args[tree_structure], current)
+                    child = LeafNode(sliding_window, tree_structure, args[tree_structure], current)
                     self.__current_leaf_number += 1
                     current.set_subtrees(child)
                     return current
 
                 # no KC operations needed or KC node was already generated in previous nesting level -- create the leaf.
-                leaf = LeafNode(sliding_window, self.__current_leaf_number, args[tree_structure], parent)
+                leaf = LeafNode(sliding_window, tree_structure, args[tree_structure], parent)
                 self.__current_leaf_number += 1
                 return leaf
 
