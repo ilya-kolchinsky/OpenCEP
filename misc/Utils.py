@@ -232,15 +232,29 @@ def does_match_exist(matches: list, match: list):
     return False
 
 
+# wrapper to the powerset generator. use this to create the child event powersets.
 def powerset_generator(seq, min_size, max_size):
+    if max_size is None:
+        max_size = len(seq)
+    if max_size < min_size:
+        return []
+    if len(seq) == 0:
+        return []
+    generated_powerset = powerset_generator_aux(seq[:-1], min_size, max_size)
+    # add new partial match to all subsets created from previous PMs
+    result_powerset = [item + [seq[-1]] for item in generated_powerset]
+    return result_powerset
+
+
+# recursive gray-code method to generate all subsets
+def powerset_generator_aux(seq, min_size, max_size):
     """
     Returns all the subsets of this set. This is a generator.
     """
-    if len(seq) <= 1:
+    if len(seq) == 0:
         yield seq
-        yield []
     else:
-        for item in powerset_generator(seq[1:-1], min_size, max_size):
+        for item in powerset_generator_aux(seq[1:], min_size, max_size):
             if min_size <= len(item) + 2 <= max_size:
                 yield [seq[0]] + item
             if min_size <= len(item) + 1 <= max_size:
