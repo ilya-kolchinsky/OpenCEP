@@ -23,7 +23,7 @@ def structuralTest1():
         timedelta(minutes=3)
     )
 
-    expected_result = ''
+    expected_result = ('Seq', 'a', ('KC', ('And', ('And', 'b', ('KC', 'c')), ('KC', ('Seq', 'd', 'e')))))
     runStructuralTest('structuralTest1', [structural_test_pattern], expected_result)
 
 
@@ -39,7 +39,7 @@ def structuralTest2():
         ),
         timedelta(minutes=3)
     )
-    expected_result = ''
+    expected_result = ('KC', 'a')
     runStructuralTest('structuralTest2', [structural_test_pattern], expected_result)
 
 
@@ -57,7 +57,7 @@ def structuralTest3():
         ),
         timedelta(minutes=3)
     )
-    expected_result = ''
+    expected_result = ('Seq', 'a', ('KC', 'b'))
     runStructuralTest('structuralTest3', [structural_test_pattern], expected_result)
 
 
@@ -75,7 +75,7 @@ def structuralTest4():
         ),
         timedelta(minutes=3)
     )
-    expected_result = ''
+    expected_result = ('And', ('KC', 'a'), 'b')
     runStructuralTest('structuralTest4', [structural_test_pattern], expected_result)
 
 
@@ -96,7 +96,7 @@ def structuralTest5():
         ),
         timedelta(minutes=3)
     )
-    expected_result = ''
+    expected_result = ('KC', ('Seq', ('KC', 'a'), ('KC', 'b')))
     runStructuralTest('structuralTest5', [structural_test_pattern], expected_result)
 
 
@@ -122,7 +122,7 @@ def structuralTest6():
         ),
         timedelta(minutes=3)
     )
-    expected_result = ''
+    expected_result = ('Seq', 'a', ('Seq', ('Seq', 'b', ('And', 'c', 'd')), 'e'))
     runStructuralTest('structuralTest6', [structural_test_pattern], expected_result)
 
 
@@ -165,7 +165,9 @@ def structuralTest7():
         ),
         timedelta(minutes=3)
     )
-    expected_result = ''
+    expected_result = ('And', ('And', ('And', ('And', ('And', 'a', 'b'), 'c'),
+                                       ('Seq', ('Seq', 'd', ('KC', ('And', ('And', 'e', ('KC', 'f')), 'g'))),
+                                        ('And', ('KC', 'h'), ('KC', ('Seq', 'i', 'j'))))), 'k'), 'l')
     runStructuralTest('structuralTest7', [structural_test_pattern], expected_result)
 
 
@@ -181,13 +183,46 @@ def oneArgumentsearchTestKleeneClosure(createTestFile=False):
     runTest("oneArgumentKC", [pattern], createTestFile)
 
 
+def MinMax_0_TestKleeneClosure(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([KleeneClosureOperator(QItem("GOOG", "a"), min_size=1, max_size=2)]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(0)),
+        timedelta(minutes=5)
+    )
+    runTest("MinMax_0_", [pattern], createTestFile, events=nasdaqEventStreamTiny)
+
+# def MinMax_1_TestKleeneClosure(createTestFile=False):
+#     pattern = Pattern(
+#         SeqOperator([KleeneClosureOperator(QItem("AAPL", "a"))]),
+#         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
+#         timedelta(minutes=5)
+#     )
+#     runTest("oneArgumentKC", [pattern], createTestFile)
+#
+# def MinMax_2_TestKleeneClosure(createTestFile=False):
+#     pattern = Pattern(
+#         SeqOperator([KleeneClosureOperator(QItem("AAPL", "a"))]),
+#         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
+#         timedelta(minutes=5)
+#     )
+#     runTest("oneArgumentKC", [pattern], createTestFile)
+#
+# def oneArgumentsearchTestKleeneClosure(createTestFile=False):
+#     pattern = Pattern(
+#         SeqOperator([KleeneClosureOperator(QItem("AAPL", "a"))]),
+#         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
+#         timedelta(minutes=5)
+#     )
+#     runTest("oneArgumentKC", [pattern], createTestFile)
+
+
 # ------------------------------------------------------
 #       KleeneClosure tests
 # ------------------------------------------------------
 
 
 oneArgumentsearchTestKleeneClosure()
-
+MinMax_0_TestKleeneClosure()
 
 # ------------------------------------------------------
 #   tests for the tree structure, CEP only created not used!.

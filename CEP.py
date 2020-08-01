@@ -68,6 +68,12 @@ class CEP:
         """
         return self.__pattern_matches
 
+    def get_tree_structure_for_test(self):
+        """
+        Returns a tree structure
+        """
+        return self.__eval_mechanism.get_tree_structure_for_test()
+
     # For future support of dynamic workload modification
     def add_pattern(self, pattern: Pattern, priority: int = 0):
         raise NotImplementedError()

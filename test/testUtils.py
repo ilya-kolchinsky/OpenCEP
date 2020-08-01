@@ -14,6 +14,7 @@ from base.Pattern import Pattern
 import os
 
 eventFileLocation = os.path.join(current_project_directory, 'EventFiles')
+nasdaqEventStreamTiny = file_input(os.path.join(eventFileLocation, 'NASDAQ_TINY.txt'), MetastockDataFormatter())
 nasdaqEventStreamShort = file_input(os.path.join(eventFileLocation, 'NASDAQ_SHORT.txt'), MetastockDataFormatter())
 nasdaqEventStreamMedium = file_input(os.path.join(eventFileLocation, 'NASDAQ_MEDIUM.txt'), MetastockDataFormatter())
 nasdaqEventStreamFrequencyTailored = file_input(os.path.join(eventFileLocation, 'NASDAQ_FREQUENCY_TAILORED.txt'),
@@ -98,7 +99,8 @@ def runTest(testName, patterns, createTestFile=False,
 def runStructuralTest(testName, patterns, expected_result,
                       eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
                       eval_mechanism_params=None):
-    print('{} is a test to check the tree structure, without actually running a test'.format(testName))
-    print('place a breakpoint after creating the CEP object to debug it.\n')
+    # print('{} is a test to check the tree structure, without actually running a test'.format(testName))
+    # print('place a breakpoint after creating the CEP object to debug it.\n')
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
-    return cep == expected_result
+    print("Test %s result: %s" % (testName,"Succeeded" if
+                                    cep.get_tree_structure_for_test() == expected_result else "Failed"))
