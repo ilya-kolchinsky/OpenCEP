@@ -232,7 +232,6 @@ def KC_AND(createTestFile=False):
 #       KleeneClosure tests
 # ------------------------------------------------------
 
-
 oneArgumentsearchTestKleeneClosure()
 MinMax_0_TestKleeneClosure()
 MinMax_1_TestKleeneClosure()
