@@ -87,7 +87,7 @@ def structuralTest5():
         KleeneClosureOperator(
             SeqOperator([
                 KleeneClosureOperator(QItem("GOOG", "a"), min_size=3, max_size=5),
-                KleeneClosureOperator(QItem("GOOG", "b"))  # default values of min=1, max=5 defined at PatternStructure.py
+                KleeneClosureOperator(QItem("GOOG", "b"))
             ]), min_size=1, max_size=3
         ),
         AndFormula(
@@ -102,7 +102,7 @@ def structuralTest5():
 
 def structuralTest6():
     """
-    Seq([a, Seq([ b, And([c, d])])])
+    Seq([a, Seq([ b, And([c, d]), e])])
     """
     structural_test_pattern = Pattern(
         SeqOperator([
@@ -191,6 +191,42 @@ def MinMax_0_TestKleeneClosure(createTestFile=False):
     )
     runTest("MinMax_0_", [pattern], createTestFile, events=nasdaqEventStreamTiny)
 
+def MinMax_1_TestKleeneClosure(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([KleeneClosureOperator(QItem("GOOG", "a"))]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(0)),
+        timedelta(minutes=5)
+    )
+    runTest("MinMax_1_", [pattern], createTestFile, events=nasdaqEventStreamTiny)
+
+def MinMax_2_TestKleeneClosure(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([KleeneClosureOperator(QItem("GOOG", "a"), min_size=4, max_size=5)]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(0)),
+        timedelta(minutes=5)
+    )
+    runTest("MinMax_2_", [pattern], createTestFile, events=nasdaqEventStreamTiny)
+
+
+def KC_AND(createTestFile=False):
+    """
+    KC(And([a, b, c]))
+    """
+    pattern = Pattern(
+        KleeneClosureOperator(
+            AndOperator([
+                QItem("GOOG", "a"),
+                QItem("GOOG", "b"),
+                QItem("GOOG", "c")
+            ]), min_size=1, max_size=3
+        ),
+        AndFormula(
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+    runTest("KC_AND_", [pattern], createTestFile, events=nasdaqEventStreamTiny)
 
 # ------------------------------------------------------
 #       KleeneClosure tests
@@ -199,15 +235,18 @@ def MinMax_0_TestKleeneClosure(createTestFile=False):
 
 oneArgumentsearchTestKleeneClosure()
 MinMax_0_TestKleeneClosure()
+MinMax_1_TestKleeneClosure()
+MinMax_2_TestKleeneClosure()
+KC_AND()
 
 # ------------------------------------------------------
 #   tests for the tree structure, CEP only created not used!.
 # ------------------------------------------------------
 
-# structuralTest1()
-# structuralTest2()
-# structuralTest3()
-# structuralTest4()
-# structuralTest5()
-# structuralTest6()
-# structuralTest7()
+structuralTest1()
+structuralTest2()
+structuralTest3()
+structuralTest4()
+structuralTest5()
+structuralTest6()
+structuralTest7()

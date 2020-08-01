@@ -98,6 +98,12 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
+    def get_tree_structure_for_test(self):
+        """
+        Returns the specifications of all events - should be implemented by subclasses.
+        """
+        raise NotImplementedError()
+
 
 class LeafNode(Node):
     """
@@ -141,6 +147,10 @@ class LeafNode(Node):
         self.add_partial_match(PartialMatch([event]))
         if self._parent is not None:
             self._parent.handle_new_partial_match(self)
+
+
+    def get_tree_structure_for_test(self):
+        return self.__event_name
 
 
 class InternalNode(Node, ABC):
@@ -298,6 +308,11 @@ class AndNode(BinaryNode):
 
         new_partial_match = partial_match_source.get_last_unhandled_partial_match()
         first_event_defs = partial_match_source.get_event_definitions()
+        if isinstance(partial_match_source, KleeneClosureNode):
+            actual_first_event_defs = first_event_defs * (len(new_partial_match.events) // len(first_event_defs))
+        else:
+            actual_first_event_defs = first_event_defs
+
         other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
         partial_matches_to_compare = other_subtree.get_partial_matches()
         second_event_defs = other_subtree.get_event_definitions()
@@ -307,7 +322,14 @@ class AndNode(BinaryNode):
         # given a partial match from one subtree, for each partial match
         # in the other subtree we check for new partial matches in this node.
         for partialMatch in partial_matches_to_compare:
-            self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs)
+            if isinstance(other_subtree, KleeneClosureNode):
+                actual_second_event_defs = second_event_defs * (len(partialMatch.events) // len(second_event_defs))
+            else:
+                actual_second_event_defs = second_event_defs
+            self._try_create_new_match(new_partial_match, partialMatch, actual_first_event_defs, actual_second_event_defs)
+
+    def get_tree_structure_for_test(self):
+        return ("And", self._left_subtree.get_tree_structure_for_test(), self._right_subtree.get_tree_structure_for_test())
 
 
 class SeqNode(BinaryNode):
@@ -363,15 +385,29 @@ class SeqNode(BinaryNode):
 
         new_partial_match = partial_match_source.get_last_unhandled_partial_match()
         first_event_defs = partial_match_source.get_event_definitions()
+
+        if isinstance(partial_match_source, KleeneClosureNode):
+            actual_first_event_defs = first_event_defs * (len(new_partial_match.events) // len(first_event_defs))
+        else:
+            actual_first_event_defs = first_event_defs
+
         other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
         partial_matches_to_compare = other_subtree.get_partial_matches()
+
         second_event_defs = other_subtree.get_event_definitions()
 
         self.clean_expired_partial_matches(new_partial_match.last_timestamp)
         # given a partial match from one subtree, for each partial match
         # in the other subtree we check for new partial matches in this node.
         for partialMatch in partial_matches_to_compare:
-            self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs)
+            if isinstance(other_subtree, KleeneClosureNode):
+                actual_second_event_defs = second_event_defs * (len(partialMatch.events) // len(second_event_defs))
+            else:
+                actual_second_event_defs = second_event_defs
+            self._try_create_new_match(new_partial_match, partialMatch, actual_first_event_defs, actual_second_event_defs)
+
+    def get_tree_structure_for_test(self):
+        return ("Seq", self._left_subtree.get_tree_structure_for_test(), self._right_subtree.get_tree_structure_for_test())
 
 
 class KleeneClosureNode(UnaryNode):
@@ -413,12 +449,11 @@ class KleeneClosureNode(UnaryNode):
 
         events_for_new_match = power_match.events
 
+        # save partial match to the local storage.
+        self.add_partial_match(PartialMatch(events_for_new_match))
         # forward partial match to parent if exists or save in current node if this is the root node.
-        # very important for cases when KC node is the root node.
         if self._parent is not None:
             self._parent.handle_new_partial_match(self)
-        else:
-            self.add_partial_match(PartialMatch(events_for_new_match))
 
     def handle_new_partial_match(self, partial_match_source: Node):
         if self._child is None:
@@ -436,7 +471,12 @@ class KleeneClosureNode(UnaryNode):
 
         for partialMatch in child_matches_powerset:
             partial_match = self.partial_match_from_partial_match_set(partialMatch)
-            self._try_create_new_match(new_partial_match, partial_match, event_defs)
+            # self._event_defs = event_defs * (len(partialMatch))
+
+            self._try_create_new_match(new_partial_match, partial_match, self._event_defs)
+
+    def get_tree_structure_for_test(self):
+        return ("KC", self._child.get_tree_structure_for_test())
 
 
 class Tree:
@@ -455,6 +495,10 @@ class Tree:
     def get_matches(self):
         while self.__root.has_partial_matches():
             yield self.__root.consume_first_partial_match().events
+
+    def get_tree_structure_for_test(self):
+        return self.__root.get_tree_structure_for_test()
+
 
     @staticmethod
     def __generate_new_node(node_type, sliding_window, parent, min_size=1, max_size=5):
@@ -509,7 +553,7 @@ class Tree:
             # create wrapper KC node when parent is none and root is KC operator
             if root_type == KleeneClosureOperator and parent is None:
                 current = self.__generate_new_node(KleeneClosureOperator, sliding_window, parent,
-                                                   args[tree_structure].min_size, args[tree_structure].max_size)
+                                                   root_operator.min_size, root_operator.max_size)
                 child = self.__construct_tree(args[tree_structure], nested_tree_structure,
                                               args[tree_structure].args, sliding_window, current)
                 current.set_subtrees(child)
@@ -572,3 +616,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                         matches.add_item(PatternMatch(match))
 
         matches.close()
+
+    def get_tree_structure_for_test(self):
+        return self.__tree.get_tree_structure_for_test()

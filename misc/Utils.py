@@ -133,8 +133,8 @@ def merge_according_to(arr1: list, arr2: list, actual1: list, actual2: list, key
     Used in a partial match merge function - the reorders are given, and the partial matches is merged
     according to the reorders.
     """
-    # if len(arr1) != len(actual1) or len(arr2) != len(actual2):
-    #     raise Exception()
+    if len(arr1) != len(actual1) or len(arr2) != len(actual2):
+        raise Exception()
 
     new_len = len(arr1) + len(arr2)
     ret = []
@@ -232,7 +232,7 @@ def does_match_exist(matches: list, match: list):
     return False
 
 
-# wrapper to the powerset generator. use this to create the child event powersets.
+# wrapper to the power-set generator. use this to create the child event power-sets.
 def powerset_generator(seq, min_size, max_size):
     if max_size is None:
         max_size = len(seq)
@@ -240,9 +240,12 @@ def powerset_generator(seq, min_size, max_size):
         return []
     if len(seq) == 0:
         return []
+    # create subsets from all previous PartialMatches
     generated_powerset = powerset_generator_aux(seq[:-1], min_size, max_size)
-    # add new partial match to all subsets created from previous PMs
+    # add new PartialMatch to all creates subsets
     result_powerset = [item + [seq[-1]] for item in generated_powerset]
+    # filter to subsets with size constraint
+    result_powerset = [item for item in result_powerset if min_size <= len(item) <= max_size]
     return result_powerset
 
 
@@ -255,8 +258,5 @@ def powerset_generator_aux(seq, min_size, max_size):
         yield seq
     else:
         for item in powerset_generator_aux(seq[1:], min_size, max_size):
-            if min_size <= len(item) + 2 <= max_size:
-                yield [seq[0]] + item
-            if min_size <= len(item) + 1 <= max_size:
-                yield item
-
+            yield [seq[0]] + item
+            yield item
