@@ -1,4 +1,6 @@
+from datetime import timedelta, datetime
 from abc import ABC
+from queue import Queue
 from datetime import timedelta, datetime
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, QItem, NegationOperator, AndOperator
@@ -7,10 +9,15 @@ from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
 from typing import List, Tuple, Dict
 from base.Event import Event
+from base.Formula import TrueFormula, RelopTypes, EquationSides, IdentifierTerm, AtomicFormula
+from evaluation.PartialMatch import PartialMatch
 from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_by_timestamp
+from evaluation.PartialMatchStorage import SortedPartialMatchStorage, UnsortedPartialMatchStorage
+from misc.IOUtils import Stream
+from typing import List, Tuple, Dict
 from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
-from queue import Queue
+from evaluation.PartialMatchStorage import TreeStorageParameters, PartialMatchStorage
 from misc.ConsumptionPolicy import *
 
 import time
@@ -42,7 +49,7 @@ class Node(ABC):
     def __init__(self, sliding_window: timedelta, parent):
         self._parent = parent
         self._sliding_window = sliding_window
-        self._partial_matches = []
+        self._partial_matches = None
         self._condition = TrueFormula()
         # matches that were not yet pushed to the parent for further processing
         self._unhandled_partial_matches = Queue()
@@ -94,8 +101,7 @@ class Node(ABC):
         """
         if not Node._is_partial_match_expiration_enabled():
             return
-        count = find_partial_match_by_timestamp(self._partial_matches, last_timestamp - self._sliding_window)
-        self._partial_matches = self._partial_matches[count:]
+        self._partial_matches.try_clean_expired_partial_matches(last_timestamp - self._sliding_window)
         if len(self._single_event_types) == 0:
             # "single" consumption policy is disabled or no event types under the policy reach this node
             return
@@ -114,11 +120,10 @@ class Node(ABC):
     def _add_partial_match(self, pm: PartialMatch):
         """
         Registers a new partial match at this node.
-        As of now, the insertion is always by the timestamp, and the partial matches are stored in a list sorted by
-        timestamp. Therefore, the insertion operation is performed in O(log n).
+        In case of SortedPartialMatchStorage the insertion is by timestamp or condition, O(log n).
+        In case of UnsortedPartialMatchStorage the insertion is directly at the end, O(1).
         """
-        index = find_partial_match_by_timestamp(self._partial_matches, pm.first_timestamp)
-        self._partial_matches.insert(index, pm)
+        self._partial_matches.add(pm)
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
             self._parent.handle_new_partial_match(self)
@@ -160,9 +165,16 @@ class Node(ABC):
         if self.__can_add_partial_match(new_partial_match):
             self._add_partial_match(new_partial_match)
 
-    def get_partial_matches(self):
+    def get_partial_matches(self, filter_value: int or float = None):
         """
-        Returns the currently stored partial matches.
+        Returns only partial matches that can be a good fit the partial match identified by the given filter value.
+        """
+        return self._partial_matches.get(filter_value) if filter_value is not None \
+            else self._partial_matches.get_internal_buffer()
+
+    def get_storage_unit(self):
+        """
+        Returns the internal partial match storage of this node.
         """
         return self._partial_matches
 
@@ -189,6 +201,14 @@ class Node(ABC):
     def get_event_definitions(self):
         """
         Returns the specifications of all events collected by this tree - to be implemented by subclasses.
+        """
+        raise NotImplementedError()
+
+    def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
+                            sort_by_first_timestamp: bool = False):
+        """
+        An abstract method for recursive partial match storage initialization.
         """
         raise NotImplementedError()
 
@@ -253,6 +273,21 @@ class LeafNode(Node):
             return False
         binding = {self.__event_name: events_for_new_match[0].payload}
         return self._condition.eval(binding)
+
+    def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
+                            sort_by_first_timestamp: bool = False):
+        """
+        For leaf nodes, we always want to create a sorted storage, since the events arrive in their natural order
+        of occurrence anyway. Hence, a sorted storage is initialized either according to a user-specified key, or an
+        arrival order if no storage parameters were explicitly specified.
+        """
+        should_use_default_storage_mode = not storage_params.sort_storage or sorting_key is None
+        actual_sorting_key = (lambda pm: pm.events[0].timestamp) if should_use_default_storage_mode else sorting_key
+        actual_sort_by_first_timestamp = should_use_default_storage_mode or sort_by_first_timestamp
+        self._partial_matches = SortedPartialMatchStorage(actual_sorting_key, rel_op, equation_side,
+                                                          storage_params.clean_up_interval,
+                                                          actual_sort_by_first_timestamp, True)
 
 
 class InternalNode(Node):
@@ -324,9 +359,10 @@ class InternalNode(Node):
             raise Exception()  # should never happen
 
         new_partial_match = partial_match_source.get_last_unhandled_partial_match()
+        new_pm_key = partial_match_source.get_storage_unit().get_key_function()
         first_event_defs = partial_match_source.get_event_definitions()
         other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
-        partial_matches_to_compare = other_subtree.get_partial_matches()
+        partial_matches_to_compare = other_subtree.get_partial_matches(new_pm_key(new_partial_match))
         second_event_defs = other_subtree.get_event_definitions()
 
         if self._parent is not None:
@@ -372,12 +408,126 @@ class InternalNode(Node):
         }
         return self._condition.eval(binding)
 
+    def __get_filtered_conditions(self, left_event_names: List[str], right_event_names: List[str]):
+        """
+        An auxiliary method returning the atomic conditions containing variables from the opposite subtrees of this
+        internal node.
+        """
+        # Note that as of now self._condition contains the wrong values for most nodes - to be fixed in future
+        atomic_conditions = self._condition.extract_atomic_formulas()
+        filtered_conditions = []
+        for atomic_condition in atomic_conditions:
+            if not isinstance(atomic_condition.left_term, IdentifierTerm):
+                continue
+            if not isinstance(atomic_condition.right_term, IdentifierTerm):
+                continue
+            if atomic_condition.left_term.name in left_event_names and \
+                    atomic_condition.right_term.name in right_event_names:
+                filtered_conditions.append(atomic_condition)
+            elif atomic_condition.right_term.name in left_event_names and \
+                    atomic_condition.left_term.name in right_event_names:
+                filtered_conditions.append(atomic_condition)
+        return filtered_conditions
+
+    def __get_params_for_sorting_keys(self, conditions: List[AtomicFormula], attributes_priorities: dict,
+                                      left_event_names: List[str], right_event_names: List[str]):
+        """
+        An auxiliary method returning the best assignments for the parameters of the sorting keys according to the
+        available atomic conditions and user-supplied attribute priorities.
+        """
+        left_term, left_rel_op, left_equation_size = None, None, None
+        right_term, right_rel_op, right_equation_size = None, None, None
+        for condition in conditions:
+            if condition.left_term.name in left_event_names:
+                if left_term is None or attributes_priorities[condition.left_term.name] > \
+                        attributes_priorities[left_term.name]:
+                    left_term, left_rel_op, left_equation_size = \
+                        condition.left_term, condition.get_relop(), EquationSides.left
+                if right_term is None or attributes_priorities[condition.right_term.name] > \
+                        attributes_priorities[right_term.name]:
+                    right_term, right_rel_op, right_equation_size = \
+                        condition.right_term, condition.get_relop(), EquationSides.right
+            elif condition.left_term.name in right_event_names:
+                if left_term is None or attributes_priorities[condition.right_term.name] > \
+                        attributes_priorities[left_term.name]:
+                    left_term, left_rel_op, left_equation_size = \
+                        condition.right_term, condition.get_relop(), EquationSides.right
+                if right_term is None or attributes_priorities[condition.left_term.name] > \
+                        attributes_priorities[right_term.name]:
+                    right_term, right_rel_op, right_equation_size = \
+                        condition.left_term, condition.get_relop(), EquationSides.left
+            else:
+                raise Exception("Internal error")
+        return left_term, left_rel_op, left_equation_size, right_term, right_rel_op, right_equation_size
+
+    def _get_condition_based_sorting_keys(self, attributes_priorities: dict):
+        """
+        Calculates the sorting keys according to the conditions in the pattern and the user-provided priorities.
+        """
+        left_sorting_key, right_sorting_key, rel_op = None, None, None
+        left_event_defs = self._left_subtree.get_event_definitions()
+        right_event_defs = self._right_subtree.get_event_definitions()
+        left_event_names = {item[1].name for item in left_event_defs}
+        right_event_names = {item[1].name for item in right_event_defs}
+
+        # get the candidate atomic conditions
+        filtered_conditions = self.__get_filtered_conditions(left_event_names, right_event_names)
+        if len(filtered_conditions) == 0:
+            # no conditions to sort according to
+            return None, None, None, None, None, None
+        if attributes_priorities is None and len(filtered_conditions) > 1:
+            # multiple conditions are available, yet the user did not provide a list of priorities
+            return None, None, None, None, None, None
+
+        # select the most fitting atomic conditions and assign the respective parameters
+        left_term, left_rel_op, left_equation_size, right_term, right_rel_op, right_equation_size = \
+            self.__get_params_for_sorting_keys(filtered_conditions, attributes_priorities,
+                                               left_event_names, right_event_names)
+
+        # convert terms into sorting key fetching callbacks
+        if left_term is not None:
+            left_sorting_key = lambda pm: left_term.eval(
+                {left_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
+            )
+        if right_term is not None:
+            right_sorting_key = lambda pm: right_term.eval(
+                {right_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
+            )
+
+        return left_sorting_key, left_rel_op, left_equation_size, right_sorting_key, right_rel_op, right_equation_size
+
+    def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                           rel_op: RelopTypes = None, equation_side: EquationSides = None,
+                           sort_by_first_timestamp: bool = False):
+        """
+        An auxiliary method for setting up the storage of an internal node.
+        In the internal nodes, we only sort the storage if a storage key is explicitly provided by the user.
+        """
+        if not storage_params.sort_storage or sorting_key is None:
+            self._partial_matches = UnsortedPartialMatchStorage(storage_params.clean_up_interval)
+        else:
+            self._partial_matches = SortedPartialMatchStorage(sorting_key, rel_op, equation_side,
+                                                              storage_params.clean_up_interval, sort_by_first_timestamp)
+
 
 class AndNode(InternalNode):
     """
     An internal node representing an "AND" operator.
     """
-    pass
+    def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
+                            sort_by_first_timestamp: bool = False):
+        self._init_storage_unit(storage_params, sorting_key, rel_op, equation_side)
+        if not storage_params.sort_storage:
+            # efficient storage is disabled
+            self._left_subtree.create_storage_unit(storage_params)
+            self._right_subtree.create_storage_unit(storage_params)
+            return
+        # efficient storage was explicitly enabled
+        left_key, left_rel_op, left_equation_size, right_key, right_rel_op, right_equation_size = \
+            self._get_condition_based_sorting_keys(storage_params.attributes_priorities)
+        self._left_subtree.create_storage_unit(storage_params, left_key, left_rel_op, left_equation_size)
+        self._right_subtree.create_storage_unit(storage_params, right_key, right_rel_op, right_equation_size)
 
 
 class SeqNode(InternalNode):
@@ -402,6 +552,278 @@ class SeqNode(InternalNode):
         if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
             return False
         return super()._validate_new_match(events_for_new_match)
+
+    def _get_sequence_based_sorting_keys(self):
+        """
+        Calculates the sorting keys according to the pattern sequence order and the user-provided priorities.
+        """
+        left_event_defs = self._left_subtree.get_event_definitions()
+        right_event_defs = self._right_subtree.get_event_definitions()
+        # comparing min and max leaf index of two subtrees
+        min_left = min(left_event_defs, key=lambda x: x[0])[0]  # [ { ] } or [ { } ]
+        max_left = max(left_event_defs, key=lambda x: x[0])[0]  # { [ } ] or { [ ] }
+        min_right = min(right_event_defs, key=lambda x: x[0])[0]  # [ ] { }
+        max_right = max(right_event_defs, key=lambda x: x[0])[0]  # { } [ ]
+        if max_left < min_right:  # 3)
+            left_sort, right_sort, rel_op = -1, 0, RelopTypes.SmallerEqual
+        elif max_right < min_left:  # 4)
+            left_sort, right_sort, rel_op = 0, -1, RelopTypes.GreaterEqual
+        elif min_left < min_right:  # 1)
+            left_sort, right_sort, rel_op = 0, 0, RelopTypes.SmallerEqual
+        elif min_right < min_left:  # 2)
+            left_sort, right_sort, rel_op = 0, 0, RelopTypes.GreaterEqual
+        if rel_op is None:
+            raise Exception("rel_op is None, something bad has happened")
+        left_sorting_key = lambda pm: pm.events[left_sort].timestamp
+        right_sorting_key = lambda pm: pm.events[right_sort].timestamp
+        # left/right_sort == 0 means that left/right subtree will be sorted by first timestamp
+        return left_sorting_key, right_sorting_key, rel_op, (left_sort == 0), (right_sort == 0)
+
+    def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
+                            sort_by_first_timestamp: bool = False):
+        """
+        This function creates the storage for partial_matches it gives a special key: callable
+        to the storage unit which tells the storage unit on which attribute(only timestamps here)
+        to sort.
+        We assume all events are in SEQ(,,,,...) which makes the order in partial match the same
+        as in event_defs: [(1,a),(2,b)] in event_defs and [a,b] in pm.
+        """
+        self._init_storage_unit(storage_params, sorting_key, rel_op, equation_side, sort_by_first_timestamp)
+        if not storage_params.sort_storage:
+            # efficient storage is disabled
+            self._left_subtree.create_storage_unit(storage_params)
+            self._right_subtree.create_storage_unit(storage_params)
+            return
+        left_sort_by_first_timestamp, right_sort_by_first_timestamp = False, False
+        # finding sorting keys in case user requested to sort by condition
+        if storage_params.prioritize_sorting_by_timestamp:
+            # first try the timestamps, then the conditions
+            left_key, right_key, left_rel_op, left_sort_by_first_timestamp, right_sort_by_first_timestamp = \
+                self._get_sequence_based_sorting_keys()
+            if left_rel_op is None:
+                left_key, left_rel_op, left_equation_size, right_key, right_rel_op, right_equation_size = \
+                    self._get_condition_based_sorting_keys(storage_params.attributes_priorities)
+            else:
+                right_rel_op, left_equation_size, right_equation_size = \
+                    left_rel_op, EquationSides.left, EquationSides.right
+        else:
+            # first try the conditions, then the timestamps
+            left_key, left_rel_op, left_equation_size, right_key, right_rel_op, right_equation_size = \
+                self._get_condition_based_sorting_keys(storage_params.attributes_priorities)
+            if left_rel_op is None:
+                left_key, right_key, left_rel_op, left_sort_by_first_timestamp, right_sort_by_first_timestamp = \
+                    self._get_sequence_based_sorting_keys()
+                right_rel_op, left_equation_size, right_equation_size = \
+                    left_rel_op, EquationSides.left, EquationSides.right
+        if left_rel_op is None:
+            # both sequence-based and condition-based initialization failed
+            raise Exception("Should never happen")
+        self._left_subtree.create_storage_unit(storage_params, left_key, left_rel_op, left_equation_size,
+                                               left_sort_by_first_timestamp)
+        self._right_subtree.create_storage_unit(storage_params, right_key, right_rel_op, right_equation_size,
+                                                right_sort_by_first_timestamp)
+
+
+class NegationNode(InternalNode):
+    """
+    An internal node representing a negation operator.
+    This implementation heavily relies on the fact that, if any unbounded negation operators are defined in the
+    pattern, they are conveniently placed at the top of the tree forming a left-deep chain of nodes.
+    """
+
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool, top_operator, parent: Node = None,
+                 event_defs: List[Tuple[int, QItem]] = None,
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, parent, event_defs, left, right)
+
+        # aliases for the negative node subtrees to make the code more readable
+        # by construction, we always have the positive subtree on the left
+        self._positive_subtree = self._left_subtree
+        self._negative_subtree = self._right_subtree
+
+        # negation operators that can appear in the end of the match have this flag on
+        self.__is_unbounded = is_unbounded
+
+        # the multinary operator of the root node
+        self.__top_operator = top_operator
+
+        # a list of partial matches that can be invalidated by a negative event that will only arrive in future
+        self.__pending_partial_matches = []
+
+    def set_subtrees(self, left: Node, right: Node):
+        """
+        Updates the aliases following the changes in the subtrees.
+        """
+        super().set_subtrees(left, right)
+        self._positive_subtree = self._left_subtree
+        self._negative_subtree = self._right_subtree
+
+    def clean_expired_partial_matches(self, last_timestamp: datetime):
+        """
+        In addition to the normal functionality of this method, attempt to flush pending matches that can already
+        be propagated.
+        """
+        super().clean_expired_partial_matches(last_timestamp)
+        if self.__is_first_unbounded_negative_node():
+            self.flush_pending_matches(last_timestamp)
+
+    def flush_pending_matches(self, last_timestamp: datetime = None):
+        """
+        Releases the partial matches in the pending matches buffer. If the timestamp is provided, only releases
+        expired matches.
+        """
+        if last_timestamp is not None:
+            self.__pending_partial_matches = sorted(self.__pending_partial_matches, key=lambda x: x.first_timestamp)
+            count = find_partial_match_by_timestamp(self.__pending_partial_matches,
+                                                    last_timestamp - self._sliding_window)
+            matches_to_flush = self.__pending_partial_matches[:count]
+            self.__pending_partial_matches = self.__pending_partial_matches[count:]
+        else:
+            matches_to_flush = self.__pending_partial_matches
+
+        # since matches_to_flush could be expired, we need to temporarily disable timestamp checks
+        Node._toggle_enable_partial_match_expiration(False)
+        for partial_match in matches_to_flush:
+            super()._add_partial_match(partial_match)
+        Node._toggle_enable_partial_match_expiration(True)
+
+    def get_event_definitions(self):
+        """
+        This is an ugly temporary hack to support multiple chained negation operators. As this prevents different
+        negative events from having mutual conditions, this implementation is highly undesirable and will be removed
+        in future.
+        """
+        return self._positive_subtree.get_event_definitions()
+
+    def _try_create_new_matches(self, new_partial_match: PartialMatch, partial_matches_to_compare: List[PartialMatch],
+                                first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
+        """
+        The flow of this method is the opposite of the one its superclass implements. For each pair of a positive and a
+        negative partial match, we combine the two sides to form a new partial match, validate it, and then do nothing
+        if the validation succeeds (i.e., the negative part invalidated the positive one), and transfer the positive
+        match up the tree if the validation fails.
+        """
+        positive_events = new_partial_match.events
+        for partial_match in partial_matches_to_compare:
+            negative_events = partial_match.events
+            combined_event_list = self._merge_events_for_new_match(first_event_defs, second_event_defs,
+                                                                   positive_events, negative_events)
+            if self._validate_new_match(combined_event_list):
+                # this match should not be transferred
+                # TODO: the rejected positive partial match should be explicitly removed to save space
+                return
+        # no negative match invalidated the positive one - we can go on
+        self._propagate_partial_match(positive_events)
+
+    def _add_partial_match(self, pm: PartialMatch):
+        """
+        If this node can receive unbounded negative events and is the deepest node in the tree to do so, a
+        successfully evaluated partial match must be added to a dedicated waiting list rather than propagated normally.
+        """
+        if self.__is_first_unbounded_negative_node():
+            self.__pending_partial_matches.append(pm)
+        else:
+            super()._add_partial_match(pm)
+
+    def handle_new_partial_match(self, partial_match_source: Node):
+        """
+        For positive partial matches, activates the flow of the superclass. For negative partial matches, does nothing
+        for bounded events (as nothing should be done in this case), otherwise checks whether existing positive matches
+        must be invalidated and handles them accordingly.
+        """
+        if partial_match_source == self._positive_subtree:
+            # a new positive partial match has arrived
+            super().handle_new_partial_match(partial_match_source)
+            return
+        # a new negative partial match has arrived
+        if not self.__is_unbounded:
+            # no unbounded negatives - there is nothing to do
+            return
+
+        # this partial match contains unbounded negative events
+        first_unbounded_node = self.get_first_unbounded_negative_node()
+        positive_event_defs = first_unbounded_node.get_event_definitions()
+
+        unbounded_negative_partial_match = partial_match_source.get_last_unhandled_partial_match()
+        negative_event_defs = partial_match_source.get_event_definitions()
+
+        matches_to_keep = []
+        for positive_partial_match in first_unbounded_node.__pending_partial_matches:
+            combined_event_list = self._merge_events_for_new_match(positive_event_defs,
+                                                                   negative_event_defs,
+                                                                   positive_partial_match.events,
+                                                                   unbounded_negative_partial_match.events)
+            if not self._validate_new_match(combined_event_list):
+                # this positive match should still be kept
+                matches_to_keep.append(positive_partial_match)
+
+        first_unbounded_node.__pending_partial_matches = matches_to_keep
+
+    def get_first_unbounded_negative_node(self):
+        """
+        Returns the deepest unbounded node in the tree. This node keeps the partial matches that are pending release
+        due to the presence of unbounded negative events in the pattern.
+        """
+        if not self.__is_unbounded:
+            return None
+        return self if self.__is_first_unbounded_negative_node() \
+            else self._positive_subtree.get_first_unbounded_negative_node()
+
+    def __is_first_unbounded_negative_node(self):
+        """
+        Returns True if this node is the first unbounded negative node and False otherwise.
+        """
+        return self.__is_unbounded and \
+               (not isinstance(self._positive_subtree, NegationNode) or not self._positive_subtree.__is_unbounded)
+
+    def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
+                            sort_by_first_timestamp: bool = False):
+        """
+        For now, only the most trivial storage settings will be supported by negative nodes.
+        """
+        self._init_storage_unit(storage_params, sorting_key, rel_op, equation_side)
+        self._left_subtree.create_storage_unit(storage_params)
+        self._right_subtree.create_storage_unit(storage_params)
+
+
+class NegativeAndNode(NegationNode):
+    """
+    An internal node representing a negative conjunction operator.
+    """
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool, parent: Node = None,
+                 event_defs: List[Tuple[int, QItem]] = None,
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, is_unbounded, AndOperator, parent, event_defs, left, right)
+
+
+class NegativeSeqNode(NegationNode):
+    """
+    An internal node representing a negative sequence operator.
+    Unfortunately, this class contains some code duplication from SeqNode to avoid diamond inheritance.
+    """
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool, parent: Node = None,
+                 event_defs: List[Tuple[int, QItem]] = None,
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, is_unbounded, SeqOperator, parent, event_defs, left, right)
+
+    def _set_event_definitions(self,
+                               left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
+        self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
+
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
+            return False
+        return super()._validate_new_match(events_for_new_match)
+
+    def _merge_events_for_new_match(self,
+                                    first_event_defs: List[Tuple[int, QItem]],
+                                    second_event_defs: List[Tuple[int, QItem]],
+                                    first_event_list: List[Event],
+                                    second_event_list: List[Event]):
+        return merge_according_to(first_event_defs, second_event_defs,
+                                  first_event_list, second_event_list, key=lambda x: x[0])
 
 
 class NegationNode(InternalNode):
@@ -599,22 +1021,75 @@ class Tree:
     Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree positive_structure"
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     """
-    def __init__(self, tree_structure: tuple, pattern: Pattern):
+    def __init__(self, tree_structure: tuple, pattern: Pattern, storage_params: TreeStorageParameters):
         # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
         self.__root = Tree.__construct_tree(pattern.positive_structure.get_top_operator() == SeqOperator,
                                             tree_structure, pattern.positive_structure.args, pattern.window,
                                             None, pattern.consumption_policy)
-        
+
         if pattern.consumption_policy is not None and \
                 pattern.consumption_policy.should_register_event_type_as_single(True):
             for event_type in pattern.consumption_policy.single_types:
                 self.__root.register_single_event_type(event_type)
-            
+                
         if pattern.negative_structure is not None:
             self.__adjust_leaf_indices(pattern)
             self.__add_negative_tree_structure(pattern)
 
         self.__root.apply_formula(pattern.condition)
+        self.__root.create_storage_unit(storage_params)
+
+    def __adjust_leaf_indices(self, pattern: Pattern):
+        """
+        Fixes the values of the leaf indices in the positive tree to take the negative events into account.
+        """
+        leaf_mapping = {}
+        for leaf in self.get_leaves():
+            current_index = leaf.get_leaf_index()
+            correct_index = pattern.get_index_by_event_name(leaf.get_event_name())
+            leaf_mapping[current_index] = correct_index
+        self.__update_event_defs(self.__root, leaf_mapping)
+
+    def __update_event_defs(self, node: Node, leaf_mapping: Dict[int, int]):
+        """
+        Recursively modifies the event indices in the tree specified by the given node.
+        """
+        if isinstance(node, LeafNode):
+            node.set_leaf_index(leaf_mapping[node.get_leaf_index()])
+            return
+        # this node is an internal node
+        event_defs = node.get_event_definitions()
+        # no list comprehension is used since we modify the original list
+        for i in range(len(event_defs)):
+            event_def = event_defs[i]
+            event_defs[i] = (leaf_mapping[event_def[0]], event_def[1])
+        self.__update_event_defs(node.get_left_subtree(), leaf_mapping)
+        self.__update_event_defs(node.get_right_subtree(), leaf_mapping)
+
+    def __add_negative_tree_structure(self, pattern: Pattern):
+        """
+        Adds the negative nodes at the root of the tree.
+        """
+        top_operator = pattern.full_structure.get_top_operator()
+        negative_event_list = pattern.negative_structure.get_args()
+        current_root = self.__root
+        for negation_operator in negative_event_list:
+            if top_operator == SeqOperator:
+                new_root = NegativeSeqNode(pattern.window,
+                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
+            elif top_operator == AndOperator:
+                new_root = NegativeAndNode(pattern.window,
+                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
+            else:
+                raise Exception("Unsupported operator for negation: %s" % (top_operator,))
+            negative_event = negation_operator.arg
+            leaf_index = pattern.get_index_by_event_name(negative_event.name)
+            negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root)
+            new_root.set_subtrees(current_root, negative_leaf)
+            negative_leaf.set_parent(new_root)
+            current_root.set_parent(new_root)
+            current_root = new_root
+        self.__root = current_root
 
     def __adjust_leaf_indices(self, pattern: Pattern):
         """
@@ -730,8 +1205,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
-    def __init__(self, pattern: Pattern, tree_structure: tuple):
-        self.__tree = Tree(tree_structure, pattern)
+    def __init__(self, pattern: Pattern, tree_structure: tuple, storage_params: TreeStorageParameters):
+        self.__tree = Tree(tree_structure, pattern, storage_params)
         self.__pattern = pattern
         self.__freeze_map = {}
         self.__active_freezers = []

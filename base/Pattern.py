@@ -164,3 +164,8 @@ class Pattern:
             if nested_sequences is not None:
                 result.extend(nested_sequences)
         return result
+
+    def __repr__(self):
+        return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.structure,
+                                                                                self.condition,
+                                                                                self.window)

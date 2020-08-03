@@ -161,6 +161,28 @@ pattern = Pattern(
 )
 ```
 
+## Optimizing evaluation performance by specifying custom TreeStorageParameters
+```
+storage_params = TreeStorageParameters(sort_storage=True,
+  attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
+
+""" 
+sort_storage: configures the storage to sort the PMs (sort_storage == TRUE).
+attributes_priorities: in case of a AND between two formulas we sort according to the attributes which are specified with the higher priority - wise to specify priorities according to the events frequencies and the expected percentage of the attributes which will NOT fullfil the condition for example if a is frequent and rarely his condition is met it is wise to specify a with high priority. notice that the priority is per attribute.
+clean_expired_every: a number that determines the frequency of cleaning up old partial matches from storage units.
+sort_by_condition_on_attributes: in case the pattern is a sequence(SeqOperator) but sorting by the given condition on certain attributes is more efficient then use (sort_by_condition_on_attributes=True), in case sorting keys aren't extractable from the condition then sorting will be by timestamps.
+"""
+
+
+eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params)
+
+#can be any tree based evaluation parameters, just make sure to provide storage_params
+
+
+cep = CEP(pattern, EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+        eval_mechanism_params)
+```
+
 # Twitter API support
 ### Authentication
 To receive a Twitter stream via Twitter API, provide your credentials in plugin/twitter/TwitterCredentials.py

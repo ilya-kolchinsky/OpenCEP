@@ -20,3 +20,6 @@ class Event:
         self.timestamp = data_formatter.get_event_timestamp(self.payload)
         self.payload[Event.INDEX_ATTRIBUTE_NAME] = Event.counter
         Event.counter += 1
+
+    def __repr__(self):
+        return str(self.payload)

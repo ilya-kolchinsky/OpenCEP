@@ -4,8 +4,11 @@ by invoking the rest of the system components.
 """
 from misc.IOUtils import Stream
 from base.Pattern import Pattern
-from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters, \
-    EvaluationMechanismTypes, EvaluationMechanismFactory
+from evaluation.EvaluationMechanismFactory import (
+    EvaluationMechanismParameters,
+    EvaluationMechanismTypes,
+    EvaluationMechanismFactory,
+)
 from typing import List
 from datetime import datetime
 
@@ -16,6 +19,7 @@ class PerformanceSpecifications:
     CEP engine will refer to it if it is passed.
     Not implemented yet.
     """
+
     pass
 
 

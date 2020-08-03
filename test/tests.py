@@ -1,7 +1,7 @@
 import sys, os, pathlib
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
-    IterativeImprovementEvaluationMechanismParameters
+    IterativeImprovementEvaluationMechanismParameters, TreeBasedEvaluationMechanismParameters
 from misc.IOUtils import file_input, file_output
 from plugin.stocks.Stocks import MetastockDataFormatter
 from misc.Utils import generate_matches
@@ -12,10 +12,17 @@ from datetime import timedelta
 from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, MinusTerm, AtomicTerm, AndFormula, TrueFormula
 from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
 from base.Pattern import Pattern
+from evaluation.PartialMatchStorage import TreeStorageParameters
+try:
+    from UnitTests.test_storage import run_storage_tests
+except ImportError:
+    from test.UnitTests.test_storage import run_storage_tests
 
 currentPath = pathlib.Path(os.path.dirname(__file__))
 absolutePath = str(currentPath.parent)
 sys.path.append(absolutePath)
+
+INCLUDE_BENCHMARKS = False
 
 nasdaqEventStreamTiny = file_input(absolutePath, "test/EventFiles/NASDAQ_TINY.txt", MetastockDataFormatter())
 nasdaqEventStreamShort = file_input(absolutePath, "test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
@@ -151,7 +158,24 @@ def runTest(testName, patterns, createTestFile = False,
     actual_matches_path = "test/Matches/%sMatches.txt" % testName
     print("Test %s result: %s, Time Passed: %s" % (testName,
           "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
+    runTest.over_all_time += running_time
     os.remove(absolutePath + "\\" + actual_matches_path)
+
+def runBenchMark(testName, patterns, eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+                 eval_mechanism_params=None, events=None):
+    """
+    this runs a bench mark ,since some outputs for benchmarks are very large,
+    we assume correct functionality and only check runtimes. (not a test)
+    """
+    if events is None:
+        events = nasdaqEventStream.duplicate()
+    else:
+        events = events.duplicate()
+    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
+    running_time = cep.run(events)
+    print("Bench Mark %s completed, Time Passed: %s" % (testName, running_time))
+    runTest.over_all_time += running_time
+    
 
 def oneArgumentsearchTest(createTestFile = False):
     pattern = Pattern(
@@ -722,7 +746,6 @@ def oneNotAtTheBeginningTest(createTestFile=False):
     )
     runTest("OneNotBegin", [pattern], createTestFile)
 
-
 # ON NASDAQ SHORT
 def multipleNotAtTheBeginningTest(createTestFile=False):
     pattern = Pattern(
@@ -787,8 +810,8 @@ def singleType1PolicyPatternSearchTest(createTestFile = False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
-        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
         timedelta(minutes=5),
         ConsumptionPolicy(single="AMZN", secondary_selection_strategy=SelectionStrategies.MATCH_NEXT)
     )
@@ -801,8 +824,8 @@ def singleType2PolicyPatternSearchTest(createTestFile = False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
-        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
         timedelta(minutes=5),
         ConsumptionPolicy(single="AMZN", secondary_selection_strategy=SelectionStrategies.MATCH_SINGLE)
     )
@@ -815,8 +838,8 @@ def contiguousPolicyPatternSearchTest(createTestFile = False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
-        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
         timedelta(minutes=5),
         ConsumptionPolicy(contiguous=["a", "b", "c"])
     )
@@ -843,8 +866,8 @@ def freezePolicyPatternSearchTest(createTestFile = False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
-        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
         timedelta(minutes=5),
         ConsumptionPolicy(freeze="a")
     )
@@ -857,14 +880,57 @@ def freezePolicy2PatternSearchTest(createTestFile = False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
-        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
         timedelta(minutes=5),
         ConsumptionPolicy(freeze="b")
     )
     runTest("freezePolicy2", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
+def sortedStorageTest(createTestFile=False):
+    pattern = Pattern(
+        AndOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c")]),
+        AndFormula(
+            GreaterThanFormula(
+                IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])
+            ),
+            GreaterThanFormula(
+                IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])
+            ),
+        ),
+        timedelta(minutes=360),
+    )
+    storage_params = TreeStorageParameters(True, clean_up_interval=500)
+    runTest("sortedStorageTest", [pattern], createTestFile,
+            eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+            eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params),
+            events=nasdaqEventStream)
 
+def sortedStorageBenchMarkTest(createTestFile=False):
+    pattern = Pattern(
+        AndOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c"), QItem("MSFT", "m")]),
+        AndFormula(
+            GreaterThanEqFormula(
+                IdentifierTerm("b", lambda x: x["Lowest Price"]), IdentifierTerm("a", lambda x: x["Lowest Price"])
+            ),
+            AndFormula(
+                GreaterThanEqFormula(
+                    IdentifierTerm("m", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])
+                ),
+                GreaterThanEqFormula(
+                    IdentifierTerm("m", lambda x: x["Lowest Price"]), IdentifierTerm("b", lambda x: x["Lowest Price"])
+                ),
+            ),
+        ),
+        timedelta(minutes=360),
+    )
+    runBenchMark("sortedStorageBenchMark - unsorted storage", [pattern])
+
+    storage_params = TreeStorageParameters(sort_storage=True, attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
+    runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params))
+
+
+runTest.over_all_time = 0
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
@@ -917,6 +983,15 @@ contiguousPolicy2PatternSearchTest()
 freezePolicyPatternSearchTest()
 freezePolicy2PatternSearchTest()
 
+# storage tests
+sortedStorageTest()
+run_storage_tests()
+
+# benchmarks
+if INCLUDE_BENCHMARKS:
+    sortedStorageBenchMarkTest()
+
+
 # Twitter tests
 try:
     from TwitterTest import run_twitter_sanity_check
@@ -924,3 +999,4 @@ try:
 except ImportError:  # tweepy might not be installed
     pass
 
+print("Finished running all tests, overall time: %s" % runTest.over_all_time)

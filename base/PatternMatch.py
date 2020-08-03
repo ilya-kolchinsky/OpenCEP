@@ -9,3 +9,6 @@ class PatternMatch:
     """
     def __init__(self, events: List[Event]):
         self.events = events
+
+    def __repr__(self):
+        return str(self.events)

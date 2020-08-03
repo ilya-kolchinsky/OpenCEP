@@ -50,6 +50,9 @@ class QItem(PatternStructure):
     def contains_event(self, event_name: str):
         return self.name == event_name
 
+    def __repr__(self):
+        return "%s %s" % (self.type, self.name)
+
 
 class UnaryStructure(PatternStructure, ABC):
     """
@@ -102,22 +105,37 @@ class AndOperator(CompositeStructure):
     def duplicate_top_operator(self):
         return AndOperator([])
 
+    def __repr__(self):
+        return "AND(%s)" % (self.args,)
+
 
 class OrOperator(CompositeStructure):
     def duplicate_top_operator(self):
         return OrOperator([])
+
+    def __repr__(self):
+        return "OR(%s)" % (self.args,)
 
 
 class SeqOperator(CompositeStructure):
     def duplicate_top_operator(self):
         return SeqOperator([])
 
+    def __repr__(self):
+        return "SEQ(%s)" % (self.args,)
+
 
 class KleeneClosureOperator(UnaryStructure):
     def duplicate(self):
         return KleeneClosureOperator(self.arg.duplicate())
 
+    def __repr__(self):
+        return "(%s)+" % (self.arg,)
+
 
 class NegationOperator(UnaryStructure):
     def duplicate(self):
         return NegationOperator(self.arg.duplicate())
+
+    def __repr__(self):
+        return "NOT(%s)" % (self.args,)
