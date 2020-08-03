@@ -265,7 +265,7 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
 
     def get_relop(self):
         """
-        return the relop of the current AtomicFormula ( < <= > >= == != )
+        return the rel_op of the current AtomicFormula ( < <= > >= == != )
         """
         return None
 

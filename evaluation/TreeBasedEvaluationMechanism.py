@@ -6,7 +6,7 @@ from base.Event import Event
 from base.Formula import TrueFormula, RelopTypes, EquationSides
 from evaluation.PartialMatch import PartialMatch
 from misc.Utils import merge, merge_according_to, is_sorted
-from evaluation.Storage import SortedStorage, UnsortedStorage
+from evaluation.PartialMatchStorage import SortedPartialMatchStorage, UnsortedPartialMatchStorage
 from base.Formula import Formula
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, QItem
@@ -14,7 +14,7 @@ from misc.IOUtils import Stream
 from typing import List, Tuple
 from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
-from evaluation.Storage import TreeStorageParameters, Storage
+from evaluation.PartialMatchStorage import TreeStorageParameters, PartialMatchStorage
 
 
 class Node(ABC):
@@ -25,7 +25,7 @@ class Node(ABC):
     def __init__(self, sliding_window: timedelta, parent):
         self._parent = parent
         self._sliding_window = sliding_window
-        self._partial_matches: Storage[PartialMatch]
+        self._partial_matches: PartialMatchStorage[PartialMatch]
         self._condition = TrueFormula()
         # matches that were not yet pushed to the parent for further processing
         self._unhandled_partial_matches = Queue()
@@ -68,8 +68,8 @@ class Node(ABC):
     def add_partial_match(self, pm: PartialMatch):
         """
         Registers a new partial match at this node.
-        In case of SortedStorage the insertion is by timestamp or condition, O(log n).
-        In case of UnsortedStorage the insertion is directly at the end, O(1).
+        In case of SortedPartialMatchStorage the insertion is by timestamp or condition, O(log n).
+        In case of UnsortedPartialMatchStorage the insertion is directly at the end, O(1).
         """
         self._partial_matches.add(pm)
         if self._parent is not None:
@@ -152,12 +152,12 @@ class LeafNode(Node):
     def _init_storage_unit(self, sort_storage, sorting_key, relation_op, equation_side, clean_expired_every,
                            sort_by_first_timestamp=False):
         # in leaf nodes we don't check storage_params.sort_storage because in case of a sequence pattern
-        # we still want to use SortedStorage by timestamp even if storage_params.sort_storage is False.
+        # we still want to use SortedPartialMatchStorage by timestamp even if storage_params.sort_storage is False.
         if sorting_key is None:
-            self._partial_matches = UnsortedStorage(clean_expired_every, None, True)
+            self._partial_matches = UnsortedPartialMatchStorage(clean_expired_every, None, True)
         else:
-            self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side,
-                                                  clean_expired_every, sort_by_first_timestamp, True)
+            self._partial_matches = SortedPartialMatchStorage(sorting_key, relation_op, equation_side,
+                                                              clean_expired_every, sort_by_first_timestamp, True)
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             relation_op=None, equation_side=None, sort_by_first_timestamp=False):
@@ -223,7 +223,7 @@ class InternalNode(Node):
             raise Exception()  # should never happen
 
         new_partial_match = partial_match_source.get_last_unhandled_partial_match()
-        new_pm_key = partial_match_source._partial_matches.get_key()
+        new_pm_key = partial_match_source._partial_matches.get_key_function()
         first_event_defs = partial_match_source.get_event_definitions()
         other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
         partial_matches_to_compare = other_subtree.get_partial_matches(new_pm_key(new_partial_match))
@@ -325,10 +325,10 @@ class InternalNode(Node):
     def _init_storage_unit(self, sort_storage, sorting_key, relation_op, equation_side, clean_expired_every,
                            sort_by_first_timestamp=False):
         if not sort_storage or sorting_key is None:
-            self._partial_matches = UnsortedStorage(clean_expired_every, sorting_key)
+            self._partial_matches = UnsortedPartialMatchStorage(clean_expired_every, sorting_key)
         else:
-            self._partial_matches = SortedStorage(sorting_key, relation_op, equation_side,
-                                                  clean_expired_every, sort_by_first_timestamp)
+            self._partial_matches = SortedPartialMatchStorage(sorting_key, relation_op, equation_side,
+                                                              clean_expired_every, sort_by_first_timestamp)
 
 
 class AndNode(InternalNode):

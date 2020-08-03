@@ -12,7 +12,7 @@ from base.Pattern import Pattern
 from misc.Statistics import calculate_left_deep_tree_cost_function, MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
-from evaluation.Storage import TreeStorageParameters
+from evaluation.PartialMatchStorage import TreeStorageParameters
 
 
 class LeftDeepTreeBuilder(EvaluationMechanismBuilder):

@@ -11,7 +11,7 @@ from datetime import timedelta
 from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, AtomicTerm, AndFormula, TrueFormula
 from base.PatternStructure import AndOperator, SeqOperator, QItem
 from base.Pattern import Pattern
-from evaluation.Storage import TreeStorageParameters
+from evaluation.PartialMatchStorage import TreeStorageParameters
 try:
     from UnitTests.test_storage import run_storage_tests
 except ImportError:
