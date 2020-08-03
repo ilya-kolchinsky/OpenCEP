@@ -619,7 +619,7 @@ def sortedStorageTest(createTestFile=False):
         ),
         timedelta(minutes=360),
     )
-    storage_params = TreeStorageParameters(True, clean_expired_every=500)
+    storage_params = TreeStorageParameters(True, clean_up_interval=500)
     runTest("sortedStorageTest", [pattern], createTestFile,
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
             eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params),

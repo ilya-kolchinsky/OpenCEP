@@ -21,11 +21,10 @@ class Node(ABC):
     """
     This class represents a single node of an evaluation tree.
     """
-
     def __init__(self, sliding_window: timedelta, parent):
         self._parent = parent
         self._sliding_window = sliding_window
-        self._partial_matches: PartialMatchStorage[PartialMatch]
+        self._partial_matches = None
         self._condition = TrueFormula()
         # matches that were not yet pushed to the parent for further processing
         self._unhandled_partial_matches = Queue()
@@ -75,12 +74,18 @@ class Node(ABC):
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
 
-    def get_partial_matches(self, value_of_new_pm):
+    def get_partial_matches(self, filter_value: int or float = None):
         """
-        Returns only partial matches that can be a good fit according the the new partial match received
-        from the other node.
+        Returns only partial matches that can be a good fit the partial match identified by the given filter value.
         """
-        return self._partial_matches.get(value_of_new_pm)
+        return self._partial_matches.get(filter_value) if filter_value is not None \
+            else self._partial_matches.get_internal_buffer()
+
+    def get_storage_unit(self):
+        """
+        Returns the internal partial match storage of this node.
+        """
+        return self._partial_matches
 
     def get_leaves(self):
         """
@@ -101,7 +106,11 @@ class Node(ABC):
         raise NotImplementedError()
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
-                            relation_op=None, equation_side=None, sort_by_first_timestamp=False):
+                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
+                            sort_by_first_timestamp: bool = False):
+        """
+        An abstract method for recursive partial match storage initialization.
+        """
         raise NotImplementedError()
 
 
@@ -109,7 +118,6 @@ class LeafNode(Node):
     """
     A leaf node is responsible for a single event type of the pattern.
     """
-
     def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_qitem: QItem, parent: Node):
         super().__init__(sliding_window, parent)
         self.__leaf_index = leaf_index
@@ -149,20 +157,20 @@ class LeafNode(Node):
         if self._parent is not None:
             self._parent.handle_new_partial_match(self)
 
-    def _init_storage_unit(self, sort_storage, sorting_key, relation_op, equation_side, clean_expired_every,
-                           sort_by_first_timestamp=False):
-        # in leaf nodes we don't check storage_params.sort_storage because in case of a sequence pattern
-        # we still want to use SortedPartialMatchStorage by timestamp even if storage_params.sort_storage is False.
-        if sorting_key is None:
-            self._partial_matches = UnsortedPartialMatchStorage(clean_expired_every, None, True)
-        else:
-            self._partial_matches = SortedPartialMatchStorage(sorting_key, relation_op, equation_side,
-                                                              clean_expired_every, sort_by_first_timestamp, True)
-
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
-                            relation_op=None, equation_side=None, sort_by_first_timestamp=False):
-        self._init_storage_unit(storage_params.sort_storage, sorting_key, relation_op, equation_side,
-                                storage_params.clean_expired_every)
+                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
+                            sort_by_first_timestamp: bool = False):
+        """
+        For leaf nodes, we always want to create a sorted storage, since the events arrive in their natural order
+        of occurrence anyway. Hence, a sorted storage is initialized either according to a user-specified key, or an
+        arrival order if no storage parameters were explicitly specified.
+        """
+        should_use_default_storage_mode = not storage_params.sort_storage or sorting_key is None
+        actual_sorting_key = (lambda pm: pm.events[0].timestamp) if should_use_default_storage_mode else sorting_key
+        actual_sort_by_first_timestamp = should_use_default_storage_mode or sort_by_first_timestamp
+        self._partial_matches = SortedPartialMatchStorage(actual_sorting_key, rel_op, equation_side,
+                                                          storage_params.clean_up_interval,
+                                                          actual_sort_by_first_timestamp, True)
 
 
 class InternalNode(Node):
@@ -223,7 +231,7 @@ class InternalNode(Node):
             raise Exception()  # should never happen
 
         new_partial_match = partial_match_source.get_last_unhandled_partial_match()
-        new_pm_key = partial_match_source._partial_matches.get_key_function()
+        new_pm_key = partial_match_source.get_storage_unit().get_key_function()
         first_event_defs = partial_match_source.get_event_definitions()
         other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
         partial_matches_to_compare = other_subtree.get_partial_matches(new_pm_key(new_partial_match))
@@ -280,9 +288,11 @@ class InternalNode(Node):
         }
         return self._condition.eval(binding)
 
-    def _get_condition_based_sorting_keys(self, attributes_priorities):
+    def _get_condition_based_sorting_keys(self, attributes_priorities: dict):
+        """
+        Calculates the sorting keys according to the conditions in the pattern and the user-provided priorities.
+        """
         left_sorting_key, right_sorting_key, relop = None, None, None
-
         left_event_defs = self._left_subtree.get_event_definitions()
         right_event_defs = self._right_subtree.get_event_definitions()
         left_event_names = {item[1].name for item in left_event_defs}
@@ -296,55 +306,37 @@ class InternalNode(Node):
             right_sorting_key = lambda pm: right_term.eval(
                 {right_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
             )
-
         return left_sorting_key, right_sorting_key, relop
 
-    def _get_sequence_based_sorting_keys(self):
-        left_event_defs = self._left_subtree.get_event_definitions()
-        right_event_defs = self._right_subtree.get_event_definitions()
-        # comparing min and max leaf index of two subtrees
-        min_left = min(left_event_defs, key=lambda x: x[0])[0]  # [ { ] } or [ { } ]
-        max_left = max(left_event_defs, key=lambda x: x[0])[0]  # { [ } ] or { [ ] }
-        min_right = min(right_event_defs, key=lambda x: x[0])[0]  # [ ] { }
-        max_right = max(right_event_defs, key=lambda x: x[0])[0]  # { } [ ]
-
-        if max_left < min_right:  # 3)
-            left_sort, right_sort, relop = -1, 0, RelopTypes.SmallerEqual
-        elif max_right < min_left:  # 4)
-            left_sort, right_sort, relop = 0, -1, RelopTypes.GreaterEqual
-        elif min_left < min_right:  # 1)
-            left_sort, right_sort, relop = 0, 0, RelopTypes.SmallerEqual
-        elif min_right < min_left:  # 2)
-            left_sort, right_sort, relop = 0, 0, RelopTypes.GreaterEqual
-        assert relop is not None
-        left_sorting_key = lambda pm: pm.events[left_sort].timestamp
-        right_sorting_key = lambda pm: pm.events[right_sort].timestamp
-        # left/right_sort == 0 means that left/right subtree will be sorted by first timestamp
-        return left_sorting_key, right_sorting_key, relop, (left_sort == 0), (right_sort == 0)
-
-    def _init_storage_unit(self, sort_storage, sorting_key, relation_op, equation_side, clean_expired_every,
-                           sort_by_first_timestamp=False):
-        if not sort_storage or sorting_key is None:
-            self._partial_matches = UnsortedPartialMatchStorage(clean_expired_every, sorting_key)
+    def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                           rel_op: RelopTypes = None, equation_side: EquationSides = None,
+                           sort_by_first_timestamp: bool = False):
+        """
+        An auxiliary method for setting up the storage of an internal node.
+        In the internal nodes, we only sort the storage if a storage key is explicitly provided by the user.
+        """
+        if not storage_params.sort_storage or sorting_key is None:
+            self._partial_matches = UnsortedPartialMatchStorage(storage_params.clean_up_interval)
         else:
-            self._partial_matches = SortedPartialMatchStorage(sorting_key, relation_op, equation_side,
-                                                              clean_expired_every, sort_by_first_timestamp)
+            self._partial_matches = SortedPartialMatchStorage(sorting_key, rel_op, equation_side,
+                                                              storage_params.clean_up_interval, sort_by_first_timestamp)
 
 
 class AndNode(InternalNode):
     """
     An internal node representing an "AND" operator.
     """
-
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
-                            relation_op=None, equation_side=None, sort_by_first_timestamp=False):
-        self._init_storage_unit(storage_params.sort_storage, sorting_key, relation_op, equation_side,
-                                storage_params.clean_expired_every)
-        left_key, right_key, relop = None, None, None
+                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
+                            sort_by_first_timestamp: bool = False):
+        self._init_storage_unit(storage_params, sorting_key, rel_op, equation_side)
+        left_key, right_key, nested_rel_op = None, None, None
         if storage_params.sort_storage:
-            left_key, right_key, relop = self._get_condition_based_sorting_keys(storage_params.attributes_priorities)
-        self._left_subtree.create_storage_unit(storage_params, left_key, relop, EquationSides.left)
-        self._right_subtree.create_storage_unit(storage_params, right_key, relop, EquationSides.right)
+            # efficient storage was explicitly enabled
+            left_key, right_key, nested_rel_op = \
+                self._get_condition_based_sorting_keys(storage_params.attributes_priorities)
+        self._left_subtree.create_storage_unit(storage_params, left_key, nested_rel_op, EquationSides.left)
+        self._right_subtree.create_storage_unit(storage_params, right_key, nested_rel_op, EquationSides.right)
 
 
 class SeqNode(InternalNode):
@@ -371,8 +363,35 @@ class SeqNode(InternalNode):
             return False
         return super()._validate_new_match(events_for_new_match)
 
+    def _get_sequence_based_sorting_keys(self):
+        """
+        Calculates the sorting keys according to the pattern sequence order and the user-provided priorities.
+        """
+        left_event_defs = self._left_subtree.get_event_definitions()
+        right_event_defs = self._right_subtree.get_event_definitions()
+        # comparing min and max leaf index of two subtrees
+        min_left = min(left_event_defs, key=lambda x: x[0])[0]  # [ { ] } or [ { } ]
+        max_left = max(left_event_defs, key=lambda x: x[0])[0]  # { [ } ] or { [ ] }
+        min_right = min(right_event_defs, key=lambda x: x[0])[0]  # [ ] { }
+        max_right = max(right_event_defs, key=lambda x: x[0])[0]  # { } [ ]
+        if max_left < min_right:  # 3)
+            left_sort, right_sort, rel_op = -1, 0, RelopTypes.SmallerEqual
+        elif max_right < min_left:  # 4)
+            left_sort, right_sort, rel_op = 0, -1, RelopTypes.GreaterEqual
+        elif min_left < min_right:  # 1)
+            left_sort, right_sort, rel_op = 0, 0, RelopTypes.SmallerEqual
+        elif min_right < min_left:  # 2)
+            left_sort, right_sort, rel_op = 0, 0, RelopTypes.GreaterEqual
+        if rel_op is None:
+            raise Exception("rel_op is None, something bad has happened")
+        left_sorting_key = lambda pm: pm.events[left_sort].timestamp
+        right_sorting_key = lambda pm: pm.events[right_sort].timestamp
+        # left/right_sort == 0 means that left/right subtree will be sorted by first timestamp
+        return left_sorting_key, right_sorting_key, rel_op, (left_sort == 0), (right_sort == 0)
+
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
-                            relation_op=None, equation_side=None, sort_by_first_timestamp=False):
+                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
+                            sort_by_first_timestamp: bool = False):
         """
         This function creates the storage for partial_matches it gives a special key: callable
         to the storage unit which tells the storage unit on which attribute(only timestamps here)
@@ -380,20 +399,35 @@ class SeqNode(InternalNode):
         We assume all events are in SEQ(,,,,...) which makes the order in partial match the same
         as in event_defs: [(1,a),(2,b)] in event_defs and [a,b] in pm.
         """
-        self._init_storage_unit(storage_params.sort_storage, sorting_key, relation_op, equation_side,
-                                storage_params.clean_expired_every, sort_by_first_timestamp)
-        left_key, right_key, relop = None, None, None
+        self._init_storage_unit(storage_params, sorting_key, rel_op, equation_side, sort_by_first_timestamp)
+        if not storage_params.sort_storage:
+            # efficient storage is disabled
+            self._left_subtree.create_storage_unit(storage_params)
+            self._right_subtree.create_storage_unit(storage_params)
+            return
+        left_key, right_key, nested_rel_op = None, None, None
         left_sort_by_first_timestamp, right_sort_by_first_timestamp = False, False
-        # finding sorting keys in case user requested to sort by conditon
-        if storage_params.sort_by_condition:
-            left_key, right_key, relop = self._get_condition_based_sorting_keys(storage_params.attributes_priorities)
-        # in case sorting by condition is impossible we sort by timestamp
-        if relop is None:
-            left_key, right_key, relop, left_sort_by_first_timestamp, right_sort_by_first_timestamp = self._get_sequence_based_sorting_keys()
-        assert relop is not None
-        self._left_subtree.create_storage_unit(storage_params, left_key, relop, EquationSides.left,
+        # finding sorting keys in case user requested to sort by condition
+        if storage_params.prioritize_sorting_by_timestamp:
+            # first try the timestamps, then the conditions
+            left_key, right_key, nested_rel_op, left_sort_by_first_timestamp, right_sort_by_first_timestamp = \
+                self._get_sequence_based_sorting_keys()
+            if nested_rel_op is None:
+                left_key, right_key, nested_rel_op = \
+                    self._get_condition_based_sorting_keys(storage_params.attributes_priorities)
+        else:
+            # first try the conditions, then the timestamps
+            left_key, right_key, nested_rel_op = \
+                self._get_condition_based_sorting_keys(storage_params.attributes_priorities)
+            if nested_rel_op is None:
+                left_key, right_key, nested_rel_op, left_sort_by_first_timestamp, right_sort_by_first_timestamp = \
+                    self._get_sequence_based_sorting_keys()
+        if nested_rel_op is None:
+            # both sequence-based and condition-based initialization failed
+            raise Exception("Should never happen")
+        self._left_subtree.create_storage_unit(storage_params, left_key, nested_rel_op, EquationSides.left,
                                                left_sort_by_first_timestamp)
-        self._right_subtree.create_storage_unit(storage_params, right_key, relop, EquationSides.right,
+        self._right_subtree.create_storage_unit(storage_params, right_key, nested_rel_op, EquationSides.right,
                                                 right_sort_by_first_timestamp)
 
 

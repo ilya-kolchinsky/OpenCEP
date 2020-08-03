@@ -4,7 +4,10 @@ from datetime import datetime
 from misc.Utils import find_partial_match_by_timestamp
 from base.Formula import RelopTypes, EquationSides
 
-    
+# the default number of partial match additions between subsequent storage cleanups
+DEFAULT_CLEANUP_INTERVAL = 100
+
+
 class PartialMatchStorage:
     """
     Abstract class for storing partial matches.
@@ -66,25 +69,32 @@ class PartialMatchStorage:
         """
         return item in self._partial_matches
 
-    def try_clean_expired_partial_matches(self, timestamp: datetime):
+    def try_clean_expired_partial_matches(self, earliest_timestamp: datetime):
         """
         If the number of storage accesses exceeded a predefined threshold, perform a costly operation of removing
         expired partial matches.
         """
         if self._access_count < self._clean_up_interval:
             return
-        self._clean_expired_partial_matches(timestamp)
+        self._clean_expired_partial_matches(earliest_timestamp)
         self._access_count = 0
 
-    def _clean_expired_partial_matches(self, timestamp: datetime):
+    def _clean_expired_partial_matches(self, earliest_timestamp: datetime):
         """
-        Removes partial matches whose earliest timestamp violates the time window constraint.
+        Removes partial matches whose earliest earliest_timestamp violates the time window constraint.
         """
         if self._sorted_by_arrival_order:
-            count = find_partial_match_by_timestamp(self._partial_matches, timestamp)
+            count = find_partial_match_by_timestamp(self._partial_matches, earliest_timestamp)
             self._partial_matches = self._partial_matches[count:]
         else:
-            self._partial_matches = list(filter(lambda pm: pm.first_timestamp >= timestamp, self._partial_matches))
+            self._partial_matches = list(filter(lambda pm: pm.first_timestamp >= earliest_timestamp,
+                                                self._partial_matches))
+
+    def get_internal_buffer(self):
+        """
+        Returns the internal buffer actually storing the partial matches.
+        """
+        return self._partial_matches
 
     def add(self, pm: PartialMatch):
         """
@@ -212,12 +222,19 @@ class SortedPartialMatchStorage(PartialMatchStorage):
         """
         return self.__get_smaller_aux(value, True)
 
+    def __get_all(self, value: int or float):
+        """
+        Returns all partial matches regardless of the specified value.
+        """
+        return self.get_internal_buffer()
+
     def __generate_get_function(self, rel_op: RelopTypes, equation_side: EquationSides):
         """
         Initializes the function responsible for selecting partial matches to be returned upon a get() access.
         """
         if rel_op is None:
-            raise Exception("Initialization error: rel_op is None")
+            # can only happen in an edge case where the entire tree is composed of a single leaf
+            return self.__get_all
         if rel_op == RelopTypes.Equal:
             return self.__get_equal
         if rel_op == RelopTypes.NotEqual:
@@ -239,8 +256,8 @@ class UnsortedPartialMatchStorage(PartialMatchStorage):
     This class stores partial matches unsorted.
     It is used when it's difficult to specify an order that helps when receiving partial matches.
     """
-    def __init__(self, clean_up_interval: int, get_match_key: callable = None, in_leaf: bool = False):
-        super().__init__(get_match_key if get_match_key is not None else lambda x: x, in_leaf, clean_up_interval)
+    def __init__(self, clean_up_interval: int):
+        super().__init__(lambda x: x, False, clean_up_interval)
 
     def add(self, pm: PartialMatch):
         """
@@ -261,16 +278,22 @@ class TreeStorageParameters:
     Parameters for the evaluation tree to specify how to store the data.
     """
     def __init__(self, sort_storage: bool = False, attributes_priorities: dict = None,
-                 clean_expired_every: int = 100, sort_by_condition_on_attributes: bool = False):
+                 clean_up_interval: int = DEFAULT_CLEANUP_INTERVAL, prioritize_sorting_by_timestamp: bool = True):
         if sort_storage is None:
             sort_storage = False
         if attributes_priorities is None:
             attributes_priorities = {}
-        if clean_expired_every <= 0:
-            raise Exception('clean_expired_every should be positive.')
-        if sort_by_condition_on_attributes is None:
-            sort_by_condition_on_attributes = False
+        if clean_up_interval <= 0:
+            raise Exception('cleanup interval should be positive.')
+        if prioritize_sorting_by_timestamp is None:
+            prioritize_sorting_by_timestamp = True
+
+        # True if the user is willing to use non-default sorted storage and False otherwise
         self.sort_storage = sort_storage
+
+        # An array of event attribute names according to their priority of being used for sorting the storage
         self.attributes_priorities = attributes_priorities
-        self.clean_expired_every = clean_expired_every
-        self.sort_by_condition = sort_by_condition_on_attributes
+
+        # The number of partial match additions after which a cleanup operation will be applied
+        self.clean_up_interval = clean_up_interval
+        self.prioritize_sorting_by_timestamp = prioritize_sorting_by_timestamp
