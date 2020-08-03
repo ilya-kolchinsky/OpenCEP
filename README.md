@@ -17,10 +17,10 @@ This short documentation will be updated regularly.
 * [X] Multiple algorithms for constructing the CEP graph
 * [X] Generic dataset schema
 * [X] Generic input/output interface (With support for File-based input/output)
+* [X] A variety of selection and consumption policies
 * [ ] Negation operator support
 * [ ] Kleene closure operator support
 * [ ] "Partial sequence" support
-* [ ] A variety of selection and consumption policies
 * [ ] Performance optimizations based on the 'lazy evaluation' principle
 * [ ] Adaptive complex event processing
 * [ ] Multi-pattern support
@@ -182,7 +182,6 @@ eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=stor
 cep = CEP(pattern, EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
         eval_mechanism_params)
 ```
-
 
 # Twitter API support
 ### Authentication

@@ -175,7 +175,7 @@ def runBenchMark(testName, patterns, eval_mechanism_type=EvaluationMechanismType
     running_time = cep.run(events)
     print("Bench Mark %s completed, Time Passed: %s" % (testName, running_time))
     runTest.over_all_time += running_time
-
+    
 
 def oneArgumentsearchTest(createTestFile = False):
     pattern = Pattern(
@@ -746,7 +746,6 @@ def oneNotAtTheBeginningTest(createTestFile=False):
     )
     runTest("OneNotBegin", [pattern], createTestFile)
 
-
 # ON NASDAQ SHORT
 def multipleNotAtTheBeginningTest(createTestFile=False):
     pattern = Pattern(
@@ -992,6 +991,7 @@ run_storage_tests()
 if INCLUDE_BENCHMARKS:
     sortedStorageBenchMarkTest()
 
+
 # Twitter tests
 try:
     from TwitterTest import run_twitter_sanity_check
@@ -1000,4 +1000,3 @@ except ImportError:  # tweepy might not be installed
     pass
 
 print("Finished running all tests, overall time: %s" % runTest.over_all_time)
-
