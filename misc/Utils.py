@@ -3,7 +3,7 @@ This file contains various useful functions utilized by different project module
 """
 
 from datetime import datetime
-from typing import List
+from typing import List, Container
 
 from base.Pattern import Pattern
 from base.PatternStructure import QItem
@@ -231,10 +231,11 @@ def does_match_exist(matches: list, match: list):
                 return True
     return False
 
-    
-def get_first_index(container, to_find_value, key: callable): 
+
+def get_index(container: Container, to_find_value: int, key: callable, return_first_index: bool):
     """
-    Returns the first instance of the to_find_value in a sequence that's sorted increasingly according to key.
+    Returns the index (either the first o the last one depending on the corresponding parameter) of the to_find_value
+    in a sequence that's sorted increasingly according to key.
     However in case the to_find_value doesn't exist it returns the index of first value smaller than it or -1.
     """
     start = 0
@@ -243,46 +244,39 @@ def get_first_index(container, to_find_value, key: callable):
         mid = (start + end) // 2
         mid_value = key(container[mid])
         if mid_value < to_find_value < key(container[mid + 1]):
-            return mid
-        if mid_value >= to_find_value:
-            end = mid
+            return mid if return_first_index else mid + 1
+        if return_first_index:
+            if mid_value >= to_find_value:
+                end = mid
+            else:
+                start = mid + 1
         else:
-            start = mid + 1
+            if mid_value <= to_find_value:
+                start = mid + 1
+            else:
+                end = mid
 
     if start == end:
         mid_value = key(container[start])
         if mid_value > to_find_value:
             return start - 1
-        elif mid_value < to_find_value:
+        if mid_value < to_find_value:
             return start + 1
-        else:
-            return start
+        return start
     return 0
 
+
+def get_first_index(container: Container, to_find_value: int, key: callable):
+    """
+    Returns the first instance of the to_find_value in a sequence that's sorted increasingly according to key.
+    However in case the to_find_value doesn't exist it returns the index of first value smaller than it or -1.
+    """
+    return get_index(container, to_find_value, key, True)
+
     
-def get_last_index(container, to_find_value, key):
+def get_last_index(container: Container, to_find_value: int, key: callable):
     """
     Returns the last instance of the to_find_value in a sequence that's sorted increasingly according to key.
     However in case the to_find_value doesn't exist it returns the index of first value greater than it or -1.
     """
-    start = 0
-    end = len(container) - 1
-    while start < end:
-        mid = (start + end) // 2
-        mid_value = key(container[mid])
-        if mid_value < to_find_value < key(container[mid + 1]):
-            return mid + 1
-        if mid_value <= to_find_value:
-            start = mid + 1
-        else:
-            end = mid
-
-    if start == end:
-        mid_value = key(container[start])
-        if mid_value > to_find_value:
-            return start - 1
-        elif mid_value < to_find_value:
-            return start + 1
-        else:
-            return start
-    return 0
+    return get_index(container, to_find_value, key, False)
