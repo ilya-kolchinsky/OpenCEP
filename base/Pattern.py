@@ -26,6 +26,6 @@ class Pattern:
         self.statistics = statistics
 
     def __repr__(self):
-        return "Pattern is {} with condition {} and time window is {}".format(
-            self.structure, self.condition, self.window
-        )
+        return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.structure,
+                                                                                self.condition,
+                                                                                self.window)

@@ -25,7 +25,7 @@ class LeftDeepTreeBuilder(EvaluationMechanismBuilder):
         tree_structure = self.__build_tree_from_order(order)
         return TreeBasedEvaluationMechanism(pattern, tree_structure, storage_params)
 
-    def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern]):
+    def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern], storage_params: TreeStorageParameters):
         raise Exception("Unsupported")
 
     @staticmethod
@@ -49,7 +49,6 @@ class TrivialLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree following the pattern-specified order.
     """
-
     def _create_evaluation_order(self, pattern: Pattern):
         args_num = len(pattern.structure.args)
         return list(range(args_num))
@@ -59,7 +58,6 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree following the order of ascending arrival rates of the event types.
     """
-
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.FREQUENCY_DICT:
             frequency_dict = pattern.statistics
@@ -79,7 +77,6 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree using a greedy strategy that selects at each step the event type that minimizes the cost
     function.
     """
-
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivityMatrix, arrivalRates) = pattern.statistics
@@ -174,7 +171,6 @@ class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree using a dynamic programming algorithm.
     """
-
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivityMatrix, arrivalRates) = pattern.statistics
@@ -219,4 +215,3 @@ class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
             sub_orders = next_orders
         return list(sub_orders.values())[0][
             0]  # return the order (at index 0 in the tuple) of item 0, the only item in subsets of size n.
-

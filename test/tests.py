@@ -12,6 +12,12 @@ from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFo
 from base.PatternStructure import AndOperator, SeqOperator, QItem
 from base.Pattern import Pattern
 from evaluation.Storage import TreeStorageParameters
+try:
+    from UnitTests.test_storage import run_storage_tests
+except ImportError:
+    from test.UnitTests.test_storage import run_storage_tests
+
+INCLUDE_BENCHMARKS = False
 
 nasdaqEventStreamShort = file_input("test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
 nasdaqEventStreamMedium = file_input("test/EventFiles/NASDAQ_MEDIUM.txt", MetastockDataFormatter())
@@ -19,11 +25,9 @@ nasdaqEventStreamFrequencyTailored = file_input("test/EventFiles/NASDAQ_FREQUENC
 nasdaqEventStream_AAPL_AMZN_GOOG = file_input("test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt", MetastockDataFormatter())
 nasdaqEventStream = file_input("test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
 
-
 def closeFiles(file1, file2):
     file1.close()
     file2.close()
-
 
 def fileCompare(pathA, pathB):
     file1 = open(pathA)
@@ -58,7 +62,6 @@ def fileCompare(pathA, pathB):
     closeFiles(file1, file2)
     return True
 
-
 def createTest(testName, patterns, events=None):
     if events == None:
         events = nasdaqEventStream.duplicate()
@@ -70,14 +73,9 @@ def createTest(testName, patterns, events=None):
     print("Finished creating test %s" % testName)
 
 
-def runTest(
-    testName,
-    patterns,
-    createTestFile=False,
-    eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-    eval_mechanism_params=None,
-    events=None,
-):
+def runTest(testName, patterns, createTestFile=False,
+            eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+            eval_mechanism_params=None, events=None):
     if createTestFile:
         createTest(testName, patterns, events)
     if events is None:
@@ -95,14 +93,8 @@ def runTest(
     runTest.over_all_time += running_time
     os.remove(actual_matches_path)
 
-
-def runBenchMark(
-    testName,
-    patterns,
-    eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-    eval_mechanism_params=None,
-    events=None,
-):
+def runBenchMark(testName, patterns, eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+                 eval_mechanism_params=None, events=None):
     """
     this runs a bench mark ,since some outputs for benchmarks are very large,
     we assume correct functionality and only check runtimes. (not a test)
@@ -117,7 +109,7 @@ def runBenchMark(
     runTest.over_all_time += running_time
 
 
-def oneArgumentsearchTest(createTestFile=False):
+def oneArgumentsearchTest(createTestFile = False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a")]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
@@ -125,7 +117,7 @@ def oneArgumentsearchTest(createTestFile=False):
     )
     runTest("one", [pattern], createTestFile)
 
-def simplePatternSearchTest(createTestFile=False):
+def simplePatternSearchTest(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > b.OpeningPrice
@@ -137,12 +129,11 @@ def simplePatternSearchTest(createTestFile=False):
         AndFormula(
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
-        timedelta(minutes=5),
+        timedelta(minutes=5)
     )
     runTest("simple", [pattern], createTestFile)
 
-
-def googleAscendPatternSearchTest(createTestFile=False):
+def googleAscendPatternSearchTest(createTestFile = False):
     """
     This pattern is looking for a short ascend in the Google peak prices.
     PATTERN SEQ(GoogleStockPriceUpdate a, GoogleStockPriceUpdate b, GoogleStockPriceUpdate c)
@@ -155,7 +146,7 @@ def googleAscendPatternSearchTest(createTestFile=False):
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
         ),
-        timedelta(minutes=3),
+        timedelta(minutes=3)
     )
     runTest('googleAscend', [googleAscendPattern], createTestFile)
 
@@ -626,20 +617,13 @@ def sortedStorageTest(createTestFile=False):
                 IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])
             ),
         ),
-        timedelta.max,
+        timedelta(minutes=360),
     )
-
     storage_params = TreeStorageParameters(True, clean_expired_every=500)
-
-    runTest(
-        "sortedStorageTest",
-        [pattern],
-        createTestFile,
-        eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-        eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params),
-        events=nasdaqEventStream,
-    )
-
+    runTest("sortedStorageTest", [pattern], createTestFile,
+            eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+            eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params),
+            events=nasdaqEventStream)
 
 def sortedStorageBenchMarkTest(createTestFile=False):
     pattern = Pattern(
@@ -657,22 +641,13 @@ def sortedStorageBenchMarkTest(createTestFile=False):
                 ),
             ),
         ),
-        timedelta.max,
+        timedelta(minutes=360),
     )
     runBenchMark("sortedStorageBenchMark - unsorted storage", [pattern])
 
     storage_params = TreeStorageParameters(sort_storage=True, attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
     runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params))
 
-
-# region Unit Tests
-from test.UnitTests.test_storage import run_storage_tests
-
-run_storage_tests()
-
-# endregion
-
-# region - Tests
 
 runTest.over_all_time = 0
 oneArgumentsearchTest()
@@ -702,21 +677,20 @@ iiRandomPatternSearchTest()
 iiRandom2PatternSearchTest()
 iiGreedyPatternSearchTest()
 iiGreedy2PatternSearchTest()
-# zStreamOrdPatternSearchTest()
-# zStreamPatternSearchTest()
+zStreamOrdPatternSearchTest()
+zStreamPatternSearchTest()
 dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
+
+# storage tests
 sortedStorageTest()
+run_storage_tests()
 
-# endregion
-
-# region - Bench Marks
-
-# sortedStorageBenchMarkTest()
-
-# endregion
+# benchmarks
+if INCLUDE_BENCHMARKS:
+    sortedStorageBenchMarkTest()
 
 print("Finished running all tests, overall time: %s" % runTest.over_all_time)
 

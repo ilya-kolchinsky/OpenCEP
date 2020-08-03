@@ -17,7 +17,7 @@ class Event:
         self.timestamp = time
 
     def __repr__(self):
-        return "((event_type: {}), (payload: {}), (timestamp: {}))".format(
+        return "((type: {}), (payload: {}), (timestamp: {}))".format(
             self.event_type, self.payload, self.timestamp
         )
 
@@ -31,6 +31,7 @@ def run_storage_tests():
     unsorted_storage_test.run_tests()
     sorted_storage_test = TestSortedStorage()
     sorted_storage_test.run_tests()
+    print("Storage unit tests executed successfully.")
 
 
 """

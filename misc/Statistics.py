@@ -18,7 +18,7 @@ def get_condition_selectivity(arg1: QItem, arg2: QItem, formula: Formula, stream
 
     if arg1 == arg2:
         for event in stream:
-            if event.eventType == arg1.event_type:
+            if event.eventType == arg1.type:
                 count += 1
                 if formula.eval({arg1.name: event.event}):
                     match_count += 1
@@ -26,9 +26,9 @@ def get_condition_selectivity(arg1: QItem, arg2: QItem, formula: Formula, stream
         events1 = []
         events2 = []
         for event in stream:
-            if event.eventType == arg1.event_type:
+            if event.eventType == arg1.type:
                 events1.append(event)
-            elif event.eventType == arg2.event_type:
+            elif event.eventType == arg2.type:
                 events2.append(event)
         for event1 in events1:
             for event2 in events2:

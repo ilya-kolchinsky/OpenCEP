@@ -13,6 +13,4 @@ class PartialMatch:
         self.first_timestamp = min(events, key=lambda x: x.timestamp).timestamp
 
     def __repr__(self):
-        return "PartialMatch with events={}, first_timestamp={}, last_timestamp={}".format(
-            self.events, self.first_timestamp, self.last_timestamp
-        )
+        return str(self.events)

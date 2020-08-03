@@ -114,7 +114,7 @@ class LeafNode(Node):
         super().__init__(sliding_window, parent)
         self.__leaf_index = leaf_index
         self.__event_name = leaf_qitem.name
-        self.__event_type = leaf_qitem.event_type
+        self.__event_type = leaf_qitem.type
 
     def get_leaves(self):
         return [self]
@@ -448,8 +448,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
         # Send events to listening leaves.
         for event in events:
-            if event.event_type in event_types_listeners.keys():
-                for leaf in event_types_listeners[event.event_type]:
+            if event.type in event_types_listeners.keys():
+                for leaf in event_types_listeners[event.type]:
                     leaf.handle_event(event)
                     for match in self.__tree.get_matches():
                         matches.add_item(PatternMatch(match))

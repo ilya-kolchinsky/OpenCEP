@@ -17,11 +17,11 @@ class PatternStructure(ABC):
 
 class QItem(PatternStructure):
     def __init__(self, event_type: str, name: str):
-        self.event_type = event_type
+        self.type = event_type
         self.name = name
 
     def __repr__(self):
-        return "{} of type {}".format(self.name, self.event_type)
+        return "%s %s" % (self.type, self.name)
 
 
 class AndOperator(PatternStructure):
@@ -29,7 +29,7 @@ class AndOperator(PatternStructure):
         self.args = args
 
     def __repr__(self):
-        return "AND({})".format(self.args)
+        return "AND(%s)" % (self.args,)
 
 
 class OrOperator(PatternStructure):
@@ -37,7 +37,7 @@ class OrOperator(PatternStructure):
         self.args = args
 
     def __repr__(self):
-        return "OR({})".format(self.args)
+        return "OR(%s)" % (self.args,)
 
 
 class SeqOperator(PatternStructure):
@@ -45,14 +45,20 @@ class SeqOperator(PatternStructure):
         self.args = args
 
     def __repr__(self):
-        return "SEQ({})".format(self.args)
+        return "SEQ(%s)" % (self.args,)
 
 
 class KleeneClosureOperator(PatternStructure):
     def __init__(self, arg: PatternStructure):
         self.arg = arg
 
+    def __repr__(self):
+        return "(%s)+" % (self.arg,)
+
 
 class NegationOperator(PatternStructure):
     def __init__(self, arg: PatternStructure):
         self.arg = arg
+
+    def __repr__(self):
+        return "NOT(%s)" % (self.args,)

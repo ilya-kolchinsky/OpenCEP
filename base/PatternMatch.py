@@ -11,4 +11,4 @@ class PatternMatch:
         self.events = events
 
     def __repr__(self):
-        return "Pattern Match has Events: {}".format(self.events)
+        return str(self.events)

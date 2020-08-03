@@ -74,4 +74,3 @@ def file_output(matches: list, output_file_name: str = 'matches.txt'):
             for event in match.events:
                 f.write("%s\n" % event.payload)
             f.write("\n")
-            
