@@ -3,7 +3,7 @@ from abc import ABC
 from queue import Queue
 from datetime import timedelta, datetime
 from base.Event import Event
-from base.Formula import TrueFormula, RelopTypes, EquationSides
+from base.Formula import TrueFormula, RelopTypes, EquationSides, IdentifierTerm, AtomicFormula
 from evaluation.PartialMatch import PartialMatch
 from misc.Utils import merge, merge_according_to, is_sorted
 from evaluation.PartialMatchStorage import SortedPartialMatchStorage, UnsortedPartialMatchStorage
@@ -288,25 +288,93 @@ class InternalNode(Node):
         }
         return self._condition.eval(binding)
 
+    def __get_filtered_conditions(self, left_event_names: List[str], right_event_names: List[str]):
+        """
+        An auxiliary method returning the atomic conditions containing variables from the opposite subtrees of this
+        internal node.
+        """
+        # Note that as of now self._condition contains the wrong values for most nodes - to be fixed in future
+        atomic_conditions = self._condition.extract_atomic_formulas()
+        filtered_conditions = []
+        for atomic_condition in atomic_conditions:
+            if not isinstance(atomic_condition.left_term, IdentifierTerm):
+                continue
+            if not isinstance(atomic_condition.right_term, IdentifierTerm):
+                continue
+            if atomic_condition.left_term.name in left_event_names and \
+                    atomic_condition.right_term.name in right_event_names:
+                filtered_conditions.append(atomic_condition)
+            elif atomic_condition.right_term.name in left_event_names and \
+                    atomic_condition.left_term.name in right_event_names:
+                filtered_conditions.append(atomic_condition)
+        return filtered_conditions
+
+    def __get_params_for_sorting_keys(self, conditions: List[AtomicFormula], attributes_priorities: dict,
+                                      left_event_names: List[str], right_event_names: List[str]):
+        """
+        An auxiliary method returning the best assignments for the parameters of the sorting keys according to the
+        available atomic conditions and user-supplied attribute priorities.
+        """
+        left_term, left_rel_op, left_equation_size = None, None, None
+        right_term, right_rel_op, right_equation_size = None, None, None
+        for condition in conditions:
+            if condition.left_term.name in left_event_names:
+                if left_term is None or attributes_priorities[condition.left_term.name] > \
+                        attributes_priorities[left_term.name]:
+                    left_term, left_rel_op, left_equation_size = \
+                        condition.left_term, condition.get_relop(), EquationSides.left
+                if right_term is None or attributes_priorities[condition.right_term.name] > \
+                        attributes_priorities[right_term.name]:
+                    right_term, right_rel_op, right_equation_size = \
+                        condition.right_term, condition.get_relop(), EquationSides.right
+            elif condition.left_term.name in right_event_names:
+                if left_term is None or attributes_priorities[condition.right_term.name] > \
+                        attributes_priorities[left_term.name]:
+                    left_term, left_rel_op, left_equation_size = \
+                        condition.right_term, condition.get_relop(), EquationSides.right
+                if right_term is None or attributes_priorities[condition.left_term.name] > \
+                        attributes_priorities[right_term.name]:
+                    right_term, right_rel_op, right_equation_size = \
+                        condition.left_term, condition.get_relop(), EquationSides.left
+            else:
+                raise Exception("Internal error")
+        return left_term, left_rel_op, left_equation_size, right_term, right_rel_op, right_equation_size
+
     def _get_condition_based_sorting_keys(self, attributes_priorities: dict):
         """
         Calculates the sorting keys according to the conditions in the pattern and the user-provided priorities.
         """
-        left_sorting_key, right_sorting_key, relop = None, None, None
+        left_sorting_key, right_sorting_key, rel_op = None, None, None
         left_event_defs = self._left_subtree.get_event_definitions()
         right_event_defs = self._right_subtree.get_event_definitions()
         left_event_names = {item[1].name for item in left_event_defs}
         right_event_names = {item[1].name for item in right_event_defs}
-        simple_formula = self._condition.simplify_formula(left_event_names, right_event_names, attributes_priorities)
-        if simple_formula is not None:
-            left_term, relop, right_term = simple_formula.dismantle()
+
+        # get the candidate atomic conditions
+        filtered_conditions = self.__get_filtered_conditions(left_event_names, right_event_names)
+        if len(filtered_conditions) == 0:
+            # no conditions to sort according to
+            return None, None, None, None, None, None
+        if attributes_priorities is None and len(filtered_conditions) > 1:
+            # multiple conditions are available, yet the user did not provide a list of priorities
+            return None, None, None, None, None, None
+
+        # select the most fitting atomic conditions and assign the respective parameters
+        left_term, left_rel_op, left_equation_size, right_term, right_rel_op, right_equation_size = \
+            self.__get_params_for_sorting_keys(filtered_conditions, attributes_priorities,
+                                               left_event_names, right_event_names)
+
+        # convert terms into sorting key fetching callbacks
+        if left_term is not None:
             left_sorting_key = lambda pm: left_term.eval(
                 {left_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
             )
+        if right_term is not None:
             right_sorting_key = lambda pm: right_term.eval(
                 {right_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
             )
-        return left_sorting_key, right_sorting_key, relop
+
+        return left_sorting_key, left_rel_op, left_equation_size, right_sorting_key, right_rel_op, right_equation_size
 
     def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
@@ -330,13 +398,16 @@ class AndNode(InternalNode):
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,
                             sort_by_first_timestamp: bool = False):
         self._init_storage_unit(storage_params, sorting_key, rel_op, equation_side)
-        left_key, right_key, nested_rel_op = None, None, None
-        if storage_params.sort_storage:
-            # efficient storage was explicitly enabled
-            left_key, right_key, nested_rel_op = \
-                self._get_condition_based_sorting_keys(storage_params.attributes_priorities)
-        self._left_subtree.create_storage_unit(storage_params, left_key, nested_rel_op, EquationSides.left)
-        self._right_subtree.create_storage_unit(storage_params, right_key, nested_rel_op, EquationSides.right)
+        if not storage_params.sort_storage:
+            # efficient storage is disabled
+            self._left_subtree.create_storage_unit(storage_params)
+            self._right_subtree.create_storage_unit(storage_params)
+            return
+        # efficient storage was explicitly enabled
+        left_key, left_rel_op, left_equation_size, right_key, right_rel_op, right_equation_size = \
+            self._get_condition_based_sorting_keys(storage_params.attributes_priorities)
+        self._left_subtree.create_storage_unit(storage_params, left_key, left_rel_op, left_equation_size)
+        self._right_subtree.create_storage_unit(storage_params, right_key, right_rel_op, right_equation_size)
 
 
 class SeqNode(InternalNode):
@@ -405,29 +476,33 @@ class SeqNode(InternalNode):
             self._left_subtree.create_storage_unit(storage_params)
             self._right_subtree.create_storage_unit(storage_params)
             return
-        left_key, right_key, nested_rel_op = None, None, None
         left_sort_by_first_timestamp, right_sort_by_first_timestamp = False, False
         # finding sorting keys in case user requested to sort by condition
         if storage_params.prioritize_sorting_by_timestamp:
             # first try the timestamps, then the conditions
-            left_key, right_key, nested_rel_op, left_sort_by_first_timestamp, right_sort_by_first_timestamp = \
+            left_key, right_key, left_rel_op, left_sort_by_first_timestamp, right_sort_by_first_timestamp = \
                 self._get_sequence_based_sorting_keys()
-            if nested_rel_op is None:
-                left_key, right_key, nested_rel_op = \
+            if left_rel_op is None:
+                left_key, left_rel_op, left_equation_size, right_key, right_rel_op, right_equation_size = \
                     self._get_condition_based_sorting_keys(storage_params.attributes_priorities)
+            else:
+                right_rel_op, left_equation_size, right_equation_size = \
+                    left_rel_op, EquationSides.left, EquationSides.right
         else:
             # first try the conditions, then the timestamps
-            left_key, right_key, nested_rel_op = \
+            left_key, left_rel_op, left_equation_size, right_key, right_rel_op, right_equation_size = \
                 self._get_condition_based_sorting_keys(storage_params.attributes_priorities)
-            if nested_rel_op is None:
-                left_key, right_key, nested_rel_op, left_sort_by_first_timestamp, right_sort_by_first_timestamp = \
+            if left_rel_op is None:
+                left_key, right_key, left_rel_op, left_sort_by_first_timestamp, right_sort_by_first_timestamp = \
                     self._get_sequence_based_sorting_keys()
-        if nested_rel_op is None:
+                right_rel_op, left_equation_size, right_equation_size = \
+                    left_rel_op, EquationSides.left, EquationSides.right
+        if left_rel_op is None:
             # both sequence-based and condition-based initialization failed
             raise Exception("Should never happen")
-        self._left_subtree.create_storage_unit(storage_params, left_key, nested_rel_op, EquationSides.left,
+        self._left_subtree.create_storage_unit(storage_params, left_key, left_rel_op, left_equation_size,
                                                left_sort_by_first_timestamp)
-        self._right_subtree.create_storage_unit(storage_params, right_key, nested_rel_op, EquationSides.right,
+        self._right_subtree.create_storage_unit(storage_params, right_key, right_rel_op, right_equation_size,
                                                 right_sort_by_first_timestamp)
 
 
