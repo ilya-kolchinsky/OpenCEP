@@ -86,7 +86,7 @@ matches = cep.get_pattern_match_stream()
 file_output(matches, 'output.txt')
 ```
 
-Providing TreeStorageParameters to sort the storage:
+## Optimizing evaluation performance by specifying custom TreeStorageParameters
 ```
 storage_params = TreeStorageParameters(sort_storage=True,
   attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
