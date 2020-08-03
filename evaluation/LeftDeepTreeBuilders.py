@@ -50,7 +50,7 @@ class TrivialLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree following the pattern-specified order.
     """
     def _create_evaluation_order(self, pattern: Pattern):
-        args_num = len(pattern.structure.args)
+        args_num = len(pattern.positive_structure.args)
         return list(range(args_num))
 
 
@@ -61,7 +61,7 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.FREQUENCY_DICT:
             frequency_dict = pattern.statistics
-            order = get_order_by_occurrences(pattern.structure.args, frequency_dict)
+            order = get_order_by_occurrences(pattern.positive_structure.args, frequency_dict)
         elif pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
             arrival_rates = pattern.statistics
             # create an index-arrival rate binding and sort according to arrival rate.

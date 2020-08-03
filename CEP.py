@@ -28,7 +28,6 @@ class CEP:
     A CEP object contains a workload (list of patterns to be evaluated) and an evaluation mechanism.
     The evaluation mechanism is created according to the parameters specified in the constructor.
     """
-
     def __init__(self, patterns: List[Pattern],
                  eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
                  eval_mechanism_params: EvaluationMechanismParameters = None,
@@ -46,14 +45,17 @@ class CEP:
         self.__pattern_matches = None
         self.__performance_specs = performance_specs
 
-    def run(self, event_stream: Stream):
+    def run(self, event_stream: Stream, is_async=False, file_path=None, time_limit=None):
         """
         Applies the evaluation mechanism to detect the predefined patterns in a given stream of events.
         Returns the total time elapsed during evaluation.
         """
         self.__pattern_matches = Stream()
         start = datetime.now()
-        self.__eval_mechanism.eval(event_stream, self.__pattern_matches)
+        if is_async:
+            self.__eval_mechanism.eval(event_stream, self.__pattern_matches, is_async=True, file_path=file_path, time_limit=time_limit)
+        else:
+            self.__eval_mechanism.eval(event_stream, self.__pattern_matches)
         return (datetime.now() - start).total_seconds()
 
     def get_pattern_match(self):

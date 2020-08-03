@@ -178,9 +178,9 @@ def generate_matches(pattern: Pattern, stream: Stream):
     A recursive, very inefficient pattern match finder.
     It is used as our test creator.
     """
-    args = pattern.structure.args
+    args = pattern.positive_structure.args
     types = {qitem.eventType for qitem in args}
-    is_seq = (pattern.structure.get_top_operator() == SeqOperator)
+    is_seq = (pattern.positive_structure.get_top_operator() == SeqOperator)
     events = {}
     matches = []
     for event in stream:
@@ -196,13 +196,13 @@ def generate_matches(pattern: Pattern, stream: Stream):
 def generate_matches_recursive(pattern: Pattern, events: dict, is_seq: bool, match: list, min_event_timestamp: datetime,
                                max_event_timestamp: datetime,
                                matches: list, binding: dict, loop: int = 0):
-    pattern_length = len(pattern.structure.args)
+    pattern_length = len(pattern.positive_structure.args)
     if loop == pattern_length:
         if pattern.condition.eval(binding):
             if not does_match_exist(matches, match):
                 matches.append(PatternMatch(deepcopy(match)))
     else:
-        qitem = pattern.structure.args[loop]
+        qitem = pattern.positive_structure.args[loop]
         for event in events[qitem.eventType]:
             min_date = min(min_event_timestamp, event.date)
             max_date = max(max_event_timestamp, event.date)
