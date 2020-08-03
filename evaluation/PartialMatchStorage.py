@@ -54,6 +54,18 @@ class PartialMatchStorage:
         """
         del self._partial_matches[index]
 
+    def __iter__(self):
+        """
+        Implements list-style iteration semantics.
+        """
+        return iter(self._partial_matches)
+
+    def __contains__(self, item):
+        """
+        Returns True if the given item is stored and False otherwise.
+        """
+        return item in self._partial_matches
+
     def try_clean_expired_partial_matches(self, timestamp: datetime):
         """
         If the number of storage accesses exceeded a predefined threshold, perform a costly operation of removing
@@ -95,6 +107,13 @@ class SortedPartialMatchStorage(PartialMatchStorage):
                  clean_up_interval: int, sort_by_first_timestamp=False, in_leaf=False):
         super().__init__(get_match_key, in_leaf and sort_by_first_timestamp, clean_up_interval)
         self.__get_function = self.__generate_get_function(rel_op, equation_side)
+
+    def __contains__(self, item):
+        """
+        Returns True if the given item is stored and False otherwise.
+        Performs an efficient search in the sorted buffer.
+        """
+        return item in self.__get_equal(self._get_key(item))
 
     def add(self, pm: PartialMatch):
         """
