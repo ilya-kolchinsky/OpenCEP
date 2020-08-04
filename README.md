@@ -9,23 +9,6 @@ The algorithms are accessible for use with the API of this library.
 
 This short documentation will be updated regularly.
 
-# Features
-* [X] A mechanism for CEP pattern evaluation based on the acyclic graph model
-* [X] "Flat" sequence and conjunction pattern support
-* [X] Instance-based memory model
-* [X] The pattern is provided as a Python class
-* [X] Multiple algorithms for constructing the CEP graph
-* [X] Generic dataset schema
-* [X] Generic input/output interface (With support for File-based input/output)
-* [X] A variety of selection and consumption policies
-* [ ] Negation operator support
-* [ ] Kleene closure operator support
-* [ ] "Partial sequence" support
-* [ ] Performance optimizations based on the 'lazy evaluation' principle
-* [ ] Adaptive complex event processing
-* [ ] Multi-pattern support
-* [ ] Parallel execution support
-
 # How to Use
 * The "main" class of this library is the CEP class (CEP.py).
 * Users are expected to create a CEP object and then invoke it on an event stream to obtain the pattern matches.
@@ -101,7 +84,7 @@ pattern = Pattern(
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-
+```
 
 # Advanced configuration settings
 ## Consumption policies and selection strategies
