@@ -4,13 +4,12 @@ This file contains the implementations of algorithms constructing a left-deep tr
 from enum import Enum
 import random
 from typing import List
-
 from evaluation.IterativeImprovement import IterativeImprovementType, IterativeImprovementAlgorithmBuilder
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from evaluation.EvaluationMechanismBuilder import EvaluationMechanismBuilder
 from base.Pattern import Pattern
 from misc.Statistics import calculate_left_deep_tree_cost_function, MissingStatisticsException
-from misc.StatisticsTypes import StatisticsTypes
+from statisticsCollector.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
 
 
@@ -100,7 +99,7 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
         while len(left_to_add) > 0:
             # create first nominee to add.
             to_add = to_add_start = left_to_add.pop()
-            min_change_factor = selectivity_matrix[to_add][to_add]  # TODO I THINK SHOULD BE MULTIPLIED BY THE RATE TOO
+            min_change_factor = selectivity_matrix[to_add][to_add] * arrival_rates[to_add]
             for j in new_order:
                 min_change_factor *= selectivity_matrix[to_add][j]
 

@@ -3,7 +3,8 @@ from enum import Enum
 
 class StatisticsTypes(Enum):
     """
-    Type of event statistics provided inside a pattern (NO_STATISTICS if nothing is available).
+    Type of event statistics provided
+    NO_STATISTICS if nothing is available
     """
     NO_STATISTICS = 0
     FREQUENCY_DICT = 1

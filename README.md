@@ -29,7 +29,7 @@ This short documentation will be updated regularly.
 # How to Use
 * The "main" class of this library is the CEP class (CEP.py).
 * Users are expected to create a CEP object and then invoke it on an event stream to obtain the pattern matches.
-* The CEP object is initialized with a list of patterns to be detected and a set of configurable parameters. As of this writing, the only such parameter is the algorithm for constructing the evaluation tree.
+* The CEP object is initialized with a list of patterns to be detected and a set of configurable parameters.
 * To create an event stream, you can manually create an empty stream and add events to it, and you can also provide a csv file to the fileInput function.
 * To handle the CEP output, you can manually read the events from the CEP object or from the matches container, or use the fileOutput function to print the matches into a file.
 * To create a pattern, the following components must be specified:
@@ -73,6 +73,20 @@ Creating a CEP object for monitoring the patterns from the example above:
 cep = CEP([googleAscendPattern, googleAmazonLowPattern], 
           EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, None)
 ```
+
+Creating a Adaptive CEP object for monitoring the patterns from the example above:
+```
+cep = CEP([pattern], EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE, None,
+            AdaptiveParameters(StatisticsTypes.ARRIVAL_RATES,
+                                             reoptimizing_decision_params,
+                                             TreeReplacementAlgorithmTypes.SIMULTANEOUSLY_RUN_TWO_TREES,
+                                             activate_statistics_collector_period=timedelta(minutes=10),
+                                             activate_optimizer_period=timedelta(minutes=10),
+                                             window_coefficient=2, k=3))
+```
+## Using the Adaptive mechanism
+In order to use the Adaptive mechanism, adaptive_parameters needs to be initialized. for more information go to 
+AdaptiveConfigurationSettings.py
 
 Defining a new file-based event stream formatted according to Metastock 7 format:
 ```

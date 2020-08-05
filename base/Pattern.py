@@ -1,7 +1,7 @@
 from base.Formula import Formula
 from base.PatternStructure import PatternStructure
 from datetime import timedelta
-from misc.StatisticsTypes import StatisticsTypes
+from statisticsCollector.StatisticsTypes import StatisticsTypes
 
 
 class Pattern:

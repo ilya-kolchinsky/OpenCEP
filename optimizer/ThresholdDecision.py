@@ -1,9 +1,12 @@
-from misc.StatisticsTypes import StatisticsTypes
+from statisticsCollector.StatisticsTypes import StatisticsTypes
 from optimizer.ReoptimizingDecision import StaticThresholdBasedDecision
 from statisticsCollector.StatisticsCollector import Stat
 
 
 class RateBasedStaticThresholdBasedDecision(StaticThresholdBasedDecision):
+    """
+    Changing the current plan in case the events' arrival_rates are deviating by more then the threshold
+    """
     def __init__(self, threshold):
         super().__init__(threshold)
         self.arrival_rates = None
@@ -25,5 +28,3 @@ def create_threshold_based_on_data_type(statistics_type: StatisticsTypes, thresh
         return RateBasedStaticThresholdBasedDecision(threshold)
     else:
         raise NotImplementedError()
-
-# TODO Should this be implemented only with rates or also with selectivity matrix?

@@ -1,21 +1,12 @@
 from enum import Enum
-from misc.IOUtils import Stream
-from abc import ABC
-from datetime import timedelta, datetime
 from base.Pattern import Pattern
-from base.PatternStructure import SeqOperator, QItem
-from base.Formula import TrueFormula, Formula
-from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
 from typing import List, Tuple
 from base.Event import Event
 from datetime import datetime
-from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_by_timestamp
 from base.PatternMatch import PatternMatch
-from evaluation.EvaluationMechanism import EvaluationMechanism
-from queue import Queue
-from evaluation.AdaptiveTreeBasedEvaluationMechanism import Tree, AdaptiveTreeBasedEvaluationMechanism
-import time
+from evaluation.TreeBasedEvaluationMechanism import Tree, AdaptiveTreeBasedEvaluationMechanism
+from statisticsCollector.StatisticsCollector import StatisticsCollector
 
 
 class TreeReplacementAlgorithmTypes(Enum):
@@ -44,7 +35,7 @@ def create_adaptive_evaluation_mechanism_by_type(handler_type: TreeReplacementAl
     if handler_type == TreeReplacementAlgorithmTypes.IMMEDIATE_REPLACE_TREE:
         return ImmediateReplaceTree(pattern, initial_tree)
     if handler_type == TreeReplacementAlgorithmTypes.SIMULTANEOUSLY_RUN_TWO_TREES:
-        return
+        return SimultaneouslyRunTwoTrees(pattern, initial_tree)
     if handler_type == TreeReplacementAlgorithmTypes.COMMON_PARTS_SHARE:
         raise NotImplementedError()
 
@@ -58,7 +49,7 @@ class ImmediateReplaceTree(AdaptiveTreeBasedEvaluationMechanism):
     Removing out of date events from the stream active_events
     """
     def __remove_expired_events(self, curr_time: datetime):
-        while self.active_events.count != 0:
+        while self.active_events.count() != 0:
             last_event = self.active_events.first()
             if curr_time - last_event.timestamp > self.pattern.window:
                 self.active_events.get_item()
@@ -70,27 +61,36 @@ class ImmediateReplaceTree(AdaptiveTreeBasedEvaluationMechanism):
     and handling the partial matches in it
     """
     def __update_current_events_in_new_tree(self, new_tree):
-        self.__tree = new_tree
-        self.event_types_listeners = super().find_event_types_listeners(self.__tree)
-        for event in self.active_events:
+        if self.active_events.count() == 0:  # Important because iteration over an empty stream is not possible
+            return
+        self.tree = new_tree
+        self.event_types_listeners = super().find_event_types_listeners(self.tree)
+        temp_active_events = self.active_events.duplicate()
+        for event in temp_active_events:
             if event.event_type in self.event_types_listeners.keys():
                 for leaf in self.event_types_listeners[event.event_type]:
-                    leaf.handle_event(event)
+                    leaf.handle_event(event, None)
+            if temp_active_events.count() == 0:
+                for __ in self.tree.get_matches():      # an empty iteration to clean the partial matches in the root
+                    pass
+                return
+        return
 
-    def eval(self, event: Event, new_tree: Tree, matches: Stream, statistics_collector: StatisticsCollector):
+    def eval(self, event: Event, new_order_for_tree, matches: Stream, statistics_collector: StatisticsCollector):
         self.__remove_expired_events(event.timestamp)
-        if new_tree is not None:
+        if new_order_for_tree is not None:
+            new_tree = Tree(new_order_for_tree, self.pattern)
             self.__update_current_events_in_new_tree(new_tree)
         # Send events to listening leaves.
         if event.event_type in self.event_types_listeners.keys():
             statistics_collector.insert_event(event)
             for leaf in self.event_types_listeners[event.event_type]:
-                partial_matches = self.find_partial_matches(event, self.event_types_listeners)
-                statistics_collector.update_selectivitys_matrix(event, partial_matches)
-                leaf.handle_event(event)
-                for match in self.__tree.get_matches():
+                # partial_matches = self.find_partial_matches(event, self.event_types_listeners)
+                # statistics_collector.update_selectivitys_matrix(event, partial_matches)
+                leaf.handle_event(event, statistics_collector)
+                for match in self.tree.get_matches():
                     matches.add_item(PatternMatch(match))
-        self.active_events.add_item(event)  # TODO: Make sure that's how you insert into a stream
+        self.active_events.add_item(event)
 
     def find_partial_matches(self, event: Event, event_types_listeners):
         count = 0
@@ -126,45 +126,48 @@ class ImmediateReplaceTree(AdaptiveTreeBasedEvaluationMechanism):
 class SimultaneouslyRunTwoTrees(AdaptiveTreeBasedEvaluationMechanism):
     def __init__(self, pattern: Pattern, initial_tree: Tree):
         super().__init__(pattern, initial_tree)
-        self.__tree2 = None
+        self.tree2 = None
         self.event_types_listeners2 = None
         self.tree2_create_time = None
 
-    def eval(self, event: Event, new_tree: Tree, matches: Stream, statistics_collector: StatisticsCollector):
-        # TODO: When a non None new_tree arrive, we replace it with self.__tree2
+    def eval(self, event: Event, new_order_for_tree, matches: Stream, statistics_collector: StatisticsCollector):
         # Checking if tree 1 should be replaced with tree 2 because the time window expired
         # If replacement is needed then initialize tree1 with tree2 data
-        if self.__tree2 is not None:
-            if time.time() - self.tree2_create_time > self.pattern.window:
-                self.__tree = self.__tree2
+        statistics_collector.insert_event(event)
+        temp_tree1_matches = []
+        if self.tree2 is not None:
+            if event.timestamp - self.tree2_create_time > self.pattern.window:
+                self.tree = self.tree2
                 self.event_types_listeners = self.event_types_listeners2
-                self.__tree2 = None
+                self.tree2 = None
                 self.event_types_listeners2 = None
                 self.tree2_create_time = None
         # Checking if a new plan was received from Optimizer
-        if new_tree is not None:
-            self.__tree2 = new_tree
-            self.event_types_listeners2 = self.find_event_types_listeners(self.__tree2)
-            self.tree2_create_time = time.time()
+        if new_order_for_tree is not None:
+            new_tree = Tree(new_order_for_tree, self.pattern)
+            self.tree2 = new_tree
+            self.event_types_listeners2 = self.find_event_types_listeners(self.tree2)
+            self.tree2_create_time = event.timestamp
         # Insert and handles the incoming event in tree1
         if event.event_type in self.event_types_listeners.keys():
             for leaf in self.event_types_listeners[event.event_type]:
-                leaf.handle_event(event)
-                for match in self.__tree.get_matches():
+                leaf.handle_event(event, statistics_collector)
+                for match in self.tree.get_matches():
                     matches.add_item(PatternMatch(match))
-        if self.__tree2 is not None:
+                    temp_tree1_matches.append(match)
+        if self.tree2 is not None:
             # Insert and handles the incoming event in tree2
             if event.event_type in self.event_types_listeners2.keys():
                 for leaf in self.event_types_listeners2[event.event_type]:
-                    leaf.handle_event(event)
-                    for match in self.__tree2.get_matches():
-                        match_exists = False
-                        for tree1_match in self.__tree.get_matches():
-                            if compare_matches(match, tree1_match):
-                                match_exists = True
-                                break
-                        if match_exists is False:
-                            matches.add_item(PatternMatch(match))
-
+                    leaf.handle_event(event, None)  # None means that the statistics_collector is not being updated in the function
+                for match in self.tree2.get_matches():
+                    match_exists = False
+                    for tree1_match in temp_tree1_matches:
+                        if compare_matches(match, tree1_match):
+                            match_exists = True
+                            break
+                    if match_exists is False:
+                        matches.add_item(PatternMatch(match))
+        temp_tree1_matches.clear()
 
 

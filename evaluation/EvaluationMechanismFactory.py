@@ -1,6 +1,5 @@
 from typing import List
 from enum import Enum
-
 from base.Pattern import Pattern
 from evaluation.BushyTreeBuilders import DynamicProgrammingBushyTreeBuilder, ZStreamTreeBuilder, ZStreamOrdTreeBuilder
 from evaluation.AdaptiveBushyTreeBuilders import AdaptiveDynamicProgrammingBushyTreeBuilder,\
@@ -9,8 +8,8 @@ from evaluation.IterativeImprovement import IterativeImprovementType
 from evaluation.LeftDeepTreeBuilders import IterativeImprovementInitType, TrivialLeftDeepTreeBuilder, \
     AscendingFrequencyTreeBuilder, GreedyLeftDeepTreeBuilder, IterativeImprovementLeftDeepTreeBuilder, \
     DynamicProgrammingLeftDeepTreeBuilder
-from evaluation.AdaptiveLeftDeepTreeBuilders import AdaptiveIterativeImprovementInitType,\
-    AdaptiveTrivialLeftDeepTreeBuilder, AdaptiveAscendingFrequencyTreeBuilder,\
+from evaluation.AdaptiveLeftDeepTreeBuilders import AdaptiveTrivialLeftDeepTreeBuilder,\
+    AdaptiveAscendingFrequencyTreeBuilder,\
     AdaptiveGreedyLeftDeepTreeBuilder, AdaptiveIterativeImprovementLeftDeepTreeBuilder, \
     AdaptiveDynamicProgrammingLeftDeepTreeBuilder
 from statisticsCollector.StatisticsCollector import Stat

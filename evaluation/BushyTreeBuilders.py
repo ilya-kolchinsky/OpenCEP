@@ -2,13 +2,12 @@
 This file contains the implementations of algorithms constructing a generic (bushy) tree-based evaluation mechanism.
 """
 from typing import List
-
 from evaluation.EvaluationMechanismBuilder import EvaluationMechanismBuilder
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from base.Pattern import Pattern
 from misc.Utils import get_all_disjoint_sets
 from misc.Statistics import calculate_bushy_tree_cost_function, MissingStatisticsException
-from misc.StatisticsTypes import StatisticsTypes
+from statisticsCollector.StatisticsTypes import StatisticsTypes
 from evaluation.LeftDeepTreeBuilders import GreedyLeftDeepTreeBuilder
 from itertools import combinations
 

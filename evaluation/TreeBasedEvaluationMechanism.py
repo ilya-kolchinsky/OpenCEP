@@ -11,6 +11,7 @@ from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_
 from base.PatternMatch import PatternMatch
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from queue import Queue
+from statisticsCollector.StatisticsCollector import StatisticsCollector
 
 
 class Node(ABC):
@@ -124,7 +125,7 @@ class LeafNode(Node):
         """
         return self.__event_type
 
-    def handle_event(self, event: Event):
+    def handle_event(self, event: Event, statistics_collector: StatisticsCollector = None):
         """
         Inserts the given event to this leaf.
         """
@@ -138,7 +139,7 @@ class LeafNode(Node):
 
         self.add_partial_match(PartialMatch([event]))
         if self._parent is not None:
-            self._parent.handle_new_partial_match(self)
+            self._parent.handle_new_partial_match(self, statistics_collector)
 
 
 class InternalNode(Node):
@@ -186,7 +187,7 @@ class InternalNode(Node):
         self._set_event_definitions(self._left_subtree.get_event_definitions(),
                                     self._right_subtree.get_event_definitions())
 
-    def handle_new_partial_match(self, partial_match_source: Node):
+    def handle_new_partial_match(self, partial_match_source: Node, statistics_collector: StatisticsCollector):
         """
         Internal node's update for a new partial match in one of the subtrees.
         """
@@ -197,7 +198,7 @@ class InternalNode(Node):
         else:
             raise Exception()  # should never happen
 
-        new_partial_match = partial_match_source.get_last_unhandled_partial_match()  # TODO: Stas & Yotam : How can we know that the event we are getting is not out of date? It looks like the line self.clean_expired_partial_matches handles it
+        new_partial_match = partial_match_source.get_last_unhandled_partial_match()
         first_event_defs = partial_match_source.get_event_definitions()
         other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
         partial_matches_to_compare = other_subtree.get_partial_matches()
@@ -208,11 +209,13 @@ class InternalNode(Node):
         # given a partial match from one subtree, for each partial match
         # in the other subtree we check for new partial matches in this node.
         for partialMatch in partial_matches_to_compare:
-            self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs)
+            self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs,
+                                       statistics_collector)
 
     def _try_create_new_match(self,
                               first_partial_match: PartialMatch, second_partial_match: PartialMatch,
-                              first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
+                              first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]],
+                              statistics_collector: StatisticsCollector):
         """
         Verifies all the conditions for creating a new partial match and creates it if all constraints are satisfied.
         """
@@ -225,8 +228,10 @@ class InternalNode(Node):
         if not self._validate_new_match(events_for_new_match):
             return
         self.add_partial_match(PartialMatch(events_for_new_match))
+        if statistics_collector is not None:
+            statistics_collector.update_selectivity_matrix(events_for_new_match)
         if self._parent is not None:
-            self._parent.handle_new_partial_match(self)
+            self._parent.handle_new_partial_match(self, statistics_collector)
 
     def _merge_events_for_new_match(self,
                                     first_event_defs: List[Tuple[int, QItem]],
@@ -340,3 +345,60 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                         matches.add_item(PatternMatch(match))
 
         matches.close()
+
+
+class AdaptiveTreeBasedEvaluationMechanism(EvaluationMechanism):
+    """
+    An implementation of the tree-based evaluation mechanism.
+    """
+    def __init__(self, pattern: Pattern, initial_order_for_tree):
+        self.tree = Tree(initial_order_for_tree, pattern)
+        self.pattern = pattern
+        self.event_types_listeners = self.find_event_types_listeners(self.tree)
+
+    def find_event_types_listeners(self, tree: Tree):
+        event_types_listeners = {}
+        # register leaf listeners for event types.
+        for leaf in tree.get_leaves():
+            event_type = leaf.get_event_type()
+            if event_type in event_types_listeners.keys():
+                event_types_listeners[event_type].append(leaf)
+            else:
+                event_types_listeners[event_type] = [leaf]
+        return event_types_listeners
+
+    """
+    Implemented by the children
+    """
+
+    def eval(self, events: Stream, new_order_for_tree, matches: Stream, statistics_collector: StatisticsCollector):
+        pass
+
+    def find_partial_matches(self, event: Event, event_types_listeners):
+        count = 0
+        args = self.pattern.structure.args
+        match_count = {}
+        for arg in args:
+            match_count[arg.event_type] = []
+
+        event_name = event_types_listeners[event.event_type][0]._LeafNode__event_name
+
+        for event_type in event_types_listeners.keys():
+            if event.event_type == event_type:
+                continue
+            else:
+                for events_list in event_types_listeners[event_type]:
+                    if len(events_list._partial_matches) == 0:
+                        continue
+                    else:
+                        for events_to_check in events_list._partial_matches:
+                            for event_to_check in events_to_check.events:
+                                count += 1
+                                event_to_check_name = event_types_listeners[event_to_check.event_type][
+                                    0]._LeafNode__event_name
+                                formula = self.pattern.condition.get_formula_of({event_name, event_to_check_name})
+                                if formula is not None:
+                                    if formula.eval(
+                                            {event_name: event.payload, event_to_check_name: event_to_check.payload}):
+                                        match_count[event_type].insert(len(match_count[event_type]), event_to_check.timestamp)
+        return match_count

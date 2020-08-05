@@ -6,19 +6,22 @@ from misc.IOUtils import file_input, file_output
 from misc.Stocks import MetastockDataFormatter
 from misc.Utils import generate_matches
 from evaluation.LeftDeepTreeBuilders import *
+from evaluation.AdaptiveLeftDeepTreeBuilders import *
 from evaluation.BushyTreeBuilders import *
 from datetime import timedelta
 from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, AtomicTerm, AndFormula, TrueFormula
 from base.PatternStructure import AndOperator, SeqOperator, QItem
 from base.Pattern import Pattern
+from AdaptiveConfigurationSettings import AdaptiveParameters, ReoptimizingDecisionParameters
 from optimizer.ReoptimizingDecision import ReoptimizationDecisionTypes
+from evaluation.AdaptiveTreeReplacementAlgorithm import TreeReplacementAlgorithmTypes
 
 
-nasdaqEventStreamShort = file_input("test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
-nasdaqEventStreamMedium = file_input("test/EventFiles/NASDAQ_MEDIUM.txt", MetastockDataFormatter())
-nasdaqEventStreamFrequencyTailored = file_input("test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt", MetastockDataFormatter())
-nasdaqEventStream_AAPL_AMZN_GOOG = file_input("test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt", MetastockDataFormatter())
-nasdaqEventStream = file_input("test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
+nasdaqEventStreamShort = file_input("../test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
+nasdaqEventStreamMedium = file_input("../test/EventFiles/NASDAQ_MEDIUM.txt", MetastockDataFormatter())
+nasdaqEventStreamFrequencyTailored = file_input("../test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt", MetastockDataFormatter())
+nasdaqEventStream_AAPL_AMZN_GOOG = file_input("../test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt", MetastockDataFormatter())
+nasdaqEventStream = file_input("../test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
 
 def closeFiles(file1, file2):
     file1.close()
@@ -68,38 +71,23 @@ def createTest(testName, patterns, events=None):
     print("Finished creating test %s" % testName)
 
 
-class ReoptimizationParameters:
-    def __init__(self, reoptimization_type: ReoptimizationDecisionTypes, data):
-        self.type = reoptimization_type
-        if reoptimization_type == ReoptimizationDecisionTypes.UNCONDITIONAL_PERIODICAL_ADAPTATION:
-            self.time_limit = data
-        elif reoptimization_type == ReoptimizationDecisionTypes.STATIC_THRESHOLD_BASED:
-            self.threshold = data
-        elif reoptimization_type == ReoptimizationDecisionTypes.INVARIANT_BASED:
-            pass
-        else:
-            print("Yotam: Data is not correct, fix it")
-
-
-def runTest(testName, patterns, createTestFile = False,
-            eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-            eval_mechanism_params = None, events = None):
+def runTest(testName, patterns, createTestFile=False,
+            eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+            eval_mechanism_params=None, events=None, adaptive_parameters=None):
     if createTestFile:
         createTest(testName, patterns, events)
     if events is None:
         events = nasdaqEventStream.duplicate()
     else:
         events = events.duplicate()
-    reoptimization_parameters = ReoptimizationParameters(ReoptimizationDecisionTypes.INVARIANT_BASED, None)
-    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, None, reoptimization_parameters,
-              )
+    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, adaptive_parameters)
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
     file_output(matches, '%sMatches.txt' % testName)
-    expected_matches_path = "test/TestsExpected/%sMatches.txt" % testName
-    actual_matches_path = "test/Matches/%sMatches.txt" % testName
+    expected_matches_path = "../test/TestsExpected/%sMatches.txt" % testName
+    actual_matches_path = "../test/Matches/%sMatches.txt" % testName
     print("Test %s result: %s, Time Passed: %s" % (testName,
-          "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
+            "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
     os.remove(actual_matches_path)
 
 def oneArgumentsearchTest(createTestFile = False):
@@ -118,9 +106,9 @@ def simplePatternSearchTest(createTestFile = False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
         AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
@@ -287,19 +275,38 @@ def multiplePatternSearchTest(createTestFile = False):
 
 def nonFrequencyPatternSearchTest(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
         AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
     runTest("nonFrequency", [pattern], createTestFile)
 
+def adaptiveNonFrequencyPatternSearchTest(createTestFile = False):
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
+            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    reoptimizing_decision_params = ReoptimizingDecisionParameters(ReoptimizationDecisionTypes.INVARIANT_BASED, None)
+    adaptive_parameters = AdaptiveParameters(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
+                                             reoptimizing_decision_params,
+                                             TreeReplacementAlgorithmTypes.IMMEDIATE_REPLACE_TREE,
+                                             activate_statistics_collector_period=timedelta(minutes=10),
+                                             activate_optimizer_period=timedelta(minutes=10),
+                                             window_coefficient=2, k=3)
+    runTest('adaptiveNonFrequency', [pattern], createTestFile,
+            eval_mechanism_type=EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE, events=nasdaqEventStream,
+            adaptive_parameters=adaptive_parameters)
+
 def frequencyPatternSearchTest(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
         AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
@@ -308,20 +315,39 @@ def frequencyPatternSearchTest(createTestFile = False):
 
 def arrivalRatesPatternSearchTest(createTestFile = False):
     pattern = Pattern(
-    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]), 
+    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
     AndFormula(
-        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
         GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
     timedelta(minutes=5)
     )
     pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0159, 0.0153, 0.0076])
     runTest("arrivalRates", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
 
+def adaptiveArrivalRatesPatternSearchTest(createTestFile = False):
+    pattern = Pattern(
+    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
+    AndFormula(
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
+        GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
+    timedelta(minutes=5)
+    )
+    reoptimizing_decision_params = ReoptimizingDecisionParameters(ReoptimizationDecisionTypes.STATIC_THRESHOLD_BASED, 5)
+    adaptive_parameters = AdaptiveParameters(StatisticsTypes.ARRIVAL_RATES,
+                                             reoptimizing_decision_params,
+                                             TreeReplacementAlgorithmTypes.SIMULTANEOUSLY_RUN_TWO_TREES,
+                                             activate_statistics_collector_period=timedelta(minutes=10),
+                                             activate_optimizer_period=timedelta(minutes=10),
+                                             window_coefficient=2, k=3)
+    runTest('adaptiveArrivalRates', [pattern], createTestFile,
+            eval_mechanism_type=EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE, events=nasdaqEventStream,
+            adaptive_parameters=adaptive_parameters)
+
 def nonFrequencyPatternSearch2Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("LOCM", "a"), QItem("AMZN", "b"), QItem("AAPL", "c")]), 
+        SeqOperator([QItem("LOCM", "a"), QItem("AMZN", "b"), QItem("AAPL", "c")]),
         AndFormula(
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
@@ -329,9 +355,9 @@ def nonFrequencyPatternSearch2Test(createTestFile = False):
 
 def frequencyPatternSearch2Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("LOCM", "a"), QItem("AMZN", "b"), QItem("AAPL", "c")]), 
+        SeqOperator([QItem("LOCM", "a"), QItem("AMZN", "b"), QItem("AAPL", "c")]),
         AndFormula(
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
@@ -340,7 +366,7 @@ def frequencyPatternSearch2Test(createTestFile = False):
 
 def nonFrequencyPatternSearch3Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AAPL", "b"), QItem("AAPL", "c"), QItem("LOCM", "d")]), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AAPL", "b"), QItem("AAPL", "c"), QItem("LOCM", "d")]),
         TrueFormula(),
         timedelta(minutes=5)
     )
@@ -348,7 +374,7 @@ def nonFrequencyPatternSearch3Test(createTestFile = False):
 
 def frequencyPatternSearch3Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AAPL", "b"), QItem("AAPL", "c"), QItem("LOCM", "d")]), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AAPL", "b"), QItem("AAPL", "c"), QItem("LOCM", "d")]),
         TrueFormula(),
         timedelta(minutes=5)
     )
@@ -357,7 +383,7 @@ def frequencyPatternSearch3Test(createTestFile = False):
 
 def nonFrequencyPatternSearch4Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c"), QItem("LOCM", "d")]), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c"), QItem("LOCM", "d")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -365,7 +391,7 @@ def nonFrequencyPatternSearch4Test(createTestFile = False):
 
 def frequencyPatternSearch4Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c"), QItem("LOCM", "d")]), 
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c"), QItem("LOCM", "d")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -374,7 +400,7 @@ def frequencyPatternSearch4Test(createTestFile = False):
 
 def nonFrequencyPatternSearch5Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]), 
+        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -382,16 +408,16 @@ def nonFrequencyPatternSearch5Test(createTestFile = False):
 
 def frequencyPatternSearch5Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]), 
+        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"LOCM": 1, "AAPL": 2}) # {"AAPL": 460, "LOCM": 219}
     runTest("frequency5", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
-    
-def frequencyPatternSearch6Test(createTestFile = False):    
+
+def frequencyPatternSearch6Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]), 
+        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -416,6 +442,33 @@ def greedyPatternSearchTest(createTestFile = False):
     runTest('greedy1', [pattern], createTestFile,
             eval_mechanism_type=EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE, events=nasdaqEventStream)
 
+def adaptiveGreedyPatternSearchTest(createTestFile = False):
+    pattern = Pattern(
+        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        AndFormula(
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("b", lambda x: x["Peak Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("c", lambda x: x["Peak Price"]))
+            ),
+            SmallerThanFormula(IdentifierTerm("c", lambda x: x["Peak Price"]),
+                               IdentifierTerm("d", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+    reoptimizing_decision_params = ReoptimizingDecisionParameters(ReoptimizationDecisionTypes.INVARIANT_BASED, None)
+    adaptive_parameters = AdaptiveParameters(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
+                                             reoptimizing_decision_params,
+                                             TreeReplacementAlgorithmTypes.IMMEDIATE_REPLACE_TREE,
+                                             activate_statistics_collector_period=timedelta(minutes=10),
+                                             activate_optimizer_period=timedelta(minutes=10),
+                                             window_coefficient=2, k=3)
+    runTest('adaptiveGreedy1', [pattern], createTestFile,
+            eval_mechanism_type=EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE, events=nasdaqEventStream,
+            adaptive_parameters=adaptive_parameters)
+
+
 def iiRandomPatternSearchTest(createTestFile = False):
     pattern = Pattern(
         SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
@@ -437,6 +490,31 @@ def iiRandomPatternSearchTest(createTestFile = False):
                 20, IterativeImprovementType.SWAP_BASED, IterativeImprovementInitType.RANDOM),
             events=nasdaqEventStream)
 
+def adaptive_iiRandomPatternSearchTest(createTestFile = False):
+    pattern = Pattern(
+        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        AndFormula(
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
+            ),
+            SmallerThanFormula(IdentifierTerm("c", lambda x: x["Peak Price"]), IdentifierTerm("d", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+    reoptimizing_decision_params = ReoptimizingDecisionParameters(ReoptimizationDecisionTypes.STATIC_THRESHOLD_BASED, 5)
+    adaptive_parameters = AdaptiveParameters(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
+                                             reoptimizing_decision_params,
+                                             TreeReplacementAlgorithmTypes.SIMULTANEOUSLY_RUN_TWO_TREES,
+                                             activate_statistics_collector_period=timedelta(minutes=10),
+                                             activate_optimizer_period=timedelta(minutes=10),
+                                             window_coefficient=2, k=3)
+    runTest('adaptive_iiRandom1', [pattern], createTestFile,
+            eval_mechanism_type=EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE,
+            eval_mechanism_params=IterativeImprovementEvaluationMechanismParameters(
+                20, IterativeImprovementType.SWAP_BASED, AdaptiveIterativeImprovementInitType.RANDOM),
+            events=nasdaqEventStream, adaptive_parameters=adaptive_parameters)
+
 def iiRandom2PatternSearchTest(createTestFile = False):
     pattern = Pattern(
         SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
@@ -457,6 +535,31 @@ def iiRandom2PatternSearchTest(createTestFile = False):
             eval_mechanism_params=IterativeImprovementEvaluationMechanismParameters(
                 20, IterativeImprovementType.CIRCLE_BASED, IterativeImprovementInitType.RANDOM),
             events=nasdaqEventStream)
+
+def adaptive_iiGreedyPatternSearchTest(createTestFile = False):
+    pattern = Pattern(
+        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        AndFormula(
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
+            ),
+            SmallerThanFormula(IdentifierTerm("c", lambda x: x["Peak Price"]), IdentifierTerm("d", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+    reoptimizing_decision_params = ReoptimizingDecisionParameters(ReoptimizationDecisionTypes.STATIC_THRESHOLD_BASED, 5)
+    adaptive_parameters = AdaptiveParameters(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
+                                             reoptimizing_decision_params,
+                                             TreeReplacementAlgorithmTypes.IMMEDIATE_REPLACE_TREE,
+                                             activate_statistics_collector_period=timedelta(minutes=10),
+                                             activate_optimizer_period=timedelta(minutes=10),
+                                             window_coefficient=2, k=3)
+    runTest('adaptive_iiGreedy1', [pattern], createTestFile,
+            eval_mechanism_type=EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE,
+            eval_mechanism_params=IterativeImprovementEvaluationMechanismParameters(
+                20, IterativeImprovementType.SWAP_BASED, AdaptiveIterativeImprovementInitType.GREEDY),
+            events=nasdaqEventStream, adaptive_parameters=adaptive_parameters)
 
 def iiGreedyPatternSearchTest(createTestFile = False):
     pattern = Pattern(
@@ -517,6 +620,29 @@ def dpLdPatternSearchTest(createTestFile = False):
     pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     runTest('dpLd1', [pattern], createTestFile,
             eval_mechanism_type=EvaluationMechanismTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE, events=nasdaqEventStream)
+
+def adaptiveDpLdPatternSearchTest(createTestFile = False):
+    pattern = Pattern(
+        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        AndFormula(
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
+            ),
+            SmallerThanFormula(IdentifierTerm("c", lambda x: x["Peak Price"]), IdentifierTerm("d", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+    reoptimizing_decision_params = ReoptimizingDecisionParameters(ReoptimizationDecisionTypes.STATIC_THRESHOLD_BASED, 5)
+    adaptive_parameters = AdaptiveParameters(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
+                                             reoptimizing_decision_params,
+                                             TreeReplacementAlgorithmTypes.IMMEDIATE_REPLACE_TREE,
+                                             activate_statistics_collector_period=timedelta(minutes=10),
+                                             activate_optimizer_period=timedelta(minutes=10),
+                                             window_coefficient=2, k=3)
+    runTest('adaptiveDpLd1', [pattern], createTestFile,
+            eval_mechanism_type=EvaluationMechanismTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE, events=nasdaqEventStream,
+            adaptive_parameters=adaptive_parameters)
 
 def dpBPatternSearchTest(createTestFile = False):
     pattern = Pattern(
@@ -598,10 +724,8 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
     runTest('nonFrequencyTailored1', [pattern], createTestFile,
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, events=nasdaqEventStream)
 
-
-#oneArgumentsearchTest()
+oneArgumentsearchTest()
 simplePatternSearchTest()
-"""
 googleAscendPatternSearchTest()
 amazonInstablePatternSearchTest()
 msftDrivRacePatternSearchTest()
@@ -611,7 +735,9 @@ googleAmazonLowPatternSearchTest()
 nonsensePatternSearchTest()
 hierarchyPatternSearchTest()
 nonFrequencyPatternSearchTest()
+adaptiveNonFrequencyPatternSearchTest()
 arrivalRatesPatternSearchTest()
+adaptiveArrivalRatesPatternSearchTest()
 frequencyPatternSearchTest()
 nonFrequencyPatternSearch2Test()
 frequencyPatternSearch2Test()
@@ -623,14 +749,27 @@ nonFrequencyPatternSearch5Test()
 frequencyPatternSearch5Test()
 frequencyPatternSearch6Test()
 greedyPatternSearchTest()
+adaptiveGreedyPatternSearchTest()
 iiRandomPatternSearchTest()
+adaptive_iiRandomPatternSearchTest()
 iiRandom2PatternSearchTest()
 iiGreedyPatternSearchTest()
+adaptive_iiGreedyPatternSearchTest()
 iiGreedy2PatternSearchTest()
 #zStreamOrdPatternSearchTest()
 #zStreamPatternSearchTest()
 dpBPatternSearchTest()
+adaptiveDpLdPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
-"""
+
+# Twitter tests
+try:
+    from TwitterTest import run_twitter_sanity_check
+    run_twitter_sanity_check()
+except ImportError:  # tweepy might not be installed
+    pass
+
+
+

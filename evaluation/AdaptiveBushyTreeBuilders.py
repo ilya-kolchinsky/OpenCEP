@@ -4,11 +4,10 @@ This file contains the implementations of algorithms constructing a generic (bus
 from typing import List
 
 from evaluation.EvaluationMechanismBuilder import EvaluationMechanismBuilder
-from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from base.Pattern import Pattern
 from misc.Utils import get_all_disjoint_sets
 from misc.Statistics import calculate_bushy_tree_cost_function, MissingStatisticsException
-from misc.StatisticsTypes import StatisticsTypes
+from statisticsCollector.StatisticsTypes import StatisticsTypes
 from evaluation.AdaptiveLeftDeepTreeBuilders import AdaptiveGreedyLeftDeepTreeBuilder
 from itertools import combinations
 from statisticsCollector.StatisticsCollector import Stat
@@ -19,14 +18,14 @@ class AdaptiveBushyTreeBuilder(EvaluationMechanismBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-    def build_single_pattern_eval_mechanism(self, pattern: Pattern, stat: Stat):
+    def build_adaptive_single_pattern_eval_mechanism(self, pattern: Pattern, stat: Stat, is_using_invariants):
         if stat.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             selectivityMatrix = stat.selectivity_matrix
             arrivalRates = stat.arrival_rates
         else:
             raise MissingStatisticsException()
         tree_structure = self._find_tree(selectivityMatrix, arrivalRates, pattern.window.total_seconds())
-        return TreeBasedEvaluationMechanism(pattern, tree_structure)
+        return tree_structure
 
     def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern]):
         raise Exception("Unsupported")

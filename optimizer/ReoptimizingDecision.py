@@ -1,6 +1,5 @@
 from enum import Enum
 import time
-from misc.StatisticsTypes import StatisticsTypes
 from abc import ABC
 from statisticsCollector.StatisticsCollector import Stat
 
@@ -15,6 +14,9 @@ class ReoptimizationDecisionTypes(Enum):
 
 
 class UnconditionalPeriodicalAdaptationDecision:
+    """
+    Changing the current plan every time_limit seconds
+    """
     def __init__(self, time_limit):
         self.time_limit = time_limit
         self.start_time = None

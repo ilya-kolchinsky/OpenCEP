@@ -1,6 +1,5 @@
 from datetime import timedelta
 from typing import List
-
 from misc.Statistics import calculate_left_deep_tree_cost_function
 import random
 from enum import Enum

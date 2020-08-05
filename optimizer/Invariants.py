@@ -1,4 +1,4 @@
-from misc.StatisticsTypes import StatisticsTypes
+from statisticsCollector.StatisticsTypes import StatisticsTypes
 from optimizer.ReoptimizingDecision import InvariantBasedDecision
 from statisticsCollector.StatisticsCollector import Stat
 
@@ -9,6 +9,9 @@ class GreedyAlgorithmBasedInvariants(InvariantBasedDecision):
 
     @staticmethod
     def deciding_condition(building_block, stat: Stat):
+        """
+        Checks if an invariant has been violated according to the Greedy algorithm for order-based plans
+        """
         if building_block[1] is None:
             return True
         event1 = building_block[0]
@@ -19,11 +22,11 @@ class GreedyAlgorithmBasedInvariants(InvariantBasedDecision):
         for p_k in already_chosen_events:
             event1_value *= stat.selectivity_matrix[p_k][event1]
             event2_value *= stat.selectivity_matrix[p_k][event2]
-        return event1_value <= event2_value  # TODO Should it be <= or < (the paper says < but it seems more reasonable to do <=
+        return event1_value <= event2_value
 
     def decision(self, stat: Stat):
         """
-        Checking if any of the invariants has been violated. If yes then initiate reoptimization
+        Checking if any of the invariants has been violated. If yes then returns True, else, returns False
         """
         if len(self.invariants) == 0:  # Meaning it's the first reoptimization decision and there are not invariants yet
             return True
@@ -45,4 +48,3 @@ def create_invariant_based_on_data_type(statistics_type: StatisticsTypes):
         return GreedyAlgorithmBasedInvariants()
     else:
         raise NotImplementedError()
-
