@@ -84,7 +84,6 @@ cep = CEP([pattern], EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE, 
                                              activate_optimizer_period=timedelta(minutes=10),
                                              window_coefficient=2, k=3))
 ```
-## Using the Adaptive mechanism
 In order to use the Adaptive mechanism, adaptive_parameters needs to be initialized. for more information go to 
 AdaptiveConfigurationSettings.py
 
