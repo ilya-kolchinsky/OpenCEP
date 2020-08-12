@@ -31,6 +31,23 @@ class EvaluationMechanismParameters:
     def __init__(self, eval_mechanism_type: EvaluationMechanismTypes):
         self.type = eval_mechanism_type
 
+class MultiPatternEvaluationApproach(Enum):
+    """
+    The various approaches for constructing a multi-pattern evaluation mechanism.
+    TRIVIAL: gets a list of patterns and builds a separate tree for each pattern
+    """
+
+    TRIVIAL = 0,
+    SUBTREES_UNION = 1,
+    LOCAL_SEARCH = 2
+
+class MultiPatternEvaluationParameters:
+    """
+    Parameters for the multi pattern evaluation mechanism builder.
+    """
+
+    def __init__(self, evaluation_approach: MultiPatternEvaluationApproach):
+        self.approach = evaluation_approach
 
 class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
     """
