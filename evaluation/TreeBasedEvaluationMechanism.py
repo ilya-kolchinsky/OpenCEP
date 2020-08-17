@@ -8,7 +8,7 @@ from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
 from typing import List, Tuple
 from base.Event import Event
-from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_by_timestamp, powerset_generator
+from misc.Utils import *
 from base.PatternMatch import PatternMatch
 from base.PatternStructure import *
 from evaluation.EvaluationMechanism import EvaluationMechanism
@@ -464,16 +464,38 @@ class KleeneClosureNode(UnaryNode):
 
         self._child.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
-        # generates a list of all subsets (using a generator).
-        child_partial_matches = self._child.get_partial_matches()
         # create child event power-set
-        child_matches_powerset = powerset_generator(child_partial_matches, self._min_size, self._max_size)
+        child_matches_powerset = self.__create_child_matches_powerset()
 
         for partialMatch in child_matches_powerset:
             partial_match = self.partial_match_from_partial_match_set(partialMatch)
             # self._event_defs = event_defs * (len(partialMatch))
 
             self._try_create_new_match(new_partial_match, partial_match, self._event_defs)
+
+    def __create_child_matches_powerset(self):
+        """
+        This method is a generator returning all subsets of currently available partial matches of this node child.
+        As this method is always invoked following a notification regarding a new partial match received from the child,
+        only the subsets containing this new partial match (which is assumed to be the last partial match in the child
+        list) are generated.
+        The subsets are enforced to satisfy the minimal and maximal size constraints.
+        The maximal size constraint is enforced recursively to save as many computations as possible.
+        The minimal size constraint on the other hand is enforced via post-processing filtering due to negligible
+        overhead.
+        """
+        child_partial_matches = self._child.get_partial_matches()
+        if len(child_partial_matches) == 0:
+            return []
+        last_partial_match = child_partial_matches[0]
+        # create subsets for all but the last element
+        actual_max_size = self._max_size if self._max_size is not None else len(child_partial_matches)
+        generated_powerset = recursive_powerset_generator(child_partial_matches[:-1], actual_max_size - 1)
+        # add the last item to all previously created subsets
+        result_powerset = [item + [last_partial_match] for item in generated_powerset]
+        # enforce minimal size limit
+        result_powerset = [item for item in result_powerset if self._min_size <= len(item)]
+        return result_powerset
 
     def get_tree_structure_for_test(self):
         return ("KC", self._child.get_tree_structure_for_test())

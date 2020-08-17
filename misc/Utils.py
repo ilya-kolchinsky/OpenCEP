@@ -7,7 +7,7 @@ from typing import List
 
 from base.Pattern import Pattern
 from base.PatternStructure import QItem
-from itertools import combinations, chain
+from itertools import combinations
 from base.PatternStructure import SeqOperator
 from base.PatternMatch import PatternMatch
 from copy import deepcopy
@@ -232,31 +232,14 @@ def does_match_exist(matches: list, match: list):
     return False
 
 
-# wrapper to the power-set generator. use this to create the child event power-sets.
-def powerset_generator(seq, min_size, max_size):
-    if max_size is None:
-        max_size = len(seq)
-    if max_size < min_size:
-        return []
-    if len(seq) == 0:
-        return []
-    # create subsets from all previous PartialMatches
-    generated_powerset = powerset_generator_aux(seq[:-1], min_size, max_size)
-    # add new PartialMatch to all creates subsets
-    result_powerset = [item + [seq[-1]] for item in generated_powerset]
-    # filter to subsets with size constraint
-    result_powerset = [item for item in result_powerset if min_size <= len(item) <= max_size]
-    return result_powerset
-
-
-# recursive gray-code method to generate all subsets
-def powerset_generator_aux(seq, min_size, max_size):
+def recursive_powerset_generator(seq, max_size):
     """
-    Returns all the subsets of this set. This is a generator.
+    A recursive generator returning all subsets of the given item sequence of size limited to max_size.
     """
-    if len(seq) == 0:
-        yield seq
+    if len(seq) == 0 or max_size == 0:
+        yield []
     else:
-        for item in powerset_generator_aux(seq[1:], min_size, max_size):
+        for item in recursive_powerset_generator(seq[1:], max_size - 1):
             yield [seq[0]] + item
+        for item in recursive_powerset_generator(seq[1:], max_size):
             yield item

@@ -41,10 +41,10 @@ class SeqOperator(PatternStructure):
 
 class KleeneClosureOperator(PatternStructure):
     def __init__(self, arg: PatternStructure, min_size=KC_MIN_SIZE, max_size=KC_MAX_SIZE):
-        if min_size < 0:
-            raise Exception("Invalid Argument: KleeneClosure node min_size < 0!")
+        if min_size <= 0:
+            raise Exception("Invalid Argument: KleeneClosure node min_size <= 0!")
         # enforce min_size <= max_size
-        if max_size and max_size < min_size:
+        if max_size is not None and max_size < min_size:
             raise Exception("Invalid Argument: KleeneClosure node max_size < min_size!")
         self.args = [arg]
         self.min_size = min_size
