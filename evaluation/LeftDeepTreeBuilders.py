@@ -13,8 +13,6 @@ from misc.Statistics import calculate_left_deep_tree_cost_function, MissingStati
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
 
-from base.PatternStructure import *
-
 
 class LeftDeepTreeBuilder(EvaluationMechanismBuilder):
     """
@@ -46,11 +44,10 @@ class LeftDeepTreeBuilder(EvaluationMechanismBuilder):
 
 
 class TrivialLeftDeepTreeBuilder(LeftDeepTreeBuilder):
-
     """
     Creates a left-deep tree following the pattern-specified order.
     """
-    def _create_evaluation_order(self, pattern):
+    def _create_evaluation_order(self, pattern: Pattern):
         args_num = len(pattern.structure.args)
         return list(range(args_num))
 

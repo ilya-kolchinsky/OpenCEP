@@ -6,7 +6,6 @@ class DataFormatter(ABC):
     An abstract class encapsulating the details regarding the input data format.
     A dedicated DataFormatter is expected to be implemented for each new type of input / dataset used by the system.
     """
-
     def parse_event(self, raw_data: str):
         """
         Transforms a raw data object representing a single event into a dictionary of objects, each corresponding

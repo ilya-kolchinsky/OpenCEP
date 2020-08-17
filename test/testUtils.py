@@ -13,7 +13,7 @@ from base.PatternStructure import AndOperator, SeqOperator, QItem
 from base.Pattern import Pattern
 import os
 
-eventFileLocation = os.path.join(current_project_directory, 'EventFiles')
+eventFileLocation = os.path.join(current_project_directory, 'test', 'EventFiles')
 nasdaqEventStreamTiny = file_input(os.path.join(eventFileLocation, 'NASDAQ_TINY.txt'), MetastockDataFormatter())
 nasdaqEventStreamShort = file_input(os.path.join(eventFileLocation, 'NASDAQ_SHORT.txt'), MetastockDataFormatter())
 nasdaqEventStreamMedium = file_input(os.path.join(eventFileLocation, 'NASDAQ_MEDIUM.txt'), MetastockDataFormatter())
@@ -87,8 +87,8 @@ def runTest(testName, patterns, createTestFile=False,
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
     file_output(matches, '%sMatches.txt' % testName)
-    expected_matches_path = os.path.join(current_project_directory, 'TestsExpected', '%sMatches.txt' % testName)
-    actual_matches_path = os.path.join(current_project_directory, 'Matches', '%sMatches.txt' % testName)
+    expected_matches_path = os.path.join(current_project_directory, 'test', 'TestsExpected', '%sMatches.txt' % testName)
+    actual_matches_path = os.path.join(current_project_directory, 'test', 'Matches', '%sMatches.txt' % testName)
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if fileCompare(actual_matches_path,
                                                                               expected_matches_path) else "Failed",

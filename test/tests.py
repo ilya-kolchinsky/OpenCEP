@@ -1,4 +1,5 @@
 from test.testUtils import *
+from test.KC_tests import *
 
 
 def oneArgumentsearchTest(createTestFile=False):
@@ -642,19 +643,24 @@ dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
 
+# ------------------------------------------------------
+#       KleeneClosure tests
+# ------------------------------------------------------
 
+oneArgumentsearchTestKleeneClosure()
+MinMax_0_TestKleeneClosure()
+MinMax_1_TestKleeneClosure()
+MinMax_2_TestKleeneClosure()
+KC_AND()
 
+# ------------------------------------------------------
+#   tests for the tree structure, CEP only created not used!.
+# ------------------------------------------------------
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+structuralTest1()
+structuralTest2()
+structuralTest3()
+structuralTest4()
+structuralTest5()
+structuralTest6()
+structuralTest7()

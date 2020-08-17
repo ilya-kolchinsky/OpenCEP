@@ -1,3 +1,4 @@
+from base.PatternStructure import KleeneClosureOperator
 from test.testUtils import *
 
 
@@ -227,25 +228,3 @@ def KC_AND(createTestFile=False):
         timedelta(minutes=3)
     )
     runTest("KC_AND_", [pattern], createTestFile, events=nasdaqEventStreamTiny)
-
-# ------------------------------------------------------
-#       KleeneClosure tests
-# ------------------------------------------------------
-
-oneArgumentsearchTestKleeneClosure()
-MinMax_0_TestKleeneClosure()
-MinMax_1_TestKleeneClosure()
-MinMax_2_TestKleeneClosure()
-KC_AND()
-
-# ------------------------------------------------------
-#   tests for the tree structure, CEP only created not used!.
-# ------------------------------------------------------
-
-structuralTest1()
-structuralTest2()
-structuralTest3()
-structuralTest4()
-structuralTest5()
-structuralTest6()
-structuralTest7()
