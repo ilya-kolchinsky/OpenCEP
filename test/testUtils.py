@@ -1,7 +1,7 @@
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
     IterativeImprovementEvaluationMechanismParameters
-from misc.IOUtils import file_input, file_output, current_project_directory
+from misc.IOUtils import file_input, file_output
 from misc.Stocks import MetastockDataFormatter
 from misc.Utils import generate_matches
 from evaluation.LeftDeepTreeBuilders import *
@@ -13,7 +13,7 @@ from base.PatternStructure import AndOperator, SeqOperator, QItem
 from base.Pattern import Pattern
 import os
 
-eventFileLocation = os.path.join(current_project_directory, 'test', 'EventFiles')
+eventFileLocation = os.path.join(os.path.join(os.getcwd()), 'test', 'EventFiles')
 nasdaqEventStreamTiny = file_input(os.path.join(eventFileLocation, 'NASDAQ_TINY.txt'), MetastockDataFormatter())
 nasdaqEventStreamShort = file_input(os.path.join(eventFileLocation, 'NASDAQ_SHORT.txt'), MetastockDataFormatter())
 nasdaqEventStreamMedium = file_input(os.path.join(eventFileLocation, 'NASDAQ_MEDIUM.txt'), MetastockDataFormatter())
@@ -70,7 +70,7 @@ def createTest(testName, patterns, events=None):
         events = events.duplicate()
     pattern = patterns[0]
     matches = generate_matches(pattern, events)
-    file_output(matches, os.path.join(current_project_directory, 'test', 'TestsExpected', '%sMatches.txt' % testName))
+    file_output(matches, os.path.join(os.getcwd(), 'test', 'TestsExpected', '%sMatches.txt' % testName))
     print("Finished creating test %s" % testName)
 
 
@@ -87,13 +87,13 @@ def runTest(testName, patterns, createTestFile=False,
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
     file_output(matches, '%sMatches.txt' % testName)
-    expected_matches_path = os.path.join(current_project_directory, 'test', 'TestsExpected', '%sMatches.txt' % testName)
-    actual_matches_path = os.path.join(current_project_directory, 'test', 'Matches', '%sMatches.txt' % testName)
+    expected_matches_path = os.path.join(os.getcwd(), 'test', 'TestsExpected', '%sMatches.txt' % testName)
+    actual_matches_path = os.path.join(os.getcwd(), 'test', 'Matches', '%sMatches.txt' % testName)
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if fileCompare(actual_matches_path,
                                                                               expected_matches_path) else "Failed",
                                                    running_time))
-    # os.remove(actual_matches_path)
+    os.remove(actual_matches_path)
 
 
 def runStructuralTest(testName, patterns, expected_result,
@@ -103,4 +103,4 @@ def runStructuralTest(testName, patterns, expected_result,
     # print('place a breakpoint after creating the CEP object to debug it.\n')
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     print("Test %s result: %s" % (testName,"Succeeded" if
-                                    cep.get_tree_structure_for_test() == expected_result else "Failed"))
+                                    cep.get_evaluation_mechanism_structure_summary() == expected_result else "Failed"))

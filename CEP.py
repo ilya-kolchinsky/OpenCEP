@@ -68,11 +68,11 @@ class CEP:
         """
         return self.__pattern_matches
 
-    def get_tree_structure_for_test(self):
+    def get_evaluation_mechanism_structure_summary(self):
         """
-        Returns a tree structure
+        Returns an object summarizing the structure of the underlying evaluation mechanism.
         """
-        return self.__eval_mechanism.get_tree_structure_for_test()
+        return self.__eval_mechanism.get_structure_summary()
 
     # For future support of dynamic workload modification
     def add_pattern(self, pattern: Pattern, priority: int = 0):

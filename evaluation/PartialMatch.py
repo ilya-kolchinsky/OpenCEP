@@ -13,9 +13,4 @@ class PartialMatch:
         self.first_timestamp = min(events, key=lambda x: x.timestamp).timestamp
 
     def __eq__(self, other):
-        if len(self.events) != len(other.events):
-            return False
-        for (event_self, event_other) in zip(self.events, other.events):
-            if event_self not in other.events or event_other not in self.events:
-                return False
-        return True
+        return isinstance(other, PartialMatch) and set(self.events) == set(other.events)

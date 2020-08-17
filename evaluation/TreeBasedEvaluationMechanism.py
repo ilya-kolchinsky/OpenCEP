@@ -98,9 +98,9 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    def get_tree_structure_for_test(self):
+    def get_structure_summary(self):
         """
-        Returns the specifications of all events - should be implemented by subclasses.
+        Returns the summary of the subtree rooted at this node - to be implemented by subclasses.
         """
         raise NotImplementedError()
 
@@ -148,8 +148,7 @@ class LeafNode(Node):
         if self._parent is not None:
             self._parent.handle_new_partial_match(self)
 
-
-    def get_tree_structure_for_test(self):
+    def get_structure_summary(self):
         return self.__event_name
 
 
@@ -328,8 +327,10 @@ class AndNode(BinaryNode):
                 actual_second_event_defs = second_event_defs
             self._try_create_new_match(new_partial_match, partialMatch, actual_first_event_defs, actual_second_event_defs)
 
-    def get_tree_structure_for_test(self):
-        return ("And", self._left_subtree.get_tree_structure_for_test(), self._right_subtree.get_tree_structure_for_test())
+    def get_structure_summary(self):
+        return ("And",
+                self._left_subtree.get_structure_summary(),
+                self._right_subtree.get_structure_summary())
 
 
 class SeqNode(BinaryNode):
@@ -406,8 +407,10 @@ class SeqNode(BinaryNode):
                 actual_second_event_defs = second_event_defs
             self._try_create_new_match(new_partial_match, partialMatch, actual_first_event_defs, actual_second_event_defs)
 
-    def get_tree_structure_for_test(self):
-        return ("Seq", self._left_subtree.get_tree_structure_for_test(), self._right_subtree.get_tree_structure_for_test())
+    def get_structure_summary(self):
+        return ("Seq",
+                self._left_subtree.get_structure_summary(),
+                self._right_subtree.get_structure_summary())
 
 
 class KleeneClosureNode(UnaryNode):
@@ -497,8 +500,8 @@ class KleeneClosureNode(UnaryNode):
         result_powerset = [item for item in result_powerset if self._min_size <= len(item)]
         return result_powerset
 
-    def get_tree_structure_for_test(self):
-        return ("KC", self._child.get_tree_structure_for_test())
+    def get_structure_summary(self):
+        return "KC", self._child.get_structure_summary()
 
 
 class Tree:
@@ -518,9 +521,11 @@ class Tree:
         while self.__root.has_partial_matches():
             yield self.__root.consume_first_partial_match().events
 
-    def get_tree_structure_for_test(self):
-        return self.__root.get_tree_structure_for_test()
-
+    def get_structure_summary(self):
+        """
+        Returns a tuple summarizing the structure of the tree.
+        """
+        return self.__root.get_structure_summary()
 
     @staticmethod
     def __generate_new_node(node_type, sliding_window, parent, min_size=1, max_size=5):
@@ -639,5 +644,5 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
         matches.close()
 
-    def get_tree_structure_for_test(self):
-        return self.__tree.get_tree_structure_for_test()
+    def get_structure_summary(self):
+        return self.__tree.get_structure_summary()
