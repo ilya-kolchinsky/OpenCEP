@@ -236,7 +236,7 @@ class BinaryNode(InternalNode, ABC):
         """
         A helper function for collecting the event definitions from subtrees. To be overridden by subclasses.
         """
-        raise NotImplementedError()
+        self._event_defs = left_event_defs + right_event_defs
 
     def set_subtrees(self, left: Node, right: Node):
         """
@@ -246,53 +246,6 @@ class BinaryNode(InternalNode, ABC):
         self._right_subtree = right
         self._set_event_definitions(self._left_subtree.get_event_definitions(),
                                     self._right_subtree.get_event_definitions())
-
-    def handle_new_partial_match(self, partial_match_source: Node):
-        raise NotImplementedError()
-
-
-class AndNode(BinaryNode):
-    """
-    An internal node representing an "AND" operator.
-    """
-    def _set_event_definitions(self,
-                               left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
-        """
-        A helper function for collecting the event definitions from subtrees. To be overridden by subclasses.
-        """
-        self._event_defs = left_event_defs + right_event_defs
-
-    def _merge_events_for_new_match(self,
-                                    first_event_defs: List[Tuple[int, QItem]],
-                                    second_event_defs: List[Tuple[int, QItem]],
-                                    first_event_list: List[Event],
-                                    second_event_list: List[Event]):
-        """
-        Creates a list of events to be included in a new partial match.
-        """
-        if self._event_defs[0][0] == first_event_defs[0][0]:
-            return first_event_list + second_event_list
-        if self._event_defs[0][0] == second_event_defs[0][0]:
-            return second_event_list + first_event_list
-        raise Exception()
-
-    def _try_create_new_match(self,
-                              first_partial_match: PartialMatch, second_partial_match: PartialMatch,
-                              first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
-        """
-        Verifies all the conditions for creating a new partial match and creates it if all constraints are satisfied.
-        """
-        if self._sliding_window != timedelta.max and \
-                abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
-            return
-        events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
-                                                                first_partial_match.events, second_partial_match.events)
-
-        if not self._validate_new_match(events_for_new_match):
-            return
-        self.add_partial_match(PartialMatch(events_for_new_match))
-        if self._parent is not None:
-            self._parent.handle_new_partial_match(self)
 
     def handle_new_partial_match(self, partial_match_source: Node):
         """
@@ -327,6 +280,43 @@ class AndNode(BinaryNode):
                 actual_second_event_defs = second_event_defs
             self._try_create_new_match(new_partial_match, partialMatch, actual_first_event_defs, actual_second_event_defs)
 
+    def _try_create_new_match(self,
+                              first_partial_match: PartialMatch, second_partial_match: PartialMatch,
+                              first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
+        """
+        Verifies all the conditions for creating a new partial match and creates it if all constraints are satisfied.
+        """
+        if self._sliding_window != timedelta.max and \
+                abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
+            return
+        events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
+                                                                first_partial_match.events, second_partial_match.events)
+
+        if not self._validate_new_match(events_for_new_match):
+            return
+        self.add_partial_match(PartialMatch(events_for_new_match))
+        if self._parent is not None:
+            self._parent.handle_new_partial_match(self)
+
+    def _merge_events_for_new_match(self,
+                                    first_event_defs: List[Tuple[int, QItem]],
+                                    second_event_defs: List[Tuple[int, QItem]],
+                                    first_event_list: List[Event],
+                                    second_event_list: List[Event]):
+        """
+        Creates a list of events to be included in a new partial match.
+        """
+        if self._event_defs[0][0] == first_event_defs[0][0]:
+            return first_event_list + second_event_list
+        if self._event_defs[0][0] == second_event_defs[0][0]:
+            return second_event_list + first_event_list
+        raise Exception()
+
+
+class AndNode(BinaryNode):
+    """
+    An internal node representing an "AND" operator.
+    """
     def get_structure_summary(self):
         return ("And",
                 self._left_subtree.get_structure_summary(),
@@ -350,62 +340,10 @@ class SeqNode(BinaryNode):
         return merge_according_to(first_event_defs, second_event_defs,
                                   first_event_list, second_event_list, key=lambda x: x[0])
 
-    def _try_create_new_match(self,
-                              first_partial_match: PartialMatch, second_partial_match: PartialMatch,
-                              first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
-        """
-        Verifies all the conditions for creating a new partial match and creates it if all constraints are satisfied.
-        """
-        if self._sliding_window != timedelta.max and \
-                abs(first_partial_match.last_timestamp - second_partial_match.first_timestamp) > self._sliding_window:
-            return
-        events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
-                                                                first_partial_match.events, second_partial_match.events)
-
-        if not self._validate_new_match(events_for_new_match):
-            return
-        self.add_partial_match(PartialMatch(events_for_new_match))
-        if self._parent is not None:
-            self._parent.handle_new_partial_match(self)
-
     def _validate_new_match(self, events_for_new_match: List[Event]):
         if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
             return False
         return super()._validate_new_match(events_for_new_match)
-
-    def handle_new_partial_match(self, partial_match_source: Node):
-        """
-        Internal node's update for a new partial match in one of the subtrees.
-        """
-        if partial_match_source == self._left_subtree:
-            other_subtree = self._right_subtree
-        elif partial_match_source == self._right_subtree:
-            other_subtree = self._left_subtree
-        else:
-            raise Exception()  # should never happen
-
-        new_partial_match = partial_match_source.get_last_unhandled_partial_match()
-        first_event_defs = partial_match_source.get_event_definitions()
-
-        if isinstance(partial_match_source, KleeneClosureNode):
-            actual_first_event_defs = first_event_defs * (len(new_partial_match.events) // len(first_event_defs))
-        else:
-            actual_first_event_defs = first_event_defs
-
-        other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
-        partial_matches_to_compare = other_subtree.get_partial_matches()
-
-        second_event_defs = other_subtree.get_event_definitions()
-
-        self.clean_expired_partial_matches(new_partial_match.last_timestamp)
-        # given a partial match from one subtree, for each partial match
-        # in the other subtree we check for new partial matches in this node.
-        for partialMatch in partial_matches_to_compare:
-            if isinstance(other_subtree, KleeneClosureNode):
-                actual_second_event_defs = second_event_defs * (len(partialMatch.events) // len(second_event_defs))
-            else:
-                actual_second_event_defs = second_event_defs
-            self._try_create_new_match(new_partial_match, partialMatch, actual_first_event_defs, actual_second_event_defs)
 
     def get_structure_summary(self):
         return ("Seq",
