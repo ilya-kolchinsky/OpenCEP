@@ -3,7 +3,6 @@ from datetime import timedelta, datetime
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, QItem
 from base.Formula import TrueFormula, Formula
-# from evaluation.LeftDeepTreeBuilders import LeftDeepTreeBuilder
 from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
 from typing import List, Tuple
@@ -153,6 +152,9 @@ class LeafNode(Node):
 
 
 class InternalNode(Node, ABC):
+    """
+    This class represents a non-leaf node of an evaluation tree.
+    """
     def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None):
         super().__init__(sliding_window, parent)
         self._event_defs = event_defs
@@ -169,39 +171,39 @@ class InternalNode(Node, ABC):
         }
         return self._condition.eval(binding)
 
-    def get_leaves(self):
-        raise NotImplementedError()
-
-    def apply_formula(self, formula: Formula):
-        raise NotImplementedError()
-
-
-class UnaryNode(InternalNode, ABC):
-
-    def __init__(self, sliding_window: timedelta, parent: Node = None, child: Node = None):
-        super().__init__(sliding_window, parent)
-        self._child = child
-
-    def get_leaves(self):
-        result = []
-        if self._child is None:
-            raise Exception("Unary Node with no child")
-
-        result += self._child.get_leaves()
-        return result
-
-    def _set_event_definitions(self, event_defs: List[Tuple[int, QItem]]):
-        self._event_defs = event_defs
-
     def apply_formula(self, formula: Formula):
         names = {item[1].name for item in self._event_defs}
         condition = formula.get_formula_of(names)
         self._condition = condition if condition else TrueFormula()
+        self._propagate_condition()
+
+    def _propagate_condition(self):
+        """
+        Propagates the condition stored in this node to the child tree(s).
+        """
+        raise NotImplementedError()
+
+
+class UnaryNode(InternalNode, ABC):
+    """
+    Represents an internal tree node with a single child.
+    """
+    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
+                 child: Node = None):
+        super().__init__(sliding_window, parent, event_defs)
+        self._child = child
+
+    def get_leaves(self):
+        if self._child is None:
+            raise Exception("Unary Node with no child")
+        return self._child.get_leaves()
+
+    def _propagate_condition(self):
         self._child.apply_formula(self._condition)
 
     def set_subtrees(self, child: Node):
         self._child = child
-        self._set_event_definitions(self._child.get_event_definitions())
+        self._event_defs = child.get_event_definitions()
 
     def handle_new_partial_match(self, partial_match_source: Node):
         raise NotImplementedError()
@@ -211,8 +213,9 @@ class BinaryNode(InternalNode, ABC):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None, left: Node = None, right: Node = None):
-        super().__init__(sliding_window, parent)
+    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, parent, event_defs)
         self._left_subtree = left
         self._right_subtree = right
 
@@ -224,17 +227,14 @@ class BinaryNode(InternalNode, ABC):
             result += self._right_subtree.get_leaves()
         return result
 
-    def apply_formula(self, formula: Formula):
-        names = {item[1].name for item in self._event_defs}
-        condition = formula.get_formula_of(names)
-        self._condition = condition if condition else TrueFormula()
+    def _propagate_condition(self):
         self._left_subtree.apply_formula(self._condition)
         self._right_subtree.apply_formula(self._condition)
 
     def _set_event_definitions(self,
                                left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
         """
-        A helper function for collecting the event definitions from subtrees. To be overridden by subclasses.
+        A helper function for collecting the event definitions from subtrees.
         """
         self._event_defs = left_event_defs + right_event_defs
 
@@ -260,11 +260,6 @@ class BinaryNode(InternalNode, ABC):
 
         new_partial_match = partial_match_source.get_last_unhandled_partial_match()
         first_event_defs = partial_match_source.get_event_definitions()
-        if isinstance(partial_match_source, KleeneClosureNode):
-            actual_first_event_defs = first_event_defs * (len(new_partial_match.events) // len(first_event_defs))
-        else:
-            actual_first_event_defs = first_event_defs
-
         other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
         partial_matches_to_compare = other_subtree.get_partial_matches()
         second_event_defs = other_subtree.get_event_definitions()
@@ -274,11 +269,7 @@ class BinaryNode(InternalNode, ABC):
         # given a partial match from one subtree, for each partial match
         # in the other subtree we check for new partial matches in this node.
         for partialMatch in partial_matches_to_compare:
-            if isinstance(other_subtree, KleeneClosureNode):
-                actual_second_event_defs = second_event_defs * (len(partialMatch.events) // len(second_event_defs))
-            else:
-                actual_second_event_defs = second_event_defs
-            self._try_create_new_match(new_partial_match, partialMatch, actual_first_event_defs, actual_second_event_defs)
+            self._try_create_new_match(new_partial_match, partialMatch, first_event_defs, second_event_defs)
 
     def _try_create_new_match(self,
                               first_partial_match: PartialMatch, second_partial_match: PartialMatch,
@@ -329,7 +320,8 @@ class SeqNode(BinaryNode):
     In addition to checking the time window and condition like the basic node does, SeqNode also verifies the order
     of arrival of the events in the partial matches it constructs.
     """
-    def _set_event_definitions(self, left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
+    def _set_event_definitions(self,
+                               left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
         self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
 
     def _merge_events_for_new_match(self,
@@ -448,7 +440,6 @@ class Tree:
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     """
     def __init__(self, tree_structure: tuple, pattern: Pattern):
-        self.__current_leaf_number = 0
         self.__root = self.__construct_tree(pattern.structure, tree_structure, pattern.structure.args, pattern.window)
         self.__root.apply_formula(pattern.condition)
 
@@ -492,13 +483,11 @@ class Tree:
                     current = self.__generate_new_node(KleeneClosureOperator, sliding_window, parent,
                                                        root_operator.min_size, root_operator.max_size)
                     child = LeafNode(sliding_window, tree_structure, args[tree_structure], current)
-                    self.__current_leaf_number += 1
                     current.set_subtrees(child)
                     return current
 
                 # no KC operations needed or KC node was already generated in previous nesting level -- create the leaf.
                 leaf = LeafNode(sliding_window, tree_structure, args[tree_structure], parent)
-                self.__current_leaf_number += 1
                 return leaf
 
             # NESTED operator found -- recursively calling construct tree
