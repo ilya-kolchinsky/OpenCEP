@@ -183,6 +183,12 @@ class InternalNode(Node, ABC):
         """
         raise NotImplementedError()
 
+    def handle_new_partial_match(self, partial_match_source: Node):
+        """
+        A handler for a notification regarding a new partial match generated at one of this node's children.
+        """
+        raise NotImplementedError()
+
 
 class UnaryNode(InternalNode, ABC):
     """
@@ -204,9 +210,6 @@ class UnaryNode(InternalNode, ABC):
     def set_subtrees(self, child: Node):
         self._child = child
         self._event_defs = child.get_event_definitions()
-
-    def handle_new_partial_match(self, partial_match_source: Node):
-        raise NotImplementedError()
 
 
 class BinaryNode(InternalNode, ABC):
@@ -345,66 +348,37 @@ class SeqNode(BinaryNode):
 
 class KleeneClosureNode(UnaryNode):
     """
-    An internal node representing a "KC" (KleeneClosure) operator.
-    In addition to checking the time window and condition like the basic node does, KleeneClosureNode also verifies that
-    no duplicated events are sent and filters matches based on previously failed prefixes (PREFIX NOT YET IMPLEMENTED).
+    An internal node representing a Kleene closure operator.
+    It generates and propagates sets of partial matches provided by its sole child.
     """
     def __init__(self, sliding_window: timedelta, min_size, max_size, parent: Node = None):
         super().__init__(sliding_window, parent)
-        self._min_size = min_size
-        self._max_size = max_size
-
-    def partial_match_from_partial_match_set(self, power_match):
-        min_timestamp = None
-        max_timestamp = None
-
-        cur_event = []
-
-        for match in power_match:
-            min_timestamp = match.first_timestamp if not min_timestamp else min(min_timestamp, match.first_timestamp)
-            max_timestamp = match.last_timestamp if not max_timestamp else max(max_timestamp, match.last_timestamp)
-            cur_event.extend(match.events)
-
-        return PartialMatch(cur_event)
-
-    def _try_create_new_match(self, new_partial_match: PartialMatch, power_match: PartialMatch,
-                              event_defs: List[Tuple[int, QItem]]):
-        """
-        Gather all satisfied conditions and create a new partial match for every new item in the events powerset
-        """
-
-        if power_match is None:
-            return
-
-        if self._sliding_window != timedelta.max and \
-                abs(new_partial_match.last_timestamp - power_match.first_timestamp) > self._sliding_window:
-            return
-
-        events_for_new_match = power_match.events
-
-        # save partial match to the local storage.
-        self.add_partial_match(PartialMatch(events_for_new_match))
-        # forward partial match to parent if exists or save in current node if this is the root node.
-        if self._parent is not None:
-            self._parent.handle_new_partial_match(self)
+        self.__min_size = min_size
+        self.__max_size = max_size
 
     def handle_new_partial_match(self, partial_match_source: Node):
+        """
+        Reacts upon a notification of a new partial match available at the child by generating, validating, and
+        propagating all sets of partial matches containing this new partial match.
+        Note: this method strictly assumes that the last partial match in the child storage is the one to cause the
+        method call (could not function properly in a parallelized implementation of the evaluation tree).
+        """
         if self._child is None:
             raise Exception()  # should never happen
 
         new_partial_match = self._child.get_last_unhandled_partial_match()
-        event_defs = self._child.get_event_definitions()
-
         self._child.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
-        # create child event power-set
+        # create partial match sets containing the new partial match that triggered this method
         child_matches_powerset = self.__create_child_matches_powerset()
 
-        for partialMatch in child_matches_powerset:
-            partial_match = self.partial_match_from_partial_match_set(partialMatch)
-            # self._event_defs = event_defs * (len(partialMatch))
-
-            self._try_create_new_match(new_partial_match, partial_match, self._event_defs)
+        for partial_match_set in child_matches_powerset:
+            # create and propagate the new match
+            # TODO: no validation is supported as of now
+            partial_match = KleeneClosureNode.partial_match_from_partial_match_set(partial_match_set)
+            self.add_partial_match(partial_match)
+            if self._parent is not None:
+                self._parent.handle_new_partial_match(self)
 
     def __create_child_matches_powerset(self):
         """
@@ -422,16 +396,32 @@ class KleeneClosureNode(UnaryNode):
             return []
         last_partial_match = child_partial_matches[0]
         # create subsets for all but the last element
-        actual_max_size = self._max_size if self._max_size is not None else len(child_partial_matches)
+        actual_max_size = self.__max_size if self.__max_size is not None else len(child_partial_matches)
         generated_powerset = recursive_powerset_generator(child_partial_matches[:-1], actual_max_size - 1)
         # add the last item to all previously created subsets
         result_powerset = [item + [last_partial_match] for item in generated_powerset]
         # enforce minimal size limit
-        result_powerset = [item for item in result_powerset if self._min_size <= len(item)]
+        result_powerset = [item for item in result_powerset if self.__min_size <= len(item)]
         return result_powerset
 
     def get_structure_summary(self):
         return "KC", self._child.get_structure_summary()
+
+    @staticmethod
+    def partial_match_from_partial_match_set(partial_match_set: List[PartialMatch]):
+        """
+        Converts a set of partial matches into a single partial match containing all primitive events of the partial
+        matches in the set.
+        TODO: this is not the way this operator should work!
+        """
+        min_timestamp = None
+        max_timestamp = None
+        events = []
+        for match in partial_match_set:
+            min_timestamp = match.first_timestamp if min_timestamp is None else min(min_timestamp, match.first_timestamp)
+            max_timestamp = match.last_timestamp if max_timestamp is None else max(max_timestamp, match.last_timestamp)
+            events.extend(match.events)
+        return PartialMatch(events)
 
 
 class Tree:
