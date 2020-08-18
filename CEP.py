@@ -12,6 +12,9 @@ from evaluation.EvaluationMechanismFactory import (
 from typing import List
 from datetime import datetime
 
+from parallerization.EvaluationMechanismConfiguration import EvaluationMechanismConfiguration
+from parallerization.EvalutionMechanizmManager import EvaluationMechanismManager
+
 
 class PerformanceSpecifications:
     """
@@ -39,9 +42,20 @@ class CEP:
             raise Exception("No patterns are provided")
         if len(patterns) > 1:
             raise NotImplementedError("Multi-pattern support is not yet available")
-        self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
-                                                                                               eval_mechanism_params,
-                                                                                               patterns[0])
+
+        # TODO: change to input from user
+        distributed = False
+        num_of_servers = 1
+        num_of_procceses = 1
+        splitted_data = False
+        data_split_function = None
+
+        evalution_mechanizm_configuration =  \
+            EvaluationMechanismConfiguration(splitted_data, data_split_function, distributed, num_of_servers, num_of_procceses,
+                                             eval_mechanism_type, eval_mechanism_params, patterns[0])
+
+        self.__eval_mechanism_manager = EvaluationMechanismManager(evalution_mechanizm_configuration)
+
         self.__pattern_matches = None
         self.__performance_specs = performance_specs
 
@@ -53,9 +67,9 @@ class CEP:
         self.__pattern_matches = Stream()
         start = datetime.now()
         if is_async:
-            self.__eval_mechanism.eval(event_stream, self.__pattern_matches, is_async=True, file_path=file_path, time_limit=time_limit)
+            self.__eval_mechanism_manager.eval(event_stream, self.__pattern_matches, is_async=True, file_path=file_path, time_limit=time_limit)
         else:
-            self.__eval_mechanism.eval(event_stream, self.__pattern_matches)
+            self.__eval_mechanism_manager.eval(event_stream, self.__pattern_matches)
         return (datetime.now() - start).total_seconds()
 
     def get_pattern_match(self):
