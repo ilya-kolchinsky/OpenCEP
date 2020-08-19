@@ -126,10 +126,10 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
     print("Finished creating test %s" % testName)
 
 
-def runTest(testName, patterns, parallel_params: InputParallelParameters = None,
-            createTestFile = False,
+def runTest(testName, patterns, createTestFile = False,
             eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-            eval_mechanism_params = None, events = None, eventStream = nasdaqEventStream):
+            parallel_params: InputParallelParameters = None, eval_mechanism_params = None, events = None,
+            eventStream = nasdaqEventStream):
     if createTestFile:
         createTest(testName, patterns, events, eventStream = eventStream)
     if events is None:

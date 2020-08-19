@@ -6,7 +6,7 @@ from evaluation.EvaluationMechanismFactory import (
 )
 from misc.IOUtils import Stream
 from parallerization import EvaluationMechanismConfiguration
-from base import Pattern
+from base.Pattern import Pattern
 
 from misc.Utils import split_data
 
@@ -19,29 +19,29 @@ class EvaluationMechanismManager:
         self._master = None
 
         #original event stream
-        self._event_stream =  Stream()
+        self._event_stream = Stream()
         #array of Streams after we splitted the original event_stream according to user function
-        self._event_stream_splitted =  []
+        self._event_stream_splitted = []
 
 
     def build_evaluation_mechanisms(self):
         config = self._evaluation_mechanism_configuration
 
-        execution_units = config._parallel_params._num_of_servers * config._parallel_params._num_of_processes
+        execution_units = config.parallel_params.num_of_servers * config.parallel_params.num_of_processes
 
-        if type(config._pattern) == Pattern:#if there is a single pattern
-           source_eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(config._eval_mechanism_type,
-                                                                                                  config._eval_mechanism_params,
-                                                                                                  config._patterns[0])
-           if execution_units > 1:
+        if type(config.pattern) == Pattern:#if there is a single pattern
+            source_eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(config.eval_mechanism_type,
+                                                                                                  config.eval_mechanism_params,
+                                                                                                  config.pattern)
+            if execution_units > 1:
                 self._evaluation_mechanisms, self._master = source_eval_mechanism.split(execution_units)
-           else:
-               self._evaluation_mechanisms.append(source_eval_mechanism)
+            else:
+               self._evaluation_mechanisms_list.append(source_eval_mechanism)
 
         else:#in multi pattern mode
             raise NotImplementedError()#not implemented yet
 
-        if config._splitted_data:
+        if config.parallel_params.is_data_splitted:
             self._event_stream_splitted = split_data(self._event_stream, config._data_split_func)
             num_of_data_parts = len(self._event_stream_splitted)
             #duplicate source_eval_mechanism num_of_data_parts times into self._evaluation_mechanisms_list

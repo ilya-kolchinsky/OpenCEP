@@ -12,10 +12,10 @@ class EvaluationMechanismConfiguration:
     def __init__(self, pattern: Pattern, parallel_params: InputParallelParameters, eval_mechanism_type: EvaluationMechanismTypes,
                  eval_mechanism_params: EvaluationMechanismParameters):
 
-        self._parallel_params = parallel_params
-        self._eval_mechanism_type = eval_mechanism_type
-        self._eval_mechanism_params = eval_mechanism_params
-        self._pattern = pattern#TODO add support to multi patterns
+        self.parallel_params = parallel_params
+        self.eval_mechanism_type = eval_mechanism_type
+        self.eval_mechanism_params = eval_mechanism_params
+        self.pattern = pattern#TODO add support to multi patterns
 
 
     def input_data_check(self):
