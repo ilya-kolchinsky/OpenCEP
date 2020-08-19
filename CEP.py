@@ -14,6 +14,7 @@ from datetime import datetime
 
 from parallerization.EvaluationMechanismConfiguration import EvaluationMechanismConfiguration
 from parallerization.EvalutionMechanizmManager import EvaluationMechanismManager
+from parallerization.InputParallelParameters import InputParallelParameters
 
 
 class PerformanceSpecifications:
@@ -32,6 +33,7 @@ class CEP:
     The evaluation mechanism is created according to the parameters specified in the constructor.
     """
     def __init__(self, patterns: List[Pattern],
+                 parallel_params: InputParallelParameters,
                  eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
                  eval_mechanism_params: EvaluationMechanismParameters = None,
                  performance_specs: PerformanceSpecifications = None):
@@ -43,18 +45,11 @@ class CEP:
         if len(patterns) > 1:
             raise NotImplementedError("Multi-pattern support is not yet available")
 
-        # TODO: change to input from user
-        distributed = False
-        num_of_servers = 1
-        num_of_procceses = 1
-        splitted_data = False
-        data_split_function = None
+        evaluation_mechanism_configuration = EvaluationMechanismConfiguration(patterns[0],
+                                                                              parallel_params,
+                                             eval_mechanism_type, eval_mechanism_params)
 
-        evalution_mechanizm_configuration =  \
-            EvaluationMechanismConfiguration(splitted_data, data_split_function, distributed, num_of_servers, num_of_procceses,
-                                             eval_mechanism_type, eval_mechanism_params, patterns[0])
-
-        self.__eval_mechanism_manager = EvaluationMechanismManager(evalution_mechanizm_configuration)
+        self.__eval_mechanism_manager = EvaluationMechanismManager(evaluation_mechanism_configuration)
 
         self.__pattern_matches = None
         self.__performance_specs = performance_specs

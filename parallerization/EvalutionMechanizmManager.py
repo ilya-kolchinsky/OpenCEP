@@ -1,55 +1,59 @@
-from numpy import size
 
-from evaluation import EvaluationMechanismFactory
+from evaluation.EvaluationMechanismFactory import (
+    EvaluationMechanismParameters,
+    EvaluationMechanismTypes,
+    EvaluationMechanismFactory,
+)
 from misc.IOUtils import Stream
 from parallerization import EvaluationMechanismConfiguration
+from base import Pattern
+
+from misc.Utils import split_data
 
 
 class EvaluationMechanismManager:
 
-    def __init__(self, evalution_mechanizm_configuration: EvaluationMechanismConfiguration):
+    def __init__(self, evaluation_mechanism_configuration: EvaluationMechanismConfiguration):
+        self._evaluation_mechanism_configuration = evaluation_mechanism_configuration
+        self._evaluation_mechanisms_list = []
+        self._master = None
 
-        self._evalution_mechanizm_configuration = evalution_mechanizm_configuration
-
-        self.__evaluation_machamizms =  []
-        self.__master =  None
-
-        self.__event_stream =  Stream()
-
-        self.__event_stream_splitted =  []
+        #original event stream
+        self._event_stream =  Stream()
+        #array of Streams after we splitted the original event_stream according to user function
+        self._event_stream_splitted =  []
 
 
-    def bulild_evaluation_machamizms(self):
-        confg = self.evalution_mechanizm_configuration
+    def build_evaluation_mechanisms(self):
+        config = self._evaluation_mechanism_configuration
 
-        execution_units = num_of_servers * num_of_proc
+        execution_units = config._parallel_params._num_of_servers * config._parallel_params._num_of_processes
 
-        if (confg.splitted_data == True):
-            self.event_stream_splitted = self._evalution_mechanizm_configuration.split_data(self.__event_stream)
-
-        if (size(self.evalution_mechanizm_configuration._pattern) == 1):
-
-           source_eval_mechanism = EvaluationMechanismFactory.\
-               build_single_pattern_eval_mechanism( confg._eval_mechanism_type, confg._eval_mechanism_params, confg._pattern)
-
+        if type(config._pattern) == Pattern:#if there is a single pattern
+           source_eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(config._eval_mechanism_type,
+                                                                                                  config._eval_mechanism_params,
+                                                                                                  config._patterns[0])
            if execution_units > 1:
-                self.__evaluation_machamizms, self.__master = source_eval_mechanism.split(execution_units)
+                self._evaluation_mechanisms, self._master = source_eval_mechanism.split(execution_units)
            else:
-               self.__evaluation_machamizms.append(eval_mechanism)
+               self._evaluation_mechanisms.append(source_eval_mechanism)
+
+        else:#in multi pattern mode
+            raise NotImplementedError()#not implemented yet
+
+        if config._splitted_data:
+            self._event_stream_splitted = split_data(self._event_stream, config._data_split_func)
+            num_of_data_parts = len(self._event_stream_splitted)
+            #duplicate source_eval_mechanism num_of_data_parts times into self._evaluation_mechanisms_list
 
 
-        else:
-            pass
+    def eval(self, event_stream, pattern_matches, is_async = False, file_path = None, time_limit = None):
 
+         self.build_evaluation_mechanisms()
 
-
-
-    def eval(self, event_stream, __pattern_matches, is_async, file_path, time_limit):
-
-         self.bulild_evaluation_machamizms(event_stream)
-
-         for evalution_mechanizm: self.__evaluation_machamizms:
-            evalution_mechanizm.eval()
+         #yet to be paralelized code
+         for evaluation_mechanism in self._evaluation_mechanisms_list:
+            evaluation_mechanism.eval()
 
 
 

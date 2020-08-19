@@ -13,6 +13,7 @@ from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFo
 from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
 from base.Pattern import Pattern
 from evaluation.PartialMatchStorage import TreeStorageParameters
+from parallerization.InputParallelParameters import InputParallelParameters
 try:
     from UnitTests.test_storage import run_storage_tests
 except ImportError:
@@ -125,7 +126,8 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
     print("Finished creating test %s" % testName)
 
 
-def runTest(testName, patterns, createTestFile = False,
+def runTest(testName, patterns, parallel_params: InputParallelParameters = None,
+            createTestFile = False,
             eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
             eval_mechanism_params = None, events = None, eventStream = nasdaqEventStream):
     if createTestFile:
@@ -150,7 +152,10 @@ def runTest(testName, patterns, createTestFile = False,
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
 
-    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
+    if parallel_params == None:
+        parallel_params = InputParallelParameters()
+
+    cep = CEP(patterns, parallel_params, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
     file_output(absolutePath, matches, '%sMatches.txt' % testName)
@@ -982,6 +987,7 @@ contiguousPolicyPatternSearchTest()
 contiguousPolicy2PatternSearchTest()
 freezePolicyPatternSearchTest()
 freezePolicy2PatternSearchTest()
+
 
 # storage tests
 sortedStorageTest()

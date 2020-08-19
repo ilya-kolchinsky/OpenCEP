@@ -5,21 +5,17 @@ from evaluation.EvaluationMechanismFactory import (
     EvaluationMechanismTypes,
     EvaluationMechanismFactory,
 )
+from parallerization import InputParallelParameters
 
 class EvaluationMechanismConfiguration:
 
-    def __init__(self, func, distributed: bool, num_of_servers : int, num_of_processes : int, pattern: Pattern,
-                 eval_mechanism_type: EvaluationMechanismTypes, eval_mechanism_params: EvaluationMechanismParameters):
+    def __init__(self, pattern: Pattern, parallel_params: InputParallelParameters, eval_mechanism_type: EvaluationMechanismTypes,
+                 eval_mechanism_params: EvaluationMechanismParameters):
 
-        self._splitted_data = distributed
-        self._data_split_function = func
-
-        self._distributed = distributed
-        self._num_of_servers = num_of_servers
-        self._num_of_processes = num_of_processes
+        self._parallel_params = parallel_params
         self._eval_mechanism_type = eval_mechanism_type
         self._eval_mechanism_params = eval_mechanism_params
-        self._pattern = pattern
+        self._pattern = pattern#TODO add support to multi patterns
 
 
     def input_data_check(self):
