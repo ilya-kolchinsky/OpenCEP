@@ -7,6 +7,7 @@ from evaluation.IterativeImprovement import IterativeImprovementType
 from evaluation.LeftDeepTreeBuilders import IterativeImprovementInitType, TrivialLeftDeepTreeBuilder, \
     AscendingFrequencyTreeBuilder, GreedyLeftDeepTreeBuilder, IterativeImprovementLeftDeepTreeBuilder, \
     DynamicProgrammingLeftDeepTreeBuilder
+from evaluation.PartialMatchStorage import TreeStorageParameters
 
 
 class EvaluationMechanismTypes(Enum):
@@ -31,15 +32,26 @@ class EvaluationMechanismParameters:
         self.type = eval_mechanism_type
 
 
-class IterativeImprovementEvaluationMechanismParameters(EvaluationMechanismParameters):
+class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
+    """
+    shared Parameters for the Tree Based evaluation mechanism builders.
+    """
+    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+                 storage_params: TreeStorageParameters = TreeStorageParameters()):
+        super().__init__(eval_mechanism_type)
+        self.storage_params = storage_params
+
+
+class IterativeImprovementEvaluationMechanismParameters(TreeBasedEvaluationMechanismParameters):
     """
     Parameters for evaluation mechanism builders based on local search include the number of search steps, the
     choice of the neighborhood (step) function, and the way to generate the initial state.
     """
     def __init__(self, step_limit: int,
                  ii_type: IterativeImprovementType = IterativeImprovementType.SWAP_BASED,
-                 init_type: IterativeImprovementInitType = IterativeImprovementInitType.RANDOM):
-        super().__init__(EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE)
+                 init_type: IterativeImprovementInitType = IterativeImprovementInitType.RANDOM,
+                 storage_params: TreeStorageParameters = TreeStorageParameters()):
+        super().__init__(EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE, storage_params)
         self.ii_type = ii_type
         self.init_type = init_type
         self.step_limit = step_limit
@@ -49,21 +61,28 @@ class EvaluationMechanismFactory:
     """
     Creates an evaluation mechanism given its specification.
     """
+
     @staticmethod
     def build_single_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,
                                             eval_mechanism_params: EvaluationMechanismParameters,
                                             pattern: Pattern):
-        return EvaluationMechanismFactory. \
-            __create_eval_mechanism_builder(eval_mechanism_type, eval_mechanism_params). \
-            build_single_pattern_eval_mechanism(pattern)
+        storage_params = eval_mechanism_params.storage_params \
+                         if isinstance(eval_mechanism_params, TreeBasedEvaluationMechanismParameters) \
+                         else TreeStorageParameters()
+        eval_mechanism_builder = EvaluationMechanismFactory.__create_eval_mechanism_builder(eval_mechanism_type,
+                                                                                            eval_mechanism_params)
+        return eval_mechanism_builder.build_single_pattern_eval_mechanism(pattern, storage_params)
 
     @staticmethod
     def build_multi_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,
                                            eval_mechanism_params: EvaluationMechanismParameters,
                                            patterns: List[Pattern]):
-        return EvaluationMechanismFactory. \
-            __create_eval_mechanism_builder(eval_mechanism_type, eval_mechanism_params). \
-            build_multi_pattern_eval_mechanism(patterns)
+        storage_params = eval_mechanism_params.storage_params \
+                         if isinstance(eval_mechanism_params, TreeBasedEvaluationMechanismParameters) \
+                         else TreeStorageParameters()
+        eval_mechanism_builder = EvaluationMechanismFactory.__create_eval_mechanism_builder(eval_mechanism_type,
+                                                                                            eval_mechanism_params)
+        return eval_mechanism_builder.build_multi_pattern_eval_mechanism(patterns, storage_params)
 
     @staticmethod
     def __create_eval_mechanism_builder(eval_mechanism_type: EvaluationMechanismTypes,

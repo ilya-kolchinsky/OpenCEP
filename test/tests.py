@@ -1,12 +1,190 @@
 from test.testUtils import *
 from test.KC_tests import *
 
+import sys, os, pathlib
+from CEP import CEP
+from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
+    IterativeImprovementEvaluationMechanismParameters, TreeBasedEvaluationMechanismParameters
+from misc.IOUtils import file_input, file_output
+from plugin.stocks.Stocks import MetastockDataFormatter
+from misc.Utils import generate_matches
+from misc.ConsumptionPolicy import *
+from evaluation.LeftDeepTreeBuilders import *
+from evaluation.BushyTreeBuilders import *
+from datetime import timedelta
+from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, MinusTerm, AtomicTerm, AndFormula, TrueFormula
+from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
+from base.Pattern import Pattern
+from evaluation.PartialMatchStorage import TreeStorageParameters
+try:
+    from UnitTests.test_storage import run_storage_tests
+except ImportError:
+    from test.UnitTests.test_storage import run_storage_tests
 
-def oneArgumentsearchTest(createTestFile=False):
+currentPath = pathlib.Path(os.path.dirname(__file__))
+absolutePath = str(currentPath.parent)
+sys.path.append(absolutePath)
+
+INCLUDE_BENCHMARKS = False
+
+nasdaqEventStreamTiny = file_input(absolutePath, "test/EventFiles/NASDAQ_TINY.txt", MetastockDataFormatter())
+nasdaqEventStreamShort = file_input(absolutePath, "test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
+nasdaqEventStreamMedium = file_input(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt", MetastockDataFormatter())
+nasdaqEventStreamFrequencyTailored = file_input(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt", MetastockDataFormatter())
+nasdaqEventStream_AAPL_AMZN_GOOG = file_input(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt", MetastockDataFormatter())
+nasdaqEventStream = file_input(absolutePath, "test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
+
+nasdaqEventStreamHalfShort = file_input(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt", MetastockDataFormatter())
+custom = file_input(absolutePath, "test/EventFiles/custom.txt", MetastockDataFormatter())
+custom2 = file_input(absolutePath, "test/EventFiles/custom2.txt", MetastockDataFormatter())
+custom3 = file_input(absolutePath, "test/EventFiles/custom3.txt", MetastockDataFormatter())
+
+
+def numOfLinesInPattern(file):
+    """
+    get num of lines in file until first blank line == num of lines in pattern
+    :param file: file
+    :return: int
+    """
+    counter = 0
+    for line in file:
+        if line == '\n':
+            break
+        counter = counter + 1
+    return counter
+
+
+def closeFiles(file1, file2):
+    file1.close()
+    file2.close()
+
+
+def fileCompare(pathA, pathB):
+    """
+    Compare expected output and actual ouput
+    :param path1: path to first file
+    :param path2: path to second file
+    :return: bool, True if the two files are equivalent
+    """
+    file1 = open(pathA)
+    file2 = open(pathB)
+
+    counter1 = numOfLinesInPattern(file1)
+    counter2 = numOfLinesInPattern(file2)
+
+    file1.seek(0)
+    file2.seek(0)
+
+    # quick check, if both files don't return the same counter, or if both files are empty
+    if counter1 != counter2:
+        closeFiles(file1, file2)
+        return False
+    elif counter1 == counter2 and counter1 == 0:
+        closeFiles(file1, file2)
+        return True
+
+    set1 = set()
+    set2 = set()
+
+    fillSet(file1, set1, counter1)
+    fillSet(file2, set2, counter2)
+    closeFiles(file1, file2)
+
+    return set1 == set2
+
+
+def fillSet(file, set: set, counter: int):
+    """
+    fill a set, each element of the set is x consecutive lines of the file, with x = counter
+    :param file:
+    :param set:
+    :param counter:
+    :return:
+    """
+    list = []
+    tmp = 0
+    for line in file:
+        if line == '\n':
+            continue
+        # solve a problem when no blank lines at end of file
+        line = line.strip()
+        list.append(line)
+        tmp = tmp + 1
+        # if we read 'counter' lines, we want to add it to the set, and continue with the next 'counter' lines
+        if tmp == counter:
+            set.add(tuple(list))
+            list = []
+            tmp = 0
+
+
+def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream):
+    if events is None:
+        events = eventStream.duplicate()
+    else:
+        events = events.duplicate()
+    pattern = patterns[0]
+    matches = generate_matches(pattern, events)
+    file_output(absolutePath, matches, '../TestsExpected/%sMatches.txt' % testName)
+    print("Finished creating test %s" % testName)
+
+
+def runTest(testName, patterns, createTestFile = False,
+            eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+            eval_mechanism_params = None, events = None, eventStream = nasdaqEventStream):
+    if createTestFile:
+        createTest(testName, patterns, events, eventStream = eventStream)
+    if events is None:
+        events = eventStream.duplicate()
+    else:
+        events = events.duplicate()
+
+    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle"]
+    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
+    listCustom = ["MultipleNotBeginAndEnd"]
+    listCustom2 = ["simpleNot"]
+    if testName in listShort:
+        events = nasdaqEventStreamShort.duplicate()
+    elif testName in listHalfShort:
+        events = nasdaqEventStreamHalfShort.duplicate()
+    elif testName in listCustom:
+        events = custom.duplicate()
+    elif testName in listCustom2:
+        events = custom2.duplicate()
+    elif testName == "NotEverywhere":
+        events = custom3.duplicate()
+
+    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
+    running_time = cep.run(events)
+    matches = cep.get_pattern_match_stream()
+    file_output(absolutePath, matches, '%sMatches.txt' % testName)
+    expected_matches_path = "test/TestsExpected/%sMatches.txt" % testName
+    actual_matches_path = "test/Matches/%sMatches.txt" % testName
+    print("Test %s result: %s, Time Passed: %s" % (testName,
+          "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
+    runTest.over_all_time += running_time
+    os.remove(absolutePath + "\\" + actual_matches_path)
+
+def runBenchMark(testName, patterns, eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+                 eval_mechanism_params=None, events=None):
+    """
+    this runs a bench mark ,since some outputs for benchmarks are very large,
+    we assume correct functionality and only check runtimes. (not a test)
+    """
+    if events is None:
+        events = nasdaqEventStream.duplicate()
+    else:
+        events = events.duplicate()
+    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
+    running_time = cep.run(events)
+    print("Bench Mark %s completed, Time Passed: %s" % (testName, running_time))
+    runTest.over_all_time += running_time
+    
+
+def oneArgumentsearchTest(createTestFile = False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a")]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
-        timedelta.max
+        timedelta(minutes=120)
     )
     runTest("one", [pattern], createTestFile)
 
@@ -21,10 +199,8 @@ def simplePatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
         AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                               IdentifierTerm("b", lambda x: x["Opening Price"])),
-            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
+            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
     runTest("simple", [pattern], createTestFile)
@@ -122,7 +298,8 @@ def amazonSpecificPatternSearchTest(createTestFile=False):
     """
     amazonSpecificPattern = Pattern(
         SeqOperator([QItem("AMZN", "a")]),
-        EqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(73))
+        EqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(73)),
+        timedelta(minutes=120)
     )
     runTest('amazonSpecific', [amazonSpecificPattern], createTestFile)
 
@@ -218,10 +395,8 @@ def nonFrequencyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
         AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                               IdentifierTerm("b", lambda x: x["Opening Price"])),
-            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
+            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
     runTest("nonFrequency", [pattern], createTestFile)
@@ -231,10 +406,8 @@ def frequencyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
         AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                               IdentifierTerm("b", lambda x: x["Opening Price"])),
-            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
+            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AAPL": 460, "AMZN": 442, "LOCM": 219})
@@ -243,13 +416,11 @@ def frequencyPatternSearchTest(createTestFile=False):
 
 def arrivalRatesPatternSearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
-        AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                               IdentifierTerm("b", lambda x: x["Opening Price"])),
-            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
-        timedelta(minutes=5)
+    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
+    AndFormula(
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
+        GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
+    timedelta(minutes=5)
     )
     pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0159, 0.0153, 0.0076])
     runTest("arrivalRates", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
@@ -259,10 +430,8 @@ def nonFrequencyPatternSearch2Test(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("LOCM", "a"), QItem("AMZN", "b"), QItem("AAPL", "c")]),
         AndFormula(
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                               IdentifierTerm("b", lambda x: x["Opening Price"])),
-            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
     runTest("nonFrequency2", [pattern], createTestFile)
@@ -272,10 +441,8 @@ def frequencyPatternSearch2Test(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("LOCM", "a"), QItem("AMZN", "b"), QItem("AAPL", "c")]),
         AndFormula(
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                               IdentifierTerm("b", lambda x: x["Opening Price"])),
-            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AAPL": 2, "AMZN": 3, "LOCM": 1})
@@ -322,9 +489,7 @@ def frequencyPatternSearch4Test(createTestFile=False):
 
 def nonFrequencyPatternSearch5Test(createTestFile=False):
     pattern = Pattern(
-        SeqOperator(
-            [QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"),
-             QItem("LOCM", "b3")]),
+        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -333,21 +498,17 @@ def nonFrequencyPatternSearch5Test(createTestFile=False):
 
 def frequencyPatternSearch5Test(createTestFile=False):
     pattern = Pattern(
-        SeqOperator(
-            [QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"),
-             QItem("LOCM", "b3")]),
+        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"LOCM": 1, "AAPL": 2})  # {"AAPL": 460, "LOCM": 219}
     runTest("frequency5", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
 
-
-def frequencyPatternSearch6Test(createTestFile=False):
+    
+def frequencyPatternSearch6Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator(
-            [QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"),
-             QItem("LOCM", "b3")]),
+        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -583,7 +744,7 @@ def frequencyTailoredPatternSearchTest(createTestFile=False):
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
                                IdentifierTerm("c", lambda x: x["Opening Price"]))
         ),
-        timedelta.max
+        timedelta(minutes=360)
     )
     frequencyDict = {"MSFT": 256, "DRIV": 257, "CBRL": 1}
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, frequencyDict)
@@ -600,15 +761,271 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
                                IdentifierTerm("c", lambda x: x["Opening Price"]))
         ),
-        timedelta.max
+        timedelta(minutes=360)
     )
     runTest('nonFrequencyTailored1', [pattern], createTestFile,
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, events=nasdaqEventStream)
 
+# ON CUSTOM
+def multipleNotBeginAndEndTest(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([NegationOperator(QItem("TYP1", "x")),
+                     NegationOperator(QItem("TYP4", "t")),
+                     QItem("AAPL", "a"), QItem("AMZN", "b"),
+                     QItem("GOOG", "c"),
+                     NegationOperator(QItem("TYP2", "y")),
+                     NegationOperator(QItem("TYP3", "z"))]),
+        AndFormula(
+            AndFormula(
+                GreaterThanFormula(IdentifierTerm("x", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
+                SmallerThanFormula(IdentifierTerm("y", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("c", lambda x: x["Opening Price"]))),
+            GreaterThanFormula(IdentifierTerm("t", lambda x: x["Opening Price"]),
+                               IdentifierTerm("a", lambda x: x["Opening Price"]))
+        ),
+        timedelta(minutes=5)
+    )
+    runTest("MultipleNotBeginAndEnd", [pattern], createTestFile)
 
-# ------------------------------------------------------
-#       provided tests
-# ------------------------------------------------------
+# ON custom2
+def simpleNotTest(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+
+    runTest("simpleNot", [pattern], createTestFile)
+
+
+# ON NASDAQ SHORT
+def multipleNotInTheMiddleTest(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("LI", "d")), QItem("AMZN", "b"),
+                     NegationOperator(QItem("FB", "e")), QItem("GOOG", "c")]),
+        AndFormula(
+            AndFormula(
+                GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("c", lambda x: x["Opening Price"]))),
+            AndFormula(
+                GreaterThanFormula(IdentifierTerm("e", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("a", lambda x: x["Opening Price"])),
+                SmallerThanFormula(IdentifierTerm("d", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("c", lambda x: x["Opening Price"])))
+            ),
+        timedelta(minutes=4)
+    )
+    runTest("MultipleNotMiddle", [pattern], createTestFile)
+
+
+# ON NASDAQ SHORT
+def oneNotAtTheBeginningTest(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([NegationOperator(QItem("TYP1", "x")), QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    runTest("OneNotBegin", [pattern], createTestFile)
+
+# ON NASDAQ SHORT
+def multipleNotAtTheBeginningTest(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([NegationOperator(QItem("TYP1", "x")), NegationOperator(QItem("TYP2", "y")),
+                     NegationOperator(QItem("TYP3", "z")), QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    runTest("MultipleNotBegin", [pattern], createTestFile)
+
+
+# ON NASDAQ *HALF* SHORT
+def oneNotAtTheEndTest(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x"))]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    runTest("OneNotEnd", [pattern], createTestFile)
+
+
+# ON NASDAQ *HALF* SHORT
+def multipleNotAtTheEndTest(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x")),
+                     NegationOperator(QItem("TYP2", "y")), NegationOperator(QItem("TYP3", "z"))]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    runTest("MultipleNotEnd", [pattern], createTestFile)
+
+# ON CUSTOM3
+def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMAZON", "b"), NegationOperator(QItem("GOOG", "c")),
+                     QItem("FB", "d"), NegationOperator(QItem("TYP1", "x"))]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    runTest("NotEverywhere", [pattern], createTestFile)
+
+def singleType1PolicyPatternSearchTest(createTestFile = False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
+        timedelta(minutes=5),
+        ConsumptionPolicy(single="AMZN", secondary_selection_strategy=SelectionStrategies.MATCH_NEXT)
+    )
+    runTest("singleType1Policy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
+def singleType2PolicyPatternSearchTest(createTestFile = False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
+        timedelta(minutes=5),
+        ConsumptionPolicy(single="AMZN", secondary_selection_strategy=SelectionStrategies.MATCH_SINGLE)
+    )
+    runTest("singleType2Policy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
+
+def contiguousPolicyPatternSearchTest(createTestFile = False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
+        timedelta(minutes=5),
+        ConsumptionPolicy(contiguous=["a", "b", "c"])
+    )
+    runTest("contiguousPolicySingleList", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
+def contiguousPolicy2PatternSearchTest(createTestFile = False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
+        timedelta(minutes=5),
+        ConsumptionPolicy(contiguous=[["a", "b"], ["b", "c"]])
+    )
+    runTest("contiguousPolicyMultipleLists", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
+def freezePolicyPatternSearchTest(createTestFile = False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
+        timedelta(minutes=5),
+        ConsumptionPolicy(freeze="a")
+    )
+    runTest("freezePolicy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
+def freezePolicy2PatternSearchTest(createTestFile = False):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > c.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
+        timedelta(minutes=5),
+        ConsumptionPolicy(freeze="b")
+    )
+    runTest("freezePolicy2", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
+def sortedStorageTest(createTestFile=False):
+    pattern = Pattern(
+        AndOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c")]),
+        AndFormula(
+            GreaterThanFormula(
+                IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])
+            ),
+            GreaterThanFormula(
+                IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])
+            ),
+        ),
+        timedelta(minutes=360),
+    )
+    storage_params = TreeStorageParameters(True, clean_up_interval=500)
+    runTest("sortedStorageTest", [pattern], createTestFile,
+            eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+            eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params),
+            events=nasdaqEventStream)
+
+def sortedStorageBenchMarkTest(createTestFile=False):
+    pattern = Pattern(
+        AndOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c"), QItem("MSFT", "m")]),
+        AndFormula(
+            GreaterThanEqFormula(
+                IdentifierTerm("b", lambda x: x["Lowest Price"]), IdentifierTerm("a", lambda x: x["Lowest Price"])
+            ),
+            AndFormula(
+                GreaterThanEqFormula(
+                    IdentifierTerm("m", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])
+                ),
+                GreaterThanEqFormula(
+                    IdentifierTerm("m", lambda x: x["Lowest Price"]), IdentifierTerm("b", lambda x: x["Lowest Price"])
+                ),
+            ),
+        ),
+        timedelta(minutes=360),
+    )
+    runBenchMark("sortedStorageBenchMark - unsorted storage", [pattern])
+
+    storage_params = TreeStorageParameters(sort_storage=True, attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
+    runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params))
+
+
+runTest.over_all_time = 0
+
+# basic functionality tests
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
@@ -636,27 +1053,14 @@ iiRandomPatternSearchTest()
 iiRandom2PatternSearchTest()
 iiGreedyPatternSearchTest()
 iiGreedy2PatternSearchTest()
-#zStreamOrdPatternSearchTest()
-#zStreamPatternSearchTest()
+zStreamOrdPatternSearchTest()
+zStreamPatternSearchTest()
 dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
 
-# ------------------------------------------------------
-#       KleeneClosure tests
-# ------------------------------------------------------
-
-oneArgumentsearchTestKleeneClosure()
-MinMax_0_TestKleeneClosure()
-MinMax_1_TestKleeneClosure()
-MinMax_2_TestKleeneClosure()
-KC_AND()
-
-# ------------------------------------------------------
-#   tests for the tree structure, CEP only created not used!.
-# ------------------------------------------------------
-
+# tree structure tests - CEP object only created not used
 structuralTest1()
 structuralTest2()
 structuralTest3()
@@ -664,3 +1068,46 @@ structuralTest4()
 structuralTest5()
 structuralTest6()
 structuralTest7()
+
+# Kleene closure tests
+oneArgumentsearchTestKleeneClosure()
+MinMax_0_TestKleeneClosure()
+MinMax_1_TestKleeneClosure()
+MinMax_2_TestKleeneClosure()
+KC_AND()
+
+# negation tests
+simpleNotTest()
+multipleNotInTheMiddleTest()
+oneNotAtTheBeginningTest()
+multipleNotAtTheBeginningTest()
+oneNotAtTheEndTest()
+multipleNotAtTheEndTest()
+multipleNotBeginAndEndTest()
+testWithMultipleNotAtBeginningMiddleEnd()
+
+# consumption policies tests
+singleType1PolicyPatternSearchTest()
+singleType2PolicyPatternSearchTest()
+contiguousPolicyPatternSearchTest()
+contiguousPolicy2PatternSearchTest()
+freezePolicyPatternSearchTest()
+freezePolicy2PatternSearchTest()
+
+# storage tests
+sortedStorageTest()
+run_storage_tests()
+
+# benchmarks
+if INCLUDE_BENCHMARKS:
+    sortedStorageBenchMarkTest()
+
+
+# Twitter tests
+try:
+    from TwitterTest import run_twitter_sanity_check
+    run_twitter_sanity_check()
+except ImportError:  # tweepy might not be installed
+    pass
+
+print("Finished running all tests, overall time: %s" % runTest.over_all_time)

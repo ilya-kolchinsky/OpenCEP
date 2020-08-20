@@ -4,6 +4,7 @@ This file contains the implementations of algorithms constructing a generic (bus
 from typing import List
 
 from evaluation.EvaluationMechanismBuilder import EvaluationMechanismBuilder
+from evaluation.PartialMatchStorage import TreeStorageParameters
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from base.Pattern import Pattern
 from misc.Utils import get_all_disjoint_sets
@@ -17,15 +18,15 @@ class BushyTreeBuilder(EvaluationMechanismBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-    def build_single_pattern_eval_mechanism(self, pattern: Pattern):
+    def build_single_pattern_eval_mechanism(self, pattern: Pattern, storage_params: TreeStorageParameters):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivityMatrix, arrivalRates) = pattern.statistics
         else:
             raise MissingStatisticsException()
         tree_structure = self._find_tree(selectivityMatrix, arrivalRates, pattern.window.total_seconds())
-        return TreeBasedEvaluationMechanism(pattern, tree_structure)
+        return TreeBasedEvaluationMechanism(pattern, tree_structure, storage_params)
 
-    def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern]):
+    def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern], storage_params: TreeStorageParameters):
         raise Exception("Unsupported")
 
     @staticmethod

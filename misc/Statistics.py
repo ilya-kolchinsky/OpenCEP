@@ -18,7 +18,7 @@ def get_condition_selectivity(arg1: QItem, arg2: QItem, formula: Formula, stream
 
     if arg1 == arg2:
         for event in stream:
-            if event.eventType == arg1.event_type:
+            if event.eventType == arg1.type:
                 count += 1
                 if formula.eval({arg1.name: event.event}):
                     match_count += 1
@@ -26,9 +26,9 @@ def get_condition_selectivity(arg1: QItem, arg2: QItem, formula: Formula, stream
         events1 = []
         events2 = []
         for event in stream:
-            if event.eventType == arg1.event_type:
+            if event.eventType == arg1.type:
                 events1.append(event)
-            elif event.eventType == arg2.event_type:
+            elif event.eventType == arg2.type:
                 events2.append(event)
         for event1 in events1:
             for event2 in events2:
@@ -45,7 +45,7 @@ def get_occurrences_dict(pattern: Pattern, stream: Stream):
     given event stream.
     """
     ret = {}
-    types = {qitem.eventType for qitem in pattern.structure.args}
+    types = {qitem.eventType for qitem in pattern.positive_structure.args}
     for event in stream:
         if event.eventType in types:
             if event.eventType in ret.keys():
@@ -60,14 +60,14 @@ def calculate_selectivity_matrix(pattern: Pattern, stream: Stream):
     Returns a matrix containing the selectivity between each pair of events from the given pattern in the
     given event stream.
     """
-    args = pattern.structure.args
+    args = pattern.positive_structure.args
     args_num = len(args)
     selectivity_matrix = [[0.0 for _ in range(args_num)] for _ in range(args_num)]
     for i in range(args_num):
         for j in range(i + 1):
             new_sel = get_condition_selectivity(args[i], args[j],
                                                 pattern.condition.get_formula_of({args[i].name, args[j].name}),
-                                                stream.duplicate(), pattern.structure.get_top_operator() == SeqOperator)
+                                                stream.duplicate(), pattern.positive_structure.get_top_operator() == SeqOperator)
             selectivity_matrix[i][j] = selectivity_matrix[j][i] = new_sel
 
     return selectivity_matrix
@@ -80,7 +80,7 @@ def get_arrival_rates(pattern: Pattern, stream: Stream):
     """
     time_interval = (stream.last().date - stream.first().date).total_seconds()
     counters = get_occurrences_dict(pattern, stream.duplicate())
-    return [counters[i.eventType] / time_interval for i in pattern.structure.args]
+    return [counters[i.eventType] / time_interval for i in pattern.positive_structure.args]
 
 
 def calculate_left_deep_tree_cost_function(order: List[int], selectivity_matrix: List[List[float]],

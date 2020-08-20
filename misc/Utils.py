@@ -3,7 +3,7 @@ This file contains various useful functions utilized by different project module
 """
 
 from datetime import datetime
-from typing import List
+from typing import List, Container
 
 from base.Pattern import Pattern
 from base.PatternStructure import QItem
@@ -178,9 +178,9 @@ def generate_matches(pattern: Pattern, stream: Stream):
     A recursive, very inefficient pattern match finder.
     It is used as our test creator.
     """
-    args = pattern.structure.args
-    types = {qitem.event_type for qitem in args}
-    is_seq = (pattern.structure.get_top_operator() == SeqOperator)
+    args = pattern.positive_structure.args
+    types = {qitem.eventType for qitem in args}
+    is_seq = (pattern.positive_structure.get_top_operator() == SeqOperator)
     events = {}
     matches = []
     for event in stream:
@@ -196,19 +196,19 @@ def generate_matches(pattern: Pattern, stream: Stream):
 def generate_matches_recursive(pattern: Pattern, events: dict, is_seq: bool, match: list, min_event_timestamp: datetime,
                                max_event_timestamp: datetime,
                                matches: list, binding: dict, loop: int = 0):
-    pattern_length = len(pattern.structure.args)
+    pattern_length = len(pattern.positive_structure.args)
     if loop == pattern_length:
         if pattern.condition.eval(binding):
             if not does_match_exist(matches, match):
                 matches.append(PatternMatch(deepcopy(match)))
     else:
-        qitem = pattern.structure.args[loop]
-        for event in events[qitem.event_type]:
-            min_timestamp = min(min_event_timestamp, event.timestamp)
-            max_timestamp = max(max_event_timestamp, event.timestamp)
-            binding[qitem.name] = event.payload
-            if max_timestamp - min_timestamp <= pattern.window:
-                if not is_seq or len(match) == 0 or match[-1].timestamp <= event.timestamp:
+        qitem = pattern.positive_structure.args[loop]
+        for event in events[qitem.eventType]:
+            min_date = min(min_event_timestamp, event.date)
+            max_date = max(max_event_timestamp, event.date)
+            binding[qitem.name] = event.event
+            if max_date - min_date <= pattern.window:
+                if not is_seq or len(match) == 0 or match[-1].date <= event.date:
                     match.append(event)
                     generate_matches_recursive(pattern, events, is_seq, match, min_timestamp, max_timestamp, matches,
                                                binding, loop + 1)
@@ -231,7 +231,7 @@ def does_match_exist(matches: list, match: list):
                 return True
     return False
 
-
+  
 def recursive_powerset_generator(seq, max_size):
     """
     A recursive generator returning all subsets of the given item sequence of size limited to max_size.
@@ -243,3 +243,53 @@ def recursive_powerset_generator(seq, max_size):
             yield [seq[0]] + item
         for item in recursive_powerset_generator(seq[1:], max_size):
             yield item
+
+            
+def get_index(container: Container, to_find_value: int, key: callable, return_first_index: bool):
+    """
+    Returns the index (either the first o the last one depending on the corresponding parameter) of the to_find_value
+    in a sequence that's sorted increasingly according to key.
+    However in case the to_find_value doesn't exist it returns the index of first value smaller than it or -1.
+    """
+    start = 0
+    end = len(container) - 1
+    while start < end:
+        mid = (start + end) // 2
+        mid_value = key(container[mid])
+        if mid_value < to_find_value < key(container[mid + 1]):
+            return mid if return_first_index else mid + 1
+        if return_first_index:
+            if mid_value >= to_find_value:
+                end = mid
+            else:
+                start = mid + 1
+        else:
+            if mid_value <= to_find_value:
+                start = mid + 1
+            else:
+                end = mid
+
+    if start == end:
+        mid_value = key(container[start])
+        if mid_value > to_find_value:
+            return start - 1
+        if mid_value < to_find_value:
+            return start + 1
+        return start
+    return 0
+
+
+def get_first_index(container: Container, to_find_value: int, key: callable):
+    """
+    Returns the first instance of the to_find_value in a sequence that's sorted increasingly according to key.
+    However in case the to_find_value doesn't exist it returns the index of first value smaller than it or -1.
+    """
+    return get_index(container, to_find_value, key, True)
+
+    
+def get_last_index(container: Container, to_find_value: int, key: callable):
+    """
+    Returns the last instance of the to_find_value in a sequence that's sorted increasingly according to key.
+    However in case the to_find_value doesn't exist it returns the index of first value greater than it or -1.
+    """
+    return get_index(container, to_find_value, key, False)

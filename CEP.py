@@ -4,8 +4,11 @@ by invoking the rest of the system components.
 """
 from misc.IOUtils import Stream
 from base.Pattern import Pattern
-from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters, \
-    EvaluationMechanismTypes, EvaluationMechanismFactory
+from evaluation.EvaluationMechanismFactory import (
+    EvaluationMechanismParameters,
+    EvaluationMechanismTypes,
+    EvaluationMechanismFactory,
+)
 from typing import List
 from datetime import datetime
 
@@ -16,6 +19,7 @@ class PerformanceSpecifications:
     CEP engine will refer to it if it is passed.
     Not implemented yet.
     """
+
     pass
 
 
@@ -41,14 +45,17 @@ class CEP:
         self.__pattern_matches = None
         self.__performance_specs = performance_specs
 
-    def run(self, event_stream: Stream):
+    def run(self, event_stream: Stream, is_async=False, file_path=None, time_limit=None):
         """
         Applies the evaluation mechanism to detect the predefined patterns in a given stream of events.
         Returns the total time elapsed during evaluation.
         """
         self.__pattern_matches = Stream()
         start = datetime.now()
-        self.__eval_mechanism.eval(event_stream, self.__pattern_matches)
+        if is_async:
+            self.__eval_mechanism.eval(event_stream, self.__pattern_matches, is_async=True, file_path=file_path, time_limit=time_limit)
+        else:
+            self.__eval_mechanism.eval(event_stream, self.__pattern_matches)
         return (datetime.now() - start).total_seconds()
 
     def get_pattern_match(self):

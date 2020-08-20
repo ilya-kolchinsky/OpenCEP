@@ -14,3 +14,6 @@ class PartialMatch:
 
     def __eq__(self, other):
         return isinstance(other, PartialMatch) and set(self.events) == set(other.events)
+
+    def __repr__(self):
+        return str(self.events)

@@ -12,18 +12,19 @@ from base.Pattern import Pattern
 from misc.Statistics import calculate_left_deep_tree_cost_function, MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
+from evaluation.PartialMatchStorage import TreeStorageParameters
 
 
 class LeftDeepTreeBuilder(EvaluationMechanismBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-    def build_single_pattern_eval_mechanism(self, pattern: Pattern):
+    def build_single_pattern_eval_mechanism(self, pattern: Pattern, storage_params: TreeStorageParameters):
         order = self._create_evaluation_order(pattern) if isinstance(pattern.structure, CompositeStructure) else [0]
         tree_structure = self.__build_tree_from_order(order)
-        return TreeBasedEvaluationMechanism(pattern, tree_structure)
+        return TreeBasedEvaluationMechanism(pattern, tree_structure, storage_params)
 
-    def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern]):
+    def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern], storage_params: TreeStorageParameters):
         raise Exception("Unsupported")
 
     @staticmethod
@@ -48,7 +49,7 @@ class TrivialLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree following the pattern-specified order.
     """
     def _create_evaluation_order(self, pattern: Pattern):
-        args_num = len(pattern.structure.args)
+        args_num = len(pattern.positive_structure.args)
         return list(range(args_num))
 
 
@@ -59,7 +60,7 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.FREQUENCY_DICT:
             frequency_dict = pattern.statistics
-            order = get_order_by_occurrences(pattern.structure.args, frequency_dict)
+            order = get_order_by_occurrences(pattern.positive_structure.args, frequency_dict)
         elif pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
             arrival_rates = pattern.statistics
             # create an index-arrival rate binding and sort according to arrival rate.

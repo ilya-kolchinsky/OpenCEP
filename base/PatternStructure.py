@@ -5,7 +5,6 @@ The classes support nesting. Every operator class has its list of arguments.
 The QItem class has an event type and its name. The name is referred to in
 a pattern matching condition, represented as formula.
 """
-
 from abc import ABC
 from typing import List
 
