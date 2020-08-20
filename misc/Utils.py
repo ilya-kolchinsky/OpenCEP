@@ -79,7 +79,7 @@ def get_order_by_occurrences(qitems: List[QItem], occurrences: dict):
     """
     Sorts the given list according to the occurrences dictionary.
     """
-    temp_list = [(i, occurrences[qitems[i].event_type]) for i in range(len(qitems))]
+    temp_list = [(i, occurrences[qitems[i].type]) for i in range(len(qitems))]
     temp_list = sorted(temp_list, key=lambda x: x[1])
     return [i[0] for i in temp_list]
 

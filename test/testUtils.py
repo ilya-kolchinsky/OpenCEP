@@ -102,5 +102,5 @@ def runStructuralTest(testName, patterns, expected_result,
     # print('{} is a test to check the tree structure, without actually running a test'.format(testName))
     # print('place a breakpoint after creating the CEP object to debug it.\n')
     cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
-    print("Test %s result: %s" % (testName,"Succeeded" if
-                                    cep.get_evaluation_mechanism_structure_summary() == expected_result else "Failed"))
+    structure_summary = cep.get_evaluation_mechanism_structure_summary()
+    print("Test %s result: %s" % (testName,"Succeeded" if structure_summary == expected_result else "Failed"))
