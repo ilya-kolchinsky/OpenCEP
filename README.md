@@ -85,3 +85,20 @@ cep.run(events) # potentially blocking call
 matches = cep.get_pattern_match_stream()
 file_output(matches, 'output.txt')
 ```
+
+## Kleene Closure Operator 
+
+The following is the example of a pattern containing a Kleene closure operator:
+
+```
+pattern = Pattern(
+        SeqOperator([
+            QItem("GOOG", "a"), KleeneClosureOperator(QItem("GOOG", "b"))
+        ]),
+        AndFormula(
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=5)
+    )
+```
