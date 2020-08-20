@@ -6,7 +6,7 @@ import random
 from typing import List
 
 from evaluation.IterativeImprovement import IterativeImprovementType, IterativeImprovementAlgorithmBuilder
-from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
+from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism, CompositeStructure
 from evaluation.EvaluationMechanismBuilder import EvaluationMechanismBuilder
 from base.Pattern import Pattern
 from misc.Statistics import calculate_left_deep_tree_cost_function, MissingStatisticsException
@@ -19,9 +19,8 @@ class LeftDeepTreeBuilder(EvaluationMechanismBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-
     def build_single_pattern_eval_mechanism(self, pattern: Pattern, storage_params: TreeStorageParameters):
-        order = self._create_evaluation_order(pattern)
+        order = self._create_evaluation_order(pattern) if isinstance(pattern.structure, CompositeStructure) else [0]
         tree_structure = self.__build_tree_from_order(order)
         return TreeBasedEvaluationMechanism(pattern, tree_structure, storage_params)
 
