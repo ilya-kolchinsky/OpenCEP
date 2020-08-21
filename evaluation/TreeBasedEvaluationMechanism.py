@@ -46,12 +46,14 @@ class Node(ABC):
         """
         return Node.__enable_partial_match_expiration
 
-    def __init__(self, sliding_window: timedelta, parent):
-        self._parent = parent
+    def __init__(self, sliding_window: timedelta, parents):
+        if not isinstance(parents, list):
+            parents = [parents]
+        self._parents = parents
         self._sliding_window = sliding_window
         self._partial_matches = None
         self._condition = TrueFormula()
-        # matches that were not yet pushed to the parent for further processing
+        # matches that were not yet pushed to the parents for further processing
         self._unhandled_partial_matches = Queue()
         # set of event types that will only appear in a single full match
         self._single_event_types = set()
@@ -75,23 +77,23 @@ class Node(ABC):
 
     def get_last_unhandled_partial_match(self):
         """
-        Returns the last partial match buffered at this node and not yet transferred to its parent.
+        Returns the last partial match buffered at this node and not yet transferred to its parents.
         """
         return self._unhandled_partial_matches.get()
 
-    def set_parent(self, parent):
+    def set_parent(self, parents):
         """
-        Sets the parent of this node.
+        Sets the parents of this node.
         """
-        self._parent = parent
+        self._parents = parents
 
     def get_root(self):
         """
-        Returns the root of the tree.
+        Returns the root of the tree. Assuming we have one root which is the parent of all the roots.
         """
         node = self
-        while node._parent is not None:
-            node = node._parent
+        while node._parents[0] is not None:
+            node = node._parents[0]
         return node
 
     def clean_expired_partial_matches(self, last_timestamp: datetime):
@@ -114,8 +116,9 @@ class Node(ABC):
         Recursively updates the ancestors of the node.
         """
         self._single_event_types.add(event_type)
-        if self._parent is not None:
-            self._parent.register_single_event_type(event_type)
+        if self._parents:
+            for parent in self._parents:
+                parent.register_single_event_type(event_type)
 
     def _add_partial_match(self, pm: PartialMatch):
         """
@@ -124,9 +127,11 @@ class Node(ABC):
         In case of UnsortedPartialMatchStorage the insertion is directly at the end, O(1).
         """
         self._partial_matches.add(pm)
-        if self._parent is not None:
+        if self._parents:
             self._unhandled_partial_matches.put(pm)
-            self._parent.handle_new_partial_match(self)
+            for parent in self._parents:
+                parent.handle_new_partial_match(self)
+
 
     def __can_add_partial_match(self, pm: PartialMatch) -> bool:
         """
@@ -217,8 +222,8 @@ class LeafNode(Node):
     """
     A leaf node is responsible for a single event type of the pattern.
     """
-    def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_qitem: QItem, parent: Node):
-        super().__init__(sliding_window, parent)
+    def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_qitem: QItem, parents: List[Node]):
+        super().__init__(sliding_window, parents)
         self.__leaf_index = leaf_index
         self.__event_name = leaf_qitem.name
         self.__event_type = leaf_qitem.type
@@ -294,9 +299,9 @@ class InternalNode(Node):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
+    def __init__(self, sliding_window: timedelta, parents: List[Node] = None, event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
-        super().__init__(sliding_window, parent)
+        super().__init__(sliding_window, parents)
         self._event_defs = event_defs
         self._left_subtree = left
         self._right_subtree = right
@@ -365,7 +370,8 @@ class InternalNode(Node):
         partial_matches_to_compare = other_subtree.get_partial_matches(new_pm_key(new_partial_match))
         second_event_defs = other_subtree.get_event_definitions()
 
-        if self._parent is not None:
+        #we don't want to erase the partial matches of a root, once again we're assuming we have only one  root
+        if self._parents is not None and self.get_root() not in self._parents:
             self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
         # given a partial match from one subtree, for each partial match
