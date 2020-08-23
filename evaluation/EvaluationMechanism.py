@@ -10,6 +10,7 @@ class EvaluationMechanism(ABC):
         """
         Receives an input stream of events and outputs the detected pattern matches into a given output stream.
         """
+        raise NotImplementedError()
 
     def get_structure_summary(self):
         """

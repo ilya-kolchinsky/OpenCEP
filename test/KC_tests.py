@@ -1,5 +1,8 @@
-from base.PatternStructure import KleeneClosureOperator
 from test.testUtils import *
+from datetime import timedelta
+from base.Formula import GreaterThanFormula, SmallerThanFormula, IdentifierTerm, AtomicTerm, AndFormula
+from base.PatternStructure import AndOperator, SeqOperator, QItem, KleeneClosureOperator
+from base.Pattern import Pattern
 
 
 def structuralTest1():
@@ -190,7 +193,7 @@ def MinMax_0_TestKleeneClosure(createTestFile=False):
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(0)),
         timedelta(minutes=5)
     )
-    runTest("MinMax_0_", [pattern], createTestFile, events=nasdaqEventStreamTiny)
+    runTest("MinMax_0_", [pattern], createTestFile, events=nasdaqEventStreamKC)
 
 def MinMax_1_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
@@ -198,7 +201,7 @@ def MinMax_1_TestKleeneClosure(createTestFile=False):
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(0)),
         timedelta(minutes=5)
     )
-    runTest("MinMax_1_", [pattern], createTestFile, events=nasdaqEventStreamTiny)
+    runTest("MinMax_1_", [pattern], createTestFile, events=nasdaqEventStreamKC)
 
 def MinMax_2_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
@@ -206,7 +209,7 @@ def MinMax_2_TestKleeneClosure(createTestFile=False):
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(0)),
         timedelta(minutes=5)
     )
-    runTest("MinMax_2_", [pattern], createTestFile, events=nasdaqEventStreamTiny)
+    runTest("MinMax_2_", [pattern], createTestFile, events=nasdaqEventStreamKC)
 
 
 def KC_AND(createTestFile=False):
@@ -227,4 +230,4 @@ def KC_AND(createTestFile=False):
         ),
         timedelta(minutes=3)
     )
-    runTest("KC_AND_", [pattern], createTestFile, events=nasdaqEventStreamTiny)
+    runTest("KC_AND_", [pattern], createTestFile, events=nasdaqEventStreamKC)
