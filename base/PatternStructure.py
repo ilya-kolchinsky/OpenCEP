@@ -140,7 +140,7 @@ class KleeneClosureOperator(UnaryStructure):
         self.max_size = max_size
 
     def duplicate(self):
-        return KleeneClosureOperator(self.arg.duplicate())
+        return KleeneClosureOperator(self.arg.duplicate(), self.min_size, self.max_size)
 
     def __repr__(self):
         return "(%s)+" % (self.arg,)
