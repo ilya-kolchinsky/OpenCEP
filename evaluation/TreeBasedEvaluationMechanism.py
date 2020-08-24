@@ -47,7 +47,7 @@ class Node(ABC):
         return Node.__enable_partial_match_expiration
 
     def __init__(self, sliding_window: timedelta, parents):
-        if not isinstance(parents, list):
+        if not isinstance(parents, list) and parents is not None:
             parents = [parents]
         self._parents = parents
         self._sliding_window = sliding_window
@@ -92,7 +92,7 @@ class Node(ABC):
         Returns the root of the tree. Assuming we have one root which is the parent of all the roots.
         """
         node = self
-        while node._parents[0] is not None:
+        while node._parents is not None:
             node = node._parents[0]
         return node
 
@@ -370,7 +370,7 @@ class InternalNode(Node):
         partial_matches_to_compare = other_subtree.get_partial_matches(new_pm_key(new_partial_match))
         second_event_defs = other_subtree.get_event_definitions()
 
-        #we don't want to erase the partial matches of a root, once again we're assuming we have only one  root
+        #we don't want to erase the partial matches of a root, once again we're assuming we have only one root.
         if self._parents is not None and self.get_root() not in self._parents:
             self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
