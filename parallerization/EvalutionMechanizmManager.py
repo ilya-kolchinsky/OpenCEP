@@ -5,23 +5,26 @@ from evaluation.EvaluationMechanismFactory import (
     EvaluationMechanismFactory,
 )
 from misc.IOUtils import Stream
-from parallerization import EvaluationMechanismConfiguration
 from base.Pattern import Pattern
 
 from misc.Utils import split_data
+from parallerization import ParallelWorkLoadFramework, ParallelExecutionFramework
 
 
-class EvaluationMechanismManager:
+class EvalutionMechanizmManager:
 
-    def __init__(self, evaluation_mechanism_configuration: EvaluationMechanismConfiguration):
-        self._evaluation_mechanism_configuration = evaluation_mechanism_configuration
-        self._evaluation_mechanisms_list = []
-        self._master = None
-
-        #original event stream
-        self._event_stream = Stream()
-        #array of Streams after we splitted the original event_stream according to user function
-        self._event_stream_splitted = []
+    def __init__(self, evaluation_mechanism_type, work_load_fr: ParallelWorkLoadFramework,
+                 execution_fr: ParallelExecutionFramework, params, patterns[]):
+        # self.evaluation_mechanism_type = evaluation_mechanism_type
+        # self.work_load_fr = work_load_fr
+        # self.execution_fr = execution_fr
+        # self.params = params
+        # self.patterns = patterns
+        #
+        # self._master = None
+        #
+        # self._event_stream = Stream()
+        # self._event_stream_splitted = []
 
 
     def build_evaluation_mechanisms(self):
