@@ -12,9 +12,9 @@ from evaluation.EvaluationMechanismFactory import (
 from typing import List
 from datetime import datetime
 
-from parallerization.EvaluationMechanismConfiguration import EvaluationMechanismConfiguration
-from parallerization.EvalutionMechanizmManager import EvaluationMechanismManager
-from parallerization.InputParallelParameters import InputParallelParameters
+from parallerization.EvaluationMechanismManager import EvaluationMechanismManager
+from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
+from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
 
 
 class PerformanceSpecifications:
@@ -33,10 +33,10 @@ class CEP:
     The evaluation mechanism is created according to the parameters specified in the constructor.
     """
     def __init__(self, patterns: List[Pattern],
-                 parallel_params: InputParallelParameters,
                  eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
                  eval_mechanism_params: EvaluationMechanismParameters = None,
-                 performance_specs: PerformanceSpecifications = None):
+                 performance_specs: PerformanceSpecifications = None,
+                 work_load_fr: ParallelWorkLoadFramework = None, execution_fr: ParallelExecutionFramework = None):
         """
         Constructor of the class.
         """
@@ -45,11 +45,8 @@ class CEP:
         if len(patterns) > 1:
             raise NotImplementedError("Multi-pattern support is not yet available")
 
-        evaluation_mechanism_configuration = EvaluationMechanismConfiguration(patterns[0],
-                                                                              parallel_params,
-                                             eval_mechanism_type, eval_mechanism_params)
-
-        self.__eval_mechanism_manager = EvaluationMechanismManager(evaluation_mechanism_configuration)
+        self.__eval_mechanism_manager = EvaluationMechanismManager(work_load_fr, execution_fr, eval_mechanism_type,
+                                                                  eval_mechanism_params, patterns)
 
         self.__pattern_matches = None
         self.__performance_specs = performance_specs

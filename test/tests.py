@@ -13,7 +13,8 @@ from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFo
 from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
 from base.Pattern import Pattern
 from evaluation.PartialMatchStorage import TreeStorageParameters
-from parallerization.InputParallelParameters import InputParallelParameters
+from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
+from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
 try:
     from UnitTests.test_storage import run_storage_tests
 except ImportError:
@@ -127,9 +128,9 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
 
 
 def runTest(testName, patterns, createTestFile = False,
-            eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-            parallel_params: InputParallelParameters = None, eval_mechanism_params = None, events = None,
-            eventStream = nasdaqEventStream):
+            eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, eval_mechanism_params = None,
+            events = None, eventStream = nasdaqEventStream, workload_fr : ParallelWorkLoadFramework = None,
+            execution_fr : ParallelExecutionFramework = None):
     if createTestFile:
         createTest(testName, patterns, events, eventStream = eventStream)
     if events is None:
@@ -152,10 +153,12 @@ def runTest(testName, patterns, createTestFile = False,
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
 
-    if parallel_params == None:
-        parallel_params = InputParallelParameters()
+    if workload_fr == None:
+        workload_fr = ParallelWorkLoadFramework()
+    if execution_fr == None:
+        execution_fr = ParallelExecutionFramework()
 
-    cep = CEP(patterns, parallel_params, eval_mechanism_type, eval_mechanism_params)
+    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, workload_fr, execution_fr)
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
     file_output(absolutePath, matches, '%sMatches.txt' % testName)
