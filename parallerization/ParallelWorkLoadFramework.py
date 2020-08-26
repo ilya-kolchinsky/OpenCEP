@@ -13,3 +13,9 @@ class ParallelWorkLoadFramework(ABC):
 
     def split_structure(self, evaluation_mechanism):
         raise NotImplementedError()
+
+    def get_execution_units(self):
+        return self.execution_units
+
+    def get_is_data_splitted(self):
+        return self.is_data_splitted

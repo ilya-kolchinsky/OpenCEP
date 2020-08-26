@@ -62,6 +62,7 @@ class CEP:
             self.__eval_mechanism_manager.eval(event_stream, self.__pattern_matches, is_async=True, file_path=file_path, time_limit=time_limit)
         else:
             self.__eval_mechanism_manager.eval(event_stream, self.__pattern_matches)
+
         return (datetime.now() - start).total_seconds()
 
     def get_pattern_match(self):
