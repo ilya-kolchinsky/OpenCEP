@@ -226,6 +226,9 @@ class LeafNode(Node):
     def get_leaves(self):
         return [self]
 
+    def get_nodes(self):
+        return [self]
+
     def apply_formula(self, formula: Formula):
         condition = formula.get_formula_of(self.__event_name)
         if condition is not None:
@@ -307,6 +310,15 @@ class InternalNode(Node):
             result += self._left_subtree.get_leaves()
         if self._right_subtree is not None:
             result += self._right_subtree.get_leaves()
+        return result
+
+    def get_nodes(self):
+        result = []
+        if self._left_subtree is not None:
+            result += self._left_subtree.get_nodes()
+        if self._right_subtree is not None:
+            result += self._right_subtree.get_nodes()
+        result += [self]
         return result
 
     def apply_formula(self, formula: Formula):
@@ -1146,6 +1158,10 @@ class Tree:
     def get_leaves(self):
         return self.__root.get_leaves()
 
+    def get_nodes(self):
+        return self.__root.get_nodes()
+
+
     def get_matches(self):
         while self.__root.has_partial_matches():
             yield self.__root.consume_first_partial_match().events
@@ -1214,6 +1230,9 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
         if pattern.consumption_policy is not None and pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
+
+    def get_tree(self):
+        return self.__tree
 
     def eval(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
         """

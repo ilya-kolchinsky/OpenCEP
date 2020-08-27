@@ -1,7 +1,7 @@
 import sys, os, pathlib
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
-    IterativeImprovementEvaluationMechanismParameters, TreeBasedEvaluationMechanismParameters
+    IterativeImprovementEvaluationMechanismParameters, TreeBasedEvaluationMechanismParameters, EvaluationMechanismParameters
 from misc.IOUtils import file_input, file_output
 from plugin.stocks.Stocks import MetastockDataFormatter
 from misc.Utils import generate_matches
@@ -13,8 +13,10 @@ from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFo
 from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
 from base.Pattern import Pattern
 from evaluation.PartialMatchStorage import TreeStorageParameters
+from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, EvaluationMechanismFactory
 from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
 from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
+from parallerization.ParallelWorkLoadFramework import ParallelTreeWorkloadFramework
 try:
     from UnitTests.test_storage import run_storage_tests
 except ImportError:
@@ -936,8 +938,39 @@ def sortedStorageBenchMarkTest(createTestFile=False):
 
     storage_params = TreeStorageParameters(sort_storage=True, attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
     runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params))
+def my_test():
+    #default case
+    workload_test = ParallelTreeWorkloadFramework()
+    my_custom = file_input(absolutePath, "test/EventFiles/my_custom.txt", MetastockDataFormatter())
+    splitted_data = workload_test.split_data(my_custom)
+
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    eval_params = EvaluationMechanismParameters(EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE)
+    eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                                                                    eval_params, pattern)
+    splitted_tree = workload_test.split_structure(eval_mechanism)
+
+    workload_test2 = ParallelTreeWorkloadFramework(execution_units=2, is_data_splitted=True, pattern_size=3)
+    splitted_data = workload_test2.split_data(my_custom)
+    splitted_tree = workload_test2.split_structure(eval_mechanism)
+    print("SUCCESS")
 
 
+
+
+
+
+
+
+my_test()
 runTest.over_all_time = 0
 oneArgumentsearchTest()
 simplePatternSearchTest()

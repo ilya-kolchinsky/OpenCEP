@@ -23,6 +23,7 @@ class EvaluationMechanismManager:
         self.eval_mechanism_list = None
         self.event_stream_splitted = None
         self.source_event_stream = None
+        self.pattern_matches = None
 
         #1
         if len(patterns) == 1:               #if there is a single pattern
@@ -32,7 +33,7 @@ class EvaluationMechanismManager:
             raise NotImplementedError()
 
         #3
-        if (self.work_load_fr.get_execution_units() > 1):
+        if self.work_load_fr.get_execution_units() > 1:
             self.master, self.eval_mechanism_list = self.work_load_fr.split_structure(self.source_eval_mechanism)
         else:
             self.eval_mechanism_list = []
@@ -44,7 +45,7 @@ class EvaluationMechanismManager:
         self.source_event_stream = event_stream
         self.pattern_matches = pattern_matches
 
-        if self.work_load_fr.get_is_data_splitted() == True:
+        if self.work_load_fr.get_is_data_splitted():
             self.event_stream_splitted = self.work_load_fr.split_data(event_stream)
         else:
             self.event_stream_splitted = []
@@ -56,16 +57,18 @@ class EvaluationMechanismManager:
 
         if len(self.eval_mechanism_list) == 0 and len(self.event_stream_splitted) == 0:
             if is_async:
-                self.s.eval(self.event_stream, self.__pattern_matches, is_async=True, file_path=file_path,
+                self.eval(self.event_stream, self.__pattern_matches, is_async=True, file_path=file_path,
                             time_limit=time_limit)
             else:
-                self.__eval_mechanism_manager.eval(event_stream, self.__pattern_matches)
+                self.__eval_mechanism_manager.eval(self.event_stream, self.__pattern_matches)
+                """
         elif:
             pass
         elif:
             pass
         elif:
             pass
+            """
         for evaluation_mechanism in self.eval_mechanism_list:
             self.execution_fr.eval(evaluation_mechanism)
 
