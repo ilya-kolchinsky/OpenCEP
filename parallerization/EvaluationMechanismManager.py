@@ -24,12 +24,12 @@ class EvaluationMechanismManager:
         self.event_stream_splitted = None
         self.source_event_stream = None
         self.pattern_matches = None
-
+        self.pattern_matches_list = None
         #1
-        if len(patterns) == 1:               #if there is a single pattern
+        if len(patterns) == 1:               # single pattern
             self.source_eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism\
                 (eval_mechanism_type, eval_params, self.patterns[0])
-        else:                               #multi pattern
+        else:                                # multi pattern
             raise NotImplementedError()
 
         #3
@@ -43,37 +43,66 @@ class EvaluationMechanismManager:
             raise Exception("Missing event_stream")
 
         self.source_event_stream = event_stream
-        self.pattern_matches = pattern_matches
 
         if self.work_load_fr.get_is_data_splitted():
             self.event_stream_splitted = self.work_load_fr.split_data(event_stream)
+            self.pattern_matches_list = [Stream()] *  len(self.event_stream_splitted)
         else:
             self.event_stream_splitted = []
+            self.pattern_matches = pattern_matches
 
         self.eval_util(is_async, file_path, time_limit)
 
     def eval_util(self, is_async, file_path, time_limit):
-        # TODO: continue from here:
-
         if len(self.eval_mechanism_list) == 0 and len(self.event_stream_splitted) == 0:
-            if is_async:
-                self.eval(self.event_stream, self.__pattern_matches, is_async=True, file_path=file_path,
-                            time_limit=time_limit)
-            else:
-                self.__eval_mechanism_manager.eval(self.event_stream, self.__pattern_matches)
-                """
-        elif:
-            pass
-        elif:
-            pass
-        elif:
-            pass
-            """
-        for evaluation_mechanism in self.eval_mechanism_list:
-            self.execution_fr.eval(evaluation_mechanism)
+            self.eval_by_single_mechanizm_single_data(is_async, file_path, time_limit, self.source_eval_mechanism, self.source_event_stream, self.pattern_matches)
+        elif len(self.eval_mechanism_list) == 0 and len(self.event_stream_splitted) > 0:
+            self.eval_by_single_mechanizm_multiple_data(is_async, file_path, time_limit)
+        elif len(self.eval_mechanism_list) > 0 and len(self.event_stream_splitted) == 0:
+            self.eval_by_multiple_mechanizm_single_data(is_async, file_path, time_limit)
+        elif len(self.eval_mechanism_list) > 0 and len(self.event_stream_splitted) > 0:
+            self.eval_by_multiple_mechanizm_multiple_data(is_async, file_path, time_limit)
 
-    def get_matches(self):#maybe we don't need that
-        raise NotImplementedError()
+    def eval_by_single_mechanizm_single_data(self, is_async, file_path, time_limit, eval_mechanism, event_stream, pattern_matches):
+        if is_async:
+            eval_mechanism.eval(event_stream, pattern_matches, is_async=True, file_path=file_path, time_limit=time_limit)
+        else:
+            eval_mechanism.eval(self.event_stream, self.pattern_matches)
 
+    def eval_by_single_mechanizm_multiple_data(self, is_async, file_path, time_limit):
+        for i in range (len(self.event_stream_splitted)):
+            event_stream = self.event_stream_splitted[i]
+            pattern_match = self.pattern_matches_list[i]
+            self.eval_by_single_mechanizm_single_data(is_async, file_path, time_limit, self.source_eval_mechanism, event_stream, pattern_match)
 
+    def eval_by_multiple_mechanizm_single_data(self, is_async, file_path, time_limit):
+        for i in range (len(self.eval_mechanism_list)):
+            event_stream = self.source_event_stream
+            pattern_match = self.pattern_matches_list[i]
+            eval_mechanism = self.eval_mechanism_list[i]
+            self.eval_by_single_mechanizm_single_data(is_async, file_path, time_limit,eval_mechanism, event_stream, pattern_match)
 
+    def eval_by_multiple_mechanizm_multiple_data(self, is_async, file_path, time_limit):
+        data_for_each = len(self.event_stream_splitted) / len(self.eval_mechanism_list)
+        remainder = len(self.event_stream_splitted) - data_for_each * len(self.eval_mechanism_list)
+
+        data_index = 0
+        for i in range (len(self.eval_mechanism_list)):
+            eval_mechanism = self.eval_mechanism_list[i]
+            for j in range(data_for_each):
+                assert len(self.event_stream_splitted) == len(self.pattern_matches_list)
+                event_stream = self.event_stream_splitted[data_index]
+                pattern_match = self.pattern_matches_list[data_index]
+                self.eval_by_single_mechanizm_single_data(is_async, file_path, time_limit,eval_mechanism, event_stream, pattern_match)
+                data_index += 1
+
+        if remainder > 0:
+           eval_mechanism = self.eval_mechanism_list[0]
+           for j in range(remainder):
+               event_stream = self.event_stream_splitted[data_index]
+               pattern_match = self.pattern_matches_list[data_index]
+               self.eval_by_single_mechanizm_single_data(is_async, file_path, time_limit, eval_mechanism, event_stream, pattern_match)
+               data_index += 1
+
+    # def get_matches(self):
+    #     if len(self.)
