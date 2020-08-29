@@ -25,14 +25,13 @@ class EvaluationMechanismManager:
         self.source_event_stream = None
         self.pattern_matches = None
         self.pattern_matches_list = None
-        #1
-        if len(patterns) == 1:               # single pattern
+
+        if len(patterns) == 1:          # single pattern
             self.source_eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism\
                 (eval_mechanism_type, eval_params, self.patterns[0])
-        else:                                # multi pattern
+        else:        # multi pattern
             raise NotImplementedError()
 
-        #3
         if self.work_load_fr.get_execution_units() > 1:
             self.master, self.eval_mechanism_list = self.work_load_fr.split_structure(self.source_eval_mechanism)
         else:
