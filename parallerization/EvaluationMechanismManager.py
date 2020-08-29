@@ -104,5 +104,8 @@ class EvaluationMechanismManager:
                self.eval_by_single_mechanizm_single_data(is_async, file_path, time_limit, eval_mechanism, event_stream, pattern_match)
                data_index += 1
 
-    # def get_matches(self):
-    #     if len(self.)
+    def get_matches(self):
+        if len(self.pattern_matches_list) > 0:
+            return self.pattern_matches_list
+        else:
+            return self.pattern_matches
