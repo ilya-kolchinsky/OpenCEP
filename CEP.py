@@ -58,10 +58,8 @@ class CEP:
         """
         self.__pattern_matches = Stream()
         start = datetime.now()
-        if is_async:
-            self.__eval_mechanism_manager.eval(event_stream, self.__pattern_matches, is_async=True, file_path=file_path, time_limit=time_limit)
-        else:
-            self.__eval_mechanism_manager.eval(event_stream, self.__pattern_matches)
+
+        self.__eval_mechanism_manager.eval(event_stream, self.__pattern_matches, is_async, file_path, time_limit)
 
         return (datetime.now() - start).total_seconds()
 
