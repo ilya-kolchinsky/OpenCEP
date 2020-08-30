@@ -16,7 +16,7 @@ from evaluation.PartialMatchStorage import TreeStorageParameters
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, EvaluationMechanismFactory
 from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
 from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
-from parallerization.ParallelWorkLoadFramework import ParallelTreeWorkloadFramework
+from parallerization.ParallelTreeWorkloadFramework import ParallelTreeWorkloadFramework
 try:
     from UnitTests.test_storage import run_storage_tests
 except ImportError:
@@ -160,7 +160,7 @@ def runTest(testName, patterns, createTestFile = False,
     if execution_fr == None:
         execution_fr = ParallelExecutionFramework()
 
-    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, workload_fr, execution_fr)
+    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, work_load_fr=workload_fr, execution_fr=execution_fr)
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
     file_output(absolutePath, matches, '%sMatches.txt' % testName)
@@ -170,6 +170,9 @@ def runTest(testName, patterns, createTestFile = False,
           "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
     runTest.over_all_time += running_time
     os.remove(absolutePath + "\\" + actual_matches_path)
+
+
+
 
 def runBenchMark(testName, patterns, eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
                  eval_mechanism_params=None, events=None):
@@ -938,9 +941,10 @@ def sortedStorageBenchMarkTest(createTestFile=False):
 
     storage_params = TreeStorageParameters(sort_storage=True, attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
     runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params))
+
 def my_test():
+
     #default case
-    workload_test = ParallelTreeWorkloadFramework()
     my_custom = file_input(absolutePath, "test/EventFiles/my_custom.txt", MetastockDataFormatter())
     splitted_data = workload_test.split_data(my_custom)
 
@@ -964,14 +968,39 @@ def my_test():
     print("SUCCESS")
 
 
+def justdatasplittests():
+    pattern = Pattern(
+        SeqOperator([QItem("GOOG", "a"), QItem("GOOG", "b"), QItem("GOOG", "c")]),
+        AndFormula(
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
+                               IdentifierTerm("b", lambda x: x["Peak Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
+                               IdentifierTerm("c", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+    my_custom = file_input(absolutePath, "test/EventFiles/my_custom.txt", MetastockDataFormatter())
+    workload_fr = ParallelTreeWorkloadFramework(execution_units=2, is_data_splitted=True, pattern_size=3)
+    execution_fr = ParallelExecutionFramework()
+    events = custom.duplicate()
 
+    cep = CEP([pattern], work_load_fr=workload_fr, execution_fr=execution_fr)
+    running_time = cep.run(events)
+    matches = cep.get_pattern_match_stream()
+    file_output(absolutePath, matches, '%sMatches.txt' % 'parallel')
+    expected_matches_path = "test/TestsExpected/%sMatches.txt" % 'parallel'
+    actual_matches_path = "test/Matches/%sMatches.txt" % 'parallel'
+    print("Test %s result: %s, Time Passed: %s" % ('parallel',
+          "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
 
-
-
-
-
-my_test()
+#my_test()
 runTest.over_all_time = 0
+
+#parallel tests
+justdatasplittests()
+#justtree_structure_split_test()
+
+"""
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
@@ -1007,7 +1036,9 @@ nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
 
 # negation tests
+
 simpleNotTest()
+
 multipleNotInTheMiddleTest()
 oneNotAtTheBeginningTest()
 multipleNotAtTheBeginningTest()
@@ -1015,7 +1046,7 @@ oneNotAtTheEndTest()
 multipleNotAtTheEndTest()
 multipleNotBeginAndEndTest()
 testWithMultipleNotAtBeginningMiddleEnd()
-
+"""
 # consumption policies tests
 singleType1PolicyPatternSearchTest()
 singleType2PolicyPatternSearchTest()
@@ -1034,6 +1065,7 @@ if INCLUDE_BENCHMARKS:
     sortedStorageBenchMarkTest()
 
 
+
 # Twitter tests
 try:
     from TwitterTest import run_twitter_sanity_check
@@ -1042,5 +1074,3 @@ except ImportError:  # tweepy might not be installed
     pass
 
 print("Finished running all tests, overall time: %s" % runTest.over_all_time)
-
-#commit test

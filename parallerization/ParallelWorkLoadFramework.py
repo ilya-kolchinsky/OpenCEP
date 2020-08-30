@@ -6,9 +6,10 @@ from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 
 class ParallelWorkLoadFramework(ABC):
 
-    def __init__(self, execution_units : int = 1, is_data_splitted : bool = False):
+    def __init__(self, execution_units: int = 1, is_data_splitted: bool = False, is_tree_splitted: bool = False):
         self.execution_units = execution_units
         self.is_data_splitted = is_data_splitted
+        self.is_tree_splitted = is_tree_splitted
 
     def split_data(self, input_stream: Stream):#the output needs to be a list of streams of size <= execution_units
         raise NotImplementedError()
@@ -22,6 +23,8 @@ class ParallelWorkLoadFramework(ABC):
     def get_is_data_splitted(self):
         return self.is_data_splitted
 
+    def get_is_tree_splitted(self):
+        return self.is_tree_splitted
 
 
 

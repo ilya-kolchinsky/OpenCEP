@@ -2,6 +2,7 @@ from base import Pattern
 from evaluation.PartialMatchStorage import TreeStorageParameters
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
+from parallerization.ParallelTree import ParallelTree
 
 
 

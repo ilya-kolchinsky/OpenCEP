@@ -1,4 +1,4 @@
-from evaluation import TreeBasedEvaluationMechanism
+from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from misc.IOUtils import Stream
 from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
 
@@ -38,14 +38,14 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def split_structure(self, evaluation_mechanism: TreeBasedEvaluationMechanism):
         #split the tree into n <= execution_units parts in a nondescript way
-        if type(evaluation_mechanism) != TreeBasedEvaluationMechanism:
+        if type(evaluation_mechanism) is not TreeBasedEvaluationMechanism:
             raise Exception()
         splitted_tree = []
 
-        if self.execution_units == 1:#need to change that
-            splitted_tree.append(evaluation_mechanism.get_tree())
-            return splitted_tree
-
+        if self.execution_units == 1 or self.is_tree_splitted == False:#need to change that
+            #splitted_tree.append(evaluation_mechanism.get_tree())
+            return [evaluation_mechanism]
+        #TODO : need to return eval mecanism instead of nodes?
         splitted_tree = list(evaluation_mechanism.get_tree().get_nodes())
         if len(splitted_tree) <= self.execution_units:
             return splitted_tree
