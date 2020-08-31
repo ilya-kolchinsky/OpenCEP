@@ -1216,7 +1216,6 @@ class Tree:
                 return False
         return True
 
-
 class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
@@ -1230,6 +1229,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
         if pattern.consumption_policy is not None and pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
+    def __init__(self, pattern: Pattern, tree: Tree):
+
 
     def get_tree(self):
         return self.__tree

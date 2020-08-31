@@ -3,7 +3,6 @@ from misc.IOUtils import Stream
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism, Node
 
 
-
 class ParallelWorkLoadFramework(ABC):
 
     def __init__(self, execution_units: int = 1, is_data_splitted: bool = False, is_tree_splitted: bool = False):
@@ -12,19 +11,29 @@ class ParallelWorkLoadFramework(ABC):
         self.is_tree_splitted = is_tree_splitted
 
     def split_data(self, input_stream: Stream):#the output needs to be a list of streams of size <= execution_units
-        raise NotImplementedError()
+        return input_stream
 
-    def split_structure(self, evaluation_mechanism):#the output needs to be a list of nodes/a list with the whole tree when execution_units = 1
-        raise NotImplementedError()
+    # the output needs to be a list of nodes/a list with the whole tree when execution_units = 1
+    # the first variable needs to be the master
+    def split_structure(self, evaluation_mechanism):
+        return evaluation_mechanism
 
     def get_execution_units(self):
-        return self.execution_units
+        return 1
 
     def get_is_data_splitted(self):
-        return self.is_data_splitted
+        return False
 
-    def get_is_tree_splitted(self):
-        return self.is_tree_splitted
+    # example:
+    # map ={1,2}
+    # evaluation_mechanism_list[em1,em2,em3]
+    # spllited_data = [d1,d2]
+    # result would be: em1.eval(d1), em2.eval(d2), em3.eval(d2)
+    def get_multiple_data_to_multiple_execution_units_index(self):
+        return None
+
+    def get_masters(self):
+        raise NotImplementedError
 
 
 
