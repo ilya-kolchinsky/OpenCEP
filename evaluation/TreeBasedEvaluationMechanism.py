@@ -1,23 +1,13 @@
-from datetime import timedelta, datetime
-from abc import ABC
 from queue import Queue
-from datetime import timedelta, datetime
-from base.Pattern import Pattern
-from base.PatternStructure import SeqOperator, QItem, NegationOperator, AndOperator
-from base.Formula import TrueFormula, Formula
-from evaluation.PartialMatch import PartialMatch
-from misc.IOUtils import Stream
-from typing import List, Tuple, Dict
+from datetime import timedelta
 from base.Event import Event
-from base.Formula import TrueFormula, RelopTypes, EquationSides, IdentifierTerm, AtomicFormula
-from evaluation.PartialMatch import PartialMatch
-from misc.Utils import merge, merge_according_to, is_sorted, find_partial_match_by_timestamp
-from evaluation.PartialMatchStorage import SortedPartialMatchStorage, UnsortedPartialMatchStorage
-from misc.IOUtils import Stream
-from typing import List, Tuple, Dict
+from misc.Utils import *
+from base.Formula import TrueFormula, Formula, RelopTypes, EquationSides, IdentifierTerm, AtomicFormula
+from evaluation.PartialMatchStorage import SortedPartialMatchStorage, UnsortedPartialMatchStorage, TreeStorageParameters
+from typing import Tuple, Dict
 from base.PatternMatch import PatternMatch
+from base.PatternStructure import *
 from evaluation.EvaluationMechanism import EvaluationMechanism
-from evaluation.PartialMatchStorage import TreeStorageParameters, PartialMatchStorage
 from misc.ConsumptionPolicy import *
 
 import time
@@ -204,6 +194,12 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
+    def get_structure_summary(self):
+        """
+        Returns the summary of the subtree rooted at this node - to be implemented by subclasses.
+        """
+        raise NotImplementedError()
+
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,
                             sort_by_first_timestamp: bool = False):
@@ -224,9 +220,6 @@ class LeafNode(Node):
         self.__event_type = leaf_qitem.type
 
     def get_leaves(self):
-        return [self]
-
-    def get_nodes(self):
         return [self]
 
     def apply_formula(self, formula: Formula):
@@ -292,15 +285,102 @@ class LeafNode(Node):
                                                           storage_params.clean_up_interval,
                                                           actual_sort_by_first_timestamp, True)
 
+    def get_structure_summary(self):
+        return self.__event_name
 
-class InternalNode(Node):
+
+class InternalNode(Node, ABC):
+    """
+    This class represents a non-leaf node of an evaluation tree.
+    """
+    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None):
+        super().__init__(sliding_window, parent)
+        self._event_defs = event_defs
+
+    def get_event_definitions(self):
+        return self._event_defs
+
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        """
+        Validates the condition stored in this node on the given set of events.
+        """
+        if not super()._validate_new_match(events_for_new_match):
+            return False
+        binding = {
+            self._event_defs[i][1].name: events_for_new_match[i].payload for i in range(len(self._event_defs))
+        }
+        return self._condition.eval(binding)
+
+    def apply_formula(self, formula: Formula):
+        names = {item[1].name for item in self._event_defs}
+        condition = formula.get_formula_of(names)
+        self._condition = condition if condition else TrueFormula()
+        self._propagate_condition(formula)
+
+    def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                           rel_op: RelopTypes = None, equation_side: EquationSides = None,
+                           sort_by_first_timestamp: bool = False):
+        """
+        An auxiliary method for setting up the storage of an internal node.
+        In the internal nodes, we only sort the storage if a storage key is explicitly provided by the user.
+        """
+        if not storage_params.sort_storage or sorting_key is None:
+            self._partial_matches = UnsortedPartialMatchStorage(storage_params.clean_up_interval)
+        else:
+            self._partial_matches = SortedPartialMatchStorage(sorting_key, rel_op, equation_side,
+                                                              storage_params.clean_up_interval, sort_by_first_timestamp)
+
+    def _propagate_condition(self, condition: Formula):
+        """
+        Propagates the given condition to the child tree(s).
+        """
+        raise NotImplementedError()
+
+    def handle_new_partial_match(self, partial_match_source: Node):
+        """
+        A handler for a notification regarding a new partial match generated at one of this node's children.
+        """
+        raise NotImplementedError()
+
+
+class UnaryNode(InternalNode, ABC):
+    """
+    Represents an internal tree node with a single child.
+    """
+    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
+                 child: Node = None):
+        super().__init__(sliding_window, parent, event_defs)
+        self._child = child
+
+    def get_leaves(self):
+        if self._child is None:
+            raise Exception("Unary Node with no child")
+        return self._child.get_leaves()
+
+    def _propagate_condition(self, condition: Formula):
+        self._child.apply_formula(condition)
+
+    def set_subtree(self, child: Node):
+        """
+        Sets the child node of this node.
+        """
+        self._child = child
+        self._event_defs = child.get_event_definitions()
+
+    def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
+                            sort_by_first_timestamp: bool = False):
+        self._init_storage_unit(storage_params, sorting_key, rel_op, equation_side)
+        self._child.create_storage_unit(storage_params)
+
+
+class BinaryNode(InternalNode, ABC):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
     def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
-        super().__init__(sliding_window, parent)
-        self._event_defs = event_defs
+        super().__init__(sliding_window, parent, event_defs)
         self._left_subtree = left
         self._right_subtree = right
 
@@ -312,29 +392,14 @@ class InternalNode(Node):
             result += self._right_subtree.get_leaves()
         return result
 
-    def get_nodes(self):
-        result = []
-        if self._left_subtree is not None:
-            result += self._left_subtree.get_nodes()
-        if self._right_subtree is not None:
-            result += self._right_subtree.get_nodes()
-        result += [self]
-        return result
-
-    def apply_formula(self, formula: Formula):
-        names = {item[1].name for item in self._event_defs}
-        condition = formula.get_formula_of(names)
-        self._condition = condition if condition else TrueFormula()
-        self._left_subtree.apply_formula(formula)
-        self._right_subtree.apply_formula(formula)
-
-    def get_event_definitions(self):
-        return self._event_defs
+    def _propagate_condition(self, condition: Formula):
+        self._left_subtree.apply_formula(condition)
+        self._right_subtree.apply_formula(condition)
 
     def _set_event_definitions(self,
                                left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
         """
-        A helper function for collecting the event definitions from subtrees. To be overridden by subclasses.
+        A helper function for collecting the event definitions from subtrees.
         """
         self._event_defs = left_event_defs + right_event_defs
 
@@ -408,17 +473,6 @@ class InternalNode(Node):
         if self._event_defs[0][0] == second_event_defs[0][0]:
             return second_event_list + first_event_list
         raise Exception()
-
-    def _validate_new_match(self, events_for_new_match: List[Event]):
-        """
-        Validates the condition stored in this node on the given set of events.
-        """
-        if not super()._validate_new_match(events_for_new_match):
-            return False
-        binding = {
-            self._event_defs[i][1].name: events_for_new_match[i].payload for i in range(len(self._event_defs))
-        }
-        return self._condition.eval(binding)
 
     def __get_filtered_conditions(self, left_event_names: List[str], right_event_names: List[str]):
         """
@@ -508,24 +562,16 @@ class InternalNode(Node):
 
         return left_sorting_key, left_rel_op, left_equation_size, right_sorting_key, right_rel_op, right_equation_size
 
-    def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
-                           rel_op: RelopTypes = None, equation_side: EquationSides = None,
-                           sort_by_first_timestamp: bool = False):
-        """
-        An auxiliary method for setting up the storage of an internal node.
-        In the internal nodes, we only sort the storage if a storage key is explicitly provided by the user.
-        """
-        if not storage_params.sort_storage or sorting_key is None:
-            self._partial_matches = UnsortedPartialMatchStorage(storage_params.clean_up_interval)
-        else:
-            self._partial_matches = SortedPartialMatchStorage(sorting_key, rel_op, equation_side,
-                                                              storage_params.clean_up_interval, sort_by_first_timestamp)
 
-
-class AndNode(InternalNode):
+class AndNode(BinaryNode):
     """
     An internal node representing an "AND" operator.
     """
+    def get_structure_summary(self):
+        return ("And",
+                self._left_subtree.get_structure_summary(),
+                self._right_subtree.get_structure_summary())
+
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,
                             sort_by_first_timestamp: bool = False):
@@ -542,7 +588,7 @@ class AndNode(InternalNode):
         self._right_subtree.create_storage_unit(storage_params, right_key, right_rel_op, right_equation_size)
 
 
-class SeqNode(InternalNode):
+class SeqNode(BinaryNode):
     """
     An internal node representing a "SEQ" (sequence) operator.
     In addition to checking the time window and condition like the basic node does, SeqNode also verifies the order
@@ -564,6 +610,11 @@ class SeqNode(InternalNode):
         if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
             return False
         return super()._validate_new_match(events_for_new_match)
+
+    def get_structure_summary(self):
+        return ("Seq",
+                self._left_subtree.get_structure_summary(),
+                self._right_subtree.get_structure_summary())
 
     def _get_sequence_based_sorting_keys(self):
         """
@@ -637,13 +688,12 @@ class SeqNode(InternalNode):
                                                 right_sort_by_first_timestamp)
 
 
-class NegationNode(InternalNode):
+class NegationNode(BinaryNode, ABC):
     """
     An internal node representing a negation operator.
     This implementation heavily relies on the fact that, if any unbounded negation operators are defined in the
     pattern, they are conveniently placed at the top of the tree forming a left-deep chain of nodes.
     """
-
     def __init__(self, sliding_window: timedelta, is_unbounded: bool, top_operator, parent: Node = None,
                  event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
@@ -809,6 +859,11 @@ class NegativeAndNode(NegationNode):
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, is_unbounded, AndOperator, parent, event_defs, left, right)
 
+    def get_structure_summary(self):
+        return ("NAnd",
+                self._left_subtree.get_structure_summary(),
+                self._right_subtree.get_structure_summary())
+
 
 class NegativeSeqNode(NegationNode):
     """
@@ -819,6 +874,11 @@ class NegativeSeqNode(NegationNode):
                  event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, is_unbounded, SeqOperator, parent, event_defs, left, right)
+
+    def get_structure_summary(self):
+        return ("NSeq",
+                self._left_subtree.get_structure_summary(),
+                self._right_subtree.get_structure_summary())
 
     def _set_event_definitions(self,
                                left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
@@ -838,194 +898,80 @@ class NegativeSeqNode(NegationNode):
                                   first_event_list, second_event_list, key=lambda x: x[0])
 
 
-class NegationNode(InternalNode):
+class KleeneClosureNode(UnaryNode):
     """
-    An internal node representing a negation operator.
-    This implementation heavily relies on the fact that, if any unbounded negation operators are defined in the
-    pattern, they are conveniently placed at the top of the tree forming a left-deep chain of nodes.
+    An internal node representing a Kleene closure operator.
+    It generates and propagates sets of partial matches provided by its sole child.
     """
-    def __init__(self, sliding_window: timedelta, is_unbounded: bool, top_operator, parent: Node = None,
-                 event_defs: List[Tuple[int, QItem]] = None,
-                 left: Node = None, right: Node = None):
-        super().__init__(sliding_window, parent, event_defs, left, right)
-
-        # aliases for the negative node subtrees to make the code more readable
-        # by construction, we always have the positive subtree on the left
-        self._positive_subtree = self._left_subtree
-        self._negative_subtree = self._right_subtree
-
-        # negation operators that can appear in the end of the match have this flag on
-        self.__is_unbounded = is_unbounded
-
-        # the multinary operator of the root node
-        self.__top_operator = top_operator
-
-        # a list of partial matches that can be invalidated by a negative event that will only arrive in future
-        self.__pending_partial_matches = []
-
-    def set_subtrees(self, left: Node, right: Node):
-        """
-        Updates the aliases following the changes in the subtrees.
-        """
-        super().set_subtrees(left, right)
-        self._positive_subtree = self._left_subtree
-        self._negative_subtree = self._right_subtree
-
-    def clean_expired_partial_matches(self, last_timestamp: datetime):
-        """
-        In addition to the normal functionality of this method, attempt to flush pending matches that can already
-        be propagated.
-        """
-        super().clean_expired_partial_matches(last_timestamp)
-        if self.__is_first_unbounded_negative_node():
-            self.flush_pending_matches(last_timestamp)
-
-    def flush_pending_matches(self, last_timestamp: datetime = None):
-        """
-        Releases the partial matches in the pending matches buffer. If the timestamp is provided, only releases
-        expired matches.
-        """
-        if last_timestamp is not None:
-            self.__pending_partial_matches = sorted(self.__pending_partial_matches, key=lambda x: x.first_timestamp)
-            count = find_partial_match_by_timestamp(self.__pending_partial_matches,
-                                                    last_timestamp - self._sliding_window)
-            matches_to_flush = self.__pending_partial_matches[:count]
-            self.__pending_partial_matches = self.__pending_partial_matches[count:]
-        else:
-            matches_to_flush = self.__pending_partial_matches
-
-        # since matches_to_flush could be expired, we need to temporarily disable timestamp checks
-        Node._toggle_enable_partial_match_expiration(False)
-        for partial_match in matches_to_flush:
-            super()._add_partial_match(partial_match)
-        Node._toggle_enable_partial_match_expiration(True)
-
-    def get_event_definitions(self):
-        """
-        This is an ugly temporary hack to support multiple chained negation operators. As this prevents different
-        negative events from having mutual conditions, this implementation is highly undesirable and will be removed
-        in future.
-        """
-        return self._positive_subtree.get_event_definitions()
-
-    def _try_create_new_matches(self, new_partial_match: PartialMatch, partial_matches_to_compare: List[PartialMatch],
-                                first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
-        """
-        The flow of this method is the opposite of the one its superclass implements. For each pair of a positive and a
-        negative partial match, we combine the two sides to form a new partial match, validate it, and then do nothing
-        if the validation succeeds (i.e., the negative part invalidated the positive one), and transfer the positive
-        match up the tree if the validation fails.
-        """
-        positive_events = new_partial_match.events
-        for partial_match in partial_matches_to_compare:
-            negative_events = partial_match.events
-            combined_event_list = self._merge_events_for_new_match(first_event_defs, second_event_defs,
-                                                                   positive_events, negative_events)
-            if self._validate_new_match(combined_event_list):
-                # this match should not be transferred
-                # TODO: the rejected positive partial match should be explicitly removed to save space
-                return
-        # no negative match invalidated the positive one - we can go on
-        self._propagate_partial_match(positive_events)
-
-    def _add_partial_match(self, pm: PartialMatch):
-        """
-        If this node can receive unbounded negative events and is the deepest node in the tree to do so, a
-        successfully evaluated partial match must be added to a dedicated waiting list rather than propagated normally.
-        """
-        if self.__is_first_unbounded_negative_node():
-            self.__pending_partial_matches.append(pm)
-        else:
-            super()._add_partial_match(pm)
+    def __init__(self, sliding_window: timedelta, min_size, max_size, parent: Node = None):
+        super().__init__(sliding_window, parent)
+        self.__min_size = min_size
+        self.__max_size = max_size
 
     def handle_new_partial_match(self, partial_match_source: Node):
         """
-        For positive partial matches, activates the flow of the superclass. For negative partial matches, does nothing
-        for bounded events (as nothing should be done in this case), otherwise checks whether existing positive matches
-        must be invalidated and handles them accordingly.
+        Reacts upon a notification of a new partial match available at the child by generating, validating, and
+        propagating all sets of partial matches containing this new partial match.
+        Note: this method strictly assumes that the last partial match in the child storage is the one to cause the
+        method call (could not function properly in a parallelized implementation of the evaluation tree).
         """
-        if partial_match_source == self._positive_subtree:
-            # a new positive partial match has arrived
-            super().handle_new_partial_match(partial_match_source)
-            return
-        # a new negative partial match has arrived
-        if not self.__is_unbounded:
-            # no unbounded negatives - there is nothing to do
-            return
+        if self._child is None:
+            raise Exception()  # should never happen
 
-        # this partial match contains unbounded negative events
-        first_unbounded_node = self.get_first_unbounded_negative_node()
-        positive_event_defs = first_unbounded_node.get_event_definitions()
+        new_partial_match = self._child.get_last_unhandled_partial_match()
+        self._child.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
-        unbounded_negative_partial_match = partial_match_source.get_last_unhandled_partial_match()
-        negative_event_defs = partial_match_source.get_event_definitions()
+        # create partial match sets containing the new partial match that triggered this method
+        child_matches_powerset = self.__create_child_matches_powerset()
 
-        matches_to_keep = []
-        for positive_partial_match in first_unbounded_node.__pending_partial_matches:
-            combined_event_list = self._merge_events_for_new_match(positive_event_defs,
-                                                                   negative_event_defs,
-                                                                   positive_partial_match.events,
-                                                                   unbounded_negative_partial_match.events)
-            if not self._validate_new_match(combined_event_list):
-                # this positive match should still be kept
-                matches_to_keep.append(positive_partial_match)
+        for partial_match_set in child_matches_powerset:
+            # create and propagate the new match
+            # TODO: except for the time window constraint, no validation is supported as of now
+            events_for_partial_match = KleeneClosureNode.partial_match_set_to_event_list(partial_match_set)
+            self._validate_and_propagate_partial_match(events_for_partial_match)
 
-        first_unbounded_node.__pending_partial_matches = matches_to_keep
-
-    def get_first_unbounded_negative_node(self):
+    def __create_child_matches_powerset(self):
         """
-        Returns the deepest unbounded node in the tree. This node keeps the partial matches that are pending release
-        due to the presence of unbounded negative events in the pattern.
+        This method is a generator returning all subsets of currently available partial matches of this node child.
+        As this method is always invoked following a notification regarding a new partial match received from the child,
+        only the subsets containing this new partial match (which is assumed to be the last partial match in the child
+        list) are generated.
+        The subsets are enforced to satisfy the minimal and maximal size constraints.
+        The maximal size constraint is enforced recursively to save as many computations as possible.
+        The minimal size constraint on the other hand is enforced via post-processing filtering due to negligible
+        overhead.
         """
-        if not self.__is_unbounded:
-            return None
-        return self if self.__is_first_unbounded_negative_node() \
-            else self._positive_subtree.get_first_unbounded_negative_node()
+        child_partial_matches = self._child.get_partial_matches()
+        if len(child_partial_matches) == 0:
+            return []
+        last_partial_match = child_partial_matches[-1]
+        # create subsets for all but the last element
+        actual_max_size = self.__max_size if self.__max_size is not None else len(child_partial_matches)
+        generated_powerset = recursive_powerset_generator(child_partial_matches[:-1], actual_max_size - 1)
+        # add the last item to all previously created subsets
+        result_powerset = [item + [last_partial_match] for item in generated_powerset]
+        # enforce minimal size limit
+        result_powerset = [item for item in result_powerset if self.__min_size <= len(item)]
+        return result_powerset
 
-    def __is_first_unbounded_negative_node(self):
+    def get_structure_summary(self):
+        return "KC", self._child.get_structure_summary()
+
+    @staticmethod
+    def partial_match_set_to_event_list(partial_match_set: List[PartialMatch]):
         """
-        Returns True if this node is the first unbounded negative node and False otherwise.
+        Converts a set of partial matches into a single list containing all primitive events of the partial
+        matches in the set.
+        TODO: this is not the way this operator should work!
         """
-        return self.__is_unbounded and \
-               (not isinstance(self._positive_subtree, NegationNode) or not self._positive_subtree.__is_unbounded)
-
-
-class NegativeAndNode(NegationNode):
-    """
-    An internal node representing a negative conjunction operator.
-    """
-    def __init__(self, sliding_window: timedelta, is_unbounded: bool, parent: Node = None,
-                 event_defs: List[Tuple[int, QItem]] = None,
-                 left: Node = None, right: Node = None):
-        super().__init__(sliding_window, is_unbounded, AndOperator, parent, event_defs, left, right)
-
-
-class NegativeSeqNode(NegationNode):
-    """
-    An internal node representing a negative sequence operator.
-    Unfortunately, this class contains some code duplication from SeqNode to avoid diamond inheritance.
-    """
-    def __init__(self, sliding_window: timedelta, is_unbounded: bool, parent: Node = None,
-                 event_defs: List[Tuple[int, QItem]] = None,
-                 left: Node = None, right: Node = None):
-        super().__init__(sliding_window, is_unbounded, SeqOperator, parent, event_defs, left, right)
-
-    def _set_event_definitions(self,
-                               left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
-        self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
-
-    def _validate_new_match(self, events_for_new_match: List[Event]):
-        if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
-            return False
-        return super()._validate_new_match(events_for_new_match)
-
-    def _merge_events_for_new_match(self,
-                                    first_event_defs: List[Tuple[int, QItem]],
-                                    second_event_defs: List[Tuple[int, QItem]],
-                                    first_event_list: List[Event],
-                                    second_event_list: List[Event]):
-        return merge_according_to(first_event_defs, second_event_defs,
-                                  first_event_list, second_event_list, key=lambda x: x[0])
+        min_timestamp = None
+        max_timestamp = None
+        events = []
+        for match in partial_match_set:
+            min_timestamp = match.first_timestamp if min_timestamp is None else min(min_timestamp, match.first_timestamp)
+            max_timestamp = match.last_timestamp if max_timestamp is None else max(max_timestamp, match.last_timestamp)
+            events.extend(match.events)
+        return events
 
 
 class Tree:
@@ -1034,16 +980,15 @@ class Tree:
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     """
     def __init__(self, tree_structure: tuple, pattern: Pattern, storage_params: TreeStorageParameters):
-        # Note that right now only "flat" sequence patterns and "flat" conjunction patterns are supported
-        self.__root = Tree.__construct_tree(pattern.positive_structure.get_top_operator() == SeqOperator,
-                                            tree_structure, pattern.positive_structure.args, pattern.window,
-                                            None, pattern.consumption_policy)
+        self.__root = self.__construct_tree(pattern.positive_structure, tree_structure,
+                                            Tree.__get_operator_arg_list(pattern.positive_structure),
+                                            pattern.window, None, pattern.consumption_policy)
 
         if pattern.consumption_policy is not None and \
                 pattern.consumption_policy.should_register_event_type_as_single(True):
             for event_type in pattern.consumption_policy.single_types:
                 self.__root.register_single_event_type(event_type)
-                
+
         if pattern.negative_structure is not None:
             self.__adjust_leaf_indices(pattern)
             self.__add_negative_tree_structure(pattern)
@@ -1103,68 +1048,98 @@ class Tree:
             current_root = new_root
         self.__root = current_root
 
-    def __adjust_leaf_indices(self, pattern: Pattern):
-        """
-        Fixes the values of the leaf indices in the positive tree to take the negative events into account.
-        """
-        leaf_mapping = {}
-        for leaf in self.get_leaves():
-            current_index = leaf.get_leaf_index()
-            correct_index = pattern.get_index_by_event_name(leaf.get_event_name())
-            leaf_mapping[current_index] = correct_index
-        self.__update_event_defs(self.__root, leaf_mapping)
-
-    def __update_event_defs(self, node: Node, leaf_mapping: Dict[int, int]):
-        """
-        Recursively modifies the event indices in the tree specified by the given node.
-        """
-        if isinstance(node, LeafNode):
-            node.set_leaf_index(leaf_mapping[node.get_leaf_index()])
-            return
-        # this node is an internal node
-        event_defs = node.get_event_definitions()
-        # no list comprehension is used since we modify the original list
-        for i in range(len(event_defs)):
-            event_def = event_defs[i]
-            event_defs[i] = (leaf_mapping[event_def[0]], event_def[1])
-        self.__update_event_defs(node.get_left_subtree(), leaf_mapping)
-        self.__update_event_defs(node.get_right_subtree(), leaf_mapping)
-
-    def __add_negative_tree_structure(self, pattern: Pattern):
-        """
-        Adds the negative nodes at the root of the tree.
-        """
-        top_operator = pattern.full_structure.get_top_operator()
-        negative_event_list = pattern.negative_structure.get_args()
-        current_root = self.__root
-        for negation_operator in negative_event_list:
-            if top_operator == SeqOperator:
-                new_root = NegativeSeqNode(pattern.window,
-                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
-            elif top_operator == AndOperator:
-                new_root = NegativeAndNode(pattern.window,
-                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
-            else:
-                raise Exception("Unsupported operator for negation: %s" % (top_operator,))
-            negative_event = negation_operator.arg
-            leaf_index = pattern.get_index_by_event_name(negative_event.name)
-            negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root)
-            new_root.set_subtrees(current_root, negative_leaf)
-            negative_leaf.set_parent(new_root)
-            current_root.set_parent(new_root)
-            current_root = new_root
-        self.__root = current_root
-
     def get_leaves(self):
         return self.__root.get_leaves()
-
-    def get_nodes(self):
-        return self.__root.get_nodes()
-
 
     def get_matches(self):
         while self.__root.has_partial_matches():
             yield self.__root.consume_first_partial_match().events
+
+    def get_structure_summary(self):
+        """
+        Returns a tuple summarizing the structure of the tree.
+        """
+        return self.__root.get_structure_summary()
+
+    @staticmethod
+    def __get_operator_arg_list(operator: PatternStructure):
+        """
+        Returns the list of arguments of the given operator for the tree construction process.
+        """
+        if isinstance(operator, CompositeStructure):
+            return operator.args
+        if isinstance(operator, UnaryStructure):
+            return [operator.arg]
+        # a QItem
+        return [operator]
+
+    @staticmethod
+    def __create_internal_node_by_operator(operator: PatternStructure, sliding_window: timedelta, parent: Node = None):
+        """
+        Creates an internal node representing a given operator.
+        Note that negation node types are intentionally not supported here since the negative part of a pattern is
+        added in a separate construction stage.
+        """
+        operator_type = operator.get_top_operator()
+        if operator_type == SeqOperator:
+            return SeqNode(sliding_window, parent)
+        if operator_type == AndOperator:
+            return AndNode(sliding_window, parent)
+        if operator_type == KleeneClosureOperator:
+            return KleeneClosureNode(sliding_window, operator.min_size, operator.max_size, parent)
+        raise Exception("Unknown or unsupported operator %s" % (operator_type,))
+
+    def __handle_primitive_event_or_nested_structure(self, event_index: int, current_operator: PatternStructure,
+                                                     sliding_window: timedelta, parent: Node,
+                                                     consumption_policy: ConsumptionPolicy):
+        """
+        Constructs a single leaf node or a subtree with nested structure according to the input parameters.
+        """
+        if isinstance(current_operator, QItem):
+            # the current operator is a primitive event - we should simply create a leaf
+            event = current_operator
+            if consumption_policy is not None and \
+                    consumption_policy.should_register_event_type_as_single(False, event.type):
+                parent.register_single_event_type(event.type)
+            return LeafNode(sliding_window, event_index, current_operator, parent)
+
+        if isinstance(current_operator, UnaryStructure):
+            # the current operator is a unary operator hiding a nested pattern structure
+            unary_node = self.__create_internal_node_by_operator(current_operator, sliding_window, parent)
+            nested_operator = current_operator.arg
+            child = self.__construct_tree(nested_operator, Tree.__create_nested_structure(nested_operator),
+                                          Tree.__get_operator_arg_list(nested_operator), sliding_window, unary_node,
+                                          consumption_policy)
+            unary_node.set_subtree(child)
+            return unary_node
+
+        # the current operator is a nested binary operator
+        return self.__construct_tree(current_operator, Tree.__create_nested_structure(current_operator),
+                                     current_operator.args, sliding_window, parent, consumption_policy)
+
+    def __construct_tree(self, root_operator: PatternStructure, tree_structure: tuple or int,
+                         args: List[PatternStructure], sliding_window: timedelta, parent: Node,
+                         consumption_policy: ConsumptionPolicy):
+        """
+        Recursively builds an evaluation tree according to the specified structure.
+        """
+        if isinstance(root_operator, UnaryStructure) and parent is None:
+            # a special case where the top operator of the entire pattern is an unary operator
+            return self.__handle_primitive_event_or_nested_structure(tree_structure, root_operator,
+                                                                     sliding_window, parent, consumption_policy)
+
+        if type(tree_structure) == int:
+            # either a leaf node or an unary operator encapsulating a nested structure
+            return self.__handle_primitive_event_or_nested_structure(tree_structure, args[tree_structure],
+                                                                     sliding_window, parent, consumption_policy)
+
+        # an internal node
+        current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
+        left_structure, right_structure = tree_structure
+        left = self.__construct_tree(root_operator, left_structure, args, sliding_window, current, consumption_policy)
+        right = self.__construct_tree(root_operator, right_structure, args, sliding_window, current, consumption_policy)
+        current.set_subtrees(left, right)
+        return current
 
     def get_last_matches(self):
         """
@@ -1183,21 +1158,16 @@ class Tree:
         return self.get_matches()
 
     @staticmethod
-    def __construct_tree(is_sequence: bool, tree_structure: tuple or int, args: List[QItem],
-                         sliding_window: timedelta, parent: Node, consumption_policy: ConsumptionPolicy):
-        if type(tree_structure) == int:
-            # we have reached a leaf
-            event = args[tree_structure]
-            if consumption_policy is not None and \
-                    consumption_policy.should_register_event_type_as_single(False, event.type):
-                parent.register_single_event_type(event.type)
-            return LeafNode(sliding_window, tree_structure, event, parent)
-        current = SeqNode(sliding_window, parent) if is_sequence else AndNode(sliding_window, parent)
-        left_structure, right_structure = tree_structure
-        left = Tree.__construct_tree(is_sequence, left_structure, args, sliding_window, current, consumption_policy)
-        right = Tree.__construct_tree(is_sequence, right_structure, args, sliding_window, current, consumption_policy)
-        current.set_subtrees(left, right)
-        return current
+    def __create_nested_structure(nested_operator):
+        """
+        This method is a temporal hack, hopefully it will be removed soon.
+        # TODO: calculate the evaluation order in the way it should work - using a tree plan builder
+        """
+        order = list(range(len(nested_operator.args))) if isinstance(nested_operator, CompositeStructure) else [0]
+        ret = order[0]
+        for i in range(1, len(order)):
+            ret = (ret, order[i])
+        return ret
 
     @staticmethod
     def __is_unbounded_negative_event(pattern: Pattern, negation_operator: NegationOperator):
@@ -1216,6 +1186,7 @@ class Tree:
                 return False
         return True
 
+
 class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
@@ -1229,11 +1200,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
         if pattern.consumption_policy is not None and pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
-    def __init__(self, pattern: Pattern, tree: Tree):
-
-
-    def get_tree(self):
-        return self.__tree
 
     def eval(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
         """
@@ -1264,7 +1230,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                             f.write("%s \n" % str(itr.payload))
                         f.write("\n")
                         f.close()
-        
+
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         for match in self.__tree.get_last_matches():
@@ -1342,3 +1308,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             return False
         self.__active_freezers = [freezer for freezer in self.__active_freezers
                                   if event.timestamp - freezer.timestamp <= self.__pattern.window]
+
+    def get_structure_summary(self):
+        return self.__tree.get_structure_summary()

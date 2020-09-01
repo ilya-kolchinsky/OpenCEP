@@ -8,6 +8,9 @@ a pattern matching condition, represented as formula.
 from abc import ABC
 from typing import List
 
+KC_MIN_SIZE = 1
+KC_MAX_SIZE = None
+
 
 class PatternStructure(ABC):
     """
@@ -126,8 +129,18 @@ class SeqOperator(CompositeStructure):
 
 
 class KleeneClosureOperator(UnaryStructure):
+    def __init__(self, arg: PatternStructure, min_size=KC_MIN_SIZE, max_size=KC_MAX_SIZE):
+        super().__init__(arg)
+        if min_size <= 0:
+            raise Exception("Invalid Argument: KleeneClosure node min_size <= 0!")
+        # enforce min_size <= max_size
+        if max_size is not None and max_size < min_size:
+            raise Exception("Invalid Argument: KleeneClosure node max_size < min_size!")
+        self.min_size = min_size
+        self.max_size = max_size
+
     def duplicate(self):
-        return KleeneClosureOperator(self.arg.duplicate())
+        return KleeneClosureOperator(self.arg.duplicate(), self.min_size, self.max_size)
 
     def __repr__(self):
         return "(%s)+" % (self.arg,)
@@ -138,4 +151,4 @@ class NegationOperator(UnaryStructure):
         return NegationOperator(self.arg.duplicate())
 
     def __repr__(self):
-        return "NOT(%s)" % (self.args,)
+        return "NOT(%s)" % (self.arg,)

@@ -34,10 +34,10 @@ def find_partial_match_by_timestamp(partial_matches: List[PartialMatch], timesta
     end = length - 1
     while start <= end:
         mid = (start + end) // 2
-        mid_date = partial_matches[mid].first_timestamp
-        if partial_matches[mid - 1].first_timestamp < timestamp <= mid_date:
+        mid_timestamp = partial_matches[mid].first_timestamp
+        if partial_matches[mid - 1].first_timestamp < timestamp <= mid_timestamp:
             return mid
-        elif timestamp > mid_date:
+        elif timestamp > mid_timestamp:
             start = mid + 1
         else:
             end = mid - 1
@@ -184,11 +184,11 @@ def generate_matches(pattern: Pattern, stream: Stream):
     events = {}
     matches = []
     for event in stream:
-        if event.eventType in types:
-            if event.eventType in events.keys():
-                events[event.eventType].append(event)
+        if event.event_type in types:
+            if event.event_type in events.keys():
+                events[event.event_type].append(event)
             else:
-                events[event.eventType] = [event]
+                events[event.event_type] = [event]
     generate_matches_recursive(pattern, events, is_seq, [], datetime.max, datetime.min, matches, {})
     return matches
 
@@ -210,8 +210,8 @@ def generate_matches_recursive(pattern: Pattern, events: dict, is_seq: bool, mat
             if max_date - min_date <= pattern.window:
                 if not is_seq or len(match) == 0 or match[-1].date <= event.date:
                     match.append(event)
-                    generate_matches_recursive(pattern, events, is_seq, match, min_date, max_date, matches, binding,
-                                               loop + 1)
+                    generate_matches_recursive(pattern, events, is_seq, match, min_timestamp, max_timestamp, matches,
+                                               binding, loop + 1)
                     del match[-1]
         del binding[qitem.name]
 
@@ -231,7 +231,20 @@ def does_match_exist(matches: list, match: list):
                 return True
     return False
 
+  
+def recursive_powerset_generator(seq, max_size):
+    """
+    A recursive generator returning all subsets of the given item sequence of size limited to max_size.
+    """
+    if len(seq) == 0 or max_size == 0:
+        yield []
+    else:
+        for item in recursive_powerset_generator(seq[1:], max_size - 1):
+            yield [seq[0]] + item
+        for item in recursive_powerset_generator(seq[1:], max_size):
+            yield item
 
+            
 def get_index(container: Container, to_find_value: int, key: callable, return_first_index: bool):
     """
     Returns the index (either the first o the last one depending on the corresponding parameter) of the to_find_value
