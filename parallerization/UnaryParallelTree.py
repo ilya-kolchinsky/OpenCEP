@@ -5,33 +5,33 @@ from parallerization.ParallelExecutionFramework import ParallelExecutionFramewor
 from parallerization.ParallelTree import ParallelTree
 
 
+class ParallelUnaryNode(UnaryNode):
+    parent
+    child
+    + mutex
+
+
 class UnaryParallelTree(ParallelExecutionFramework):
 
     def __init__(self, tree: TreeBasedEvaluationMechanism):
         self.tree = tree
-        self.tree.root.parent
 
-        self.partial_match_mutex = new Mutex()
+        self.partial_match_mutex = new
+        Mutex() mutex
         self.thread_ended = False
         self.data_from_child
         self.has_leafs =
         self.is_master =
 
-        def eval(self, event_stream, pattern_matches, is_async=True, file_path=file_path, time_limit=time_limit):
-            thread = create_thread(run_our_eval)
-            thread.run(tree, event_stream, pattern_matches, is_async, file_path, time_limit)
-
-        def stop(self):
+    def stop(self):
             raise NotImplementedError()
 
-        def get_data(self):
+    def get_data(self):
             raise NotImplementedError()
 
-        def run_our_eval(self, tree, event_stream, pattern_matches, is_async=True, file_path=file_path, time_limit=time_limit):
-
-            while(not self.thread_ended):
-
-                self.unary_eval(event_stream, pattern_matches, is_async, file_path, time_limit)
+    def eval(self, event_stream, pattern_matches, is_async=True, file_path=file_path, time_limit=time_limit):
+        thread = create_thread(modified_eval)
+        thread.run(self.tree, event_stream, pattern_matches, is_async, file_path, time_limit)
 
 
-            if (self.master):
+    def modified_eval(self, ):
