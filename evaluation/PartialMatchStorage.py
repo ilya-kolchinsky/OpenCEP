@@ -5,7 +5,7 @@ from misc.Utils import find_partial_match_by_timestamp
 from base.Formula import RelopTypes, EquationSides
 
 # the default number of partial match additions between subsequent storage cleanups
-DEFAULT_CLEANUP_INTERVAL = 100
+DEFAULT_CLEANUP_INTERVAL = 10
 
 
 class PartialMatchStorage:

@@ -12,5 +12,8 @@ class PartialMatch:
         self.last_timestamp = max(events, key=lambda x: x.timestamp).timestamp
         self.first_timestamp = min(events, key=lambda x: x.timestamp).timestamp
 
+    def __eq__(self, other):
+        return isinstance(other, PartialMatch) and set(self.events) == set(other.events)
+
     def __repr__(self):
         return str(self.events)

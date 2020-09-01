@@ -1,6 +1,7 @@
 from base.DataFormatter import DataFormatter
 from base.Event import Event
 from queue import Queue
+import os
 
 
 class Stream:
@@ -69,7 +70,10 @@ def file_output(base_path: str, matches: list, output_file_name: str = 'matches.
     Writes output matches to a file in the subfolder "Matches".
     It supports any iterable as output matches.
     """
-    with open(base_path + "\\test\\Matches\\" + output_file_name, 'w') as f:
+    base_matches_directory = os.path.join(os.path.join(base_path), 'test', 'Matches')
+    if not os.path.exists(base_matches_directory):
+        os.makedirs(base_matches_directory, exist_ok=True)
+    with open(os.path.join(base_matches_directory, output_file_name), 'w') as f:
         for match in matches:
             for event in match.events:
                 f.write("%s\n" % event.payload)

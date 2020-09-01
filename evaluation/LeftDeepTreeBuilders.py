@@ -5,6 +5,7 @@ from enum import Enum
 import random
 from typing import List
 
+from base.PatternStructure import CompositeStructure
 from evaluation.IterativeImprovement import IterativeImprovementType, IterativeImprovementAlgorithmBuilder
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from evaluation.EvaluationMechanismBuilder import EvaluationMechanismBuilder
@@ -19,9 +20,8 @@ class LeftDeepTreeBuilder(EvaluationMechanismBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-
     def build_single_pattern_eval_mechanism(self, pattern: Pattern, storage_params: TreeStorageParameters):
-        order = self._create_evaluation_order(pattern)
+        order = self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure, CompositeStructure) else [0]
         tree_structure = self.__build_tree_from_order(order)
         return TreeBasedEvaluationMechanism(pattern, tree_structure, storage_params)
 

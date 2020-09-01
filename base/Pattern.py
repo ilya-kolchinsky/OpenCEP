@@ -24,8 +24,6 @@ class Pattern:
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Formula,
                  time_window: timedelta, consumption_policy: ConsumptionPolicy = None):
-        if not isinstance(pattern_structure, CompositeStructure):
-            raise Exception("The top pattern operator must be composite")
         self.full_structure = pattern_structure
         self.positive_structure = pattern_structure.duplicate()
         self.negative_structure = self.__extract_negative_structure()
@@ -58,6 +56,9 @@ class Pattern:
         As of this version, nested negation operators and negation operators in non-flat patterns
         are not supported. Also, the extracted negative events are put in a simple flat positive_structure.
         """
+        if not isinstance(self.positive_structure, CompositeStructure):
+            # cannot contain a negative part
+            return None
         negative_structure = self.positive_structure.duplicate_top_operator()
         for arg in self.positive_structure.get_args():
             if type(arg) == NegationOperator:
@@ -108,7 +109,7 @@ class Pattern:
         """
         Augment the pattern with the contiguity constraints specified as a part of the consumption policy.
         """
-        if pattern_structure.get_top_operator() == QItem:
+        if not isinstance(pattern_structure, CompositeStructure):
             return
         args = pattern_structure.args
         for i in range(len(args)):
