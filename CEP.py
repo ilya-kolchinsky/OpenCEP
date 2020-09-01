@@ -45,7 +45,7 @@ class CEP:
         if len(patterns) > 1:
             raise NotImplementedError("Multi-pattern support is not yet available")
 
-        self.__eval_mechanism_manager = EvaluationMechanismManager(work_load_fr, execution_fr, eval_mechanism_type,
+        self.__eval_mechanism_manager = EvaluationMechanismManager(work_load_fr, eval_mechanism_type,
                                                                   eval_mechanism_params, patterns)
 
         self.__pattern_matches = None

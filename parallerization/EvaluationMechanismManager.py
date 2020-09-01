@@ -61,7 +61,6 @@ class EvaluationMechanismManager:
             raise Exception("Missing event_stream")
 
         self.source_event_stream = event_stream.duplicate()
-        self.masters_list = self.work_load_fr.get_masters()
         self.results = pattern_matches
 
         if not self.work_load_fr.get_is_data_splitted() and self.work_load_fr.get_execution_units() == 1:
@@ -73,6 +72,7 @@ class EvaluationMechanismManager:
         elif  self.work_load_fr.get_is_data_splitted() and self.work_load_fr.get_execution_units() > 1:
             self.initialize_multiple_mechanizm_multiple_data()
 
+        self.masters_list = self.work_load_fr.get_masters()
         self.eval_util(is_async, file_path, time_limit)
         self.results = getDataFromAllMasters()
 
@@ -85,7 +85,6 @@ class EvaluationMechanismManager:
             self.eval_by_single_mechanizm_multiple_data(is_async, file_path, time_limit)
         elif len(self.eval_mechanism_list) > 1 and len(self.event_stream_splitted) == 1:
             self.eval_by_multiple_mechanizm_single_data(is_async, file_path, time_limit)
-            self.master_list[0].wait_till_finish()
         elif len(self.eval_mechanism_list) > 1 and len(self.event_stream_splitted) > 1:
             self.eval_by_multiple_mechanizm_multiple_data(is_async, file_path, time_limit)
 
@@ -99,11 +98,10 @@ class EvaluationMechanismManager:
         for i in range(len(self.event_stream_splitted)):
             event_stream = self.event_stream_splitted[i]
             pattern_match = self.pattern_matches_list[i]
-            self.eval_by_single_mechanizm_single_data(is_async, file_path, time_limit, self.eval_mechanism_list[0],
+            self.eval_by_single_mechanizm_single_data(is_async, file_path, time_limit, self.eval_mechanism_list[i],
                                                       event_stream, pattern_match)
 
             self.master_list[0].wait_till_finish()
-            self.eval_mechanism_list[0].restart_state_for_next_run()
 
     def eval_by_multiple_mechanizm_single_data(self, is_async, file_path, time_limit):
         for i in range(len(self.eval_mechanism_list)):
@@ -112,7 +110,6 @@ class EvaluationMechanismManager:
             eval_mechanism = self.eval_mechanism_list[i]
             self.eval_by_single_mechanizm_single_data(is_async, file_path, time_limit, eval_mechanism, event_stream, pattern_match)
             self.master_list[0].wait_till_finish()
-            eval_mechanism.restart_state_for_next_run()
 
     def eval_by_multiple_mechanizm_multiple_data(self, is_async, file_path, time_limit):
         start_index_of_ems = 0
