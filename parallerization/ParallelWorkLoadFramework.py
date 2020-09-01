@@ -13,8 +13,7 @@ class ParallelWorkLoadFramework(ABC):
     def split_data(self, input_stream: Stream):#the output needs to be a list of streams of size <= execution_units
         return input_stream
 
-    # the output needs to be a list of nodes/a list with the whole tree when execution_units = 1
-    # the first variable needs to be the master
+    # the output needs to be a list of evalution mechanizms that implements ParallelExecutionFramework
     def split_structure(self, evaluation_mechanism):
         return evaluation_mechanism
 

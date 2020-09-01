@@ -36,7 +36,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         return output_stream
 
-    def split_structure(self, evaluation_mechanism: TreeBasedEvaluationMechanism):
+    def split_structure(self, evaluation_mechanism: TreeBasedEvaluationMechanism): # returns objects that implements ParallelExecutionFramework
         #split the tree into n <= execution_units parts in a nondescript way
         if type(evaluation_mechanism) is not TreeBasedEvaluationMechanism:
             raise Exception()

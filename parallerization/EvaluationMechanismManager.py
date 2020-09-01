@@ -13,8 +13,7 @@ from typing import List
 
 class EvaluationMechanismManager:
 
-    def __init__(self, work_load_fr: ParallelWorkLoadFramework,
-                 eval_mechanism_type: EvaluationMechanismTypes, eval_params: EvaluationMechanismParameters, patterns: List[Pattern]):
+    def __init__(self, work_load_fr: ParallelWorkLoadFramework,eval_mechanism_type, eval_params: EvaluationMechanismParameters, patterns: List[Pattern]):
 
         self.work_load_fr = work_load_fr
         self.patterns = patterns
