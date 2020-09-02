@@ -75,16 +75,23 @@ class Node(ABC):
         """
         Sets the parents of this node.
         """
+        if not isinstance(parents, list) and parents is not None:
+            parents = [parents]
         self._parents = parents
 
-    def get_root(self):
+    def get_parents(self):
+        return self._parents
+
+    def get_roots(self):
         """
-        Returns the root of the tree. Assuming we have one root which is the parent of all the roots.
+        Returns the roots of the tree.
         """
-        node = self
-        while node._parents is not None:
-            node = node._parents[0]
-        return node
+        if self._parents is None:
+            return [self]
+        roots = []
+        for parent in self._parents:
+            roots += parent.get_roots()
+        return roots
 
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
@@ -298,8 +305,8 @@ class InternalNode(Node, ABC):
     """
     This class represents a non-leaf node of an evaluation tree.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None):
-        super().__init__(sliding_window, parent)
+    def __init__(self, sliding_window: timedelta, parents: List[Node] = None, event_defs: List[Tuple[int, QItem]] = None):
+        super().__init__(sliding_window, parents)
         self._event_defs = event_defs
 
     def get_event_definitions(self):
@@ -352,9 +359,9 @@ class UnaryNode(InternalNode, ABC):
     """
     Represents an internal tree node with a single child.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
+    def __init__(self, sliding_window: timedelta, parents: List[Node] = None, event_defs: List[Tuple[int, QItem]] = None,
                  child: Node = None):
-        super().__init__(sliding_window, parent, event_defs)
+        super().__init__(sliding_window, parents, event_defs)
         self._child = child
 
     def get_leaves(self):
@@ -386,7 +393,7 @@ class BinaryNode(InternalNode, ABC):
     def __init__(self, sliding_window: timedelta, parents: List[Node] = None, event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
 
-        super().__init__(sliding_window, parent, event_defs)
+        super().__init__(sliding_window, parents, event_defs)
         self._left_subtree = left
         self._right_subtree = right
 
@@ -430,6 +437,18 @@ class BinaryNode(InternalNode, ABC):
         self._set_event_definitions(self._left_subtree.get_event_definitions(),
                                     self._right_subtree.get_event_definitions())
 
+    def replace_subtree(self, old_node: Node, new_node: Node):
+        #gets a node and replace it's subtree
+        left = self.get_left_subtree()
+        right = self.get_right_subtree()
+        if left == old_node:
+            self.set_subtrees(new_node, right)
+        elif right == old_node:
+            self.set_subtrees(left, new_node)
+        else:
+            #should not happen
+            raise Exception()
+
     def handle_new_partial_match(self, partial_match_source: Node):
         """
         Internal node's update for a new partial match in one of the subtrees.
@@ -449,7 +468,7 @@ class BinaryNode(InternalNode, ABC):
         second_event_defs = other_subtree.get_event_definitions()
 
         #we don't want to erase the partial matches of a root, once again we're assuming we have only one root.
-        if self._parents is not None and self.get_root() not in self._parents:
+        if self._parents is not None:
             self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
         # given a partial match from one subtree, for each partial match
@@ -701,10 +720,10 @@ class NegationNode(BinaryNode, ABC):
     This implementation heavily relies on the fact that, if any unbounded negation operators are defined in the
     pattern, they are conveniently placed at the top of the tree forming a left-deep chain of nodes.
     """
-    def __init__(self, sliding_window: timedelta, is_unbounded: bool, top_operator, parent: Node = None,
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool, top_operator, parents: List[Node] = None,
                  event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
-        super().__init__(sliding_window, parent, event_defs, left, right)
+        super().__init__(sliding_window, parents, event_defs, left, right)
 
         # aliases for the negative node subtrees to make the code more readable
         # by construction, we always have the positive subtree on the left
@@ -861,10 +880,10 @@ class NegativeAndNode(NegationNode):
     """
     An internal node representing a negative conjunction operator.
     """
-    def __init__(self, sliding_window: timedelta, is_unbounded: bool, parent: Node = None,
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool, parents: List[Node] = None,
                  event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
-        super().__init__(sliding_window, is_unbounded, AndOperator, parent, event_defs, left, right)
+        super().__init__(sliding_window, is_unbounded, AndOperator, parents, event_defs, left, right)
 
     def get_structure_summary(self):
         return ("NAnd",
@@ -877,10 +896,10 @@ class NegativeSeqNode(NegationNode):
     An internal node representing a negative sequence operator.
     Unfortunately, this class contains some code duplication from SeqNode to avoid diamond inheritance.
     """
-    def __init__(self, sliding_window: timedelta, is_unbounded: bool, parent: Node = None,
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool, parents: List[Node] = None,
                  event_defs: List[Tuple[int, QItem]] = None,
                  left: Node = None, right: Node = None):
-        super().__init__(sliding_window, is_unbounded, SeqOperator, parent, event_defs, left, right)
+        super().__init__(sliding_window, is_unbounded, SeqOperator, parents, event_defs, left, right)
 
     def get_structure_summary(self):
         return ("NSeq",
@@ -910,8 +929,8 @@ class KleeneClosureNode(UnaryNode):
     An internal node representing a Kleene closure operator.
     It generates and propagates sets of partial matches provided by its sole child.
     """
-    def __init__(self, sliding_window: timedelta, min_size, max_size, parent: Node = None):
-        super().__init__(sliding_window, parent)
+    def __init__(self, sliding_window: timedelta, min_size, max_size, parents: List[Node] = None):
+        super().__init__(sliding_window, parents)
         self.__min_size = min_size
         self.__max_size = max_size
 
@@ -1318,3 +1337,58 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
     def get_structure_summary(self):
         return self.__tree.get_structure_summary()
+
+class MultiPatternTree:
+    """
+    Represents a multi- pattern evaluation tree. Using the single- pattern tree builder.
+    """
+
+    def __init__(self, tree_structures: List[tuple], patterns: List[Pattern], storage_params: TreeStorageParameters,
+                 multi_pattern_eval_approach: 'MultiPatternEvaluationApproach'):
+        self.__roots = MultiPatternTree.__construct_multi_pattern_tree(tree_structures, patterns, storage_params,
+                 multi_pattern_eval_approach)
+
+    def __construct_multi_pattern_tree(self, tree_structures: List[tuple], patterns: List[Pattern], storage_params: TreeStorageParameters,
+                 multi_pattern_eval_approach: 'MultiPatternEvaluationApproach'):
+
+        # TRICK TO AVOID IMPORTS.
+        #TODO FIXING THE IMPORTS TO AVOID THE NEXT LINE
+        from evaluation.EvaluationMechanismFactory import MultiPatternEvaluationApproach
+
+        if multi_pattern_eval_approach == MultiPatternEvaluationApproach.TRIVIAL_SHARING_LEAVES:
+            return self.__construct_trivial_tree(tree_structures, patterns, storage_params)
+        if multi_pattern_eval_approach == MultiPatternEvaluationApproach.SUBTREES_UNION:
+            return self.__construct_subtrees_union_tree(tree_structures, patterns, storage_params)
+        if multi_pattern_eval_approach == MultiPatternEvaluationApproach.LOCAL_SEARCH:
+            return self.__construct_local_search_tree(tree_structures, patterns, storage_params)
+
+    @staticmethod
+    def __construct_trivial_tree(tree_structures: List[tuple], patterns: List[Pattern],
+                                 storage_params: TreeStorageParameters):
+
+        trees = [Tree(tree_structures[i], patterns[i], storage_params) for i in range(len(patterns))]
+        roots = []
+        leaves = {}
+        for tree in trees:
+            curr_leaves = tree.get_leaves()
+            roots += curr_leaves[0].get_roots()
+            for leaf in curr_leaves:
+                if leaf not in leaves:
+                    leaves[leaf] = leaf
+                curr_parents = leaf.get_parents()
+                for parent in curr_parents:
+                    if isinstance(parent, UnaryNode):
+                        parent.set_subtree(leaves[leaf])
+                    elif isinstance(parent, BinaryNode):
+                        parent.replace_subtree(leaf, leaves[leaf])
+        return roots
+
+    @staticmethod
+    def __construct_subtrees_union_tree(tree_structures: List[tuple], patterns: List[Pattern],
+                                        storage_params: TreeStorageParameters):
+        pass
+
+    @staticmethod
+    def __construct_local_search_tree(tree_structures: List[tuple], patterns: List[Pattern],
+                                      storage_params: TreeStorageParameters):
+        pass
