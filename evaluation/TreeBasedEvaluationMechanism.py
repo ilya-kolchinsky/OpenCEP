@@ -1051,6 +1051,9 @@ class Tree:
     def get_leaves(self):
         return self.__root.get_leaves()
 
+    def get_root(self):
+        return self.__root
+
     def get_matches(self):
         while self.__root.has_partial_matches():
             yield self.__root.consume_first_partial_match().events
@@ -1206,22 +1209,22 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         Activates the tree evaluation mechanism on the input event stream and reports all found patter matches to the
         given output stream.
         """
-        self.__register_event_listeners()
+        self.__register_event_listeners()#returns a list of event_type with all the leaves that receives this event_type
         start_time = time.time()
-        for event in events:
+        for event in events:#go over the event_stream
             if time_limit is not None:
                 if time.time() - start_time > time_limit:
                     matches.close()
                     return
-            if event.type not in self.__event_types_listeners.keys():
+            if event.type not in self.__event_types_listeners.keys():#if no leaves receives this type of event
                 continue
             self.__remove_expired_freezers(event)
             for leaf in self.__event_types_listeners[event.type]:
-                if self.__should_ignore_events_on_leaf(leaf):
+                if self.__should_ignore_events_on_leaf(leaf):#if there is a freezer in place
                     continue
-                self.__try_register_freezer(event, leaf)
-                leaf.handle_event(event)
-            for match in self.__tree.get_matches():
+                self.__try_register_freezer(event, leaf)#check if the current event is a freezer
+                leaf.handle_event(event)#try to get the event through the tree => the real work
+            for match in self.__tree.get_matches():#for all the matches in the root
                 matches.add_item(PatternMatch(match))
                 self.__remove_matched_freezers(match)
                 if is_async:
@@ -1311,3 +1314,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
     def get_structure_summary(self):
         return self.__tree.get_structure_summary()
+
+    def get_tree(self):
+        return self.__tree

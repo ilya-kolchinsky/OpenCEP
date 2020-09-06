@@ -3,7 +3,7 @@ from abc import ABC
 
 class ParallelExecutionFramework(ABC):
 
-    def eval(self):
+    def eval(self, event_stream, pattern_matches, is_async=True, file_path=None, time_limit: int = None):
         raise NotImplementedError()
 
     def get_data(self):
@@ -18,8 +18,8 @@ class ParallelExecutionFramework(ABC):
     def get_final_results(self, pattern_matches):
         raise NotImplementedError()
 
-    def restart_state_for_next_run(self):
-        raise NotImplementedError()
+    #def restart_state_for_next_run(self):
+    #    raise NotImplementedError()
 
     def wait_till_finish(self):
         raise NotImplementedError()

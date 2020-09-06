@@ -1,24 +1,31 @@
 from base import Pattern
 from evaluation.PartialMatchStorage import TreeStorageParameters
-from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism, UnaryNode
+from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism, UnaryNode, Node
 from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
-from parallerization.ParallelTree import ParallelTree
+from datetime import timedelta
+from typing import Tuple, Dict, List
+from base.PatternStructure import QItem
+from misc.IOUtils import Stream
+
+import time
+import threading
 
 
 class ParallelUnaryNode(UnaryNode):
-    parent
-    child
-
-    + done
+    def __init__(self, is_done: bool, sliding_window: timedelta, parent: Node = None,
+                 event_defs: List[Tuple[int, QItem]] = None, child: Node = None):
+        super().__init__(sliding_window, parent, event_defs, child)
+        self._is_done = child
 
     def get_done(self):
+        return self._is_done
 
 
 class UnaryParallelTree(ParallelExecutionFramework):
 
-    def __init__(self, tree: TreeBasedEvaluationMechanism):
-        self.tree_based = tree
-        self.has_leafs =
+    def __init__(self, tree_based_eval: TreeBasedEvaluationMechanism, has_leafs: bool):
+        self._tree_based = tree_based_eval
+        self._has_leafs = has_leafs
 
     def stop(self):
         raise NotImplementedError()
@@ -26,30 +33,24 @@ class UnaryParallelTree(ParallelExecutionFramework):
     def get_data(self):
         raise NotImplementedError()
 
-    def eval(self, event_stream, pattern_matches, is_async=True, file_path=file_path, time_limit=time_limit):
-        thread = create_thread(run_eval)
-        thread.run(self.tree, event_stream, pattern_matches, is_async, file_path, time_limit)
+    def get_final_results(self, pattern_matches):
+        raise NotImplementedError()
 
-    def run_eval(self, tree_based, event_stream, pattern_matches, is_async, file_path, time_limit):  # thread running
-        unary_root = tree_based.tree.root
+    def wait_till_finish(self):
+        root = self._tree_based.get_tree().get_root()
+        if type(root) is not ParallelUnaryNode:
+            # tree not built properly
+            raise Exception()
+        while not root.get_done():
+            time.sleep(0.5)
 
-        while (not unary_root.get_done):
-            modified_eval()
-
-def modified_eval(self):
-        if (all_children_done()):
-            aggregated_events = take_partial_matches_from_children()
-            eval_util(aggregated_events)  # original eval
-            done = True
-        else:
-            time_to_wait = 200[mlsec]
-            wait(time_to_wait)
+    def get_children(self):
+        raise NotImplementedError()
 
     def all_children_done(self):
-        children = get_children()
-        if children == None:
+        children = self.get_children()
+        if children is None:
             return True
-
         for child in children:
             child_done = child.get_done.try_to_lock()
             if not child_done:
@@ -57,20 +58,39 @@ def modified_eval(self):
                 return False
             else:
                 child.done.unlock()
-
         return True
+
+    def get_partial_matches_from_children(self):
+        raise NotImplementedError()
+
+    def modified_eval(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
+        if self.all_children_done():
+            aggregated_events = self.get_partial_matches_from_children()
+            eval_util(aggregated_events)  # original eval
+            done = True
+        else:
+            time.sleep(0.5)
+
+    def run_eval(self, tree_based, event_stream, pattern_matches, is_async, file_path, time_limit):  # thread running
+        root = self._tree_based.get_tree().get_root()
+        if type(root) is not ParallelUnaryNode:
+            # tree not built properly
+            raise Exception()
+        while not root.get_done():
+            self.modified_eval(tree_based, event_stream, pattern_matches, is_async, file_path, time_limit)
+
+    def eval(self, event_stream, pattern_matches, is_async=False, file_path=None, time_limit: int = None):
+        thread = threading.Thread(target=self.run_eval, args=(self._tree_based, event_stream, pattern_matches, is_async,
+                                                              file_path, time_limit,))
+        thread.start()
+
+
+
 
 
     """
     An implementation of the tree-based evaluation mechanism.
     """
-
-    # def __init__(self, pattern: Pattern, tree_structure: tuple, storage_params: TreeStorageParameters):
-    #     self.__tree = Tree(tree_structure, pattern, storage_params)
-    #     self.__pattern = pattern
-    #     self.__freeze_map = {}
-    #     self.__active_freezers = []
-    #     self.__event_types_listeners = {}
 
     def eval_util(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
         """
