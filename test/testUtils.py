@@ -3,7 +3,7 @@ import pathlib
 import sys
 
 from CEP import CEP
-from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes
+from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, MultiPatternEvaluationApproach
 from misc.IOUtils import file_input, file_output
 from misc.Utils import generate_matches
 from plugin.stocks.Stocks import MetastockDataFormatter
@@ -126,7 +126,7 @@ def runTest(testName, patterns, createTestFile = False,
     else:
         events = events.duplicate()
 
-    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle"]
+    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns"]
     listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd"]
     listCustom2 = ["simpleNot"]

@@ -8,10 +8,10 @@ from evaluation.EvaluationMechanismFactory import (
     EvaluationMechanismParameters,
     EvaluationMechanismTypes,
     EvaluationMechanismFactory,
+    MultiPatternEvaluationApproach,
 )
 from typing import List
 from datetime import datetime
-
 
 class PerformanceSpecifications:
     """
@@ -31,15 +31,20 @@ class CEP:
     def __init__(self, patterns: List[Pattern],
                  eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
                  eval_mechanism_params: EvaluationMechanismParameters = None,
-                 performance_specs: PerformanceSpecifications = None):
+                 performance_specs: PerformanceSpecifications = None,
+                 multi_pattern_eval_approach: MultiPatternEvaluationApproach = MultiPatternEvaluationApproach.TRIVIAL_SHARING_LEAVES):
         """
         Constructor of the class.
         """
         if patterns is None:
             raise Exception("No patterns are provided")
         if len(patterns) > 1:
-            raise NotImplementedError("Multi-pattern support is not yet available")
-        self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
+            self.__eval_mechanism = EvaluationMechanismFactory.build_multi_pattern_eval_mechanism(eval_mechanism_type,
+                                                                                                  multi_pattern_eval_approach,
+                                                                                                  eval_mechanism_params,
+                                                                                                  patterns)
+        else:
+            self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
                                                                                                eval_mechanism_params,
                                                                                                patterns[0])
         self.__pattern_matches = None

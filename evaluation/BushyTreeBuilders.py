@@ -5,6 +5,7 @@ from typing import List
 
 from evaluation.EvaluationMechanismBuilder import EvaluationMechanismBuilder
 from evaluation.PartialMatchStorage import TreeStorageParameters
+from evaluation.EvaluationMechanismFactory import MultiPatternEvaluationApproach
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from base.Pattern import Pattern
 from misc.Utils import get_all_disjoint_sets
@@ -26,7 +27,8 @@ class BushyTreeBuilder(EvaluationMechanismBuilder):
         tree_structure = self._find_tree(selectivityMatrix, arrivalRates, pattern.window.total_seconds())
         return TreeBasedEvaluationMechanism(pattern, tree_structure, storage_params)
 
-    def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern], storage_params: TreeStorageParameters):
+    def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern], storage_params: TreeStorageParameters,
+                                           multi_pattern_eval_approach: MultiPatternEvaluationApproach):
         raise Exception("Unsupported")
 
     @staticmethod

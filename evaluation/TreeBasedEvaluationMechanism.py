@@ -9,6 +9,7 @@ from base.PatternMatch import PatternMatch
 from base.PatternStructure import *
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
+from evaluation.EvaluationMechanismFactory import MultiPatternEvaluationApproach
 
 import time
 
@@ -1217,14 +1218,20 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
-    def __init__(self, pattern: Pattern, tree_structure: tuple, storage_params: TreeStorageParameters):
-        self.__tree = Tree(tree_structure, pattern, storage_params)
-        self.__pattern = pattern
+    def __init__(self, patterns: List[Pattern], tree_structures: List[tuple], storage_params: TreeStorageParameters,
+                 multi_pattern_eval_approach: MultiPatternEvaluationApproach = MultiPatternEvaluationApproach.TRIVIAL_SHARING_LEAVES):
+        if isinstance(patterns, Pattern):
+            patterns = [patterns]
+            tree_structures = [tree_structures]
+
+        self.__tree = Tree(tree_structures[0], patterns[0], storage_params) if len(patterns) == 1 else MultiPatternTree(tree_structures, patterns, storage_params, multi_pattern_eval_approach)
+        self.__patterns = patterns
+        self.__pattern = patterns[0]
         self.__freeze_map = {}
         self.__active_freezers = []
         self.__event_types_listeners = {}
 
-        if pattern.consumption_policy is not None and pattern.consumption_policy.freeze_names is not None:
+        if patterns[0].consumption_policy is not None and patterns[0].consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
 
     def eval(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
@@ -1344,16 +1351,12 @@ class MultiPatternTree:
     """
 
     def __init__(self, tree_structures: List[tuple], patterns: List[Pattern], storage_params: TreeStorageParameters,
-                 multi_pattern_eval_approach: 'MultiPatternEvaluationApproach'):
-        self.__roots = MultiPatternTree.__construct_multi_pattern_tree(tree_structures, patterns, storage_params,
+                 multi_pattern_eval_approach: MultiPatternEvaluationApproach):
+        self.__roots = self.__construct_multi_pattern_tree(tree_structures, patterns, storage_params,
                  multi_pattern_eval_approach)
 
     def __construct_multi_pattern_tree(self, tree_structures: List[tuple], patterns: List[Pattern], storage_params: TreeStorageParameters,
-                 multi_pattern_eval_approach: 'MultiPatternEvaluationApproach'):
-
-        # TRICK TO AVOID IMPORTS.
-        #TODO FIXING THE IMPORTS TO AVOID THE NEXT LINE
-        from evaluation.EvaluationMechanismFactory import MultiPatternEvaluationApproach
+                 multi_pattern_eval_approach: MultiPatternEvaluationApproach):
 
         if multi_pattern_eval_approach == MultiPatternEvaluationApproach.TRIVIAL_SHARING_LEAVES:
             return self.__construct_trivial_tree(tree_structures, patterns, storage_params)
@@ -1392,3 +1395,27 @@ class MultiPatternTree:
     def __construct_local_search_tree(tree_structures: List[tuple], patterns: List[Pattern],
                                       storage_params: TreeStorageParameters):
         pass
+
+    def get_leaves(self):
+        leaves = set()
+        for root in self.__roots:
+            leaves |= set(root.get_leaves)
+        return leaves
+
+    def get_matches(self):
+        for root in self.__roots:
+            while root.has_partial_matches():
+                yield root.consume_first_partial_match().events
+
+    def get_last_matches(self):
+        for root in self.__roots:
+            if not isinstance(root, NegationNode):
+                continue
+                # this is the node that contains the pending matches
+            first_unbounded_negative_node = root.get_first_unbounded_negative_node()
+            if first_unbounded_negative_node is None:
+                continue
+            first_unbounded_negative_node.flush_pending_matches()
+            # the pending matches were released and have hopefully reached the roots
+
+        return self.get_matches()

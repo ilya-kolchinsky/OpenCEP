@@ -1,0 +1,787 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="8cc71f4b-ad07-4687-96ef-0254b7536adf" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/CEP.py" beforeDir="false" afterPath="$PROJECT_DIR$/CEP.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/BushyTreeBuilders.py" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/BushyTreeBuilders.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/EvaluationMechanismBuilder.py" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/EvaluationMechanismBuilder.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/EvaluationMechanismFactory.py" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/EvaluationMechanismFactory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/LeftDeepTreeBuilders.py" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/LeftDeepTreeBuilders.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/TreeBasedEvaluationMechanism.py" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/TreeBasedEvaluationMechanism.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/testUtils.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/testUtils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/tests.py" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CoverageDataManager">
+    <SUITE FILE_PATH="coverage/OpenCEP$pytest_in_tests_py.coverage" NAME="pytest in tests.py Coverage Results" MODIFIED="1599411551153" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/evaluation/TreeBasedEvaluationMechanism.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="75">
+              <caret line="1230" column="35" selection-start-line="1230" selection-start-column="35" selection-end-line="1230" selection-end-column="35" />
+              <folding>
+                <element signature="e#1#24#0" expanded="true" />
+                <element signature="e#580#8766#0" />
+                <element signature="e#11995#14357#0" />
+                <element signature="e#14400#15572#0" />
+                <element signature="e#15616#26162#0" />
+                <element signature="e#26196#27487#0" />
+                <element signature="e#27521#33559#0" />
+                <element signature="e#42218#42797#0" />
+                <element signature="e#42841#44500#0" />
+                <element signature="e#44543#48612#0" />
+                <element signature="e#49873#50310#0" />
+                <element signature="e#50397#51086#0" />
+                <element signature="e#51159#52457#0" />
+                <element signature="e#52493#52524#0" />
+                <element signature="e#52561#52668#0" />
+                <element signature="e#52715#52844#0" />
+                <element signature="e#62058#62477#0" />
+                <element signature="e#63475#64083#0" />
+                <element signature="e#67789#67793#0" />
+                <element signature="e#67992#67996#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/CEP.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="109">
+              <caret line="18" column="14" selection-start-line="18" selection-start-column="14" selection-end-line="18" selection-end-column="14" />
+              <folding>
+                <element signature="e#153#184#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/base/Pattern.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="119">
+              <caret line="28" selection-start-line="28" selection-end-line="28" />
+              <folding>
+                <element signature="e#0#28#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/test/tests.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="109">
+              <caret line="639" selection-start-line="639" selection-end-line="639" />
+              <folding>
+                <element signature="e#0#28#0" expanded="true" />
+                <element signature="e#2018#2852#0" />
+                <element signature="e#2918#3870#0" />
+                <element signature="e#3934#5359#0" />
+                <element signature="e#5425#6041#0" />
+                <element signature="e#6107#6458#0" />
+                <element signature="e#6525#7195#0" />
+                <element signature="e#7255#8290#0" />
+                <element signature="e#8351#9194#0" />
+                <element signature="e#9254#10448#0" />
+                <element signature="e#10512#10992#0" />
+                <element signature="e#11053#11689#0" />
+                <element signature="e#11753#12356#0" />
+                <element signature="e#12421#12902#0" />
+                <element signature="e#12964#13595#0" />
+                <element signature="e#13660#13895#0" />
+                <element signature="e#13957#14335#0" />
+                <element signature="e#14400#14635#0" />
+                <element signature="e#14697#15093#0" />
+                <element signature="e#15158#15439#0" />
+                <element signature="e#15501#15951#0" />
+                <element signature="e#16019#16469#0" />
+                <element signature="e#16527#17853#0" />
+                <element signature="e#17913#19439#0" />
+                <element signature="e#19500#21028#0" />
+                <element signature="e#21088#22614#0" />
+                <element signature="e#22675#24203#0" />
+                <element signature="e#24259#25596#0" />
+                <element signature="e#25651#26983#0" />
+                <element signature="e#27045#28381#0" />
+                <element signature="e#28440#29764#0" />
+                <element signature="e#29833#30641#0" />
+                <element signature="e#30713#31382#0" />
+                <element signature="e#31454#32478#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/testUtils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="207">
+              <caret line="143" selection-start-line="143" selection-end-line="143" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/evaluation/EvaluationMechanismFactory.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="227">
+              <caret line="93" selection-start-line="93" selection-end-line="93" />
+              <folding>
+                <element signature="e#0#23#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/base/Formula.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="119">
+              <caret line="218" selection-start-line="218" selection-end-line="218" />
+              <folding>
+                <element signature="e#0#42#0" expanded="true" />
+                <element signature="e#362#656#0" />
+                <element signature="e#1774#2174#0" />
+                <element signature="e#2218#2595#0" />
+                <element signature="e#2640#3018#0" />
+                <element signature="e#3061#3437#0" />
+                <element signature="e#3480#3856#0" />
+                <element signature="e#3883#4189#0" />
+                <element signature="e#4877#5411#0" />
+                <element signature="e#5453#5993#0" />
+                <element signature="e#6632#7175#0" />
+                <element signature="e#7225#7777#0" />
+                <element signature="e#7400#7621#0" />
+                <element signature="e#7827#8379#0" />
+                <element signature="e#8447#9648#0" />
+                <element signature="e#9719#10392#0" />
+                <element signature="e#10427#10597#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/base/PatternStructure.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="295">
+              <caret line="86" selection-start-line="86" selection-end-line="86" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/evaluation/LeftDeepTreeBuilders.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="249">
+              <caret line="26" selection-start-line="26" selection-end-line="26" />
+              <folding>
+                <element signature="e#119#140#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>get</find>
+      <find>parents</find>
+      <find>get_root</find>
+      <find>__create_eval_mechanism_builder</find>
+      <find>get_roots</find>
+      <find>ConsumptionPolicy</find>
+      <find>def __construct_tree</find>
+      <find>_extract_flat</find>
+      <find>class Tree:</find>
+      <find>MultiPattern</find>
+      <find>set_new_</find>
+      <find>replace_sub</find>
+      <find>yield</find>
+      <find>def eval</find>
+      <find>yiel</find>
+      <find>TreeBasedEvaluationMechanism</find>
+      <find>NotEverywhere</find>
+      <find>TINY</find>
+      <find>SHORT</find>
+      <find>MultipleNot</find>
+      <find>leaf_index</find>
+      <find>get_event_definitions</find>
+      <find>dd_negative_tree_structure</find>
+      <find>add_negative_tree_structure</find>
+      <find>update_event_d</find>
+      <find>def simpleNotTe</find>
+      <find>superSimpleNot</find>
+      <find>simpleNotTest</find>
+      <find>InternalNode</find>
+      <find>negative_subtree</find>
+    </findStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/tests.py" />
+        <option value="$PROJECT_DIR$/misc/IOUtils.py" />
+        <option value="$PROJECT_DIR$/evaluation/EvaluationMechanismFactory.py" />
+        <option value="$PROJECT_DIR$/evaluation/BushyTreeBuilders.py" />
+        <option value="$PROJECT_DIR$/evaluation/EvaluationMechanismBuilder.py" />
+        <option value="$PROJECT_DIR$/CEP.py" />
+        <option value="$PROJECT_DIR$/test/testUtils.py" />
+        <option value="$PROJECT_DIR$/evaluation/LeftDeepTreeBuilders.py" />
+        <option value="$PROJECT_DIR$/test/tests.py" />
+        <option value="$PROJECT_DIR$/evaluation/TreeBasedEvaluationMechanism.py" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="1">
+    <option name="x" value="-8" />
+    <option name="y" value="-8" />
+    <option name="width" value="1382" />
+    <option name="height" value="784" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="OpenCEP" type="b2602c69:ProjectViewProjectNode" />
+              <item name="OpenCEP" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="OpenCEP" type="b2602c69:ProjectViewProjectNode" />
+              <item name="OpenCEP" type="462c0819:PsiDirectoryNode" />
+              <item name="base" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="OpenCEP" type="b2602c69:ProjectViewProjectNode" />
+              <item name="OpenCEP" type="462c0819:PsiDirectoryNode" />
+              <item name="evaluation" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="OpenCEP" type="b2602c69:ProjectViewProjectNode" />
+              <item name="OpenCEP" type="462c0819:PsiDirectoryNode" />
+              <item name="misc" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="OpenCEP" type="b2602c69:ProjectViewProjectNode" />
+              <item name="OpenCEP" type="462c0819:PsiDirectoryNode" />
+              <item name="test" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Python tests.pytest in tests.py">
+    <configuration name="pytest for " type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="OpenCEP" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest in tests.py" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="OpenCEP" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/test/tests.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python tests.pytest for " />
+      <item itemvalue="Python tests.pytest in tests.py" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python tests.pytest in tests.py" />
+        <item itemvalue="Python tests.pytest for " />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="8cc71f4b-ad07-4687-96ef-0254b7536adf" name="Default Changelist" comment="" />
+      <created>1597146912804</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1597146912804</updated>
+      <workItem from="1597146914464" duration="9170000" />
+      <workItem from="1597215183377" duration="8451000" />
+      <workItem from="1597739106004" duration="9600000" />
+      <workItem from="1598258659302" duration="11594000" />
+      <workItem from="1598282068003" duration="24472000" />
+      <workItem from="1598963572600" duration="12011000" />
+      <workItem from="1599378690226" duration="25162000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TestHistory">
+    <history-entry file="pytest_in_tests_py - 2020.09.06 at 18h 48m 13s.xml">
+      <configuration name="pytest in tests.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_tests_py - 2020.09.06 at 19h 23m 54s.xml">
+      <configuration name="pytest in tests.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_tests_py - 2020.09.06 at 19h 25m 30s.xml">
+      <configuration name="pytest in tests.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_tests_py - 2020.09.06 at 19h 27m 48s.xml">
+      <configuration name="pytest in tests.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_tests_py - 2020.09.06 at 19h 30m 43s.xml">
+      <configuration name="pytest in tests.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_tests_py - 2020.09.06 at 19h 30m 46s.xml">
+      <configuration name="pytest in tests.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_tests_py - 2020.09.06 at 19h 32m 20s.xml">
+      <configuration name="pytest in tests.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_tests_py - 2020.09.06 at 19h 36m 26s.xml">
+      <configuration name="pytest in tests.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_tests_py - 2020.09.06 at 19h 56m 48s.xml">
+      <configuration name="pytest in tests.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_tests_py - 2020.09.06 at 19h 59m 58s.xml">
+      <configuration name="pytest in tests.py" configurationId="tests" />
+    </history-entry>
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="100460000" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-8" y="-8" width="1382" height="784" extended-state="0" />
+    <editor active="true" />
+    <layout>
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18532526" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32872504" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.37480798" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="8" weight="0.3289689" />
+      <window_info anchor="bottom" id="Database Changes" order="9" />
+      <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
+      <window_info anchor="bottom" id="Terminal" order="11" weight="0.3289689" />
+      <window_info anchor="bottom" id="Python Console" order="12" weight="0.3289689" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="SciView" order="3" />
+      <window_info anchor="right" id="Database" order="4" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/evaluation/TreeBasedEvaluationMechanism.py</url>
+          <line>1226</line>
+          <option name="timeStamp" value="50" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/evaluation/TreeBasedEvaluationMechanism.py</url>
+          <line>1019</line>
+          <option name="timeStamp" value="52" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/test/tests.py</url>
+          <line>628</line>
+          <option name="timeStamp" value="56" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/test/tests.py</url>
+          <line>898</line>
+          <option name="timeStamp" value="57" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <watches-manager>
+      <configuration name="tests">
+        <watch expression="trees[1]._Tree__root" language="Python" />
+        <watch expression="trees" />
+      </configuration>
+    </watches-manager>
+  </component>
+  <component name="debuggerHistoryManager">
+    <expressions id="watch">
+      <expression>
+        <expression-string>trees[1]._Tree__root</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+    </expressions>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/base/Event.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="352">
+          <caret line="16" column="69" lean-forward="true" selection-start-line="16" selection-start-column="69" selection-end-line="16" selection-end-column="69" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/CEP.py" />
+    <entry file="file://$PROJECT_DIR$/tests.py" />
+    <entry file="file://$PROJECT_DIR$/misc/IOUtils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1518">
+          <caret line="71" selection-start-line="71" selection-end-line="71" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/TwitterTest.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/evaluation/IterativeImprovement.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-398">
+          <folding>
+            <element signature="e#0#30#0" expanded="true" />
+            <element signature="e#203#473#0" />
+            <element signature="e#1732#2224#0" />
+            <element signature="e#2292#2947#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/misc/ConsumptionPolicy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="484">
+          <caret line="23" column="33" selection-start-line="22" selection-start-column="5" selection-end-line="23" selection-end-column="33" />
+          <folding>
+            <element signature="e#0#21#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/evaluation/PartialMatch.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="66">
+          <caret line="5" column="1" selection-start-line="5" selection-end-line="5" selection-end-column="5" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/evaluation/PartialMatchStorage.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2882">
+          <caret line="135" selection-start-line="135" selection-end-line="135" />
+          <folding>
+            <element signature="e#0#48#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/evaluation/EvaluationMechanism.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/__init__.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/evaluation/EvaluationMechanismBuilder.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="219">
+          <caret line="19" column="102" selection-start-line="19" selection-start-column="102" selection-end-line="19" selection-end-column="102" />
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/_pytest/fixtures.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="114">
+          <caret line="1300" selection-start-line="1300" selection-end-line="1300" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/_pytest/python.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="304">
+          <caret line="442" selection-start-line="442" selection-end-line="442" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/py/_path/local.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="114">
+          <caret line="667" selection-start-line="667" selection-end-line="667" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/evaluation/BushyTreeBuilders.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="286">
+          <caret line="32" lean-forward="true" selection-start-line="32" selection-end-line="32" />
+          <folding>
+            <element signature="e#125#148#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/base/PatternMatch.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="33">
+          <caret line="4" column="8" selection-start-line="4" selection-start-column="8" selection-end-line="4" selection-end-column="8" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/_pytest/assertion/rewrite.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="127">
+          <caret line="293" selection-start-line="293" selection-end-line="293" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/base/Formula.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="218" selection-start-line="218" selection-end-line="218" />
+          <folding>
+            <element signature="e#0#42#0" expanded="true" />
+            <element signature="e#362#656#0" />
+            <element signature="e#1774#2174#0" />
+            <element signature="e#2218#2595#0" />
+            <element signature="e#2640#3018#0" />
+            <element signature="e#3061#3437#0" />
+            <element signature="e#3480#3856#0" />
+            <element signature="e#3883#4189#0" />
+            <element signature="e#4877#5411#0" />
+            <element signature="e#5453#5993#0" />
+            <element signature="e#6632#7175#0" />
+            <element signature="e#7225#7777#0" />
+            <element signature="e#7400#7621#0" />
+            <element signature="e#7827#8379#0" />
+            <element signature="e#8447#9648#0" />
+            <element signature="e#9719#10392#0" />
+            <element signature="e#10427#10597#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/base/PatternStructure.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="295">
+          <caret line="86" selection-start-line="86" selection-end-line="86" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/abc.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="192" selection-start-line="192" selection-end-line="192" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/testUtils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="207">
+          <caret line="143" selection-start-line="143" selection-end-line="143" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/evaluation/LeftDeepTreeBuilders.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="249">
+          <caret line="26" selection-start-line="26" selection-end-line="26" />
+          <folding>
+            <element signature="e#119#140#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/evaluation/EvaluationMechanismFactory.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="227">
+          <caret line="93" selection-start-line="93" selection-end-line="93" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/evaluation/TreeBasedEvaluationMechanism.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="1230" column="35" selection-start-line="1230" selection-start-column="35" selection-end-line="1230" selection-end-column="35" />
+          <folding>
+            <element signature="e#1#24#0" expanded="true" />
+            <element signature="e#580#8766#0" />
+            <element signature="e#11995#14357#0" />
+            <element signature="e#14400#15572#0" />
+            <element signature="e#15616#26162#0" />
+            <element signature="e#26196#27487#0" />
+            <element signature="e#27521#33559#0" />
+            <element signature="e#42218#42797#0" />
+            <element signature="e#42841#44500#0" />
+            <element signature="e#44543#48612#0" />
+            <element signature="e#49873#50310#0" />
+            <element signature="e#50397#51086#0" />
+            <element signature="e#51159#52457#0" />
+            <element signature="e#52493#52524#0" />
+            <element signature="e#52561#52668#0" />
+            <element signature="e#52715#52844#0" />
+            <element signature="e#62058#62477#0" />
+            <element signature="e#63475#64083#0" />
+            <element signature="e#67789#67793#0" />
+            <element signature="e#67992#67996#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CEP.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="109">
+          <caret line="18" column="14" selection-start-line="18" selection-start-column="14" selection-end-line="18" selection-end-column="14" />
+          <folding>
+            <element signature="e#153#184#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/base/Pattern.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="28" selection-start-line="28" selection-end-line="28" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/tests.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="109">
+          <caret line="639" selection-start-line="639" selection-end-line="639" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+            <element signature="e#2018#2852#0" />
+            <element signature="e#2918#3870#0" />
+            <element signature="e#3934#5359#0" />
+            <element signature="e#5425#6041#0" />
+            <element signature="e#6107#6458#0" />
+            <element signature="e#6525#7195#0" />
+            <element signature="e#7255#8290#0" />
+            <element signature="e#8351#9194#0" />
+            <element signature="e#9254#10448#0" />
+            <element signature="e#10512#10992#0" />
+            <element signature="e#11053#11689#0" />
+            <element signature="e#11753#12356#0" />
+            <element signature="e#12421#12902#0" />
+            <element signature="e#12964#13595#0" />
+            <element signature="e#13660#13895#0" />
+            <element signature="e#13957#14335#0" />
+            <element signature="e#14400#14635#0" />
+            <element signature="e#14697#15093#0" />
+            <element signature="e#15158#15439#0" />
+            <element signature="e#15501#15951#0" />
+            <element signature="e#16019#16469#0" />
+            <element signature="e#16527#17853#0" />
+            <element signature="e#17913#19439#0" />
+            <element signature="e#19500#21028#0" />
+            <element signature="e#21088#22614#0" />
+            <element signature="e#22675#24203#0" />
+            <element signature="e#24259#25596#0" />
+            <element signature="e#25651#26983#0" />
+            <element signature="e#27045#28381#0" />
+            <element signature="e#28440#29764#0" />
+            <element signature="e#29833#30641#0" />
+            <element signature="e#30713#31382#0" />
+            <element signature="e#31454#32478#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>

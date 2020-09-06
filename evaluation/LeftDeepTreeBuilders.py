@@ -7,6 +7,7 @@ from typing import List
 
 from base.PatternStructure import CompositeStructure
 from evaluation.IterativeImprovement import IterativeImprovementType, IterativeImprovementAlgorithmBuilder
+from evaluation.EvaluationMechanismFactory import MultiPatternEvaluationApproach
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from evaluation.EvaluationMechanismBuilder import EvaluationMechanismBuilder
 from base.Pattern import Pattern
@@ -25,8 +26,11 @@ class LeftDeepTreeBuilder(EvaluationMechanismBuilder):
         tree_structure = self.__build_tree_from_order(order)
         return TreeBasedEvaluationMechanism(pattern, tree_structure, storage_params)
 
-    def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern], storage_params: TreeStorageParameters):
-        raise Exception("Unsupported")
+    def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern], storage_params: TreeStorageParameters,
+                                           multi_pattern_eval_approach: MultiPatternEvaluationApproach):
+        orders = [self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure, CompositeStructure) else [0] for pattern in patterns]
+        tree_structures = [self.__build_tree_from_order(order) for order in orders]
+        return TreeBasedEvaluationMechanism(patterns, tree_structures, storage_params)
 
     @staticmethod
     def __build_tree_from_order(order: List[int]):

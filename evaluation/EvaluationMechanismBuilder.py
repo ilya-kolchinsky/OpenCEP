@@ -2,6 +2,7 @@ from abc import ABC
 from typing import List
 
 from base.Pattern import Pattern
+from evaluation.EvaluationMechanismFactory import MultiPatternEvaluationApproach
 
 # TODO: The introduction of storage parameters here is a TEMPORARY HACK to be removed soon
 from evaluation.PartialMatchStorage import TreeStorageParameters
@@ -15,5 +16,6 @@ class EvaluationMechanismBuilder(ABC):
     def build_single_pattern_eval_mechanism(self, pattern: Pattern, storage_params: TreeStorageParameters):
         pass
 
-    def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern], storage_params: TreeStorageParameters):
+    def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern], storage_params: TreeStorageParameters,
+                                           multi_pattern_eval_approach: MultiPatternEvaluationApproach):
         pass

@@ -2,11 +2,7 @@ from typing import List
 from enum import Enum
 
 from base.Pattern import Pattern
-from evaluation.BushyTreeBuilders import DynamicProgrammingBushyTreeBuilder, ZStreamTreeBuilder, ZStreamOrdTreeBuilder
 from evaluation.IterativeImprovement import IterativeImprovementType
-from evaluation.LeftDeepTreeBuilders import IterativeImprovementInitType, TrivialLeftDeepTreeBuilder, \
-    AscendingFrequencyTreeBuilder, GreedyLeftDeepTreeBuilder, IterativeImprovementLeftDeepTreeBuilder, \
-    DynamicProgrammingLeftDeepTreeBuilder
 from evaluation.PartialMatchStorage import TreeStorageParameters
 
 
@@ -37,7 +33,7 @@ class MultiPatternEvaluationApproach(Enum):
     TRIVIAL: gets a list of patterns and builds a separate tree for each pattern
     """
 
-    TRIVIAL = 0,
+    TRIVIAL_SHARING_LEAVES = 0,
     SUBTREES_UNION = 1,
     LOCAL_SEARCH = 2
 
@@ -48,6 +44,13 @@ class MultiPatternEvaluationParameters:
 
     def __init__(self, evaluation_approach: MultiPatternEvaluationApproach):
         self.approach = evaluation_approach
+
+#changed the order of the imports to avoid circular imports
+from evaluation.BushyTreeBuilders import DynamicProgrammingBushyTreeBuilder, ZStreamTreeBuilder, ZStreamOrdTreeBuilder
+from evaluation.LeftDeepTreeBuilders import IterativeImprovementInitType, TrivialLeftDeepTreeBuilder, \
+    AscendingFrequencyTreeBuilder, GreedyLeftDeepTreeBuilder, IterativeImprovementLeftDeepTreeBuilder, \
+    DynamicProgrammingLeftDeepTreeBuilder
+
 
 class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
     """
@@ -92,6 +95,7 @@ class EvaluationMechanismFactory:
 
     @staticmethod
     def build_multi_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,
+                                           multi_pattern_eval_approach: MultiPatternEvaluationApproach,
                                            eval_mechanism_params: EvaluationMechanismParameters,
                                            patterns: List[Pattern]):
         storage_params = eval_mechanism_params.storage_params \
@@ -99,7 +103,7 @@ class EvaluationMechanismFactory:
                          else TreeStorageParameters()
         eval_mechanism_builder = EvaluationMechanismFactory.__create_eval_mechanism_builder(eval_mechanism_type,
                                                                                             eval_mechanism_params)
-        return eval_mechanism_builder.build_multi_pattern_eval_mechanism(patterns, storage_params)
+        return eval_mechanism_builder.build_multi_pattern_eval_mechanism(patterns, storage_params, multi_pattern_eval_approach)
 
     @staticmethod
     def __create_eval_mechanism_builder(eval_mechanism_type: EvaluationMechanismTypes,
