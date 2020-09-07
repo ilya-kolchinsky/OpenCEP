@@ -5,6 +5,7 @@ from parallerization.ParallelExecutionFramework import ParallelExecutionFramewor
 from datetime import timedelta
 from typing import Tuple, Dict, List
 from base.PatternStructure import QItem
+from base.PatternMatch import PatternMatch
 from misc.IOUtils import Stream
 
 import time
@@ -20,6 +21,15 @@ class ParallelUnaryNode(UnaryNode):
     def get_done(self):
         return self._is_done
 
+    def get_child(self):
+        return self._child
+
+    def get_leaves(self):
+        return [self]
+
+    def clean_expired_partial_matches(self, last_timestamp: datetime):
+        raise NotImplementedError()#will not do anything
+
 
 class UnaryParallelTree(ParallelExecutionFramework):
 
@@ -33,8 +43,10 @@ class UnaryParallelTree(ParallelExecutionFramework):
     def get_data(self):
         raise NotImplementedError()
 
-    def get_final_results(self, pattern_matches):
-        raise NotImplementedError()
+    def get_final_results(self, pattern_matches: Stream):
+        for match in self._tree_based.get_tree().get_matches():
+            pattern_matches.add_item(PatternMatch(match))
+        pattern_matches.close()
 
     def wait_till_finish(self):
         root = self._tree_based.get_tree().get_root()
@@ -45,7 +57,16 @@ class UnaryParallelTree(ParallelExecutionFramework):
             time.sleep(0.5)
 
     def get_children(self):
-        raise NotImplementedError()
+        # returns a list of all the UnaryParallelNodes that are directly connected to self.tree_based
+        root = self._tree_based.get_tree().get_root()
+        if type(root) is not ParallelUnaryNode:
+            # tree not built properly
+            raise Exception()
+        children = self._tree_based.get_tree().get_leaves()
+        for i in range(len(children)):
+            if type(children[i]) is not ParallelUnaryNode:
+                children.remove(children[i])
+        return children
 
     def all_children_done(self):
         children = self.get_children()
@@ -61,7 +82,17 @@ class UnaryParallelTree(ParallelExecutionFramework):
         return True
 
     def get_partial_matches_from_children(self):
-        raise NotImplementedError()
+        children = self.get_children()
+        if children is None:
+            return []
+        aggregated_events = []
+        for child in children:
+            if type(child) is not ParallelUnaryNode:
+                raise Exception()
+            #LOCK
+            for match in child._partial_matches:
+                aggregated_events.append(match)
+        return aggregated_events
 
     def modified_eval(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
         if self.all_children_done():
@@ -83,10 +114,6 @@ class UnaryParallelTree(ParallelExecutionFramework):
         thread = threading.Thread(target=self.run_eval, args=(self._tree_based, event_stream, pattern_matches, is_async,
                                                               file_path, time_limit,))
         thread.start()
-
-
-
-
 
     """
     An implementation of the tree-based evaluation mechanism.

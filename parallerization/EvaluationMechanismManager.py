@@ -113,7 +113,7 @@ class EvaluationMechanismManager:
 
     def eval_by_multiple_mechanizm_multiple_data(self, is_async, file_path, time_limit):
         start_index_of_ems = 0
-        for i in range (len(self.execution_map)):
+        for i in range(len(self.execution_map)):
             event_stream = self.event_stream_splitted[i]
             for j in range(len(self.execution_map[i])):
                 eval_mechanism = self.eval_mechanism_list[start_index_of_ems + j] # UnaryParallelTree
