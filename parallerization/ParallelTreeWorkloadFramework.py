@@ -36,6 +36,10 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         return output_stream
 
+    def get_masters(self):
+        #if not self.get_is_tree_splitted():
+        return self.get_source_eval_mechanism()
+
     def split_structure(self, evaluation_mechanism: TreeBasedEvaluationMechanism):
         # returns objects that implements ParallelExecutionFramework
         """
@@ -46,6 +50,8 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         => add them such that no part of the tree have
          sons such that one needs to read the input and the other doesn't
         *create UnaryParallelTree objects and light the has_leaves flag accordingly
+
+
 
         """
 

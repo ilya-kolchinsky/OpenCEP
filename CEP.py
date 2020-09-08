@@ -36,7 +36,7 @@ class CEP:
                  eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
                  eval_mechanism_params: EvaluationMechanismParameters = None,
                  performance_specs: PerformanceSpecifications = None,
-                 work_load_fr: ParallelWorkLoadFramework = None, execution_fr: ParallelExecutionFramework = None):
+                 work_load_fr: ParallelWorkLoadFramework = None):
         """
         Constructor of the class.
         """
@@ -46,7 +46,7 @@ class CEP:
             raise NotImplementedError("Multi-pattern support is not yet available")
 
         self.__eval_mechanism_manager = EvaluationMechanismManager(work_load_fr, eval_mechanism_type,
-                                                                  eval_mechanism_params, patterns)
+                                                                   eval_mechanism_params, patterns)
 
         self.__pattern_matches = None
         self.__performance_specs = performance_specs

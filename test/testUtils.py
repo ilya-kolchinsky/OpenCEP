@@ -8,6 +8,9 @@ from misc.IOUtils import file_input, file_output
 from misc.Utils import generate_matches
 from plugin.stocks.Stocks import MetastockDataFormatter
 
+from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
+from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
+
 currentPath = pathlib.Path(os.path.dirname(__file__))
 absolutePath = str(currentPath.parent)
 sys.path.append(absolutePath)
@@ -117,8 +120,9 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
 
 
 def runTest(testName, patterns, createTestFile = False,
-            eval_mechanism_type = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-            eval_mechanism_params = None, events = None, eventStream = nasdaqEventStream):
+            eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+            eval_mechanism_params=None, events=None, eventStream=nasdaqEventStream,
+            workloadfr: ParallelWorkLoadFramework = None):
     if createTestFile:
         createTest(testName, patterns, events, eventStream = eventStream)
     if events is None:
@@ -141,7 +145,10 @@ def runTest(testName, patterns, createTestFile = False,
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
 
-    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
+    if workloadfr is None:
+        workloadfr = ParallelWorkLoadFramework()
+
+    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, work_load_fr=workloadfr)
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
     file_output(absolutePath, matches, '%sMatches.txt' % testName)

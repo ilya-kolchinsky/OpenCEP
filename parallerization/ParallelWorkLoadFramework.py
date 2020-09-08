@@ -4,16 +4,31 @@ from misc.IOUtils import Stream
 
 class ParallelWorkLoadFramework(ABC):
 
-    def __init__(self, execution_units: int = 1, is_data_splitted: bool = False, is_tree_splitted: bool = False):
+    def __init__(self, execution_units: int = 1, is_data_splitted: bool = False, is_tree_splitted: bool = False,
+                 num_of_data: int = 1):
         self._execution_units = execution_units
         self._is_data_splitted = is_data_splitted
         self._is_tree_splitted = is_tree_splitted
+        self._num_of_data_parts = num_of_data
+        self._source_eval_mechanism = None
 
     def get_execution_units(self):
         return self._execution_units
 
     def get_is_data_splitted(self):
         return self._is_data_splitted
+
+    def get_is_tree_splitted(self):
+        return self._is_tree_splitted
+
+    def get_num_of_data(self):
+        return self._num_of_data_parts
+
+    def set_source_eval_mechanism(self, evalmechanism):
+        self._source_eval_mechanism = evalmechanism
+
+    def get_source_eval_mechanism(self):
+        return self._source_eval_mechanism
 
     # example:
     # map ={1,2}
@@ -24,14 +39,19 @@ class ParallelWorkLoadFramework(ABC):
         raise NotImplementedError()
 
     def get_masters(self):
-        raise NotImplementedError()
+        if not self.get_is_tree_splitted():
+            return [self.get_source_eval_mechanism()]
+        else:
+            raise NotImplementedError()
 
     def split_data(self, input_stream: Stream):#the output needs to be a list of streams of size <= execution_units
         raise NotImplementedError()
 
     # the output needs to be a list of evalution mechanizms that implements ParallelExecutionFramework
     def split_structure(self, evaluation_mechanism):
-        raise NotImplementedError()
+        self.set_source_eval_mechanism(evaluation_mechanism)
+        return evaluation_mechanism
+        #raise NotImplementedError()
 
 
 
