@@ -1,8 +1,7 @@
 from base.Event import Event
 from misc.Utils import *
 from tree.LeafNode import LeafNode
-from tree.PartialMatchStorage import TreeStorageParameters
-from base.PatternMatch import PatternMatch
+from tree.PatternMatchStorage import TreeStorageParameters
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
 
@@ -46,8 +45,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__try_register_freezer(event, leaf)
                 leaf.handle_event(event)
             for match in self.__tree.get_matches():
-                matches.add_item(PatternMatch(match))
-                self.__remove_matched_freezers(match)
+                matches.add_item(match)
+                self.__remove_matched_freezers(match.events)
                 if is_async:
                         f = open(file_path, "a", encoding='utf-8')
                         for itr in match:
@@ -58,7 +57,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         for match in self.__tree.get_last_matches():
-            matches.add_item(PatternMatch(match))
+            matches.add_item(match)
         matches.close()
 
     def __register_event_listeners(self):
@@ -114,14 +113,14 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         if leaf.get_event_name() in self.__freeze_map.keys():
             self.__active_freezers.append(event)
 
-    def __remove_matched_freezers(self, match: List[Event]):
+    def __remove_matched_freezers(self, match_events: List[Event]):
         """
         Removes the freezers that have been matched.
         """
         if len(self.__freeze_map) == 0:
             # freeze option disabled
             return False
-        self.__active_freezers = [freezer for freezer in self.__active_freezers if freezer not in match]
+        self.__active_freezers = [freezer for freezer in self.__active_freezers if freezer not in match_events]
 
     def __remove_expired_freezers(self, event: Event):
         """

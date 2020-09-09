@@ -5,8 +5,8 @@ from typing import List
 
 from base.Event import Event
 from base.Formula import TrueFormula, Formula, RelopTypes, EquationSides
-from evaluation.PartialMatch import PartialMatch
-from tree.PartialMatchStorage import TreeStorageParameters
+from base.PatternMatch import PatternMatch
+from tree.PatternMatchStorage import TreeStorageParameters
 
 
 class Node(ABC):
@@ -103,18 +103,18 @@ class Node(ABC):
         if self._parent is not None:
             self._parent.register_single_event_type(event_type)
 
-    def _add_partial_match(self, pm: PartialMatch):
+    def _add_partial_match(self, pm: PatternMatch):
         """
         Registers a new partial match at this node.
-        In case of SortedPartialMatchStorage the insertion is by timestamp or condition, O(log n).
-        In case of UnsortedPartialMatchStorage the insertion is directly at the end, O(1).
+        In case of SortedPatternMatchStorage the insertion is by timestamp or condition, O(log n).
+        In case of UnsortedPatternMatchStorage the insertion is directly at the end, O(1).
         """
         self._partial_matches.add(pm)
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
             self._parent.handle_new_partial_match(self)
 
-    def __can_add_partial_match(self, pm: PartialMatch) -> bool:
+    def __can_add_partial_match(self, pm: PatternMatch) -> bool:
         """
         Returns True if the given partial match can be passed up the tree and False otherwise.
         As of now, only the activation of the "single" consumption policy might prevent this method from returning True.
@@ -147,7 +147,7 @@ class Node(ABC):
         """
         Receives an already verified list of events for new partial match and propagates it up the tree.
         """
-        new_partial_match = PartialMatch(events)
+        new_partial_match = PatternMatch(events)
         if self.__can_add_partial_match(new_partial_match):
             self._add_partial_match(new_partial_match)
 

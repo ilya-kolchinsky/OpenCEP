@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import List
 
-from evaluation.PartialMatch import PartialMatch
+from base.PatternMatch import PatternMatch
 from misc.Utils import recursive_powerset_generator
 from tree.Node import Node
 from tree.UnaryNode import UnaryNode
@@ -67,7 +67,7 @@ class KleeneClosureNode(UnaryNode):
         return "KC", self._child.get_structure_summary()
 
     @staticmethod
-    def partial_match_set_to_event_list(partial_match_set: List[PartialMatch]):
+    def partial_match_set_to_event_list(partial_match_set: List[PatternMatch]):
         """
         Converts a set of partial matches into a single list containing all primitive events of the partial
         matches in the set.

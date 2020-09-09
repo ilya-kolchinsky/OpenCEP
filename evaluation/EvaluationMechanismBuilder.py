@@ -4,7 +4,7 @@ from typing import List
 from base.Pattern import Pattern
 
 # TODO: The introduction of storage parameters here is a TEMPORARY HACK to be removed soon
-from tree.PartialMatchStorage import TreeStorageParameters
+from tree.PatternMatchStorage import TreeStorageParameters
 
 
 class EvaluationMechanismBuilder(ABC):

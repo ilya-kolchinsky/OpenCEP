@@ -12,11 +12,10 @@ from base.PatternStructure import SeqOperator
 from base.PatternMatch import PatternMatch
 from copy import deepcopy
 
-from evaluation.PartialMatch import PartialMatch
 from misc.IOUtils import Stream
 
 
-def find_partial_match_by_timestamp(partial_matches: List[PartialMatch], timestamp: datetime):
+def find_partial_match_by_timestamp(partial_matches: List[PatternMatch], timestamp: datetime):
     """
     Returns the partial match from the given list such that its timestamp is the closest to the given timestamp.
     The list is assumed to be sorted according to the earliest event timestamp.

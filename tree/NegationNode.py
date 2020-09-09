@@ -4,12 +4,12 @@ from typing import List, Tuple
 
 from base.Event import Event
 from base.Formula import RelopTypes, EquationSides
+from base.PatternMatch import PatternMatch
 from base.PatternStructure import QItem, AndOperator, SeqOperator
-from evaluation.PartialMatch import PartialMatch
 from misc.Utils import find_partial_match_by_timestamp, merge, is_sorted, merge_according_to
 from tree.BinaryNode import BinaryNode
 from tree.Node import Node
-from tree.PartialMatchStorage import TreeStorageParameters
+from tree.PatternMatchStorage import TreeStorageParameters
 
 
 class NegationNode(BinaryNode, ABC):
@@ -82,7 +82,7 @@ class NegationNode(BinaryNode, ABC):
         """
         return self._positive_subtree.get_event_definitions()
 
-    def _try_create_new_matches(self, new_partial_match: PartialMatch, partial_matches_to_compare: List[PartialMatch],
+    def _try_create_new_matches(self, new_partial_match: PatternMatch, partial_matches_to_compare: List[PatternMatch],
                                 first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
         """
         The flow of this method is the opposite of the one its superclass implements. For each pair of a positive and a
@@ -102,7 +102,7 @@ class NegationNode(BinaryNode, ABC):
         # no negative match invalidated the positive one - we can go on
         self._propagate_partial_match(positive_events)
 
-    def _add_partial_match(self, pm: PartialMatch):
+    def _add_partial_match(self, pm: PatternMatch):
         """
         If this node can receive unbounded negative events and is the deepest node in the tree to do so, a
         successfully evaluated partial match must be added to a dedicated waiting list rather than propagated normally.

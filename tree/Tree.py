@@ -10,7 +10,7 @@ from tree.KleeneClosureNode import KleeneClosureNode
 from tree.LeafNode import LeafNode
 from tree.NegationNode import NegativeSeqNode, NegativeAndNode, NegationNode
 from tree.Node import Node
-from tree.PartialMatchStorage import TreeStorageParameters
+from tree.PatternMatchStorage import TreeStorageParameters
 from tree.SeqNode import SeqNode
 
 
@@ -93,7 +93,7 @@ class Tree:
 
     def get_matches(self):
         while self.__root.has_partial_matches():
-            yield self.__root.consume_first_partial_match().events
+            yield self.__root.consume_first_partial_match()
 
     def get_structure_summary(self):
         """

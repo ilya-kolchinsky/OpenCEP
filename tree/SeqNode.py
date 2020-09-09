@@ -5,7 +5,7 @@ from base.Formula import RelopTypes, EquationSides
 from base.PatternStructure import QItem
 from misc.Utils import merge, merge_according_to, is_sorted
 from tree.BinaryNode import BinaryNode
-from tree.PartialMatchStorage import TreeStorageParameters
+from tree.PatternMatchStorage import TreeStorageParameters
 
 
 class SeqNode(BinaryNode):

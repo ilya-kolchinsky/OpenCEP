@@ -4,8 +4,8 @@ from typing import List, Tuple
 
 from base.Event import Event
 from base.Formula import Formula, IdentifierTerm, AtomicFormula, EquationSides
+from base.PatternMatch import PatternMatch
 from base.PatternStructure import QItem
-from evaluation.PartialMatch import PartialMatch
 from tree.InternalNode import InternalNode
 from tree.Node import Node
 
@@ -85,7 +85,7 @@ class BinaryNode(InternalNode, ABC):
         # in the other subtree we check for new partial matches in this node.
         self._try_create_new_matches(new_partial_match, partial_matches_to_compare, first_event_defs, second_event_defs)
 
-    def _try_create_new_matches(self, new_partial_match: PartialMatch, partial_matches_to_compare: List[PartialMatch],
+    def _try_create_new_matches(self, new_partial_match: PatternMatch, partial_matches_to_compare: List[PatternMatch],
                                 first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
         """
         For each candidate pair of partial matches that can be joined to create a new one, verifies all the

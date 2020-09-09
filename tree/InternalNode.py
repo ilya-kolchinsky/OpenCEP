@@ -6,7 +6,7 @@ from base.Event import Event
 from base.Formula import Formula, TrueFormula, RelopTypes, EquationSides
 from base.PatternStructure import QItem
 from tree.Node import Node
-from tree.PartialMatchStorage import TreeStorageParameters, UnsortedPartialMatchStorage, SortedPartialMatchStorage
+from tree.PatternMatchStorage import TreeStorageParameters, UnsortedPatternMatchStorage, SortedPatternMatchStorage
 
 
 class InternalNode(Node, ABC):
@@ -45,9 +45,9 @@ class InternalNode(Node, ABC):
         In the internal nodes, we only sort the storage if a storage key is explicitly provided by the user.
         """
         if not storage_params.sort_storage or sorting_key is None:
-            self._partial_matches = UnsortedPartialMatchStorage(storage_params.clean_up_interval)
+            self._partial_matches = UnsortedPatternMatchStorage(storage_params.clean_up_interval)
         else:
-            self._partial_matches = SortedPartialMatchStorage(sorting_key, rel_op, equation_side,
+            self._partial_matches = SortedPatternMatchStorage(sorting_key, rel_op, equation_side,
                                                               storage_params.clean_up_interval, sort_by_first_timestamp)
 
     def _propagate_condition(self, condition: Formula):

@@ -4,7 +4,7 @@ This file contains the implementations of algorithms constructing a generic (bus
 from typing import List
 
 from evaluation.EvaluationMechanismBuilder import EvaluationMechanismBuilder
-from tree.PartialMatchStorage import TreeStorageParameters
+from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from base.Pattern import Pattern
 from misc.Utils import get_all_disjoint_sets

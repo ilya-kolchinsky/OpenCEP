@@ -7,7 +7,7 @@ from plan.IterativeImprovement import IterativeImprovementType
 from plan.LeftDeepTreeBuilders import IterativeImprovementInitType, TrivialLeftDeepTreeBuilder, \
     AscendingFrequencyTreeBuilder, GreedyLeftDeepTreeBuilder, IterativeImprovementLeftDeepTreeBuilder, \
     DynamicProgrammingLeftDeepTreeBuilder
-from tree.PartialMatchStorage import TreeStorageParameters
+from tree.PatternMatchStorage import TreeStorageParameters
 
 
 class EvaluationMechanismTypes(Enum):

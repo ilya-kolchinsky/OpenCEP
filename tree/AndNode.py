@@ -1,6 +1,6 @@
 from base.Formula import RelopTypes, EquationSides
 from tree.BinaryNode import BinaryNode
-from tree.PartialMatchStorage import TreeStorageParameters
+from tree.PatternMatchStorage import TreeStorageParameters
 
 
 class AndNode(BinaryNode):

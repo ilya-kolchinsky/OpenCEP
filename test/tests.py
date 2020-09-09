@@ -10,7 +10,7 @@ from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFo
     AtomicTerm, AndFormula, TrueFormula
 from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
 from base.Pattern import Pattern
-from tree.PartialMatchStorage import TreeStorageParameters
+from tree.PatternMatchStorage import TreeStorageParameters
 try:
     from UnitTests.test_storage import run_storage_tests
 except ImportError:

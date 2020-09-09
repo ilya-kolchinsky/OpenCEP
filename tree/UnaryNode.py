@@ -6,7 +6,7 @@ from base.Formula import Formula, RelopTypes, EquationSides
 from base.PatternStructure import QItem
 from tree.InternalNode import InternalNode
 from tree.Node import Node
-from tree.PartialMatchStorage import TreeStorageParameters
+from tree.PatternMatchStorage import TreeStorageParameters
 
 
 class UnaryNode(InternalNode, ABC):
