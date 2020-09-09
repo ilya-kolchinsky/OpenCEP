@@ -16,7 +16,7 @@ from itertools import combinations
 
 class BushyTreeBuilder(EvaluationMechanismBuilder):
     """
-    An abstract class for left-deep tree builders.
+    An abstract class for bushy tree builders.
     """
     def build_single_pattern_eval_mechanism(self, pattern: Pattern, storage_params: TreeStorageParameters):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
@@ -36,7 +36,7 @@ class BushyTreeBuilder(EvaluationMechanismBuilder):
 
 class DynamicProgrammingBushyTreeBuilder(BushyTreeBuilder):
     """
-    Creates a left-deep tree using a dynamic programming algorithm.
+    Creates a bushy tree using a dynamic programming algorithm.
     """
     @staticmethod
     def _find_tree(selectivity_matrix: List[List[float]], arrival_rates: List[int], window: int):
@@ -79,7 +79,7 @@ class DynamicProgrammingBushyTreeBuilder(BushyTreeBuilder):
 
 class ZStreamTreeBuilder(BushyTreeBuilder):
     """
-    Creates a left-deep tree using ZStream algorithm.
+    Creates a bushy tree using ZStream algorithm.
     """
     def _find_tree(self, selectivity_matrix: List[List[float]], arrival_rates: List[int], window: int):
         order = self._get_initial_order(selectivity_matrix, arrival_rates)
@@ -128,7 +128,7 @@ class ZStreamTreeBuilder(BushyTreeBuilder):
 
 class ZStreamOrdTreeBuilder(ZStreamTreeBuilder):
     """
-    Creates a left-deep tree using ZStream algorithm with the leaf order obtained using an order-based greedy algorithm.
+    Creates a bushy tree using ZStream algorithm with the leaf order obtained using an order-based greedy algorithm.
     """
     @staticmethod
     def _get_initial_order(selectivity_matrix: List[List[float]], arrival_rates: List[int]):
