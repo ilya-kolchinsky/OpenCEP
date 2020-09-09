@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, CompositeStructure, UnaryStructure, \
-    KleeneClosureOperator, QItem, NegationOperator
+    KleeneClosureOperator, PrimitiveEventStructure, NegationOperator
 from misc.ConsumptionPolicy import ConsumptionPolicy
 from tree.AndNode import AndNode
 from tree.KleeneClosureNode import KleeneClosureNode
@@ -110,7 +110,7 @@ class Tree:
             return operator.args
         if isinstance(operator, UnaryStructure):
             return [operator.arg]
-        # a QItem
+        # a PrimitiveEventStructure
         return [operator]
 
     @staticmethod
@@ -135,7 +135,7 @@ class Tree:
         """
         Constructs a single leaf node or a subtree with nested structure according to the input parameters.
         """
-        if isinstance(current_operator, QItem):
+        if isinstance(current_operator, PrimitiveEventStructure):
             # the current operator is a primitive event - we should simply create a leaf
             event = current_operator
             if consumption_policy is not None and \
@@ -222,6 +222,6 @@ class Tree:
         sequence_elements = pattern.full_structure.get_args()
         operator_index = sequence_elements.index(negation_operator)
         for i in range(operator_index + 1, len(sequence_elements)):
-            if isinstance(sequence_elements[i], QItem):
+            if isinstance(sequence_elements[i], PrimitiveEventStructure):
                 return False
         return True

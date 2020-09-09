@@ -8,7 +8,7 @@ from plan.BushyTreeBuilders import *
 from datetime import timedelta
 from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, \
     AtomicTerm, AndFormula, TrueFormula
-from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
+from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, NegationOperator
 from base.Pattern import Pattern
 from tree.PatternMatchStorage import TreeStorageParameters
 try:
@@ -19,7 +19,7 @@ except ImportError:
 
 def oneArgumentsearchTest(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
         timedelta(minutes=120)
     )
@@ -34,7 +34,7 @@ def simplePatternSearchTest(createTestFile=False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AVID", "c")]),
         AndFormula(
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
@@ -51,7 +51,7 @@ def googleAscendPatternSearchTest(createTestFile=False):
     WITHIN 3 minutes
     """
     googleAscendPattern = Pattern(
-        SeqOperator([QItem("GOOG", "a"), QItem("GOOG", "b"), QItem("GOOG", "c")]),
+        SeqOperator([PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"), PrimitiveEventStructure("GOOG", "c")]),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                                IdentifierTerm("b", lambda x: x["Peak Price"])),
@@ -71,7 +71,7 @@ def amazonInstablePatternSearchTest(createTestFile=False):
     WITHIN 1 day
     """
     amazonInstablePattern = Pattern(
-        SeqOperator([QItem("AMZN", "x1"), QItem("AMZN", "x2"), QItem("AMZN", "x3")]),
+        SeqOperator([PrimitiveEventStructure("AMZN", "x1"), PrimitiveEventStructure("AMZN", "x2"), PrimitiveEventStructure("AMZN", "x3")]),
         AndFormula(
             SmallerThanEqFormula(IdentifierTerm("x1", lambda x: x["Lowest Price"]), AtomicTerm(75)),
             AndFormula(
@@ -93,7 +93,7 @@ def msftDrivRacePatternSearchTest(createTestFile=False):
     WITHIN 10 minutes
     """
     msftDrivRacePattern = Pattern(
-        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"),QItem("MSFT", "c"), QItem("DRIV", "d"), QItem("MSFT", "e")]),
+        SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("MSFT", "c"), PrimitiveEventStructure("DRIV", "d"), PrimitiveEventStructure("MSFT", "e")]),
         AndFormula(
             AndFormula(
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
@@ -121,7 +121,7 @@ def googleIncreasePatternSearchTest(createTestFile=False):
     WITHIN 30 minutes
     """
     googleIncreasePattern = Pattern(
-        SeqOperator([QItem("GOOG", "a"), QItem("GOOG", "b")]),
+        SeqOperator([PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b")]),
         GreaterThanEqFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
                              MulTerm(AtomicTerm(1.01), IdentifierTerm("a", lambda x: x["Peak Price"]))),
         timedelta(minutes=30)
@@ -134,7 +134,7 @@ def amazonSpecificPatternSearchTest(createTestFile=False):
     This pattern is looking for an amazon stock in peak price of 73.
     """
     amazonSpecificPattern = Pattern(
-        SeqOperator([QItem("AMZN", "a")]),
+        SeqOperator([PrimitiveEventStructure("AMZN", "a")]),
         EqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(73)),
         timedelta(minutes=120)
     )
@@ -149,7 +149,7 @@ def googleAmazonLowPatternSearchTest(createTestFile=False):
     WITHIN 1 minute
     """
     googleAmazonLowPattern = Pattern(
-        AndOperator([QItem("AMZN", "a"), QItem("GOOG", "g")]),
+        AndOperator([PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("GOOG", "g")]),
         AndFormula(
             SmallerThanEqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(73)),
             SmallerThanEqFormula(IdentifierTerm("g", lambda x: x["Peak Price"]), AtomicTerm(525))
@@ -166,7 +166,7 @@ def nonsensePatternSearchTest(createTestFile=False):
     WHERE a.PeakPrice < b.PeakPrice AND b.PeakPrice < c.PeakPrice AND c.PeakPrice < a.PeakPrice
     """
     nonsensePattern = Pattern(
-        AndOperator([QItem("AMZN", "a"), QItem("AVID", "b"), QItem("AAPL", "c")]),
+        AndOperator([PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("AVID", "b"), PrimitiveEventStructure("AAPL", "c")]),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                                IdentifierTerm("b", lambda x: x["Peak Price"])),
@@ -190,7 +190,7 @@ def hierarchyPatternSearchTest(createTestFile=False):
     WITHIN 1 minute
     """
     hierarchyPattern = Pattern(
-        AndOperator([QItem("AMZN", "a"), QItem("AAPL", "b"), QItem("GOOG", "c")]),
+        AndOperator([PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("AAPL", "b"), PrimitiveEventStructure("GOOG", "c")]),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                                IdentifierTerm("b", lambda x: x["Peak Price"])),
@@ -204,7 +204,7 @@ def hierarchyPatternSearchTest(createTestFile=False):
 
 def multiplePatternSearchTest(createTestFile=False):
     amazonInstablePattern = Pattern(
-        SeqOperator([QItem("AMZN", "x1"), QItem("AMZN", "x2"), QItem("AMZN", "x3")]),
+        SeqOperator([PrimitiveEventStructure("AMZN", "x1"), PrimitiveEventStructure("AMZN", "x2"), PrimitiveEventStructure("AMZN", "x3")]),
         AndFormula(
             SmallerThanEqFormula(IdentifierTerm("x1", lambda x: x["Lowest Price"]), AtomicTerm(75)),
             AndFormula(
@@ -216,7 +216,7 @@ def multiplePatternSearchTest(createTestFile=False):
         timedelta(days=1)
     )
     googleAscendPattern = Pattern(
-        SeqOperator([QItem("GOOG", "a"), QItem("GOOG", "b"), QItem("GOOG", "c")]),
+        SeqOperator([PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"), PrimitiveEventStructure("GOOG", "c")]),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                                IdentifierTerm("b", lambda x: x["Peak Price"])),
@@ -230,7 +230,7 @@ def multiplePatternSearchTest(createTestFile=False):
 
 def nonFrequencyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("LOCM", "c")]),
         AndFormula(
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
@@ -241,7 +241,7 @@ def nonFrequencyPatternSearchTest(createTestFile=False):
 
 def frequencyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("LOCM", "c")]),
         AndFormula(
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
@@ -253,7 +253,7 @@ def frequencyPatternSearchTest(createTestFile=False):
 
 def arrivalRatesPatternSearchTest(createTestFile=False):
     pattern = Pattern(
-    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
+    SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("LOCM", "c")]),
     AndFormula(
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
         GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
@@ -265,7 +265,7 @@ def arrivalRatesPatternSearchTest(createTestFile=False):
 
 def nonFrequencyPatternSearch2Test(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("LOCM", "a"), QItem("AMZN", "b"), QItem("AAPL", "c")]),
+        SeqOperator([PrimitiveEventStructure("LOCM", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AAPL", "c")]),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
@@ -276,7 +276,7 @@ def nonFrequencyPatternSearch2Test(createTestFile=False):
 
 def frequencyPatternSearch2Test(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("LOCM", "a"), QItem("AMZN", "b"), QItem("AAPL", "c")]),
+        SeqOperator([PrimitiveEventStructure("LOCM", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AAPL", "c")]),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
@@ -288,7 +288,7 @@ def frequencyPatternSearch2Test(createTestFile=False):
 
 def nonFrequencyPatternSearch3Test(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AAPL", "b"), QItem("AAPL", "c"), QItem("LOCM", "d")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AAPL", "b"), PrimitiveEventStructure("AAPL", "c"), PrimitiveEventStructure("LOCM", "d")]),
         TrueFormula(),
         timedelta(minutes=5)
     )
@@ -297,7 +297,7 @@ def nonFrequencyPatternSearch3Test(createTestFile=False):
 
 def frequencyPatternSearch3Test(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AAPL", "b"), QItem("AAPL", "c"), QItem("LOCM", "d")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AAPL", "b"), PrimitiveEventStructure("AAPL", "c"), PrimitiveEventStructure("LOCM", "d")]),
         TrueFormula(),
         timedelta(minutes=5)
     )
@@ -307,7 +307,7 @@ def frequencyPatternSearch3Test(createTestFile=False):
 
 def nonFrequencyPatternSearch4Test(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c"), QItem("LOCM", "d")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AVID", "c"), PrimitiveEventStructure("LOCM", "d")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -316,7 +316,7 @@ def nonFrequencyPatternSearch4Test(createTestFile=False):
 
 def frequencyPatternSearch4Test(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c"), QItem("LOCM", "d")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AVID", "c"), PrimitiveEventStructure("LOCM", "d")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -326,7 +326,7 @@ def frequencyPatternSearch4Test(createTestFile=False):
 
 def nonFrequencyPatternSearch5Test(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a1"), PrimitiveEventStructure("LOCM", "b1"), PrimitiveEventStructure("AAPL", "a2"), PrimitiveEventStructure("LOCM", "b2"), PrimitiveEventStructure("AAPL", "a3"), PrimitiveEventStructure("LOCM", "b3")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -335,7 +335,7 @@ def nonFrequencyPatternSearch5Test(createTestFile=False):
 
 def frequencyPatternSearch5Test(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a1"), PrimitiveEventStructure("LOCM", "b1"), PrimitiveEventStructure("AAPL", "a2"), PrimitiveEventStructure("LOCM", "b2"), PrimitiveEventStructure("AAPL", "a3"), PrimitiveEventStructure("LOCM", "b3")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -345,7 +345,7 @@ def frequencyPatternSearch5Test(createTestFile=False):
     
 def frequencyPatternSearch6Test(createTestFile = False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a1"), QItem("LOCM", "b1"), QItem("AAPL", "a2"), QItem("LOCM", "b2"), QItem("AAPL", "a3"), QItem("LOCM", "b3")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a1"), PrimitiveEventStructure("LOCM", "b1"), PrimitiveEventStructure("AAPL", "a2"), PrimitiveEventStructure("LOCM", "b2"), PrimitiveEventStructure("AAPL", "a3"), PrimitiveEventStructure("LOCM", "b3")]),
         TrueFormula(),
         timedelta(minutes=7)
     )
@@ -355,7 +355,7 @@ def frequencyPatternSearch6Test(createTestFile = False):
 
 def greedyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")]),
         AndFormula(
             AndFormula(
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
@@ -378,7 +378,7 @@ def greedyPatternSearchTest(createTestFile=False):
 
 def iiRandomPatternSearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")]),
         AndFormula(
             AndFormula(
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
@@ -404,7 +404,7 @@ def iiRandomPatternSearchTest(createTestFile=False):
 
 def iiRandom2PatternSearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")]),
         AndFormula(
             AndFormula(
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
@@ -430,7 +430,7 @@ def iiRandom2PatternSearchTest(createTestFile=False):
 
 def iiGreedyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")]),
         AndFormula(
             AndFormula(
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
@@ -456,7 +456,7 @@ def iiGreedyPatternSearchTest(createTestFile=False):
 
 def iiGreedy2PatternSearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")]),
         AndFormula(
             AndFormula(
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
@@ -482,7 +482,7 @@ def iiGreedy2PatternSearchTest(createTestFile=False):
 
 def dpLdPatternSearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")]),
         AndFormula(
             AndFormula(
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
@@ -505,7 +505,7 @@ def dpLdPatternSearchTest(createTestFile=False):
 
 def dpBPatternSearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")]),
         AndFormula(
             AndFormula(
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
@@ -528,7 +528,7 @@ def dpBPatternSearchTest(createTestFile=False):
 
 def zStreamOrdPatternSearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")]),
         AndFormula(
             AndFormula(
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
@@ -551,7 +551,7 @@ def zStreamOrdPatternSearchTest(createTestFile=False):
 
 def zStreamPatternSearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")]),
         AndFormula(
             AndFormula(
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
@@ -574,7 +574,7 @@ def zStreamPatternSearchTest(createTestFile=False):
 
 def frequencyTailoredPatternSearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c")]),
+        SeqOperator([PrimitiveEventStructure("DRIV", "a"), PrimitiveEventStructure("MSFT", "b"), PrimitiveEventStructure("CBRL", "c")]),
         AndFormula(
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
@@ -591,7 +591,7 @@ def frequencyTailoredPatternSearchTest(createTestFile=False):
 
 def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c")]),
+        SeqOperator([PrimitiveEventStructure("DRIV", "a"), PrimitiveEventStructure("MSFT", "b"), PrimitiveEventStructure("CBRL", "c")]),
         AndFormula(
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
@@ -606,12 +606,12 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
 # ON CUSTOM
 def multipleNotBeginAndEndTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([NegationOperator(QItem("TYP1", "x")),
-                     NegationOperator(QItem("TYP4", "t")),
-                     QItem("AAPL", "a"), QItem("AMZN", "b"),
-                     QItem("GOOG", "c"),
-                     NegationOperator(QItem("TYP2", "y")),
-                     NegationOperator(QItem("TYP3", "z"))]),
+        SeqOperator([NegationOperator(PrimitiveEventStructure("TYP1", "x")),
+                     NegationOperator(PrimitiveEventStructure("TYP4", "t")),
+                     PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
+                     PrimitiveEventStructure("GOOG", "c"),
+                     NegationOperator(PrimitiveEventStructure("TYP2", "y")),
+                     NegationOperator(PrimitiveEventStructure("TYP3", "z"))]),
         AndFormula(
             AndFormula(
                 GreaterThanFormula(IdentifierTerm("x", lambda x: x["Opening Price"]),
@@ -628,7 +628,7 @@ def multipleNotBeginAndEndTest(createTestFile=False):
 # ON custom2
 def simpleNotTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), NegationOperator(PrimitiveEventStructure("AMZN", "b")), PrimitiveEventStructure("GOOG", "c")]),
         AndFormula(
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
@@ -643,8 +643,8 @@ def simpleNotTest(createTestFile=False):
 # ON NASDAQ SHORT
 def multipleNotInTheMiddleTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("LI", "d")), QItem("AMZN", "b"),
-                     NegationOperator(QItem("FB", "e")), QItem("GOOG", "c")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), NegationOperator(PrimitiveEventStructure("LI", "d")), PrimitiveEventStructure("AMZN", "b"),
+                     NegationOperator(PrimitiveEventStructure("FB", "e")), PrimitiveEventStructure("GOOG", "c")]),
         AndFormula(
             AndFormula(
                 GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
@@ -665,7 +665,7 @@ def multipleNotInTheMiddleTest(createTestFile=False):
 # ON NASDAQ SHORT
 def oneNotAtTheBeginningTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([NegationOperator(QItem("TYP1", "x")), QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
+        SeqOperator([NegationOperator(PrimitiveEventStructure("TYP1", "x")), PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")]),
         AndFormula(
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
@@ -678,8 +678,8 @@ def oneNotAtTheBeginningTest(createTestFile=False):
 # ON NASDAQ SHORT
 def multipleNotAtTheBeginningTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([NegationOperator(QItem("TYP1", "x")), NegationOperator(QItem("TYP2", "y")),
-                     NegationOperator(QItem("TYP3", "z")), QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
+        SeqOperator([NegationOperator(PrimitiveEventStructure("TYP1", "x")), NegationOperator(PrimitiveEventStructure("TYP2", "y")),
+                     NegationOperator(PrimitiveEventStructure("TYP3", "z")), PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")]),
         AndFormula(
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
@@ -693,7 +693,7 @@ def multipleNotAtTheBeginningTest(createTestFile=False):
 # ON NASDAQ *HALF* SHORT
 def oneNotAtTheEndTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x"))]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c"), NegationOperator(PrimitiveEventStructure("TYP1", "x"))]),
         AndFormula(
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
@@ -707,8 +707,8 @@ def oneNotAtTheEndTest(createTestFile=False):
 # ON NASDAQ *HALF* SHORT
 def multipleNotAtTheEndTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x")),
-                     NegationOperator(QItem("TYP2", "y")), NegationOperator(QItem("TYP3", "z"))]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c"), NegationOperator(PrimitiveEventStructure("TYP1", "x")),
+                     NegationOperator(PrimitiveEventStructure("TYP2", "y")), NegationOperator(PrimitiveEventStructure("TYP3", "z"))]),
         AndFormula(
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
@@ -721,8 +721,8 @@ def multipleNotAtTheEndTest(createTestFile=False):
 # ON CUSTOM3
 def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMAZON", "b"), NegationOperator(QItem("GOOG", "c")),
-                     QItem("FB", "d"), NegationOperator(QItem("TYP1", "x"))]),
+        SeqOperator([NegationOperator(PrimitiveEventStructure("AAPL", "a")), PrimitiveEventStructure("AMAZON", "b"), NegationOperator(PrimitiveEventStructure("GOOG", "c")),
+                     PrimitiveEventStructure("FB", "d"), NegationOperator(PrimitiveEventStructure("TYP1", "x"))]),
         AndFormula(
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
@@ -739,7 +739,7 @@ def singleType1PolicyPatternSearchTest(createTestFile = False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AVID", "c")]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
         timedelta(minutes=5),
         ConsumptionPolicy(single="AMZN", secondary_selection_strategy=SelectionStrategies.MATCH_NEXT)
@@ -753,7 +753,7 @@ def singleType2PolicyPatternSearchTest(createTestFile = False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AVID", "c")]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
         timedelta(minutes=5),
         ConsumptionPolicy(single="AMZN", secondary_selection_strategy=SelectionStrategies.MATCH_SINGLE)
@@ -768,7 +768,7 @@ def contiguousPolicyPatternSearchTest(createTestFile = False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AVID", "c")]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
         timedelta(minutes=5),
         ConsumptionPolicy(contiguous=["a", "b", "c"])
@@ -782,7 +782,7 @@ def contiguousPolicy2PatternSearchTest(createTestFile = False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AVID", "c")]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
         timedelta(minutes=5),
         ConsumptionPolicy(contiguous=[["a", "b"], ["b", "c"]])
@@ -796,7 +796,7 @@ def freezePolicyPatternSearchTest(createTestFile = False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AVID", "c")]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
         timedelta(minutes=5),
         ConsumptionPolicy(freeze="a")
@@ -810,7 +810,7 @@ def freezePolicy2PatternSearchTest(createTestFile = False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AVID", "c")]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
         timedelta(minutes=5),
         ConsumptionPolicy(freeze="b")
@@ -819,7 +819,7 @@ def freezePolicy2PatternSearchTest(createTestFile = False):
 
 def sortedStorageTest(createTestFile=False):
     pattern = Pattern(
-        AndOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c")]),
+        AndOperator([PrimitiveEventStructure("DRIV", "a"), PrimitiveEventStructure("MSFT", "b"), PrimitiveEventStructure("CBRL", "c")]),
         AndFormula(
             GreaterThanFormula(
                 IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])
@@ -838,7 +838,7 @@ def sortedStorageTest(createTestFile=False):
 
 def sortedStorageBenchMarkTest(createTestFile=False):
     pattern = Pattern(
-        AndOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c"), QItem("MSFT", "m")]),
+        AndOperator([PrimitiveEventStructure("DRIV", "a"), PrimitiveEventStructure("MSFT", "b"), PrimitiveEventStructure("CBRL", "c"), PrimitiveEventStructure("MSFT", "m")]),
         AndFormula(
             GreaterThanEqFormula(
                 IdentifierTerm("b", lambda x: x["Lowest Price"]), IdentifierTerm("a", lambda x: x["Lowest Price"])

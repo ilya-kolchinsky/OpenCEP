@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 from base.Event import Event
 from base.Formula import Formula, TrueFormula, RelopTypes, EquationSides
-from base.PatternStructure import QItem
+from base.PatternStructure import PrimitiveEventStructure
 from tree.Node import Node
 from tree.PatternMatchStorage import TreeStorageParameters, UnsortedPatternMatchStorage, SortedPatternMatchStorage
 
@@ -13,7 +13,8 @@ class InternalNode(Node, ABC):
     """
     This class represents a non-leaf node of an evaluation tree.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None):
+    def __init__(self, sliding_window: timedelta, parent: Node = None,
+                 event_defs: List[Tuple[int, PrimitiveEventStructure]] = None):
         super().__init__(sliding_window, parent)
         self._event_defs = event_defs
 

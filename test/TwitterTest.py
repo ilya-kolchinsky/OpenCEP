@@ -4,7 +4,7 @@ from plugin.twitter.TwitterDataFormatter import TWEET_TYPE
 from plugin.twitter.TwitterInputStream import TweetsStreamSessionInput
 from datetime import timedelta
 from base.Formula import EqFormula, IdentifierTerm, AtomicTerm, AndFormula, NotEqFormula
-from base.PatternStructure import SeqOperator, QItem
+from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
 
 
@@ -17,7 +17,7 @@ def run_twitter_sanity_check():
     """
     get_retweeted_status_function = lambda x: x["retweeted_status"] if "retweeted_status" in x else None
     pattern_retweet = Pattern(
-        SeqOperator([QItem(TWEET_TYPE, "a"), QItem(TWEET_TYPE, "b")]),
+        SeqOperator([PrimitiveEventStructure(TWEET_TYPE, "a"), PrimitiveEventStructure(TWEET_TYPE, "b")]),
         AndFormula(NotEqFormula(IdentifierTerm("a", lambda x: x["id"]), IdentifierTerm("b", lambda x: x["id"])),
                    AndFormula(NotEqFormula(IdentifierTerm("a", get_retweeted_status_function), AtomicTerm(None)),
                               EqFormula(IdentifierTerm("a", get_retweeted_status_function),

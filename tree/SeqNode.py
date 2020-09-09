@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 from base.Event import Event
 from base.Formula import RelopTypes, EquationSides
-from base.PatternStructure import QItem
+from base.PatternStructure import PrimitiveEventStructure
 from misc.Utils import merge, merge_according_to, is_sorted
 from tree.BinaryNode import BinaryNode
 from tree.PatternMatchStorage import TreeStorageParameters
@@ -15,12 +15,13 @@ class SeqNode(BinaryNode):
     of arrival of the events in the partial matches it constructs.
     """
     def _set_event_definitions(self,
-                               left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
+                               left_event_defs: List[Tuple[int, PrimitiveEventStructure]],
+                               right_event_defs: List[Tuple[int, PrimitiveEventStructure]]):
         self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
 
     def _merge_events_for_new_match(self,
-                                    first_event_defs: List[Tuple[int, QItem]],
-                                    second_event_defs: List[Tuple[int, QItem]],
+                                    first_event_defs: List[Tuple[int, PrimitiveEventStructure]],
+                                    second_event_defs: List[Tuple[int, PrimitiveEventStructure]],
                                     first_event_list: List[Event],
                                     second_event_list: List[Event]):
         return merge_according_to(first_event_defs, second_event_defs,

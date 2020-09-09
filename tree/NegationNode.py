@@ -5,7 +5,7 @@ from typing import List, Tuple
 from base.Event import Event
 from base.Formula import RelopTypes, EquationSides
 from base.PatternMatch import PatternMatch
-from base.PatternStructure import QItem, AndOperator, SeqOperator
+from base.PatternStructure import PrimitiveEventStructure, AndOperator, SeqOperator
 from misc.Utils import find_partial_match_by_timestamp, merge, is_sorted, merge_according_to
 from tree.BinaryNode import BinaryNode
 from tree.Node import Node
@@ -19,7 +19,7 @@ class NegationNode(BinaryNode, ABC):
     pattern, they are conveniently placed at the top of the tree forming a left-deep chain of nodes.
     """
     def __init__(self, sliding_window: timedelta, is_unbounded: bool, top_operator, parent: Node = None,
-                 event_defs: List[Tuple[int, QItem]] = None,
+                 event_defs: List[Tuple[int, PrimitiveEventStructure]] = None,
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, parent, event_defs, left, right)
 
@@ -83,7 +83,8 @@ class NegationNode(BinaryNode, ABC):
         return self._positive_subtree.get_event_definitions()
 
     def _try_create_new_matches(self, new_partial_match: PatternMatch, partial_matches_to_compare: List[PatternMatch],
-                                first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
+                                first_event_defs: List[Tuple[int, PrimitiveEventStructure]],
+                                second_event_defs: List[Tuple[int, PrimitiveEventStructure]]):
         """
         The flow of this method is the opposite of the one its superclass implements. For each pair of a positive and a
         negative partial match, we combine the two sides to form a new partial match, validate it, and then do nothing
@@ -179,7 +180,7 @@ class NegativeAndNode(NegationNode):
     An internal node representing a negative conjunction operator.
     """
     def __init__(self, sliding_window: timedelta, is_unbounded: bool, parent: Node = None,
-                 event_defs: List[Tuple[int, QItem]] = None,
+                 event_defs: List[Tuple[int, PrimitiveEventStructure]] = None,
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, is_unbounded, AndOperator, parent, event_defs, left, right)
 
@@ -195,7 +196,7 @@ class NegativeSeqNode(NegationNode):
     Unfortunately, this class contains some code duplication from SeqNode to avoid diamond inheritance.
     """
     def __init__(self, sliding_window: timedelta, is_unbounded: bool, parent: Node = None,
-                 event_defs: List[Tuple[int, QItem]] = None,
+                 event_defs: List[Tuple[int, PrimitiveEventStructure]] = None,
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, is_unbounded, SeqOperator, parent, event_defs, left, right)
 
@@ -205,7 +206,8 @@ class NegativeSeqNode(NegationNode):
                 self._right_subtree.get_structure_summary())
 
     def _set_event_definitions(self,
-                               left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
+                               left_event_defs: List[Tuple[int, PrimitiveEventStructure]],
+                               right_event_defs: List[Tuple[int, PrimitiveEventStructure]]):
         self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
 
     def _validate_new_match(self, events_for_new_match: List[Event]):
@@ -214,8 +216,8 @@ class NegativeSeqNode(NegationNode):
         return super()._validate_new_match(events_for_new_match)
 
     def _merge_events_for_new_match(self,
-                                    first_event_defs: List[Tuple[int, QItem]],
-                                    second_event_defs: List[Tuple[int, QItem]],
+                                    first_event_defs: List[Tuple[int, PrimitiveEventStructure]],
+                                    second_event_defs: List[Tuple[int, PrimitiveEventStructure]],
                                     first_event_list: List[Event],
                                     second_event_list: List[Event]):
         return merge_according_to(first_event_defs, second_event_defs,

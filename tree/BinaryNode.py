@@ -5,7 +5,7 @@ from typing import List, Tuple
 from base.Event import Event
 from base.Formula import Formula, IdentifierTerm, AtomicFormula, EquationSides
 from base.PatternMatch import PatternMatch
-from base.PatternStructure import QItem
+from base.PatternStructure import PrimitiveEventStructure
 from tree.InternalNode import InternalNode
 from tree.Node import Node
 
@@ -14,7 +14,8 @@ class BinaryNode(InternalNode, ABC):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None,
+    def __init__(self, sliding_window: timedelta, parent: Node = None,
+                 event_defs: List[Tuple[int, PrimitiveEventStructure]] = None,
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, parent, event_defs)
         self._left_subtree = left
@@ -33,7 +34,8 @@ class BinaryNode(InternalNode, ABC):
         self._right_subtree.apply_formula(condition)
 
     def _set_event_definitions(self,
-                               left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
+                               left_event_defs: List[Tuple[int, PrimitiveEventStructure]],
+                               right_event_defs: List[Tuple[int, PrimitiveEventStructure]]):
         """
         A helper function for collecting the event definitions from subtrees.
         """
@@ -86,7 +88,8 @@ class BinaryNode(InternalNode, ABC):
         self._try_create_new_matches(new_partial_match, partial_matches_to_compare, first_event_defs, second_event_defs)
 
     def _try_create_new_matches(self, new_partial_match: PatternMatch, partial_matches_to_compare: List[PatternMatch],
-                                first_event_defs: List[Tuple[int, QItem]], second_event_defs: List[Tuple[int, QItem]]):
+                                first_event_defs: List[Tuple[int, PrimitiveEventStructure]],
+                                second_event_defs: List[Tuple[int, PrimitiveEventStructure]]):
         """
         For each candidate pair of partial matches that can be joined to create a new one, verifies all the
         necessary conditions creates new partial matches if all constraints are satisfied.
@@ -97,8 +100,8 @@ class BinaryNode(InternalNode, ABC):
             self._validate_and_propagate_partial_match(events_for_new_match)
 
     def _merge_events_for_new_match(self,
-                                    first_event_defs: List[Tuple[int, QItem]],
-                                    second_event_defs: List[Tuple[int, QItem]],
+                                    first_event_defs: List[Tuple[int, PrimitiveEventStructure]],
+                                    second_event_defs: List[Tuple[int, PrimitiveEventStructure]],
                                     first_event_list: List[Event],
                                     second_event_list: List[Event]):
         """

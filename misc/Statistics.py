@@ -2,11 +2,12 @@ from typing import List
 
 from base.Formula import Formula
 from base.Pattern import Pattern
-from base.PatternStructure import SeqOperator, QItem
+from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from misc.IOUtils import Stream
 
 
-def get_condition_selectivity(arg1: QItem, arg2: QItem, formula: Formula, stream: Stream, is_sequence: bool):
+def get_condition_selectivity(arg1: PrimitiveEventStructure, arg2: PrimitiveEventStructure, formula: Formula,
+                              stream: Stream, is_sequence: bool):
     """
     Calculates the selectivity of a given condition between two event types by evaluating it on a given stream.
     """
@@ -45,7 +46,7 @@ def get_occurrences_dict(pattern: Pattern, stream: Stream):
     given event stream.
     """
     ret = {}
-    types = {qitem.eventType for qitem in pattern.positive_structure.args}
+    types = {primitive_event.eventType for primitive_event in pattern.positive_structure.args}
     for event in stream:
         if event.eventType in types:
             if event.eventType in ret.keys():

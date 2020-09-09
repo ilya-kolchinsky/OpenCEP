@@ -3,7 +3,7 @@ from typing import List
 
 from base.Event import Event
 from base.Formula import Formula, RelopTypes, EquationSides
-from base.PatternStructure import QItem
+from base.PatternStructure import PrimitiveEventStructure
 from tree.Node import Node
 from tree.PatternMatchStorage import TreeStorageParameters, SortedPatternMatchStorage
 
@@ -12,11 +12,11 @@ class LeafNode(Node):
     """
     A leaf node is responsible for a single event type of the pattern.
     """
-    def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_qitem: QItem, parent: Node):
+    def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_event: PrimitiveEventStructure, parent: Node):
         super().__init__(sliding_window, parent)
         self.__leaf_index = leaf_index
-        self.__event_name = leaf_qitem.name
-        self.__event_type = leaf_qitem.type
+        self.__event_name = leaf_event.name
+        self.__event_type = leaf_event.type
 
     def get_leaves(self):
         return [self]
@@ -27,7 +27,7 @@ class LeafNode(Node):
             self._condition = condition
 
     def get_event_definitions(self):
-        return [(self.__leaf_index, QItem(self.__event_type, self.__event_name))]
+        return [(self.__leaf_index, PrimitiveEventStructure(self.__event_type, self.__event_name))]
 
     def get_event_type(self):
         """
