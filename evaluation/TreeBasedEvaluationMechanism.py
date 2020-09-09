@@ -468,7 +468,7 @@ class BinaryNode(InternalNode, ABC):
         partial_matches_to_compare = other_subtree.get_partial_matches(new_pm_key(new_partial_match))
         second_event_defs = other_subtree.get_event_definitions()
 
-        #we don't want to erase the partial matches of a root, once again we're assuming we have only one root.
+        #we don't want to erase the partial matches of a root
         if self._parents is not None:
             self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
@@ -1224,15 +1224,25 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             patterns = [patterns]
             tree_structures = [tree_structures]
 
-        self.__tree = Tree(tree_structures[0], patterns[0], storage_params) if len(patterns) == 1 else MultiPatternTree(tree_structures, patterns, storage_params, multi_pattern_eval_approach)
-        self.__patterns = patterns
-        self.__pattern = patterns[0]
-        self.__freeze_map = {}
-        self.__active_freezers = []
-        self.__event_types_listeners = {}
+        if len(patterns) > 1:
+            # check for a use in freeze when there is more than one pattern
+            freeze_patterns = [pattern for pattern in patterns if pattern.consumption_policy is not None and pattern.consumption_policy.freeze_names is not None]
+            if len(freeze_patterns) > 0:
+                raise Exception("This feature is not yet supported in multi-pattern mode")
 
-        if patterns[0].consumption_policy is not None and patterns[0].consumption_policy.freeze_names is not None:
-            self.__init_freeze_map()
+            self.__tree = MultiPatternTree(tree_structures, patterns, storage_params, multi_pattern_eval_approach)
+            self.__patterns = patterns
+
+        else:
+            self.__tree = Tree(tree_structures[0], patterns[0], storage_params)
+            self.__pattern = patterns[0]
+            self.__freeze_map = {}
+            self.__active_freezers = []
+
+            if patterns[0].consumption_policy is not None and patterns[0].consumption_policy.freeze_names is not None:
+                self.__init_freeze_map()
+
+        self.__event_types_listeners = {}
 
     def eval(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
         """
