@@ -1,23 +1,28 @@
 # OpenCEP
-A generic CEP library in python (requires python version 3.7+).
+OpenCEP is an open-source library and framework providing advanced complex event processing (CEP) capabilities.
 
-Complex event processing, or CEP, is event processing that combines data from multiple sources to infer events or patterns that suggest more complicated circumstances.
+CEP is a prominent technology for robust and high-performance real-time detection of arbitrarily complex patterns in massive data streams. It is widely employed in many areas where extremely large amounts of streaming data are continuously generated and need to be promptly and efficiently analyzed on-the-fly. Online finance, network security monitoring, credit card fraud detection, sensor networks, traffic monitoring, healthcare industry, and IoT applications are among the many examples.
 
-CEP executes a set of algorithms which, as said, can infer events, patterns and sequences. The input of these algorithms are event streams and patterns, and the result of these calculations are pattern matches, or matches.
+CEP systems treat data items as primitive events arriving from event sources. As new primitive events are observed, they are assembled into higher-level complex events matching the specified patterns. The process of complex event detection generally consists of collecting primitive events and combining them into potential (partial) matches using some type of detection model. As more events are added to a partial match, a full pattern match is eventually formed and reported.
 
-The algorithms are accessible for use with the API of this library.
+The patterns detected by CEP engines are often of exceedingly high complexity and nesting level, and may include multiple complex operators and conditions on the data items. Moreover, these systems are typically required to operate under tight constraints on response time and detection precision, and to process multiple patterns and streams in parallel. Therefore, advanced algorithmic solutions and sophisticated optimizations must be utilized by CEP implementations to achieve an acceptable level of service quality.
 
-This short documentation will be updated regularly.
+![OpenCEP structure overview](CEP.png)
+
+The figure above presents an overview of OpenCEP structure. Incoming data streams are analyzed on-the-fly and useful statistics and data characteristics are extracted to facilitate the optimizer in applying the aforementioned optimization techniques and maximize the performance of the evaluation mechanism – a component in charge of the actual pattern matching.
+
+By incorporating a multitude of state-of-the-art methods and algorithms for scalable event processing, OpenCEP can adequately satisfy the requirements of modern event-driven domains and outperform existing alternatives, both in terms of the actual performance and the provided functionality.
+
+OpenCEP features a generic and intuitive API, making it easily applicable to any domain where event-based streaming data is present. 
 
 # How to Use
-* The "main" class of this library is the CEP class (CEP.py).
-* Users are expected to create a CEP object and then invoke it on an event stream to obtain the pattern matches.
-* The CEP object is initialized with a list of patterns to be detected and a set of configurable parameters. As of this writing, the only such parameter is the algorithm for constructing the evaluation tree.
+* Users can apply complex patterns on event streams by creating and invoking a CEP object (CEP.py).
+* The CEP object is initialized with a list of patterns to be detected and a set of configurable parameters.
 * To create an event stream, you can manually create an empty stream and add events to it, and you can also provide a csv file to the fileInput function.
 * To handle the CEP output, you can manually read the events from the CEP object or from the matches container, or use the fileOutput function to print the matches into a file.
 * To create a pattern, the following components must be specified:
     * The pattern structure - e.g., SEQ(A, B, C) or AND(X, Y).
-    * The formula that must be satisfied by the atomic items in the pattern structure.
+    * The condition that must be satisfied by the atomic items in the pattern structure.
     * The time window within which the atomic items in the pattern structure should appear in the stream.
 
 
