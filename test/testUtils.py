@@ -150,7 +150,7 @@ def runTest(testName, patterns, createTestFile = False,
     print("Test %s result: %s, Time Passed: %s" % (testName,
           "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
     runTest.over_all_time += running_time
-    #os.remove(absolutePath + "\\" + actual_matches_path)
+    os.remove(absolutePath + "\\" + actual_matches_path)
 
 def runBenchMark(testName, patterns, eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
                  eval_mechanism_params=None, events=None):

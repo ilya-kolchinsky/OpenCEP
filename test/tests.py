@@ -1,16 +1,16 @@
-from test.testUtils import *
 from test.KC_tests import *
 
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
     IterativeImprovementEvaluationMechanismParameters, TreeBasedEvaluationMechanismParameters
 from misc.ConsumptionPolicy import *
-from evaluation.LeftDeepTreeBuilders import *
-from evaluation.BushyTreeBuilders import *
+from plan.LeftDeepTreeBuilders import *
+from plan.BushyTreeBuilders import *
 from datetime import timedelta
-from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, MinusTerm, AtomicTerm, AndFormula, TrueFormula
+from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, \
+    AtomicTerm, AndFormula, TrueFormula
 from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
 from base.Pattern import Pattern
-from evaluation.PartialMatchStorage import TreeStorageParameters
+from tree.PartialMatchStorage import TreeStorageParameters
 try:
     from UnitTests.test_storage import run_storage_tests
 except ImportError:

@@ -4,13 +4,13 @@ This file contains the implementations of algorithms constructing a generic (bus
 from typing import List
 
 from evaluation.EvaluationMechanismBuilder import EvaluationMechanismBuilder
-from evaluation.PartialMatchStorage import TreeStorageParameters
-from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
+from tree.PartialMatchStorage import TreeStorageParameters
+from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from base.Pattern import Pattern
 from misc.Utils import get_all_disjoint_sets
 from misc.Statistics import calculate_bushy_tree_cost_function, MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
-from evaluation.LeftDeepTreeBuilders import GreedyLeftDeepTreeBuilder
+from plan.LeftDeepTreeBuilders import GreedyLeftDeepTreeBuilder
 from itertools import combinations
 
 

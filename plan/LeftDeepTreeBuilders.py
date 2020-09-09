@@ -6,14 +6,14 @@ import random
 from typing import List
 
 from base.PatternStructure import CompositeStructure
-from evaluation.IterativeImprovement import IterativeImprovementType, IterativeImprovementAlgorithmBuilder
-from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
+from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementAlgorithmBuilder
+from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from evaluation.EvaluationMechanismBuilder import EvaluationMechanismBuilder
 from base.Pattern import Pattern
 from misc.Statistics import calculate_left_deep_tree_cost_function, MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
-from evaluation.PartialMatchStorage import TreeStorageParameters
+from tree.PartialMatchStorage import TreeStorageParameters
 
 
 class LeftDeepTreeBuilder(EvaluationMechanismBuilder):

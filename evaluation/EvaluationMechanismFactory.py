@@ -2,12 +2,12 @@ from typing import List
 from enum import Enum
 
 from base.Pattern import Pattern
-from evaluation.BushyTreeBuilders import DynamicProgrammingBushyTreeBuilder, ZStreamTreeBuilder, ZStreamOrdTreeBuilder
-from evaluation.IterativeImprovement import IterativeImprovementType
-from evaluation.LeftDeepTreeBuilders import IterativeImprovementInitType, TrivialLeftDeepTreeBuilder, \
+from plan.BushyTreeBuilders import DynamicProgrammingBushyTreeBuilder, ZStreamTreeBuilder, ZStreamOrdTreeBuilder
+from plan.IterativeImprovement import IterativeImprovementType
+from plan.LeftDeepTreeBuilders import IterativeImprovementInitType, TrivialLeftDeepTreeBuilder, \
     AscendingFrequencyTreeBuilder, GreedyLeftDeepTreeBuilder, IterativeImprovementLeftDeepTreeBuilder, \
     DynamicProgrammingLeftDeepTreeBuilder
-from evaluation.PartialMatchStorage import TreeStorageParameters
+from tree.PartialMatchStorage import TreeStorageParameters
 
 
 class EvaluationMechanismTypes(Enum):

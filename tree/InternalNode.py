@@ -1,0 +1,63 @@
+from abc import ABC
+from datetime import timedelta
+from typing import List, Tuple
+
+from base.Event import Event
+from base.Formula import Formula, TrueFormula, RelopTypes, EquationSides
+from base.PatternStructure import QItem
+from tree.Node import Node
+from tree.PartialMatchStorage import TreeStorageParameters, UnsortedPartialMatchStorage, SortedPartialMatchStorage
+
+
+class InternalNode(Node, ABC):
+    """
+    This class represents a non-leaf node of an evaluation tree.
+    """
+    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[Tuple[int, QItem]] = None):
+        super().__init__(sliding_window, parent)
+        self._event_defs = event_defs
+
+    def get_event_definitions(self):
+        return self._event_defs
+
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        """
+        Validates the condition stored in this node on the given set of events.
+        """
+        if not super()._validate_new_match(events_for_new_match):
+            return False
+        binding = {
+            self._event_defs[i][1].name: events_for_new_match[i].payload for i in range(len(self._event_defs))
+        }
+        return self._condition.eval(binding)
+
+    def apply_formula(self, formula: Formula):
+        names = {item[1].name for item in self._event_defs}
+        condition = formula.get_formula_of(names)
+        self._condition = condition if condition else TrueFormula()
+        self._propagate_condition(formula)
+
+    def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
+                           rel_op: RelopTypes = None, equation_side: EquationSides = None,
+                           sort_by_first_timestamp: bool = False):
+        """
+        An auxiliary method for setting up the storage of an internal node.
+        In the internal nodes, we only sort the storage if a storage key is explicitly provided by the user.
+        """
+        if not storage_params.sort_storage or sorting_key is None:
+            self._partial_matches = UnsortedPartialMatchStorage(storage_params.clean_up_interval)
+        else:
+            self._partial_matches = SortedPartialMatchStorage(sorting_key, rel_op, equation_side,
+                                                              storage_params.clean_up_interval, sort_by_first_timestamp)
+
+    def _propagate_condition(self, condition: Formula):
+        """
+        Propagates the given condition to the child tree(s).
+        """
+        raise NotImplementedError()
+
+    def handle_new_partial_match(self, partial_match_source: Node):
+        """
+        A handler for a notification regarding a new partial match generated at one of this node's children.
+        """
+        raise NotImplementedError()
