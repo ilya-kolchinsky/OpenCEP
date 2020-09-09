@@ -63,7 +63,7 @@ class Node(ABC):
         """
         Returns the last partial match buffered at this node and not yet transferred to its parent.
         """
-        return self._unhandled_partial_matches.get()
+        return self._unhandled_partial_matches.get(block=False)
 
     def set_parent(self, parent):
         """
