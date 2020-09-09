@@ -14,19 +14,18 @@ sys.path.append(absolutePath)
 
 INCLUDE_BENCHMARKS = False
 
-nasdaqEventStreamTiny = file_input(absolutePath, "test/EventFiles/NASDAQ_TINY.txt", MetastockDataFormatter())
-nasdaqEventStreamShort = file_input(absolutePath, "test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
-nasdaqEventStreamMedium = file_input(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt", MetastockDataFormatter())
-nasdaqEventStreamFrequencyTailored = file_input(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt", MetastockDataFormatter())
-nasdaqEventStream_AAPL_AMZN_GOOG = file_input(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt", MetastockDataFormatter())
-nasdaqEventStream = file_input(absolutePath, "test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
+nasdaqEventStreamTiny = file_input(absolutePath, os.path.join("test", "EventFiles", "NASDAQ_TINY.txt"), MetastockDataFormatter())
+nasdaqEventStreamShort = file_input(absolutePath, os.path.join("test", "EventFiles", "NASDAQ_SHORT.txt"), MetastockDataFormatter())
+nasdaqEventStreamMedium = file_input(absolutePath, os.path.join("test", "EventFiles", "NASDAQ_MEDIUM.txt"), MetastockDataFormatter())
+nasdaqEventStreamFrequencyTailored = file_input(absolutePath, os.path.join("test", "EventFiles", "NASDAQ_FREQUENCY_TAILORED.txt"), MetastockDataFormatter())
+nasdaqEventStream_AAPL_AMZN_GOOG = file_input(absolutePath, os.path.join("test", "EventFiles", "NASDAQ_AAPL_AMZN_GOOG.txt"), MetastockDataFormatter())
+nasdaqEventStream = file_input(absolutePath, os.path.join("test", "EventFiles", "NASDAQ_LONG.txt"), MetastockDataFormatter())
 
-nasdaqEventStreamHalfShort = file_input(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt", MetastockDataFormatter())
-custom = file_input(absolutePath, "test/EventFiles/custom.txt", MetastockDataFormatter())
-custom2 = file_input(absolutePath, "test/EventFiles/custom2.txt", MetastockDataFormatter())
-custom3 = file_input(absolutePath, "test/EventFiles/custom3.txt", MetastockDataFormatter())
-
-nasdaqEventStreamKC = file_input(absolutePath, "test/EventFiles/NASDAQ_KC.txt", MetastockDataFormatter())
+nasdaqEventStreamHalfShort = file_input(absolutePath, os.path.join("test", "EventFiles", "NASDAQ_HALF_SHORT.txt"), MetastockDataFormatter())
+custom = file_input(absolutePath, os.path.join("test", "EventFiles", "custom.txt"), MetastockDataFormatter())
+custom2 = file_input(absolutePath, os.path.join("test", "EventFiles", "custom2.txt"), MetastockDataFormatter())
+custom3 = file_input(absolutePath, os.path.join("test", "EventFiles", "custom3.txt"), MetastockDataFormatter())
+nasdaqEventStreamKC = file_input(absolutePath, os.path.join("test", "EventFiles", "NASDAQ_KC.txt"), MetastockDataFormatter())
 
 def numOfLinesInPattern(file):
     """
@@ -112,7 +111,7 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
         events = events.duplicate()
     pattern = patterns[0]
     matches = generate_matches(pattern, events)
-    file_output(absolutePath, matches, '../TestsExpected/%sMatches.txt' % testName)
+    file_output(absolutePath, matches, os.path.join('..', 'TestsExpected/%sMatches.txt' % testName))
     print("Finished creating test %s" % testName)
 
 
@@ -145,8 +144,8 @@ def runTest(testName, patterns, createTestFile = False,
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
     file_output(absolutePath, matches, '%sMatches.txt' % testName)
-    expected_matches_path = "test/TestsExpected/%sMatches.txt" % testName
-    actual_matches_path = "test/Matches/%sMatches.txt" % testName
+    expected_matches_path = os.path.join("TestsExpected", "%sMatches.txt" % testName)
+    actual_matches_path = os.path.join("Matches", "%sMatches.txt" % testName)
     print("Test %s result: %s, Time Passed: %s" % (testName,
           "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
     runTest.over_all_time += running_time

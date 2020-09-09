@@ -1,6 +1,7 @@
 from abc import ABC  # Abstract Base Class
 import copy
 from enum import Enum
+from typing import List
 
 
 class RelopTypes(Enum):
@@ -62,7 +63,7 @@ class IdentifierTerm(Term):
             raise NameError("Name %s is not bound to a value" % self.name)
         return self.getattr_func(binding[self.name])
 
-    def get_term_of(self, names: set):
+    def get_term_of(self, names: set) :
         if self.name in names:
             return self
         return None
@@ -153,13 +154,16 @@ class Formula(ABC):
     If there are variables (identifiers) in the formula, a name-value binding shall be inputted.
     """
     def eval(self, binding: dict = None):
-        pass
+        raise NotImplementedError()
 
     def get_formula_of(self, names: set):
-        pass
+        raise NotImplementedError()
+
+    def extract_atomic_formulas(self):
+        raise NotImplementedError()
 
 
-class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
+class AtomicFormula(Formula, ABC):  # RELOP: < <= > >= == !=
     """
     An atomic formula containing no logic operators (e.g., A < B).
     """
@@ -176,6 +180,18 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
 
     def extract_atomic_formulas(self):
         return [self]
+
+
+class CustomFormula(AtomicFormula):
+    def __init__(self, left_term: Term, right_term: Term, relation_op: callable):
+        super().__init__(left_term, right_term, relation_op)
+
+    def get_formula_of(self, names: set):
+        right_term = self.right_term.get_term_of(names)
+        left_term = self.left_term.get_term_of(names)
+        if left_term and right_term:
+            return self
+        return None
 
 
 class EqFormula(AtomicFormula):
@@ -286,7 +302,7 @@ class SmallerThanEqFormula(AtomicFormula):
         return RelopTypes.SmallerEqual
 
 
-class BinaryLogicOpFormula(Formula):  # AND: A < B AND C < D
+class BinaryLogicOpFormula(Formula, ABC):  # AND: A < B AND C < D
     """
     A formula composed of a logic operator and two nested formulas.
     """
@@ -344,3 +360,71 @@ class TrueFormula(Formula):
 
     def extract_atomic_formulas(self):
         return []
+
+    def get_formula_of(self, names):
+        return self
+
+
+class CompositeFormula(Formula, ABC):
+    """
+    This class represents BinaryLogicOp formulas that support a list of formulas within them.
+    This is used to support different syntax for the formula creating, instead of using a full tree of formulas
+    it will enable passing a list of formulas (Atomic or Non-Atomic) and apply the encapsulating operator on all of them
+    And stops at the first FALSE from the evaluation and returns False.
+    Or stops at the first TRUE from the evaluation and return true
+    """
+    def __init__(self, formula_list: List[Formula], terminating_condition):
+        self.__formulas = formula_list
+        self.__terminating_result = terminating_condition
+
+    def eval(self, binding: dict = None):
+        for formula in self.__formulas:
+            if formula.eval(binding) == self.__terminating_result:
+                return self.__terminating_result
+        return not self.__terminating_result
+
+    def get_formula_of(self, names: set):
+        result_formulas = []
+        for f in self.__formulas:
+            current_formula = f.get_formula_of(names)
+            if current_formula:
+                result_formulas |= current_formula
+        return result_formulas
+
+    def extract_atomic_formulas(self):
+        result = []
+        for f in self.__formulas:
+            result |= f.extract_atomic_formulas()
+        return result
+
+
+class CompositeAnd(CompositeFormula):
+    """
+    This class uses CompositeFormula with the terminating condition False, which complies with AND operator logic.
+    """
+    def __init__(self, formula_list: List[Formula]):
+        super().__init__(formula_list, False)
+
+    def get_formula_of(self, names: set):
+        result_formulas = super().get_formula_of(names)
+        # at-least 1 formula was retrieved using get_formula_of for the list of formulas
+        if result_formulas:
+            return CompositeAnd(result_formulas)
+        else:
+            return None
+
+
+class CompositeOr(CompositeFormula):
+    """
+        This class uses CompositeFormula with the terminating condition True, which complies with OR operator logic.
+        """
+    def __init__(self, formula_list: List[Formula]):
+        super().__init__(formula_list, True)
+
+    def get_formula_of(self, names: set):
+        result_formulas = super().get_formula_of(names)
+        # at-least 1 formula was retrieved using get_formula_of for the list of formulas
+        if result_formulas:
+            return CompositeOr(result_formulas)
+        else:
+            return None

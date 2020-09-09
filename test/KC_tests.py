@@ -136,8 +136,7 @@ def structuralTest7():
                         d, KC(And([
                                 e, KC(f), g
                               ]),
-                        And([ KC(h), KC(Seq([ i, j
-                                        ])
+                        And([ KC(h), KC(Seq([ i, j])
                         ])
                    ]),
         k, l
