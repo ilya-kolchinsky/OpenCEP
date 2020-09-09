@@ -78,13 +78,14 @@ class CEP:
         """
         Returns the output stream containing the detected matches.
         """
-        return self.__pattern_matches
+        #return self.__pattern_matches
+        return self.__eval_mechanism_manager.results
 
     def get_evaluation_mechanism_structure_summary(self):
         """
         Returns an object summarizing the structure of the underlying evaluation mechanism.
         """
-        return self.__eval_mechanism.get_structure_summary()
+        return self.__eval_mechanism_manager.get_structure_summary()
 
     # For future support of dynamic workload modification
     def add_pattern(self, pattern: Pattern, priority: int = 0):

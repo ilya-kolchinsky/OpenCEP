@@ -73,8 +73,12 @@ def file_output(base_path: str, matches: list, output_file_name: str = 'matches.
     base_matches_directory = os.path.join(os.path.join(base_path), 'test', 'Matches')
     if not os.path.exists(base_matches_directory):
         os.makedirs(base_matches_directory, exist_ok=True)
+
     with open(os.path.join(base_matches_directory, output_file_name), 'w') as f:
         for match in matches:
             for event in match.events:
                 f.write("%s\n" % event.payload)
+                pass
             f.write("\n")
+        print("got here")
+    print("got theeeeeere")

@@ -25,7 +25,7 @@ class EvaluationMechanismManager:
         #self.pattern_matches = None
         self.pattern_matches_list = None
         self.execution_map = None
-        self.results = None
+        self.results = Stream()
 
         if len(patterns) == 1:          # single pattern
             self.source_eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism\
@@ -34,7 +34,8 @@ class EvaluationMechanismManager:
             raise NotImplementedError()
 
     def initialize_single_tree_single_data(self):
-        self.eval_mechanism_list = [self.source_eval_mechanism]
+        self.eval_mechanism_list = self.work_load_fr.split_structure(self.source_eval_mechanism)
+        #self.eval_mechanism_list = [self.source_eval_mechanism]
         self.event_stream_splitted = [self.source_event_stream]
         self.pattern_matches_list = [Stream()]
 
@@ -58,14 +59,22 @@ class EvaluationMechanismManager:
         self.pattern_matches_list = [[Stream()] * cols] * rows
 
     def get_data_from_all_masters(self):
-        raise NotImplementedError()
+        if not self.work_load_fr.get_is_data_splitted() and not self.work_load_fr.get_is_tree_splitted():
+            for match in self.pattern_matches_list[0]:
+                self.results.add_item(match)
+            self.results.close()
+            return
+        for evalmechanism in self.masters_list:
+            for match in evalmechanism.get_final_results():
+                self.results.add_item(match)
+        self.results.close()
 
     def eval(self, event_stream: Stream, pattern_matches, is_async: bool = False, file_path=None, time_limit=None):
         if event_stream is None:
             raise Exception("Missing event_stream")
 
         self.source_event_stream = event_stream.duplicate()
-        self.results = pattern_matches
+        #self.results = pattern_matches
 
         if not self.work_load_fr.get_is_data_splitted() and not self.work_load_fr.get_is_tree_splitted():
             self.initialize_single_tree_single_data()
@@ -78,13 +87,13 @@ class EvaluationMechanismManager:
 
         self.masters_list = self.work_load_fr.get_masters()
         self.eval_util(is_async, file_path, time_limit)
-        self.results = self.get_data_from_all_masters()
+        self.get_data_from_all_masters()
 
     def eval_util(self, is_async, file_path, time_limit):
         if not self.work_load_fr.get_is_tree_splitted() and len(self.event_stream_splitted) == 1:
             self.eval_by_single_tree_single_data(is_async, file_path, time_limit, self.source_eval_mechanism,
                                                  self.source_event_stream, self.pattern_matches_list[0])
-            self.masters_list[0].wait_till_finish()
+            #self.masters_list[0].wait_till_finish() => if we are in this case then there is only one thread so no need to wait?
         elif not self.work_load_fr.get_is_tree_splitted() and len(self.event_stream_splitted) > 1:
             self.eval_by_single_tree_multiple_data(is_async, file_path, time_limit)
         elif self.work_load_fr.get_is_tree_splitted() and len(self.event_stream_splitted) == 1:
@@ -135,6 +144,9 @@ class EvaluationMechanismManager:
             return self.pattern_matches_list
         else:
             return self.pattern_matches
+
+    def get_structure_summary(self):
+        return self.source_eval_mechanism.get_structure_summary()
 
 
 

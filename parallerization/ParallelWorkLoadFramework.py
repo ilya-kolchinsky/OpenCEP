@@ -1,5 +1,6 @@
 from abc import ABC
 from misc.IOUtils import Stream
+from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
 
 
 class ParallelWorkLoadFramework(ABC):
@@ -40,7 +41,7 @@ class ParallelWorkLoadFramework(ABC):
 
     def get_masters(self):
         if not self.get_is_tree_splitted():
-            return [self.get_source_eval_mechanism()]
+            return [self.split_structure(self.get_source_eval_mechanism())]
         else:
             raise NotImplementedError()
 
@@ -50,7 +51,7 @@ class ParallelWorkLoadFramework(ABC):
     # the output needs to be a list of evalution mechanizms that implements ParallelExecutionFramework
     def split_structure(self, evaluation_mechanism):
         self.set_source_eval_mechanism(evaluation_mechanism)
-        return evaluation_mechanism
+        return [ParallelExecutionFramework(evaluation_mechanism)]
         #raise NotImplementedError()
 
 

@@ -37,7 +37,7 @@ class ParallelUnaryNode(UnaryNode):
 class UnaryParallelTreeEval(ParallelExecutionFramework):
 
     def __init__(self, tree_based_eval: TreeBasedEvaluationMechanism, has_leafs: bool):
-        self._tree_based = tree_based_eval
+        super().__init__(tree_based_eval)
         self._has_leafs = has_leafs
 
     def stop(self):
