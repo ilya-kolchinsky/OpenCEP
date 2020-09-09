@@ -388,13 +388,13 @@ class CompositeFormula(Formula, ABC):
         for f in self.__formulas:
             current_formula = f.get_formula_of(names)
             if current_formula:
-                result_formulas |= current_formula
+                result_formulas.extend([current_formula])
         return result_formulas
 
     def extract_atomic_formulas(self):
         result = []
         for f in self.__formulas:
-            result |= f.extract_atomic_formulas()
+            result.extend(f.extract_atomic_formulas())
         return result
 
 
