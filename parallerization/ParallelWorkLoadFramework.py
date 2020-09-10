@@ -29,7 +29,7 @@ class ParallelWorkLoadFramework(ABC):
         self._source_eval_mechanism = evalmechanism
 
     def get_source_eval_mechanism(self):
-        return self._source_eval_mechanism
+        return self._source_eval_mechanism#TODO for data split, need to return a list of all eval
 
     # example:
     # map ={1,2}

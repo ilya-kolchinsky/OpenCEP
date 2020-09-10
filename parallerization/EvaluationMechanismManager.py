@@ -23,7 +23,7 @@ class EvaluationMechanismManager:
         self.event_stream_splitted = None
         self.source_event_stream = None
         #self.pattern_matches = None
-        self.pattern_matches_list = None
+        self.pattern_matches_list = None #list of stream
         self.execution_map = None
         self.results = Stream()
 
@@ -49,7 +49,7 @@ class EvaluationMechanismManager:
         self.event_stream_splitted = self.work_load_fr.split_data(self.source_event_stream)
         self.eval_mechanism_list = [self.source_eval_mechanism]*len(self.event_stream_splitted)
         rows, cols = (1, len(self.event_stream_splitted))
-        self.pattern_matches_list = [[Stream()] * cols] * rows
+        self.pattern_matches_list = [Stream()] * cols
 
     def initialize_multiple_tree_multiple_data(self):
         self.event_stream_splitted = self.work_load_fr.split_data(self.source_event_stream)

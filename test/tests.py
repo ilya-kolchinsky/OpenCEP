@@ -1,5 +1,6 @@
 from test.testUtils import *
 from test.KC_tests import *
+from test.Paralleltests import *
 
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
     IterativeImprovementEvaluationMechanismParameters, TreeBasedEvaluationMechanismParameters
@@ -861,6 +862,9 @@ def sortedStorageBenchMarkTest(createTestFile=False):
 
 
 runTest.over_all_time = 0
+
+onlyDataSplit_oneArgumentsearchTest()
+
 
 # basic functionality tests
 oneArgumentsearchTest()

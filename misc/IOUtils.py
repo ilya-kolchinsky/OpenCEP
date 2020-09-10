@@ -80,5 +80,3 @@ def file_output(base_path: str, matches: list, output_file_name: str = 'matches.
                 f.write("%s\n" % event.payload)
                 pass
             f.write("\n")
-        print("got here")
-    print("got theeeeeere")
