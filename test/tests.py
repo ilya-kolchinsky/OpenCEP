@@ -1,7 +1,7 @@
 from test.KC_tests import *
 
-from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
-    IterativeImprovementEvaluationMechanismParameters, TreeBasedEvaluationMechanismParameters
+from evaluation.EvaluationMechanismFactory import IterativeImprovementEvaluationMechanismParameters, TreeBasedEvaluationMechanismParameters
+from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc.ConsumptionPolicy import *
 from plan.LeftDeepTreeBuilders import *
 from plan.BushyTreeBuilders import *

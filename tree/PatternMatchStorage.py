@@ -1,11 +1,9 @@
 from base.PatternMatch import PatternMatch
+from misc import DefaultConfig
 from misc.Utils import get_first_index, get_last_index
 from datetime import datetime
 from misc.Utils import find_partial_match_by_timestamp
 from base.Formula import RelopTypes, EquationSides
-
-# the default number of pattern match additions between subsequent storage cleanups
-DEFAULT_CLEANUP_INTERVAL = 10
 
 
 class PatternMatchStorage:
@@ -277,16 +275,17 @@ class TreeStorageParameters:
     """
     Parameters for the evaluation tree to specify how to store the data.
     """
-    def __init__(self, sort_storage: bool = False, attributes_priorities: dict = None,
-                 clean_up_interval: int = DEFAULT_CLEANUP_INTERVAL, prioritize_sorting_by_timestamp: bool = True):
+    def __init__(self, sort_storage: bool = DefaultConfig.SHOULD_SORT_STORAGE, attributes_priorities: dict = None,
+                 clean_up_interval: int = DefaultConfig.CLEANUP_INTERVAL,
+                 prioritize_sorting_by_timestamp: bool = DefaultConfig.PRIORITIZE_SORTING_BY_TIMESTAMP):
         if sort_storage is None:
-            sort_storage = False
+            sort_storage = DefaultConfig.SHOULD_SORT_STORAGE
         if attributes_priorities is None:
             attributes_priorities = {}
         if clean_up_interval <= 0:
             raise Exception('cleanup interval should be positive.')
         if prioritize_sorting_by_timestamp is None:
-            prioritize_sorting_by_timestamp = True
+            prioritize_sorting_by_timestamp = DefaultConfig.PRIORITIZE_SORTING_BY_TIMESTAMP
 
         # True if the user is willing to use non-default sorted storage and False otherwise
         self.sort_storage = sort_storage

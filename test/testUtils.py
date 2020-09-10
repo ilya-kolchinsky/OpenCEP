@@ -3,7 +3,7 @@ import pathlib
 import sys
 
 from CEP import CEP
-from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes
+from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc.IOUtils import file_input, file_output
 from misc.Utils import generate_matches
 from plugin.stocks.Stocks import MetastockDataFormatter

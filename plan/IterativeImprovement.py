@@ -16,6 +16,14 @@ class IterativeImprovementType(Enum):
     CIRCLE_BASED = 1
 
 
+class IterativeImprovementInitType(Enum):
+    """
+    The way of initializing the initial state for plan generation.
+    """
+    RANDOM = 0
+    GREEDY = 1
+
+
 class IterativeImprovement:
     """
     Implements the generic iterative improvement algorithm.

@@ -1,5 +1,5 @@
 from CEP import CEP
-from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes
+from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from plugin.twitter.TwitterDataFormatter import TWEET_TYPE
 from plugin.twitter.TwitterInputStream import TweetsStreamSessionInput
 from datetime import timedelta

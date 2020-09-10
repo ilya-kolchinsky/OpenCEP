@@ -2,13 +2,14 @@
 This file contains the primary engine. It processes streams of events and detects pattern matches
 by invoking the rest of the system components.
 """
+from misc import DefaultConfig
 from misc.IOUtils import Stream
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import (
     EvaluationMechanismParameters,
-    EvaluationMechanismTypes,
     EvaluationMechanismFactory,
 )
+from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from typing import List
 from datetime import datetime
 
@@ -29,7 +30,7 @@ class CEP:
     The evaluation mechanism is created according to the parameters specified in the constructor.
     """
     def __init__(self, patterns: List[Pattern],
-                 eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+                 eval_mechanism_type: EvaluationMechanismTypes = DefaultConfig.DEFAULT_EVALUATION_MECHANISM_TYPE,
                  eval_mechanism_params: EvaluationMechanismParameters = None,
                  performance_specs: PerformanceSpecifications = None):
         """

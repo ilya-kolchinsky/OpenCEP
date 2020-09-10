@@ -1,12 +1,13 @@
 """
 This file contains the implementations of algorithms constructing a left-deep tree-based evaluation mechanism.
 """
-from enum import Enum
 import random
 from typing import List
 
 from base.PatternStructure import CompositeStructure
-from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementAlgorithmBuilder
+from misc import DefaultConfig
+from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType, \
+    IterativeImprovementAlgorithmBuilder
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from evaluation.EvaluationMechanismBuilder import EvaluationMechanismBuilder
 from base.Pattern import Pattern
@@ -124,18 +125,13 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
         return new_order
 
 
-class IterativeImprovementInitType(Enum):
-    RANDOM = 0
-    GREEDY = 1
-
-
 class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree using the iterative improvement procedure.
     """
     def __init__(self, step_limit: int,
-                 ii_type: IterativeImprovementType = IterativeImprovementType.SWAP_BASED,
-                 init_type: IterativeImprovementInitType = IterativeImprovementInitType.RANDOM):
+                 ii_type: IterativeImprovementType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE,
+                 init_type: IterativeImprovementInitType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE):
         self.__iterative_improvement = IterativeImprovementAlgorithmBuilder.create_ii_algorithm(ii_type)
         self.__initType = init_type
         self.__step_limit = step_limit

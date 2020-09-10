@@ -119,7 +119,8 @@ class Pattern:
         for contiguous_sequence in self.consumption_policy.contiguous_names:
             for i in range(len(contiguous_sequence) - 1):
                 for j in range(len(args) - 1):
-                    if isinstance(args[i], PrimitiveEventStructure) or isinstance(args[i + 1], PrimitiveEventStructure):
+                    if not isinstance(args[i], PrimitiveEventStructure) or \
+                            not isinstance(args[i + 1], PrimitiveEventStructure):
                         continue
                     if contiguous_sequence[i] != args[j].name:
                         continue
