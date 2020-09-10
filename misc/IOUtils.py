@@ -76,5 +76,5 @@ def file_output(base_path: str, matches: list, output_file_name: str = 'matches.
     with open(os.path.join(base_matches_directory, output_file_name), 'w') as f:
         for match in matches:
             for event in match.events:
-                f.write("%s\n" % event.payload)
+                f.write("%s\n" % event)
             f.write("\n")

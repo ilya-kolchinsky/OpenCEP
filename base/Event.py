@@ -13,6 +13,7 @@ class Event:
 
     # this is a temporal hack to support strict contiguity
     INDEX_ATTRIBUTE_NAME = "InternalIndexAttributeName"
+    HIDDEN_ATTRIBUTE_NAMES = [INDEX_ATTRIBUTE_NAME]
 
     def __init__(self, raw_data: str, data_formatter: DataFormatter):
         self.payload = data_formatter.parse_event(raw_data)
@@ -22,4 +23,12 @@ class Event:
         Event.counter += 1
 
     def __repr__(self):
-        return str(self.payload)
+        result = ""
+        for key, value in self.payload.items():
+            if key in self.HIDDEN_ATTRIBUTE_NAMES:
+                continue
+            actual_value = "'%s'" % (value,) if isinstance(value, str) else value
+            curr_str = "'%s': %s" % (key, actual_value)
+            result = curr_str if result == "" else ", ".join([result, curr_str])
+        result = "{%s}" % (result,)
+        return result
