@@ -167,9 +167,6 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
         self.left_term = left_term
         self.right_term = right_term
         self.relation_op = relation_op
-        
-    def eval(self, binding: dict = None):
-        return self.relation_op(self.left_term.eval(binding), self.right_term.eval(binding))
 
     def __repr__(self):
         return "{} {} {}".format(self.left_term, self.relation_op, self.right_term)
@@ -177,6 +174,9 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
     def extract_atomic_formulas(self):
         return [self]
 
+    def __eq__(self, other):
+        return self.relation_op == other.relation_op and (self.left_term == other.left_term or
+                                                          self.right_term == other.right_term)
 
 class EqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -344,3 +344,9 @@ class TrueFormula(Formula):
 
     def extract_atomic_formulas(self):
         return []
+
+    def get_formula(self):
+        return "True Formula"
+
+    def __eq__(self, other):
+        return other.get_formula() == "True Formula"

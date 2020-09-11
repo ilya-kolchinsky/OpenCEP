@@ -895,6 +895,8 @@ def distinctPatternsMultiPattern(createTestFile = False):
 
 runTest.over_all_time = 0
 
+distinctPatternsMultiPattern()
+
 # negation tests
 simpleNotTest()
 multipleNotInTheMiddleTest()

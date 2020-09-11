@@ -231,6 +231,12 @@ class LeafNode(Node):
         self.__leaf_index = leaf_index
         self.__event_name = leaf_qitem.name
         self.__event_type = leaf_qitem.type
+        self.__parent_to_info_dict = {}
+
+    def create_parent_to_info_dict(self):
+        if self._parents is not None:
+            self.__parent_to_info_dict = {parent: (self.__leaf_index, QItem(self.__event_type, self.__event_name))
+                                          for parent in self._parents}
 
     def get_leaves(self):
         return [self]
@@ -242,6 +248,11 @@ class LeafNode(Node):
 
     def get_event_definitions(self):
         return [(self.__leaf_index, QItem(self.__event_type, self.__event_name))]
+
+    def get_event_definitions_by_parent(self, parent: Node):
+        if parent not in self.__parent_to_info_dict.keys():
+            raise Exception("parent is not in the dictionary.")
+        return [self.__parent_to_info_dict[parent]]
 
     def get_event_type(self):
         """
@@ -301,6 +312,22 @@ class LeafNode(Node):
     def get_structure_summary(self):
         return self.__event_name
 
+    def add_to_dict(self, key: Node, value: Tuple):
+        self.__parent_to_info_dict[key] = value
+
+    def get_condition(self):
+        return self._condition
+
+    def is_equal(self, other):
+        print(self.get_event_type())
+        print(other.get_event_type())
+        print(self.get_condition())
+        print(other.get_condition())
+        print(self.get_event_type() == other.get_event_type())
+        exit()
+        if self.get_event_type() == other.get_event_type() and self.get_condition() == other.get_condition():
+            return True
+        return False
 
 class InternalNode(Node, ABC):
     """
@@ -1020,8 +1047,13 @@ class Tree:
             self.__adjust_leaf_indices(pattern)
             self.__add_negative_tree_structure(pattern)
 
+        self.__adjust_leaf_dict()
         self.__root.apply_formula(pattern.condition)
         self.__root.create_storage_unit(storage_params)
+
+    def __adjust_leaf_dict(self):
+        for leaf in self.get_leaves():
+            leaf.create_parent_to_info_dict()
 
     def __adjust_leaf_indices(self, pattern: Pattern):
         """
@@ -1381,19 +1413,41 @@ class MultiPatternTree:
 
         trees = [Tree(tree_structures[i], patterns[i], storage_params) for i in range(len(patterns))]
         roots = []
-        leaves = {}
+        leaves_to_counter_dict = {}
+        leaves_dict = {}
+        flag = 0
+
         for tree in trees:
             curr_leaves = tree.get_leaves()
             roots += curr_leaves[0].get_roots()
             for leaf in curr_leaves:
-                if leaf not in leaves:
-                    leaves[leaf] = leaf
-                curr_parents = leaf.get_parents()
-                for parent in curr_parents:
-                    if isinstance(parent, UnaryNode):
-                        parent.set_subtree(leaves[leaf])
-                    elif isinstance(parent, BinaryNode):
-                        parent.replace_subtree(leaf, leaves[leaf])
+                for other_leaf in leaves_dict:
+                    if leaf.is_equal(other_leaf):
+                        flag = 1
+                        break
+                if flag == 0:
+                    leaves_to_counter_dict[leaf] = 1
+                    leaves_dict[leaf] = []
+                    leaves_dict[leaf].append(leaf)
+
+                elif leaves_to_counter_dict[leaf] == len(leaves_dict[leaf]):
+                    leaves_dict[leaf].append(leaf)
+                    leaves_to_counter_dict[leaf] += 1
+
+                else:
+                    our_leaf = leaves_dict[leaf][leaves_to_counter_dict[leaf]]
+                    curr_parents = leaf.get_parents()
+                    for parent in curr_parents:
+                        our_leaf.add_to_dict(parent, (leaf.get_leaf_index(), QItem(leaf.get_event_type(),
+                                                                                   leaf.get_event_name())))
+                        if isinstance(parent, UnaryNode):
+                            parent.set_subtree(our_leaf)
+                        elif isinstance(parent, BinaryNode):
+                            parent.replace_subtree(leaf, our_leaf)
+                    leaves_to_counter_dict[leaf] += 1
+            for key in leaves_to_counter_dict:
+                leaves_to_counter_dict[key] = 0
+
         return roots
 
     @staticmethod
