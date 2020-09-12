@@ -859,8 +859,9 @@ def sortedStorageBenchMarkTest(createTestFile=False):
     storage_params = TreeStorageParameters(sort_storage=True, attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
     runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params))
 
+#New tests for multipattern- first approach.
 #NASDAQ SHORT
-def distinctPatternsMultiPattern(createTestFile = False):
+def twoPatternsWithSameSubExpressionTest(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("LI", "d")), QItem("AMZN", "b"),
                      NegationOperator(QItem("FB", "e")), QItem("GOOG", "c")]),
@@ -890,12 +891,45 @@ def distinctPatternsMultiPattern(createTestFile = False):
     )
 
     patterns = [pattern1, pattern2]
-    runTest("distinctPatterns", patterns, createTestFile)
+    runTest("notDistinctPatterns", patterns, createTestFile)
 
+def firstPatternHasEvent3TimesTest(createTestFile = False):
+    pattern1 = Pattern(
+        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AAPL", "d")), QItem("AAPL", "b"),
+                     NegationOperator(QItem("FB", "e")), QItem("GOOG", "c")]),
+        AndFormula(
+            AndFormula(
+                GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("c", lambda x: x["Opening Price"]))),
+            AndFormula(
+                GreaterThanFormula(IdentifierTerm("e", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("a", lambda x: x["Opening Price"])),
+                SmallerThanFormula(IdentifierTerm("d", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("c", lambda x: x["Opening Price"])))
+        ),
+        timedelta(minutes=4)
+    )
+
+    pattern2 = Pattern(
+        SeqOperator([NegationOperator(QItem("TYP1", "x")), QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+
+    patterns = [pattern1, pattern2]
+    runTest("3TimesEvent", patterns, createTestFile)
 
 runTest.over_all_time = 0
 
-distinctPatternsMultiPattern()
+firstPatternHasEvent3TimesTest()
+twoPatternsWithSameSubExpressionTest()
+
 
 # negation tests
 simpleNotTest()

@@ -319,12 +319,6 @@ class LeafNode(Node):
         return self._condition
 
     def is_equal(self, other):
-        print(self.get_event_type())
-        print(other.get_event_type())
-        print(self.get_condition())
-        print(other.get_condition())
-        print(self.get_event_type() == other.get_event_type())
-        exit()
         if self.get_event_type() == other.get_event_type() and self.get_condition() == other.get_condition():
             return True
         return False
@@ -1430,12 +1424,12 @@ class MultiPatternTree:
                     leaves_dict[leaf] = []
                     leaves_dict[leaf].append(leaf)
 
-                elif leaves_to_counter_dict[leaf] == len(leaves_dict[leaf]):
-                    leaves_dict[leaf].append(leaf)
-                    leaves_to_counter_dict[leaf] += 1
+                elif leaves_to_counter_dict[other_leaf] == len(leaves_dict[other_leaf]):
+                    leaves_dict[other_leaf].append(leaf)
+                    leaves_to_counter_dict[other_leaf] += 1
 
                 else:
-                    our_leaf = leaves_dict[leaf][leaves_to_counter_dict[leaf]]
+                    our_leaf = leaves_dict[other_leaf][leaves_to_counter_dict[other_leaf]]
                     curr_parents = leaf.get_parents()
                     for parent in curr_parents:
                         our_leaf.add_to_dict(parent, (leaf.get_leaf_index(), QItem(leaf.get_event_type(),
@@ -1444,10 +1438,11 @@ class MultiPatternTree:
                             parent.set_subtree(our_leaf)
                         elif isinstance(parent, BinaryNode):
                             parent.replace_subtree(leaf, our_leaf)
-                    leaves_to_counter_dict[leaf] += 1
+                    leaves_to_counter_dict[other_leaf] += 1
+
+                flag = 0
             for key in leaves_to_counter_dict:
                 leaves_to_counter_dict[key] = 0
-
         return roots
 
     @staticmethod
