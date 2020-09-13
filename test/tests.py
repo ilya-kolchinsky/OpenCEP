@@ -732,6 +732,7 @@ def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
     )
     runTest("NotEverywhere", [pattern], createTestFile)
 
+
 def singleType1PolicyPatternSearchTest(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
@@ -745,6 +746,7 @@ def singleType1PolicyPatternSearchTest(createTestFile = False):
         ConsumptionPolicy(single="AMZN", secondary_selection_strategy=SelectionStrategies.MATCH_NEXT)
     )
     runTest("singleType1Policy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
 
 def singleType2PolicyPatternSearchTest(createTestFile = False):
     """
@@ -775,6 +777,7 @@ def contiguousPolicyPatternSearchTest(createTestFile = False):
     )
     runTest("contiguousPolicySingleList", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
+
 def contiguousPolicy2PatternSearchTest(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
@@ -788,6 +791,7 @@ def contiguousPolicy2PatternSearchTest(createTestFile = False):
         ConsumptionPolicy(contiguous=[["a", "b"], ["b", "c"]])
     )
     runTest("contiguousPolicyMultipleLists", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
 
 def freezePolicyPatternSearchTest(createTestFile = False):
     """
@@ -803,6 +807,7 @@ def freezePolicyPatternSearchTest(createTestFile = False):
     )
     runTest("freezePolicy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
+
 def freezePolicy2PatternSearchTest(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
@@ -816,6 +821,7 @@ def freezePolicy2PatternSearchTest(createTestFile = False):
         ConsumptionPolicy(freeze="b")
     )
     runTest("freezePolicy2", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
 
 def sortedStorageTest(createTestFile=False):
     pattern = Pattern(
@@ -835,6 +841,7 @@ def sortedStorageTest(createTestFile=False):
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
             eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params),
             events=nasdaqEventStream)
+
 
 def sortedStorageBenchMarkTest(createTestFile=False):
     pattern = Pattern(
@@ -881,17 +888,18 @@ def twoPatternsWithSameSubExpressionTest(createTestFile = False):
     )
 
     pattern2 = Pattern(
-        SeqOperator([NegationOperator(QItem("TYP1", "x")), QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
+        SeqOperator([NegationOperator(QItem("TYP1", "w")), QItem("AAPL", "x"), QItem("AMZN", "y"), QItem("GOOG", "z")]),
         AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                               IdentifierTerm("b", lambda x: x["Opening Price"])),
-            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
-                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+            GreaterThanFormula(IdentifierTerm("x", lambda x: x["Opening Price"]),
+                               IdentifierTerm("y", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("y", lambda x: x["Opening Price"]),
+                               IdentifierTerm("z", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
 
     patterns = [pattern1, pattern2]
     runTest("notDistinctPatterns", patterns, createTestFile)
+
 
 def firstPatternHasEvent3TimesTest(createTestFile = False):
     pattern1 = Pattern(
@@ -925,10 +933,40 @@ def firstPatternHasEvent3TimesTest(createTestFile = False):
     patterns = [pattern1, pattern2]
     runTest("3TimesEvent", patterns, createTestFile)
 
+
+def sameTypeDifferentConditionTest(createTestFile = False):
+    amazonInstablePattern = Pattern(
+        SeqOperator([QItem("AMZN", "x1"), QItem("AMZN", "x2"), QItem("AMZN", "x3")]),
+        AndFormula(
+            SmallerThanEqFormula(IdentifierTerm("x1", lambda x: x["Lowest Price"]), AtomicTerm(75)),
+            AndFormula(
+                GreaterThanEqFormula(IdentifierTerm("x2", lambda x: x["Peak Price"]), AtomicTerm(78)),
+                SmallerThanEqFormula(IdentifierTerm("x3", lambda x: x["Lowest Price"]),
+                                     IdentifierTerm("x1", lambda x: x["Lowest Price"]))
+            )
+        ),
+        timedelta(days=1)
+    )
+
+    pattern2 = Pattern(
+        SeqOperator([NegationOperator(QItem("AMZN", "b")), QItem("AAPL", "a")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            GreaterThanEqFormula(IdentifierTerm("b", lambda x: x["Lowest Price"]), AtomicTerm(78))
+        ),
+        timedelta(minutes=5)
+    )
+
+    patterns = [amazonInstablePattern, pattern2]
+    runTest("sameTypeDiffCond", patterns, createTestFile)
+
 runTest.over_all_time = 0
 
-firstPatternHasEvent3TimesTest()
-twoPatternsWithSameSubExpressionTest()
+
+#twoPatternsWithSameSubExpressionTest()
+#sameTypeDifferentConditionTest()
+#firstPatternHasEvent3TimesTest()
 
 
 # negation tests

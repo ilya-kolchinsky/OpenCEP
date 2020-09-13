@@ -50,6 +50,12 @@ class Node(ABC):
         self._single_event_types = set()
         # events that were added to a partial match and cannot be added again
         self._filtered_events = set()
+        self._parent_to_unhandled_queue_dict = {}
+        if self._parents is not None:
+            self._parent_to_unhandled_queue_dict = {parent: Queue() for parent in self._parents}
+
+    def add_to_parent_to_unhandled_queue_dict(self, key, value):
+        self._parent_to_unhandled_queue_dict[key] = value
 
     def consume_first_partial_match(self):
         """
@@ -72,6 +78,9 @@ class Node(ABC):
         """
         return self._unhandled_partial_matches.get()
 
+    def get_last_unhandled_partial_match_by_parent(self, parent):
+        return self._parent_to_unhandled_queue_dict[parent].get()
+
     def set_parent(self, parents):
         """
         Sets the parents of this node.
@@ -79,6 +88,9 @@ class Node(ABC):
         if not isinstance(parents, list) and parents is not None:
             parents = [parents]
         self._parents = parents
+
+    def add_parent(self, parent):
+        self._parents.append(parent)
 
     def get_parents(self):
         return self._parents
@@ -126,7 +138,10 @@ class Node(ABC):
         """
         self._partial_matches.add(pm)
         if self._parents:
-            self._unhandled_partial_matches.put(pm)
+            for parent in self._parents:
+                if parent in self._parent_to_unhandled_queue_dict:
+                    print("hi")
+                    self._parent_to_unhandled_queue_dict[parent].put(pm)
             for parent in self._parents:
                 parent.handle_new_partial_match(self)
 
@@ -323,6 +338,7 @@ class LeafNode(Node):
             return True
         return False
 
+
 class InternalNode(Node, ABC):
     """
     This class represents a non-leaf node of an evaluation tree.
@@ -401,6 +417,10 @@ class UnaryNode(InternalNode, ABC):
         self._child = child
         self._event_defs = child.get_event_definitions()
 
+    def replace_subtree(self, child: Node):
+        self.set_subtree(child)
+        child.add_parent(self)
+
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,
                             sort_by_first_timestamp: bool = False):
@@ -459,6 +479,7 @@ class BinaryNode(InternalNode, ABC):
         self._set_event_definitions(self._left_subtree.get_event_definitions(),
                                     self._right_subtree.get_event_definitions())
 
+
     def replace_subtree(self, old_node: Node, new_node: Node):
         #gets a node and replace it's subtree
         left = self.get_left_subtree()
@@ -467,9 +488,7 @@ class BinaryNode(InternalNode, ABC):
             self.set_subtrees(new_node, right)
         elif right == old_node:
             self.set_subtrees(left, new_node)
-        else:
-            #should not happen
-            raise Exception()
+        new_node.add_parent(self)
 
     def handle_new_partial_match(self, partial_match_source: Node):
         """
@@ -482,12 +501,18 @@ class BinaryNode(InternalNode, ABC):
         else:
             raise Exception()  # should never happen
 
-        new_partial_match = partial_match_source.get_last_unhandled_partial_match()
+        new_partial_match = partial_match_source.get_last_unhandled_partial_match_by_parent(self)
         new_pm_key = partial_match_source.get_storage_unit().get_key_function()
-        first_event_defs = partial_match_source.get_event_definitions()
+        if isinstance(partial_match_source, LeafNode):
+            first_event_defs = partial_match_source.get_event_definitions_by_parent(self)
+        else:
+            first_event_defs = partial_match_source.get_event_definitions()
         other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
         partial_matches_to_compare = other_subtree.get_partial_matches(new_pm_key(new_partial_match))
-        second_event_defs = other_subtree.get_event_definitions()
+        if isinstance(other_subtree, LeafNode):
+            second_event_defs = other_subtree.get_event_definitions_by_parent(self)
+        else:
+            second_event_defs = other_subtree.get_event_definitions()
 
         #we don't want to erase the partial matches of a root
         if self._parents is not None:
@@ -1258,6 +1283,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
             self.__tree = MultiPatternTree(tree_structures, patterns, storage_params, multi_pattern_eval_approach)
             self.__patterns = patterns
+            self.__freeze_map = {}
 
         else:
             self.__tree = Tree(tree_structures[0], patterns[0], storage_params)
@@ -1356,6 +1382,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         """
         Check whether the current event is a freezer event, and, if positive, register it.
         """
+        if len(self.__freeze_map) == 0:
+            return
         if leaf.get_event_name() in self.__freeze_map.keys():
             self.__active_freezers.append(event)
 
@@ -1407,16 +1435,15 @@ class MultiPatternTree:
 
         trees = [Tree(tree_structures[i], patterns[i], storage_params) for i in range(len(patterns))]
         roots = []
-        leaves_to_counter_dict = {}
-        leaves_dict = {}
+        leaves_to_counter_dict, leaves_dict = {}, {}
         flag = 0
 
         for tree in trees:
             curr_leaves = tree.get_leaves()
             roots += curr_leaves[0].get_roots()
             for leaf in curr_leaves:
-                for other_leaf in leaves_dict:
-                    if leaf.is_equal(other_leaf):
+                for dict_leaf in leaves_dict:
+                    if leaf.is_equal(dict_leaf):
                         flag = 1
                         break
                 if flag == 0:
@@ -1424,25 +1451,26 @@ class MultiPatternTree:
                     leaves_dict[leaf] = []
                     leaves_dict[leaf].append(leaf)
 
-                elif leaves_to_counter_dict[other_leaf] == len(leaves_dict[other_leaf]):
-                    leaves_dict[other_leaf].append(leaf)
-                    leaves_to_counter_dict[other_leaf] += 1
+                elif leaves_to_counter_dict[dict_leaf] == len(leaves_dict[dict_leaf]):
+                    leaves_dict[dict_leaf].append(leaf)
+                    leaves_to_counter_dict[dict_leaf] += 1
 
                 else:
-                    our_leaf = leaves_dict[other_leaf][leaves_to_counter_dict[other_leaf]]
+                    index = leaves_to_counter_dict[dict_leaf]
+                    our_leaf = leaves_dict[dict_leaf][index]
                     curr_parents = leaf.get_parents()
                     for parent in curr_parents:
                         our_leaf.add_to_dict(parent, (leaf.get_leaf_index(), QItem(leaf.get_event_type(),
                                                                                    leaf.get_event_name())))
+                        our_leaf.add_to_parent_to_unhandled_queue_dict(parent, Queue())
                         if isinstance(parent, UnaryNode):
-                            parent.set_subtree(our_leaf)
+                            parent.replace_subtree(our_leaf)
                         elif isinstance(parent, BinaryNode):
                             parent.replace_subtree(leaf, our_leaf)
-                    leaves_to_counter_dict[other_leaf] += 1
+                    leaves_to_counter_dict[dict_leaf] += 1
 
                 flag = 0
-            for key in leaves_to_counter_dict:
-                leaves_to_counter_dict[key] = 0
+            leaves_to_counter_dict = {key: 0 for key in leaves_to_counter_dict}
         return roots
 
     @staticmethod
@@ -1458,7 +1486,8 @@ class MultiPatternTree:
     def get_leaves(self):
         leaves = set()
         for root in self.__roots:
-            leaves |= set(root.get_leaves)
+            leaves |= set(root.get_leaves())
+        pass
         return leaves
 
     def get_matches(self):

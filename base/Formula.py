@@ -48,6 +48,9 @@ class AtomicTerm(Term):
     def __repr__(self):
         return str(self.value)
 
+    def __eq__(self, other):
+        return self.value == other.value
+
 
 class IdentifierTerm(Term):
     """
@@ -158,6 +161,14 @@ class Formula(ABC):
     def get_formula_of(self, names: set):
         pass
 
+    def __eq__(self, other):
+        if (isinstance(self, TrueFormula) and not isinstance(other, TrueFormula)) or\
+                 (isinstance(other, TrueFormula) and not isinstance(self, TrueFormula)):
+            return False
+        if isinstance(self, AtomicFormula) and isinstance(other, AtomicFormula):
+            return self == other
+        return True
+
 
 class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
     """
@@ -175,8 +186,10 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
         return [self]
 
     def __eq__(self, other):
-        return self.relation_op == other.relation_op and (self.left_term == other.left_term or
-                                                          self.right_term == other.right_term)
+        if self.right_term == other.right_term and isinstance(self, type(other)):
+                return True
+        return False
+
 
 class EqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -344,9 +357,3 @@ class TrueFormula(Formula):
 
     def extract_atomic_formulas(self):
         return []
-
-    def get_formula(self):
-        return "True Formula"
-
-    def __eq__(self, other):
-        return other.get_formula() == "True Formula"
