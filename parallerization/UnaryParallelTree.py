@@ -8,6 +8,7 @@ from base.PatternStructure import QItem
 from base.PatternMatch import PatternMatch
 from misc.IOUtils import Stream
 
+from datetime import timedelta, datetime
 import time
 import threading
 
@@ -37,8 +38,18 @@ class ParallelUnaryNode(UnaryNode):
 class UnaryParallelTreeEval(ParallelExecutionFramework):
 
     def __init__(self, tree_based_eval: TreeBasedEvaluationMechanism, has_leafs: bool):
+        if type(tree_based_eval) is not TreeBasedEvaluationMechanism:
+            raise Exception()
         super().__init__(tree_based_eval)
         self._has_leafs = has_leafs
+        self.add_unary_root()
+
+    def add_unary_root(self):
+        root = self._evaluation_mechanism.get_tree().get_root()
+        unary_node = ParallelUnaryNode(root._sliding_window, child=root)
+        unary_node.set_subtree(root)
+        root.set_parent(unary_node)
+        self._evaluation_mechanism.set_root(unary_node)
 
     def stop(self):
         raise NotImplementedError()
@@ -47,12 +58,12 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
         raise NotImplementedError()
 
     def get_final_results(self, pattern_matches: Stream):
-        for match in self._tree_based.get_tree().get_matches():
+        for match in self._evaluation_mechanism.get_tree().get_matches():
             pattern_matches.add_item(PatternMatch(match))
         pattern_matches.close()
 
     def wait_till_finish(self):
-        root = self._tree_based.get_tree().get_root()
+        root = self._evaluation_mechanism.get_tree().get_root()
         if type(root) is not ParallelUnaryNode:
             # tree not built properly
             raise Exception()
@@ -61,11 +72,11 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
 
     def get_children(self):
         # returns a list of all the UnaryParallelNodes that are directly connected to self.tree_based
-        root = self._tree_based.get_tree().get_root()
+        root = self._evaluation_mechanism.get_tree().get_root()
         if type(root) is not ParallelUnaryNode:
             # tree not built properly
             raise Exception()
-        children = self._tree_based.get_tree().get_leaves()
+        children = self._evaluation_mechanism.get_tree().get_leaves()
         for i in range(len(children)):
             if type(children[i]) is not ParallelUnaryNode:
                 children.remove(children[i])
@@ -76,12 +87,12 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
         if children is None:
             return True
         for child in children:
-            child_done = child.get_done.try_to_lock()
+            child_done = child._is_done.try_to_lock()#TODO check python lock
             if not child_done:
-                child.get_done.unlock()
+                child._is_done.unlock()
                 return False
             else:
-                child.done.unlock()
+                child._is_done.unlock()
         return True
 
     def get_partial_matches_from_children(self, events: Stream):
@@ -99,18 +110,18 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
         return aggregated_events
 
     def eval_util(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
-        self._tree_based.eval(events, matches, is_async, file_path, time_limit)
+        self._evaluation_mechanism.eval(events, matches, is_async, file_path, time_limit)
 
     def modified_eval(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
         if self.all_children_done():
             aggregated_events = self.get_partial_matches_from_children(events)
             self.eval_util(aggregated_events, matches, is_async, file_path, time_limit)  # original eval
-            self._tree_based.get_tree().light_is_done()
+            self._evaluation_mechanism.get_tree().light_is_done()
         else:
             time.sleep(0.5)
 
     def run_eval(self, event_stream, pattern_matches, is_async, file_path, time_limit):  # thread running
-        root = self._tree_based.get_tree().get_root()
+        root = self._evaluation_mechanism.get_tree().get_root()
         if type(root) is not ParallelUnaryNode:
             # tree not built properly
             raise Exception()

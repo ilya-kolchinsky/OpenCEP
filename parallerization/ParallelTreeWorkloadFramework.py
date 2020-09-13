@@ -1,18 +1,21 @@
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from misc.IOUtils import Stream
 from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
-
+from parallerization.UnaryParallelTree import UnaryParallelTreeEval
 
 class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def __init__(self, execution_units: int = 1, is_data_splitted: bool = False, pattern_size: int = 1):
         super().__init__(execution_units, is_data_splitted)
         self.pattern_size = pattern_size
+        self.masters = [self.get_source_eval_mechanism()] #to be updated in split_data and split_structure
 
-    def split_data(self, input_stream : Stream):
+    def split_data(self, input_stream: Stream, eval_mechanism: TreeBasedEvaluationMechanism):
         #returns the data stream splitted in 2: the first pattern_size lignes in one part and the rest of the stream in another
+
+        self.set_source_eval_mechanism(eval_mechanism)
         output_stream = []
-        if self._is_data_splitted == False:
+        if not self._is_data_splitted:
             output_stream.append(input_stream)
             return output_stream
         elif self._is_data_splitted:
@@ -33,12 +36,14 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         else:
             raise Exception() #should never happen
-
+        if not self.get_is_tree_splitted():
+            self.masters = [UnaryParallelTreeEval(self.get_source_eval_mechanism(), True)]
+            self.masters.append(UnaryParallelTreeEval(self.get_source_eval_mechanism(), True))
         return output_stream
 
     def get_masters(self):
         #if not self.get_is_tree_splitted():
-        return self.get_source_eval_mechanism()
+        return self.masters
 
     def split_structure(self, evaluation_mechanism: TreeBasedEvaluationMechanism):
         # returns objects that implements ParallelExecutionFramework
@@ -51,6 +56,10 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
          sons such that one needs to read the input and the other doesn't
         *create UnaryParallelTree objects and light the has_leaves flag accordingly
 
+        after we have splitted the tree, we need to copy all those parts in prder to support the data
+
+        update self.masters: add it the ParallelTreeExecutionFR that contains the root
+        even if the tree is not splitted, add a copy to masters
 
 
         """

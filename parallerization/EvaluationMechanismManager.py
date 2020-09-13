@@ -46,13 +46,13 @@ class EvaluationMechanismManager:
         self.pattern_matches_list = [[Stream()] * cols] * rows
 
     def initialize_single_tree_multiple_data(self):
-        self.event_stream_splitted = self.work_load_fr.split_data(self.source_event_stream)
-        self.eval_mechanism_list = [self.source_eval_mechanism]*len(self.event_stream_splitted)
+        self.event_stream_splitted = self.work_load_fr.split_data(self.source_event_stream, self.source_eval_mechanism)
+        self.eval_mechanism_list = self.work_load_fr.get_masters()
         rows, cols = (1, len(self.event_stream_splitted))
         self.pattern_matches_list = [Stream()] * cols
 
     def initialize_multiple_tree_multiple_data(self):
-        self.event_stream_splitted = self.work_load_fr.split_data(self.source_event_stream)
+        self.event_stream_splitted = self.work_load_fr.split_data(self.source_event_stream, self.source_eval_mechanism)
         self.eval_mechanism_list = self.work_load_fr.split_structure(self.source_eval_mechanism)
         self.execution_map = self.work_load_fr.get_multiple_data_to_multiple_execution_units_index()
         rows, cols = (len(self.eval_mechanism_list), len(self.event_stream_splitted))
@@ -117,6 +117,8 @@ class EvaluationMechanismManager:
                                                       event_stream, pattern_match)
 
             self.masters_list[0].wait_till_finish()
+            self.masters_list[1].wait_till_finish()
+
 
     def eval_by_multiple_tree_single_data(self, is_async, file_path, time_limit):
         for i in range(len(self.eval_mechanism_list)):

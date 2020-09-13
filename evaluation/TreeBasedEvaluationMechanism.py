@@ -1054,6 +1054,9 @@ class Tree:
     def get_root(self):
         return self.__root
 
+    def set_root(self, root: Node):
+        self.__root = root#EVA
+
     def get_matches(self):
         while self.__root.has_partial_matches():
             yield self.__root.consume_first_partial_match().events
@@ -1203,6 +1206,9 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
         if pattern.consumption_policy is not None and pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
+
+    def set_root(self, root):#EVA
+        self.__tree.set_root(root)
 
     def eval(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
         """

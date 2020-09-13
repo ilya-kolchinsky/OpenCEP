@@ -29,7 +29,7 @@ class ParallelWorkLoadFramework(ABC):
         self._source_eval_mechanism = evalmechanism
 
     def get_source_eval_mechanism(self):
-        return self._source_eval_mechanism#TODO for data split, need to return a list of all eval
+        return self._source_eval_mechanism
 
     # example:
     # map ={1,2}
@@ -45,7 +45,7 @@ class ParallelWorkLoadFramework(ABC):
         else:
             raise NotImplementedError()
 
-    def split_data(self, input_stream: Stream):#the output needs to be a list of streams of size <= execution_units
+    def split_data(self, input_stream: Stream, eval_mechanism):#the output needs to be a list of streams of size <= execution_units
         raise NotImplementedError()
 
     # the output needs to be a list of evalution mechanizms that implements ParallelExecutionFramework
