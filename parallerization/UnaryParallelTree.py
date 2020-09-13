@@ -82,19 +82,6 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
                 children.remove(children[i])
         return children
 
-    def all_children_done(self):
-        children = self.get_children()
-        if children is None:
-            return True
-        for child in children:
-            child_done = child._is_done.try_to_lock()#TODO check python lock
-            if not child_done:
-                child._is_done.unlock()
-                return False
-            else:
-                child._is_done.unlock()
-        return True
-
     def get_partial_matches_from_children(self, events: Stream):
         children = self.get_children()
         if children is None:#if self has no unaryParallelNode children, it means that it has only leaves and then needs the source input
@@ -132,3 +119,20 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
         thread = threading.Thread(target=self.run_eval, args=(event_stream, pattern_matches, is_async,
                                                               file_path, time_limit,))
         thread.start()
+
+    def all_children_done(self):
+        lock = threading.Lock()
+        children = self.get_children()
+        if children is None:
+            return True
+        for child in children:
+            lock.acquire()
+            child_done = child.get_done()
+            if not child_done:
+                lock.release()
+                #child._is_done.release()
+                return False
+            else:
+                lock.release()
+                #child._is_done.unlock()
+        return True
