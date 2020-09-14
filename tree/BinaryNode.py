@@ -5,9 +5,8 @@ from typing import List, Tuple
 from base.Event import Event
 from base.Formula import Formula, IdentifierTerm, AtomicFormula, EquationSides
 from base.PatternMatch import PatternMatch
-from base.PatternStructure import PrimitiveEventStructure
 from tree.InternalNode import InternalNode
-from tree.Node import Node
+from tree.Node import Node, PrimitiveEventDefinition
 
 
 class BinaryNode(InternalNode, ABC):
@@ -15,7 +14,7 @@ class BinaryNode(InternalNode, ABC):
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
     def __init__(self, sliding_window: timedelta, parent: Node = None,
-                 event_defs: List[Tuple[int, PrimitiveEventStructure]] = None,
+                 event_defs: List[PrimitiveEventDefinition] = None,
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, parent, event_defs)
         self._left_subtree = left
@@ -34,8 +33,8 @@ class BinaryNode(InternalNode, ABC):
         self._right_subtree.apply_formula(condition)
 
     def _set_event_definitions(self,
-                               left_event_defs: List[Tuple[int, PrimitiveEventStructure]],
-                               right_event_defs: List[Tuple[int, PrimitiveEventStructure]]):
+                               left_event_defs: List[PrimitiveEventDefinition],
+                               right_event_defs: List[PrimitiveEventDefinition]):
         """
         A helper function for collecting the event definitions from subtrees.
         """
@@ -88,8 +87,8 @@ class BinaryNode(InternalNode, ABC):
         self._try_create_new_matches(new_partial_match, partial_matches_to_compare, first_event_defs, second_event_defs)
 
     def _try_create_new_matches(self, new_partial_match: PatternMatch, partial_matches_to_compare: List[PatternMatch],
-                                first_event_defs: List[Tuple[int, PrimitiveEventStructure]],
-                                second_event_defs: List[Tuple[int, PrimitiveEventStructure]]):
+                                first_event_defs: List[PrimitiveEventDefinition],
+                                second_event_defs: List[PrimitiveEventDefinition]):
         """
         For each candidate pair of partial matches that can be joined to create a new one, verifies all the
         necessary conditions creates new partial matches if all constraints are satisfied.
@@ -100,16 +99,16 @@ class BinaryNode(InternalNode, ABC):
             self._validate_and_propagate_partial_match(events_for_new_match)
 
     def _merge_events_for_new_match(self,
-                                    first_event_defs: List[Tuple[int, PrimitiveEventStructure]],
-                                    second_event_defs: List[Tuple[int, PrimitiveEventStructure]],
+                                    first_event_defs: List[PrimitiveEventDefinition],
+                                    second_event_defs: List[PrimitiveEventDefinition],
                                     first_event_list: List[Event],
                                     second_event_list: List[Event]):
         """
         Creates a list of events to be included in a new partial match.
         """
-        if self._event_defs[0][0] == first_event_defs[0][0]:
+        if self._event_defs[0].index == first_event_defs[0].index:
             return first_event_list + second_event_list
-        if self._event_defs[0][0] == second_event_defs[0][0]:
+        if self._event_defs[0].index == second_event_defs[0].index:
             return second_event_list + first_event_list
         raise Exception()
 
@@ -172,8 +171,8 @@ class BinaryNode(InternalNode, ABC):
         left_sorting_key, right_sorting_key, rel_op = None, None, None
         left_event_defs = self._left_subtree.get_event_definitions()
         right_event_defs = self._right_subtree.get_event_definitions()
-        left_event_names = {item[1].name for item in left_event_defs}
-        right_event_names = {item[1].name for item in right_event_defs}
+        left_event_names = {item.name for item in left_event_defs}
+        right_event_names = {item.name for item in right_event_defs}
 
         # get the candidate atomic conditions
         filtered_conditions = self.__get_filtered_conditions(left_event_names, right_event_names)
@@ -192,11 +191,11 @@ class BinaryNode(InternalNode, ABC):
         # convert terms into sorting key fetching callbacks
         if left_term is not None:
             left_sorting_key = lambda pm: left_term.eval(
-                {left_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
+                {left_event_defs[i].name: pm.events[i].payload for i in range(len(pm.events))}
             )
         if right_term is not None:
             right_sorting_key = lambda pm: right_term.eval(
-                {right_event_defs[i][1].name: pm.events[i].payload for i in range(len(pm.events))}
+                {right_event_defs[i].name: pm.events[i].payload for i in range(len(pm.events))}
             )
 
         return left_sorting_key, left_rel_op, left_equation_size, right_sorting_key, right_rel_op, right_equation_size

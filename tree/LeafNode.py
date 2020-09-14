@@ -4,7 +4,7 @@ from typing import List
 from base.Event import Event
 from base.Formula import Formula, RelopTypes, EquationSides
 from base.PatternStructure import PrimitiveEventStructure
-from tree.Node import Node
+from tree.Node import Node, PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters, SortedPatternMatchStorage
 
 
@@ -27,7 +27,7 @@ class LeafNode(Node):
             self._condition = condition
 
     def get_event_definitions(self):
-        return [(self.__leaf_index, PrimitiveEventStructure(self.__event_type, self.__event_name))]
+        return [PrimitiveEventDefinition(self.__event_type, self.__event_name, self.__leaf_index)]
 
     def get_event_type(self):
         """

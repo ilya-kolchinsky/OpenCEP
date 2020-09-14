@@ -1,10 +1,10 @@
-from typing import List, Tuple
+from typing import List
 
 from base.Event import Event
 from base.Formula import RelopTypes, EquationSides
-from base.PatternStructure import PrimitiveEventStructure
 from misc.Utils import merge, merge_according_to, is_sorted
 from tree.BinaryNode import BinaryNode
+from tree.Node import PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters
 
 
@@ -15,17 +15,17 @@ class SeqNode(BinaryNode):
     of arrival of the events in the partial matches it constructs.
     """
     def _set_event_definitions(self,
-                               left_event_defs: List[Tuple[int, PrimitiveEventStructure]],
-                               right_event_defs: List[Tuple[int, PrimitiveEventStructure]]):
-        self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x[0])
+                               left_event_defs: List[PrimitiveEventDefinition],
+                               right_event_defs: List[PrimitiveEventDefinition]):
+        self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x.index)
 
     def _merge_events_for_new_match(self,
-                                    first_event_defs: List[Tuple[int, PrimitiveEventStructure]],
-                                    second_event_defs: List[Tuple[int, PrimitiveEventStructure]],
+                                    first_event_defs: List[PrimitiveEventDefinition],
+                                    second_event_defs: List[PrimitiveEventDefinition],
                                     first_event_list: List[Event],
                                     second_event_list: List[Event]):
         return merge_according_to(first_event_defs, second_event_defs,
-                                  first_event_list, second_event_list, key=lambda x: x[0])
+                                  first_event_list, second_event_list, key=lambda x: x.index)
 
     def _validate_new_match(self, events_for_new_match: List[Event]):
         if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
@@ -44,10 +44,10 @@ class SeqNode(BinaryNode):
         left_event_defs = self._left_subtree.get_event_definitions()
         right_event_defs = self._right_subtree.get_event_definitions()
         # comparing min and max leaf index of two subtrees
-        min_left = min(left_event_defs, key=lambda x: x[0])[0]  # [ { ] } or [ { } ]
-        max_left = max(left_event_defs, key=lambda x: x[0])[0]  # { [ } ] or { [ ] }
-        min_right = min(right_event_defs, key=lambda x: x[0])[0]  # [ ] { }
-        max_right = max(right_event_defs, key=lambda x: x[0])[0]  # { } [ ]
+        min_left = min(left_event_defs, key=lambda x: x.index).index  # [ { ] } or [ { } ]
+        max_left = max(left_event_defs, key=lambda x: x.index).index  # { [ } ] or { [ ] }
+        min_right = min(right_event_defs, key=lambda x: x.index).index  # [ ] { }
+        max_right = max(right_event_defs, key=lambda x: x.index).index  # { } [ ]
         if max_left < min_right:  # 3)
             left_sort, right_sort, rel_op = -1, 0, RelopTypes.SmallerEqual
         elif max_right < min_left:  # 4)

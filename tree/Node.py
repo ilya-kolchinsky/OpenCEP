@@ -9,6 +9,16 @@ from base.PatternMatch import PatternMatch
 from tree.PatternMatchStorage import TreeStorageParameters
 
 
+class PrimitiveEventDefinition:
+    """
+    An internal class for capturing the information regarding a single primitive event appearing in a pattern.
+    """
+    def __init__(self, event_type: str, event_name: str, event_index: int):
+        self.type = event_type
+        self.name = event_name
+        self.index = event_index
+
+
 class Node(ABC):
     """
     This class represents a single node of an evaluation tree.
@@ -184,7 +194,7 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    def get_event_definitions(self):
+    def get_event_definitions(self) -> List[PrimitiveEventDefinition]:
         """
         Returns the specifications of all events collected by this tree - to be implemented by subclasses.
         """

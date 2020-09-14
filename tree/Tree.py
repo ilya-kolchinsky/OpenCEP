@@ -41,27 +41,16 @@ class Tree:
         Fixes the values of the leaf indices in the positive tree to take the negative events into account.
         """
         leaf_mapping = {}
+        # update the leaves
         for leaf in self.get_leaves():
             current_index = leaf.get_leaf_index()
             correct_index = pattern.get_index_by_event_name(leaf.get_event_name())
+            leaf.set_leaf_index(correct_index)
             leaf_mapping[current_index] = correct_index
-        self.__update_event_defs(self.__root, leaf_mapping)
-
-    def __update_event_defs(self, node: Node, leaf_mapping: Dict[int, int]):
-        """
-        Recursively modifies the event indices in the tree specified by the given node.
-        """
-        if isinstance(node, LeafNode):
-            node.set_leaf_index(leaf_mapping[node.get_leaf_index()])
-            return
-        # this node is an internal node
-        event_defs = node.get_event_definitions()
-        # no list comprehension is used since we modify the original list
-        for i in range(len(event_defs)):
-            event_def = event_defs[i]
-            event_defs[i] = (leaf_mapping[event_def[0]], event_def[1])
-        self.__update_event_defs(node.get_left_subtree(), leaf_mapping)
-        self.__update_event_defs(node.get_right_subtree(), leaf_mapping)
+        # update the event definitions in the internal nodes
+        # note that it is enough to only update the root since it contains all the event definition objects
+        for event_def in self.__root.get_event_definitions():
+            event_def.index = leaf_mapping[event_def.index]
 
     def __add_negative_tree_structure(self, pattern: Pattern):
         """
@@ -141,7 +130,7 @@ class Tree:
             if consumption_policy is not None and \
                     consumption_policy.should_register_event_type_as_single(False, event.type):
                 parent.register_single_event_type(event.type)
-            return LeafNode(sliding_window, event_index, current_operator, parent)
+            return LeafNode(sliding_window, event_index, event, parent)
 
         if isinstance(current_operator, UnaryStructure):
             # the current operator is a unary operator hiding a nested pattern structure
