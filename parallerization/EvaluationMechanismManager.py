@@ -64,9 +64,14 @@ class EvaluationMechanismManager:
                 self.results.add_item(match)
             self.results.close()
             return
-        for evalmechanism in self.masters_list:
-            for match in evalmechanism.get_final_results():
-                self.results.add_item(match)
+        for pmlist in self.pattern_matches_list:#TODO fix the results output
+            for match in pmlist:
+                if match is not None:
+                    self.results.add_item(match)
+        #for evalmechanism in self.masters_list:
+            #for match in evalmechanism.get_final_results():
+                #self.results.add_item(match)
+            #evalmechanism.get_final_results(self.results)
         self.results.close()
 
     def eval(self, event_stream: Stream, pattern_matches, is_async: bool = False, file_path=None, time_limit=None):
