@@ -21,7 +21,7 @@ class EquationSides(Enum):
     right = 1
 
 
-class Term(ABC):
+class BaseTerm(ABC):
     """
     Evaluates to the term's value.
     If there are variables (identifiers) in the term, a name-value binding shall be inputted.
@@ -31,6 +31,14 @@ class Term(ABC):
 
     def get_term_of(self, names: set):
         raise NotImplementedError()
+
+
+class Term(BaseTerm, ABC):
+    pass
+
+
+class TermOperator(BaseTerm, ABC):
+    pass
 
 
 class AtomicTerm(Term):
@@ -72,11 +80,11 @@ class IdentifierTerm(Term):
         return self.name
 
 
-class BinaryOperationTerm(Term):
+class BinaryOperationTerm(TermOperator):
     """
     A term representing a binary operation.
     """
-    def __init__(self, lhs: Term, rhs: Term, binary_op: callable):
+    def __init__(self, lhs: BaseTerm, rhs: BaseTerm, binary_op: callable):
         self.lhs = lhs
         self.rhs = rhs
         self.binary_op = binary_op
@@ -89,7 +97,7 @@ class BinaryOperationTerm(Term):
 
 
 class PlusTerm(BinaryOperationTerm):
-    def __init__(self, lhs: Term, rhs: Term):
+    def __init__(self, lhs: BaseTerm, rhs: BaseTerm):
         super().__init__(lhs, rhs, lambda x, y: x + y)
 
     def get_term_of(self, names: set):
@@ -104,7 +112,7 @@ class PlusTerm(BinaryOperationTerm):
 
 
 class MinusTerm(BinaryOperationTerm):
-    def __init__(self, lhs: Term, rhs: Term):
+    def __init__(self, lhs: BaseTerm, rhs: BaseTerm):
         super().__init__(lhs, rhs, lambda x, y: x - y)
 
     def get_term_of(self, names: set):
@@ -119,7 +127,7 @@ class MinusTerm(BinaryOperationTerm):
 
 
 class MulTerm(BinaryOperationTerm):
-    def __init__(self, lhs: Term, rhs: Term):
+    def __init__(self, lhs: BaseTerm, rhs: BaseTerm):
         super().__init__(lhs, rhs, lambda x, y: x * y)
 
     def get_term_of(self, names: set):
@@ -134,7 +142,7 @@ class MulTerm(BinaryOperationTerm):
 
 
 class DivTerm(BinaryOperationTerm):
-    def __init__(self, lhs: Term, rhs: Term):
+    def __init__(self, lhs: BaseTerm, rhs: BaseTerm):
         super().__init__(lhs, rhs, lambda x, y: x / y)
 
     def get_term_of(self, names: set):
@@ -146,6 +154,29 @@ class DivTerm(BinaryOperationTerm):
 
     def __repr__(self):
         return "{}/{}".format(self.lhs, self.rhs)
+
+
+class NaryOperationTerm(TermOperator):
+    """
+    N-ary Operator
+    """
+    def __init__(self, *terms : BaseTerm, operator: callable):
+        self.terms = terms
+        self.operator = operator
+
+    def eval(self, binding: dict = None):
+        op_terms = []
+        for term in self.terms:
+            op_terms.append(term.eval(binding))
+        op_terms = tuple(op_terms)
+        return self.operator(*op_terms)
+
+    def get_term_of(self, names: set):
+        for term in self.terms:
+            cur_term = term.get_term_of(names)
+            if cur_term is None:
+                return None
+        return self
 
 
 class Formula(ABC):
@@ -163,17 +194,21 @@ class Formula(ABC):
         raise NotImplementedError()
 
 
+# TODO: rename to BinaryFormula?
 class AtomicFormula(Formula, ABC):  # RELOP: < <= > >= == !=
     """
     An atomic formula containing no logic operators (e.g., A < B).
     """
-    def __init__(self, left_term: Term, right_term: Term, relation_op: callable):
+    def __init__(self, left_term: BaseTerm, right_term: BaseTerm, relation_op: callable):
         self.left_term = left_term
         self.right_term = right_term
         self.relation_op = relation_op
         
     def eval(self, binding: dict = None):
-        return self.relation_op(self.left_term.eval(binding), self.right_term.eval(binding))
+        try:
+            return self.relation_op(self.left_term.eval(binding), self.right_term.eval(binding))
+        except Exception as e:
+            return False
 
     def __repr__(self):
         return "{} {} {}".format(self.left_term, self.relation_op, self.right_term)
@@ -183,7 +218,7 @@ class AtomicFormula(Formula, ABC):  # RELOP: < <= > >= == !=
 
 
 class CustomFormula(AtomicFormula):
-    def __init__(self, left_term: Term, right_term: Term, relation_op: callable):
+    def __init__(self, left_term: BaseTerm, right_term: BaseTerm, relation_op: callable):
         super().__init__(left_term, right_term, relation_op)
 
     def get_formula_of(self, names: set):
@@ -195,7 +230,7 @@ class CustomFormula(AtomicFormula):
 
 
 class EqFormula(AtomicFormula):
-    def __init__(self, left_term: Term, right_term: Term):
+    def __init__(self, left_term: BaseTerm, right_term: BaseTerm):
         super().__init__(left_term, right_term, lambda x, y: x == y)
 
     def get_formula_of(self, names: set):
@@ -213,7 +248,7 @@ class EqFormula(AtomicFormula):
 
 
 class NotEqFormula(AtomicFormula):
-    def __init__(self, left_term: Term, right_term: Term):
+    def __init__(self, left_term: BaseTerm, right_term: BaseTerm):
         super().__init__(left_term, right_term, lambda x, y: x != y)
 
     def get_formula_of(self, names: set):
@@ -231,7 +266,7 @@ class NotEqFormula(AtomicFormula):
 
 
 class GreaterThanFormula(AtomicFormula):
-    def __init__(self, left_term: Term, right_term: Term):
+    def __init__(self, left_term: BaseTerm, right_term: BaseTerm):
         super().__init__(left_term, right_term, lambda x, y: x > y)
 
     def get_formula_of(self, names: set):
@@ -249,7 +284,7 @@ class GreaterThanFormula(AtomicFormula):
 
 
 class SmallerThanFormula(AtomicFormula):
-    def __init__(self, left_term: Term, right_term: Term):
+    def __init__(self, left_term: BaseTerm, right_term: BaseTerm):
         super().__init__(left_term, right_term, lambda x, y: x < y)
 
     def get_formula_of(self, names: set):
@@ -267,7 +302,7 @@ class SmallerThanFormula(AtomicFormula):
 
 
 class GreaterThanEqFormula(AtomicFormula):
-    def __init__(self, left_term: Term, right_term: Term):
+    def __init__(self, left_term: BaseTerm, right_term: BaseTerm):
         super().__init__(left_term, right_term, lambda x, y: x >= y)
 
     def get_formula_of(self, names: set):
@@ -285,7 +320,7 @@ class GreaterThanEqFormula(AtomicFormula):
 
 
 class SmallerThanEqFormula(AtomicFormula):
-    def __init__(self, left_term: Term, right_term: Term):
+    def __init__(self, left_term: BaseTerm, right_term: BaseTerm):
         super().__init__(left_term, right_term, lambda x, y: x <= y)
 
     def get_formula_of(self, names: set):
@@ -300,6 +335,32 @@ class SmallerThanEqFormula(AtomicFormula):
 
     def get_relop(self):
         return RelopTypes.SmallerEqual
+
+
+class NaryFormula(Formula):
+    def __init__(self, *terms : BaseTerm, relation_op: callable):
+        self.terms = terms
+        self.relation_op = relation_op
+
+    def eval(self, binding: dict = None):
+        try:
+            rel_terms = []
+            for term in self.terms:
+                rel_terms.append(term.eval(binding))
+            rel_terms = tuple(rel_terms)
+            return self.relation_op(*rel_terms)
+        except Exception as e:
+            return False
+
+    def get_formula_of(self, names: set):
+        for term in self.terms:
+            cur_term = term.get_term_of(names)
+            if cur_term is None:
+                return None
+        return self
+
+    def extract_atomic_formulas(self):
+        return [self]
 
 
 class BinaryLogicOpFormula(Formula, ABC):  # AND: A < B AND C < D
