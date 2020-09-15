@@ -12,5 +12,5 @@ def onlyDataSplit_oneArgumentsearchTest(createTestFile=False):
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
             timedelta(minutes=120)
         )
-        workload = ParallelTreeWorkloadFramework(2, True, pattern_size=1)
+        workload = ParallelTreeWorkloadFramework(2, True, pattern_size=1, pattern=pattern)
         runTest("one", [pattern], createTestFile, workloadfr=workload)

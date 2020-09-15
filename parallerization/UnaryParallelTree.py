@@ -2,7 +2,6 @@ from base import Pattern
 from evaluation.PartialMatchStorage import TreeStorageParameters
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism, UnaryNode, Node
 from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
-from datetime import timedelta
 from typing import Tuple, Dict, List
 from base.PatternStructure import QItem
 from base.PatternMatch import PatternMatch
@@ -10,7 +9,7 @@ from misc.IOUtils import Stream
 
 from datetime import timedelta, datetime
 import time
-
+import threading
 
 class ParallelUnaryNode(UnaryNode):
     def __init__(self, is_root: bool, sliding_window: timedelta, parent: Node = None,
@@ -40,7 +39,6 @@ class ParallelUnaryNode(UnaryNode):
     def handle_new_partial_match(self, partial_match_source: Node):
         new_partial_match = partial_match_source.get_last_unhandled_partial_match()
         super()._add_partial_match(new_partial_match)
-        #super()._add_partial_match(new_partial_match)
 
 
 class UnaryParallelTreeEval(ParallelExecutionFramework):
@@ -99,13 +97,19 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
         if len(children) == 0:#if self has no unaryParallelNode children, it means that it has only leaves and then needs the source input
             return events
         aggregated_events = Stream()
+
+        lock = threading.Lock()
+
         for child in children:
             if type(child) is not ParallelUnaryNode:
                 raise Exception()
             #LOCK
+            lock.acquire()
             for match in child._partial_matches:
                 aggregated_events.add_item(match)
             #UNLOCK
+            lock.acquire()
+
         return aggregated_events
 
     def eval_util(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
@@ -129,25 +133,25 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
             self.modified_eval(event_stream, pattern_matches, is_async, file_path, time_limit)
 
     def eval(self, event_stream, pattern_matches, is_async=False, file_path=None, time_limit: int = None):
-        #thread = threading.Thread(target=self.run_eval, args=(event_stream, pattern_matches, is_async,
-        #                                                      file_path, time_limit,))
-        #thread.start()
-        self.run_eval(event_stream, pattern_matches, is_async, file_path, time_limit)
+        thread = threading.Thread(target=self.run_eval, args=(event_stream, pattern_matches, is_async,
+                                                              file_path, time_limit,))
+        thread.start()
+        #self.run_eval(event_stream, pattern_matches, is_async, file_path, time_limit)
 
     def all_children_done(self):
-        #lock = threading.Lock()
+        lock = threading.Lock()
         children = self.get_children()
         if len(children) == 0:
             return True
         for child in children:
-            #lock.acquire()
+            lock.acquire()
             child_done = child.get_done()
             if not child_done:
-                #lock.release()
+                lock.release()
                 #child._is_done.release()
                 return False
             else:
-                #lock.release()
+                lock.release()
                 #child._is_done.unlock()
                 pass
         return True

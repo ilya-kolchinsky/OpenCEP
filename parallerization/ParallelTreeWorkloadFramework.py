@@ -2,16 +2,22 @@ from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from misc.IOUtils import Stream
 from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
 from parallerization.UnaryParallelTree import UnaryParallelTreeEval
+from base.Pattern import Pattern
+from evaluation.EvaluationMechanism import EvaluationMechanism
+from evaluation.EvaluationMechanismFactory import EvaluationMechanismFactory, EvaluationMechanismTypes, EvaluationMechanismParameters
 
 class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
-    def __init__(self, execution_units: int = 1, is_data_splitted: bool = False, pattern_size: int = 1):
+    def __init__(self, execution_units: int = 1, is_data_splitted: bool = False, pattern_size: int = 1,
+                 pattern: Pattern = None):
         super().__init__(execution_units, is_data_splitted)
         self.pattern_size = pattern_size
+        self.pattern = pattern
         self.masters = [self.get_source_eval_mechanism()] #to be updated in split_data and split_structure
 
-    def split_data(self, input_stream: Stream, eval_mechanism: TreeBasedEvaluationMechanism):
-        #returns the data stream splitted in 2: the first pattern_size lignes in one part and the rest of the stream in another
+    def split_data(self, input_stream: Stream, eval_mechanism: TreeBasedEvaluationMechanism,
+                   eval_mechanism_type: EvaluationMechanismTypes, eval_params: EvaluationMechanismParameters):
+        #returns the data stream splitted in 2: the first pattern_size lines in one part and the rest of the stream in another
 
         self.set_source_eval_mechanism(eval_mechanism)
         output_stream = []
@@ -37,15 +43,23 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         else:
             raise Exception() #should never happen
         if not self.get_is_tree_splitted():
-            self.masters = [UnaryParallelTreeEval(self.get_source_eval_mechanism(), True)]
-            self.masters.append(UnaryParallelTreeEval(self.get_source_eval_mechanism(), True))
+            tree_based_eval_one = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
+                                                                                                 eval_params,
+                                                                                                 self.pattern)
+            tree_based_eval_two = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
+                                                                                                 eval_params,
+                                                                                                 self.pattern)
+
+            self.masters = [UnaryParallelTreeEval(tree_based_eval_one, True)]
+            self.masters.append(UnaryParallelTreeEval(tree_based_eval_two, True))
         return output_stream
 
     def get_masters(self):
-        #if not self.get_is_tree_splitted():
         return self.masters
 
-    def split_structure(self, evaluation_mechanism: TreeBasedEvaluationMechanism):
+    def split_structure(self, evaluation_mechanism: EvaluationMechanism,
+                        eval_mechanism_type: EvaluationMechanismTypes = None,
+                        eval_params: EvaluationMechanismParameters = None):
         # returns objects that implements ParallelExecutionFramework
         """
         returns a list of UnaryParallelTree

@@ -1,6 +1,8 @@
 from abc import ABC
 from misc.IOUtils import Stream
 from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
+from evaluation.EvaluationMechanism import EvaluationMechanism
+from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters, EvaluationMechanismTypes
 
 
 class ParallelWorkLoadFramework(ABC):
@@ -25,8 +27,8 @@ class ParallelWorkLoadFramework(ABC):
     def get_num_of_data(self):
         return self._num_of_data_parts
 
-    def set_source_eval_mechanism(self, evalmechanism):
-        self._source_eval_mechanism = evalmechanism
+    def set_source_eval_mechanism(self, eval_mechanism: EvaluationMechanism):
+        self._source_eval_mechanism = eval_mechanism
 
     def get_source_eval_mechanism(self):
         return self._source_eval_mechanism
@@ -45,14 +47,17 @@ class ParallelWorkLoadFramework(ABC):
         else:
             raise NotImplementedError()
 
-    def split_data(self, input_stream: Stream, eval_mechanism):#the output needs to be a list of streams of size <= execution_units
+    def split_data(self, input_stream: Stream, eval_mechanism: EvaluationMechanism,
+                   eval_mechanism_type: EvaluationMechanismTypes, eval_params: EvaluationMechanismParameters):
+        #the output needs to be a list of streams of size <= execution_units
         raise NotImplementedError()
 
-    # the output needs to be a list of evalution mechanizms that implements ParallelExecutionFramework
-    def split_structure(self, evaluation_mechanism):
+    # the output needs to be a list of evaluation mechanisms that implements ParallelExecutionFramework
+    def split_structure(self, evaluation_mechanism: EvaluationMechanism,
+                        eval_mechanism_type: EvaluationMechanismTypes = None,
+                        eval_params: EvaluationMechanismParameters = None):
         self.set_source_eval_mechanism(evaluation_mechanism)
         return [ParallelExecutionFramework(evaluation_mechanism)]
-        #raise NotImplementedError()
 
 
 
