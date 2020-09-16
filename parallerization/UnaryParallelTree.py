@@ -49,15 +49,17 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
         super().__init__(tree_based_eval)
         self._has_leafs = has_leafs
         self.add_unary_root()
-        storageparams = TreeStorageParameters(True)
-        self._evaluation_mechanism.get_tree().get_root().create_storage_unit(storageparams)
 
     def add_unary_root(self):
         root = self._evaluation_mechanism.get_tree().get_root()
+        if type(root) is ParallelUnaryNode:
+            return
         unary_node = ParallelUnaryNode(True, root._sliding_window, child=root)
         unary_node.set_subtree(root)
         root.set_parent(unary_node)
         self._evaluation_mechanism.set_root(unary_node)
+        storageparams = TreeStorageParameters(True)
+        self._evaluation_mechanism.get_tree().get_root().create_storage_unit(storageparams)
 
     def stop(self):
         raise NotImplementedError()
@@ -88,7 +90,7 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
         for i in range(len(children)):
             if children[i] == root:#TODO remove
                 children.remove(children[i])
-            elif type(children[i]) is not ParallelUnaryNode:
+            if type(children[i]) is not ParallelUnaryNode:
                 children.remove(children[i])
         return children
 

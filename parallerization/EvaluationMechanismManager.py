@@ -47,7 +47,7 @@ class EvaluationMechanismManager:
         self.event_stream_splitted = [self.source_event_stream.duplicate()]
         rows, cols = (len(self.eval_mechanism_list), 1)
         for i in range(rows*cols):
-            self.pattern_matches_list[i].append(Stream())
+            self.pattern_matches_list.append(Stream())
 
     def initialize_single_tree_multiple_data(self):
         self.event_stream_splitted = self.work_load_fr.split_data(self.source_event_stream, self.source_eval_mechanism,
