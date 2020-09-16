@@ -2,26 +2,14 @@
 This file contains the primary engine. It processes streams of events and detects pattern matches
 by invoking the rest of the system components.
 """
-from misc import DefaultConfig
 from misc.IOUtils import Stream
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import (
     EvaluationMechanismParameters,
     EvaluationMechanismFactory,
 )
-from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from typing import List
 from datetime import datetime
-
-
-class PerformanceSpecifications:
-    """
-    A sketch of QoS specifications, we assume it will be an object constructed separately, and the
-    CEP engine will refer to it if it is passed.
-    Not implemented yet.
-    """
-
-    pass
 
 
 class CEP:
@@ -29,10 +17,7 @@ class CEP:
     A CEP object contains a workload (list of patterns to be evaluated) and an evaluation mechanism.
     The evaluation mechanism is created according to the parameters specified in the constructor.
     """
-    def __init__(self, patterns: List[Pattern],
-                 eval_mechanism_type: EvaluationMechanismTypes = DefaultConfig.DEFAULT_EVALUATION_MECHANISM_TYPE,
-                 eval_mechanism_params: EvaluationMechanismParameters = None,
-                 performance_specs: PerformanceSpecifications = None):
+    def __init__(self, patterns: List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None):
         """
         Constructor of the class.
         """
@@ -40,11 +25,9 @@ class CEP:
             raise Exception("No patterns are provided")
         if len(patterns) > 1:
             raise NotImplementedError("Multi-pattern support is not yet available")
-        self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
-                                                                                               eval_mechanism_params,
+        self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_params,
                                                                                                patterns[0])
         self.__pattern_matches = None
-        self.__performance_specs = performance_specs
 
     def run(self, event_stream: Stream, is_async=False, file_path=None, time_limit=None):
         """

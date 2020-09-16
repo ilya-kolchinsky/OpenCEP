@@ -1,7 +1,7 @@
+from plan.TreePlanBuilderFactory import IterativeImprovementTreePlanBuilderParameters
 from test.KC_tests import *
 
-from evaluation.EvaluationMechanismFactory import IterativeImprovementEvaluationMechanismParameters, TreeBasedEvaluationMechanismParameters
-from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
+from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
 from misc.ConsumptionPolicy import *
 from plan.LeftDeepTreeBuilders import *
 from plan.BushyTreeBuilders import *
@@ -248,7 +248,11 @@ def frequencyPatternSearchTest(createTestFile=False):
         timedelta(minutes=5)
     )
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AAPL": 460, "AMZN": 442, "LOCM": 219})
-    runTest("frequency", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest("frequency", [pattern], createTestFile, eval_mechanism_params=eval_params)
 
 
 def arrivalRatesPatternSearchTest(createTestFile=False):
@@ -260,7 +264,11 @@ def arrivalRatesPatternSearchTest(createTestFile=False):
     timedelta(minutes=5)
     )
     pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0159, 0.0153, 0.0076])
-    runTest("arrivalRates", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest("arrivalRates", [pattern], createTestFile, eval_mechanism_params=eval_params)
 
 
 def nonFrequencyPatternSearch2Test(createTestFile=False):
@@ -283,7 +291,11 @@ def frequencyPatternSearch2Test(createTestFile=False):
         timedelta(minutes=5)
     )
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AAPL": 2, "AMZN": 3, "LOCM": 1})
-    runTest("frequency2", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest("frequency2", [pattern], createTestFile, eval_mechanism_params=eval_params)
 
 
 def nonFrequencyPatternSearch3Test(createTestFile=False):
@@ -302,7 +314,11 @@ def frequencyPatternSearch3Test(createTestFile=False):
         timedelta(minutes=5)
     )
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AAPL": 460, "LOCM": 219})
-    runTest("frequency3", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest("frequency3", [pattern], createTestFile, eval_mechanism_params=eval_params)
 
 
 def nonFrequencyPatternSearch4Test(createTestFile=False):
@@ -321,7 +337,11 @@ def frequencyPatternSearch4Test(createTestFile=False):
         timedelta(minutes=7)
     )
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AVID": 1, "LOCM": 2, "AAPL": 3, "AMZN": 4})
-    runTest("frequency4", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest("frequency4", [pattern], createTestFile, eval_mechanism_params=eval_params)
 
 
 def nonFrequencyPatternSearch5Test(createTestFile=False):
@@ -340,7 +360,11 @@ def frequencyPatternSearch5Test(createTestFile=False):
         timedelta(minutes=7)
     )
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"LOCM": 1, "AAPL": 2})  # {"AAPL": 460, "LOCM": 219}
-    runTest("frequency5", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest("frequency5", [pattern], createTestFile, eval_mechanism_params=eval_params)
 
     
 def frequencyPatternSearch6Test(createTestFile = False):
@@ -350,7 +374,11 @@ def frequencyPatternSearch6Test(createTestFile = False):
         timedelta(minutes=7)
     )
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AAPL": 1, "LOCM": 2})  # {"AAPL": 460, "LOCM": 219}
-    runTest("frequency6", [pattern], createTestFile, EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest("frequency6", [pattern], createTestFile, eval_mechanism_params=eval_params)
 
 
 def greedyPatternSearchTest(createTestFile=False):
@@ -372,8 +400,11 @@ def greedyPatternSearchTest(createTestFile=False):
                          [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
     arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    runTest('greedy1', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE, events=nasdaqEventStream)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest('greedy1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
 def iiRandomPatternSearchTest(createTestFile=False):
@@ -395,11 +426,14 @@ def iiRandomPatternSearchTest(createTestFile=False):
                          [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
     arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    runTest('iiRandom1', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE,
-            eval_mechanism_params=IterativeImprovementEvaluationMechanismParameters(
-                20, IterativeImprovementType.SWAP_BASED, IterativeImprovementInitType.RANDOM),
-            events=nasdaqEventStream)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        IterativeImprovementTreePlanBuilderParameters(DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.tree_plan_params.cost_model_type,
+                                                      20,
+                                                      IterativeImprovementType.SWAP_BASED,
+                                                      IterativeImprovementInitType.RANDOM),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest('iiRandom1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
 def iiRandom2PatternSearchTest(createTestFile=False):
@@ -421,11 +455,14 @@ def iiRandom2PatternSearchTest(createTestFile=False):
                          [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
     arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    runTest('iiRandom2', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE,
-            eval_mechanism_params=IterativeImprovementEvaluationMechanismParameters(
-                20, IterativeImprovementType.CIRCLE_BASED, IterativeImprovementInitType.RANDOM),
-            events=nasdaqEventStream)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        IterativeImprovementTreePlanBuilderParameters(DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.tree_plan_params.cost_model_type,
+                                                      20,
+                                                      IterativeImprovementType.CIRCLE_BASED,
+                                                      IterativeImprovementInitType.RANDOM),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest('iiRandom2', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
 def iiGreedyPatternSearchTest(createTestFile=False):
@@ -447,11 +484,14 @@ def iiGreedyPatternSearchTest(createTestFile=False):
                          [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
     arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    runTest('iiGreedy1', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE,
-            eval_mechanism_params=IterativeImprovementEvaluationMechanismParameters(
-                20, IterativeImprovementType.SWAP_BASED, IterativeImprovementInitType.GREEDY),
-            events=nasdaqEventStream)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        IterativeImprovementTreePlanBuilderParameters(DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.tree_plan_params.cost_model_type,
+                                                      20,
+                                                      IterativeImprovementType.SWAP_BASED,
+                                                      IterativeImprovementInitType.GREEDY),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest('iiGreedy1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
 def iiGreedy2PatternSearchTest(createTestFile=False):
@@ -473,11 +513,14 @@ def iiGreedy2PatternSearchTest(createTestFile=False):
                          [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
     arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    runTest('iiGreedy2', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE,
-            eval_mechanism_params=IterativeImprovementEvaluationMechanismParameters(
-                20, IterativeImprovementType.CIRCLE_BASED, IterativeImprovementInitType.GREEDY),
-            events=nasdaqEventStream)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        IterativeImprovementTreePlanBuilderParameters(DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.tree_plan_params.cost_model_type,
+                                                      20,
+                                                      IterativeImprovementType.CIRCLE_BASED,
+                                                      IterativeImprovementInitType.GREEDY),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest('iiGreedy2', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
 def dpLdPatternSearchTest(createTestFile=False):
@@ -499,8 +542,11 @@ def dpLdPatternSearchTest(createTestFile=False):
                          [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
     arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    runTest('dpLd1', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE, events=nasdaqEventStream)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest('dpLd1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
 def dpBPatternSearchTest(createTestFile=False):
@@ -522,8 +568,11 @@ def dpBPatternSearchTest(createTestFile=False):
                          [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
     arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    runTest('dpB1', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE, events=nasdaqEventStream)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest('dpB1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
 def zStreamOrdPatternSearchTest(createTestFile=False):
@@ -545,8 +594,11 @@ def zStreamOrdPatternSearchTest(createTestFile=False):
                          [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
     arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    runTest('zstream-ord1', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.ORDERED_ZSTREAM_BUSHY_TREE, events=nasdaqEventStream)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest('zstream-ord1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
 def zStreamPatternSearchTest(createTestFile=False):
@@ -568,8 +620,11 @@ def zStreamPatternSearchTest(createTestFile=False):
                          [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
     arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    runTest('zstream1', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.ZSTREAM_BUSHY_TREE, events=nasdaqEventStream)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.ZSTREAM_BUSHY_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest('zstream1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
 def frequencyTailoredPatternSearchTest(createTestFile=False):
@@ -585,8 +640,11 @@ def frequencyTailoredPatternSearchTest(createTestFile=False):
     )
     frequencyDict = {"MSFT": 256, "DRIV": 257, "CBRL": 1}
     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, frequencyDict)
-    runTest('frequencyTailored1', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE, events=nasdaqEventStream)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest('frequencyTailored1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
 def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
@@ -600,8 +658,12 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
         ),
         timedelta(minutes=360)
     )
-    runTest('nonFrequencyTailored1', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, events=nasdaqEventStream)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest('nonFrequencyTailored1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
+
 
 # ON CUSTOM
 def multipleNotBeginAndEndTest(createTestFile=False):
@@ -831,10 +893,10 @@ def sortedStorageTest(createTestFile=False):
         timedelta(minutes=360),
     )
     storage_params = TreeStorageParameters(True, clean_up_interval=500)
-    runTest("sortedStorageTest", [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-            eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params),
-            events=nasdaqEventStream)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.tree_plan_params, storage_params
+    )
+    runTest("sortedStorageTest", [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 def sortedStorageBenchMarkTest(createTestFile=False):
     pattern = Pattern(
@@ -857,7 +919,10 @@ def sortedStorageBenchMarkTest(createTestFile=False):
     runBenchMark("sortedStorageBenchMark - unsorted storage", [pattern])
 
     storage_params = TreeStorageParameters(sort_storage=True, attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
-    runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params))
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.tree_plan_params, storage_params
+    )
+    runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], eval_mechanism_params=eval_params)
 
 
 runTest.over_all_time = 0
@@ -875,6 +940,8 @@ nonsensePatternSearchTest()
 hierarchyPatternSearchTest()
 nonFrequencyPatternSearchTest()
 arrivalRatesPatternSearchTest()
+
+# tree plan generation algorithms
 frequencyPatternSearchTest()
 nonFrequencyPatternSearch2Test()
 frequencyPatternSearch2Test()

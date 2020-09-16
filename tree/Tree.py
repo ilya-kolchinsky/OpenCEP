@@ -1,10 +1,11 @@
 from datetime import timedelta
-from typing import Dict, List
+from typing import List
 
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, CompositeStructure, UnaryStructure, \
     KleeneClosureOperator, PrimitiveEventStructure, NegationOperator
 from misc.ConsumptionPolicy import ConsumptionPolicy
+from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanBinaryNode, OperatorTypes
 from tree.AndNode import AndNode
 from tree.KleeneClosureNode import KleeneClosureNode
 from tree.LeafNode import LeafNode
@@ -19,8 +20,8 @@ class Tree:
     Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree positive_structure"
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     """
-    def __init__(self, tree_structure: tuple, pattern: Pattern, storage_params: TreeStorageParameters):
-        self.__root = self.__construct_tree(pattern.positive_structure, tree_structure,
+    def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters):
+        self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
                                             Tree.__get_operator_arg_list(pattern.positive_structure),
                                             pattern.window, None, pattern.consumption_policy)
 
@@ -118,7 +119,8 @@ class Tree:
             return KleeneClosureNode(sliding_window, operator.min_size, operator.max_size, parent)
         raise Exception("Unknown or unsupported operator %s" % (operator_type,))
 
-    def __handle_primitive_event_or_nested_structure(self, event_index: int, current_operator: PatternStructure,
+    def __handle_primitive_event_or_nested_structure(self, tree_plan_leaf: TreePlanLeafNode,
+                                                     current_operator: PatternStructure,
                                                      sliding_window: timedelta, parent: Node,
                                                      consumption_policy: ConsumptionPolicy):
         """
@@ -130,7 +132,7 @@ class Tree:
             if consumption_policy is not None and \
                     consumption_policy.should_register_event_type_as_single(False, event.type):
                 parent.register_single_event_type(event.type)
-            return LeafNode(sliding_window, event_index, event, parent)
+            return LeafNode(sliding_window, tree_plan_leaf.event_index, event, parent)
 
         if isinstance(current_operator, UnaryStructure):
             # the current operator is a unary operator hiding a nested pattern structure
@@ -146,7 +148,7 @@ class Tree:
         return self.__construct_tree(current_operator, Tree.__create_nested_structure(current_operator),
                                      current_operator.args, sliding_window, parent, consumption_policy)
 
-    def __construct_tree(self, root_operator: PatternStructure, tree_structure: tuple or int,
+    def __construct_tree(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
                          args: List[PatternStructure], sliding_window: timedelta, parent: Node,
                          consumption_policy: ConsumptionPolicy):
         """
@@ -154,20 +156,23 @@ class Tree:
         """
         if isinstance(root_operator, UnaryStructure) and parent is None:
             # a special case where the top operator of the entire pattern is an unary operator
-            return self.__handle_primitive_event_or_nested_structure(tree_structure, root_operator,
+            return self.__handle_primitive_event_or_nested_structure(tree_plan, root_operator,
                                                                      sliding_window, parent, consumption_policy)
 
-        if type(tree_structure) == int:
+        if type(tree_plan) == TreePlanLeafNode:
             # either a leaf node or an unary operator encapsulating a nested structure
-            return self.__handle_primitive_event_or_nested_structure(tree_structure, args[tree_structure],
+            # TODO: must implement a mechanism for actually creating nested tree plans instead of a flat plan
+            # with leaves hiding nested structure
+            return self.__handle_primitive_event_or_nested_structure(tree_plan, args[tree_plan.event_index],
                                                                      sliding_window, parent, consumption_policy)
 
         # an internal node
         current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
-        left_structure, right_structure = tree_structure
-        left = self.__construct_tree(root_operator, left_structure, args, sliding_window, current, consumption_policy)
-        right = self.__construct_tree(root_operator, right_structure, args, sliding_window, current, consumption_policy)
-        current.set_subtrees(left, right)
+        left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
+                                             sliding_window, current, consumption_policy)
+        right_subtree = self.__construct_tree(root_operator, tree_plan.right_child, args,
+                                              sliding_window, current, consumption_policy)
+        current.set_subtrees(left_subtree, right_subtree)
         return current
 
     def get_last_matches(self):
@@ -187,15 +192,20 @@ class Tree:
         return self.get_matches()
 
     @staticmethod
-    def __create_nested_structure(nested_operator):
+    def __create_nested_structure(nested_operator: PatternStructure):
         """
         This method is a temporal hack, hopefully it will be removed soon.
         # TODO: calculate the evaluation order in the way it should work - using a tree plan builder
         """
         order = list(range(len(nested_operator.args))) if isinstance(nested_operator, CompositeStructure) else [0]
-        ret = order[0]
+        operator_type = None
+        if isinstance(nested_operator, AndOperator):
+            operator_type = OperatorTypes.AND
+        elif isinstance(nested_operator, SeqOperator):
+            operator_type = OperatorTypes.SEQ
+        ret = TreePlanLeafNode(order[0])
         for i in range(1, len(order)):
-            ret = (ret, order[i])
+            ret = TreePlanBinaryNode(operator_type, ret, TreePlanLeafNode(order[i]))
         return ret
 
     @staticmethod

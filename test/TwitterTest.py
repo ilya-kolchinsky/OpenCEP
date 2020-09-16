@@ -1,5 +1,4 @@
 from CEP import CEP
-from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from plugin.twitter.TwitterDataFormatter import TWEET_TYPE
 from plugin.twitter.TwitterInputStream import TweetsStreamSessionInput
 from datetime import timedelta
@@ -28,8 +27,7 @@ def run_twitter_sanity_check():
     streaming = TweetsStreamSessionInput()
     stream_queue = streaming.get_stream_queue(['corona'])
 
-    cep = CEP([pattern_retweet],
-              EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, None)
+    cep = CEP([pattern_retweet])
     try:
         running_time = cep.run(stream_queue, is_async=True, file_path="output.txt", time_limit=5)
         print("Test twitterSanityCheck result: Succeeded, Time Passed: %s" % (running_time,))

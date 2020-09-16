@@ -59,10 +59,9 @@ googleAmazonLowPattern = Pattern(
 )
 ```
 
-Creating a CEP object for monitoring the patterns from the example above:
+Creating a CEP object for monitoring the first pattern from the example above:
 ```
-cep = CEP([googleAscendPattern, googleAmazonLowPattern], 
-          EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, None)
+cep = CEP([googleAscendPattern])
 ```
 
 Defining a new file-based event stream formatted according to Metastock 7 format:
@@ -199,8 +198,7 @@ eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=stor
 #can be any tree based evaluation parameters, just make sure to provide storage_params
 
 
-cep = CEP(pattern, EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-        eval_mechanism_params)
+cep = CEP(pattern, eval_mechanism_params)
 ```
 
 # Twitter API support
@@ -227,8 +225,7 @@ stream_queue = streaming.get_stream_queue(['corona'])
 After you created a queue, you can run the CEP. 
 Provide a path to the file you want the results will print to, and the time_limit above (optional):
 ```
-cep = CEP([pattern],
-          EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, None)
+cep = CEP([pattern])
 cep.run(stream_queue, is_async=True, file_path="output.txt", time_limit=x)
 
 ```

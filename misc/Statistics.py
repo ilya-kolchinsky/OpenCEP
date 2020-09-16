@@ -1,5 +1,3 @@
-from typing import List
-
 from base.Formula import Formula
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure
@@ -82,55 +80,6 @@ def get_arrival_rates(pattern: Pattern, stream: Stream):
     time_interval = (stream.last().date - stream.first().date).total_seconds()
     counters = get_occurrences_dict(pattern, stream.duplicate())
     return [counters[i.eventType] / time_interval for i in pattern.positive_structure.args]
-
-
-def calculate_left_deep_tree_cost_function(order: List[int], selectivity_matrix: List[List[float]],
-                                           arrival_rates: List[int], time_window: int):
-    """
-    Calculates the cost function of a left-deep tree specified by the given order.
-    """
-    cost = 0
-    to_add = 1
-    for i in range(len(order)):
-        to_add *= selectivity_matrix[order[i]][order[i]] * arrival_rates[order[i]] * time_window
-        for j in range(i):
-            to_add *= selectivity_matrix[order[i]][order[j]]
-        cost += to_add
-    return cost
-
-
-def calculate_bushy_tree_cost_function(tree: tuple or int, selectivity_matrix: List[List[float]],
-                                       arrival_rates: List[int], time_window: int):
-    """
-    Calculates the cost function of the given tree.
-    """
-    _, _, cost = calculate_bushy_tree_cost_function_helper(tree, selectivity_matrix, arrival_rates, time_window)
-    return cost
-
-
-def calculate_bushy_tree_cost_function_helper(tree: tuple or int, selectivity_matrix: List[List[float]],
-                                              arrival_rates: List[int], time_window: int):
-    """
-    A helper function for calculating the cost function of the given tree.
-    """
-    # calculate base case: tree is a leaf.
-    if type(tree) == int:
-        cost = pm = time_window * arrival_rates[tree] * selectivity_matrix[tree][tree]
-        return [tree], pm, cost
-
-    # calculate for left subtree
-    left_args, left_pm, left_cost = calculate_bushy_tree_cost_function_helper(tree[0], selectivity_matrix,
-                                                                              arrival_rates, time_window)
-    # calculate for right subtree
-    right_args, right_pm, right_cost = calculate_bushy_tree_cost_function_helper(tree[1], selectivity_matrix,
-                                                                                 arrival_rates, time_window)
-    # calculate from left and right subtrees for this subtree.
-    pm = left_pm * right_pm
-    for left_arg in left_args:
-        for right_arg in right_args:
-            pm *= selectivity_matrix[left_arg][right_arg]
-    cost = left_cost + right_cost + pm
-    return left_args + right_args, pm, cost
 
 
 class MissingStatisticsException(Exception):

@@ -1,5 +1,6 @@
 from base.Event import Event
 from misc.Utils import *
+from plan.TreePlan import TreePlan
 from tree.LeafNode import LeafNode
 from tree.PatternMatchStorage import TreeStorageParameters
 from evaluation.EvaluationMechanism import EvaluationMechanism
@@ -14,8 +15,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
-    def __init__(self, pattern: Pattern, tree_structure: tuple, storage_params: TreeStorageParameters):
-        self.__tree = Tree(tree_structure, pattern, storage_params)
+    def __init__(self, pattern: Pattern, tree_plan: TreePlan, storage_params: TreeStorageParameters):
+        self.__tree = Tree(tree_plan, pattern, storage_params)
         self.__pattern = pattern
         self.__freeze_map = {}
         self.__active_freezers = []
