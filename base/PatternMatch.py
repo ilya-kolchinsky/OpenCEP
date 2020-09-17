@@ -16,5 +16,9 @@ class PatternMatch:
     def __eq__(self, other):
         return isinstance(other, PatternMatch) and set(self.events) == set(other.events)
 
-    def __repr__(self):
-        return str(self.events)
+    def __str__(self):
+        result = ""
+        for event in self.events:
+            result += "%s\n" % event
+        result += "\n"
+        return result

@@ -1,7 +1,7 @@
 from base.Formula import Formula
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure
-from misc.IOUtils import Stream
+from stream.Stream import Stream
 
 
 def get_condition_selectivity(arg1: PrimitiveEventStructure, arg2: PrimitiveEventStructure, formula: Formula,

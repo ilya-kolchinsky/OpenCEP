@@ -4,7 +4,8 @@ import sys
 
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
-from misc.IOUtils import file_input, file_output
+from stream.Stream import OutputStream
+from stream.FileStream import FileInputStream, FileOutputStream
 from misc.Utils import generate_matches
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from plan.TreeCostModels import TreeCostModels
@@ -18,19 +19,19 @@ sys.path.append(absolutePath)
 
 INCLUDE_BENCHMARKS = False
 
-nasdaqEventStreamTiny = file_input(absolutePath, "test/EventFiles/NASDAQ_TINY.txt", MetastockDataFormatter())
-nasdaqEventStreamShort = file_input(absolutePath, "test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
-nasdaqEventStreamMedium = file_input(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt", MetastockDataFormatter())
-nasdaqEventStreamFrequencyTailored = file_input(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt", MetastockDataFormatter())
-nasdaqEventStream_AAPL_AMZN_GOOG = file_input(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt", MetastockDataFormatter())
-nasdaqEventStream = file_input(absolutePath, "test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
+nasdaqEventStreamTiny = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_TINY.txt"))
+nasdaqEventStreamShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_SHORT.txt"))
+nasdaqEventStreamMedium = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt"))
+nasdaqEventStreamFrequencyTailored = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
+nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
+nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
 
-nasdaqEventStreamHalfShort = file_input(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt", MetastockDataFormatter())
-custom = file_input(absolutePath, "test/EventFiles/custom.txt", MetastockDataFormatter())
-custom2 = file_input(absolutePath, "test/EventFiles/custom2.txt", MetastockDataFormatter())
-custom3 = file_input(absolutePath, "test/EventFiles/custom3.txt", MetastockDataFormatter())
+nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt"))
+custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"))
+custom2 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom2.txt"))
+custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.txt"))
 
-nasdaqEventStreamKC = file_input(absolutePath, "test/EventFiles/NASDAQ_KC.txt", MetastockDataFormatter())
+nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
 DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
     TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
@@ -38,7 +39,7 @@ DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
                                            TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True))
-
+DEFAULT_TESTING_DATA_FORMATTER = MetastockDataFormatter()
 
 def numOfLinesInPattern(file):
     """
@@ -117,6 +118,17 @@ def fillSet(file, set: set, counter: int):
             tmp = 0
 
 
+def outputTestFile(base_path: str, matches: list, output_file_name: str = 'matches.txt'):
+    base_matches_directory = os.path.join(os.path.join(base_path), 'test', 'Matches')
+    if not os.path.exists(base_matches_directory):
+        os.makedirs(base_matches_directory, exist_ok=True)
+    with open(os.path.join(base_matches_directory, output_file_name), 'w') as f:
+        for match in matches:
+            for event in match.events:
+                f.write("%s\n" % event)
+            f.write("\n")
+
+
 def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream):
     if events is None:
         events = eventStream.duplicate()
@@ -124,7 +136,7 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
         events = events.duplicate()
     pattern = patterns[0]
     matches = generate_matches(pattern, events)
-    file_output(absolutePath, matches, '../TestsExpected/%sMatches.txt' % testName)
+    outputTestFile(absolutePath, matches, '../TestsExpected/%sMatches.txt' % testName)
     print("Finished creating test %s" % testName)
 
 
@@ -154,15 +166,23 @@ def runTest(testName, patterns, createTestFile = False,
         events = custom3.duplicate()
 
     cep = CEP(patterns, eval_mechanism_params)
-    running_time = cep.run(events)
-    matches = cep.get_pattern_match_stream()
-    file_output(absolutePath, matches, '%sMatches.txt' % testName)
-    expected_matches_path = "test/TestsExpected/%sMatches.txt" % testName
-    actual_matches_path = "test/Matches/%sMatches.txt" % testName
+
+    base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
+    output_file_name = "%sMatches.txt" % testName
+    matches_stream = FileOutputStream(base_matches_directory, output_file_name)
+    running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
+
+    expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
+    actual_matches_path = os.path.join(base_matches_directory, output_file_name)
     print("Test %s result: %s, Time Passed: %s" % (testName,
           "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
     runTest.over_all_time += running_time
-    os.remove(absolutePath + "\\" + actual_matches_path)
+    os.remove(actual_matches_path)
+
+
+class DummyOutputStream(OutputStream):
+    def add_item(self, item: object):
+        pass
 
 
 def runBenchMark(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS, events=None):
@@ -175,7 +195,7 @@ def runBenchMark(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALU
     else:
         events = events.duplicate()
     cep = CEP(patterns, eval_mechanism_params)
-    running_time = cep.run(events)
+    running_time = cep.run(events, DummyOutputStream(), DEFAULT_TESTING_DATA_FORMATTER)
     print("Bench Mark %s completed, Time Passed: %s" % (testName, running_time))
     runTest.over_all_time += running_time
 

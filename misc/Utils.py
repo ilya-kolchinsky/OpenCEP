@@ -12,7 +12,7 @@ from base.PatternStructure import SeqOperator
 from base.PatternMatch import PatternMatch
 from copy import deepcopy
 
-from misc.IOUtils import Stream
+from stream.Stream import Stream
 
 
 def find_partial_match_by_timestamp(partial_matches: List[PatternMatch], timestamp: datetime):
