@@ -11,7 +11,7 @@ from datetime import timedelta, datetime
 import time
 import threading
 
-class ParallelUnaryNode(UnaryNode):
+class ParallelUnaryNode(UnaryNode): # new root
     def __init__(self, is_root: bool, sliding_window: timedelta, parent: Node = None,
                  event_defs: List[Tuple[int, QItem]] = None, child: Node = None):
         super().__init__(sliding_window, parent, event_defs, child)
@@ -41,15 +41,18 @@ class ParallelUnaryNode(UnaryNode):
         super()._add_partial_match(new_partial_match)
 
 
-class UnaryParallelTreeEval(ParallelExecutionFramework):
+
+class ParallelTreeEval(ParallelExecutionFramework):
 
     def __init__(self, tree_based_eval: TreeBasedEvaluationMechanism, has_leafs: bool):
         if type(tree_based_eval) is not TreeBasedEvaluationMechanism:
             raise Exception()
         super().__init__(tree_based_eval)
         self._has_leafs = has_leafs
+        self._is_done = False
         self.add_unary_root()
         self.thread = None
+        self.children = [] # list of type ParallelTreeEval
 
     def add_unary_root(self):
         root = self._evaluation_mechanism.get_tree().get_root()
@@ -61,6 +64,12 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
         self._evaluation_mechanism.set_root(unary_node)
         storageparams = TreeStorageParameters(True)
         self._evaluation_mechanism.get_tree().get_root().create_storage_unit(storageparams)
+
+    def get_done(self):
+        return self._is_done
+
+    def light_is_done(self):
+        self._is_done = True
 
     def stop(self):
         raise NotImplementedError()
@@ -84,6 +93,9 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
             time.sleep(0.5)
 
     def get_children(self):
+        return self.children
+
+    def get_children_old(self):
         # returns a list of all the UnaryParallelNodes that are directly connected to self.tree_based
         root = self._evaluation_mechanism.get_tree().get_root()
         if type(root) is not ParallelUnaryNode:
@@ -91,7 +103,7 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
             raise Exception()
         children = self._evaluation_mechanism.get_tree().get_leaves()
         for i in range(len(children)):
-            if children[i] == root:#TODO remove
+            if children[i] == root: # TODO remove
                 children.remove(children[i])
             if type(children[i]) is not ParallelUnaryNode:
                 children.remove(children[i])
@@ -103,17 +115,12 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
             return events
         aggregated_events = Stream()
 
-        lock = threading.Lock()
-
         for child in children:
             if type(child) is not ParallelUnaryNode:
                 raise Exception()
-            #LOCK
-            lock.acquire()
+
             for match in child._partial_matches:
                 aggregated_events.add_item(match)
-            #UNLOCK
-            lock.acquire()
 
         return aggregated_events
 
@@ -133,9 +140,11 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
         #print('Running thread with id', threading.get_ident())
 
         root = self._evaluation_mechanism.get_tree().get_root()
+
         if type(root) is not ParallelUnaryNode:
             # tree not built properly
             raise Exception()
+
         while not root.get_done():
             self.modified_eval(event_stream, pattern_matches, is_async, file_path, time_limit)
 
