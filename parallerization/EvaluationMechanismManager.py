@@ -10,6 +10,8 @@ from base.Pattern import Pattern
 from parallerization import ParallelWorkLoadFramework, ParallelExecutionFramework
 from typing import List
 
+import threading
+
 
 class EvaluationMechanismManager:
 
@@ -123,7 +125,12 @@ class EvaluationMechanismManager:
 
             self.eval_by_single_tree_single_data(is_async, file_path, time_limit, self.eval_mechanism_list[i],
                                                  event_stream, pattern_match)
-            self.masters_list[i].wait_till_finish()
+
+        for i in range(len(self.event_stream_splitted)):
+            self.masters_list[i].thread.join()
+
+        print("Thread end count:" , threading.active_count())
+
 
     def eval_by_multiple_tree_single_data(self, is_async, file_path, time_limit):
         for i in range(len(self.eval_mechanism_list)):

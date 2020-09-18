@@ -865,11 +865,14 @@ runTest.over_all_time = 0
 
 #Parallel tests
 
-onlyTreeSplitsimplePatternSearchTest()
-onlyTreeSplit_oneArgumentsearchTest()
+#onlyTreeSplitsimplePatternSearchTest()
+#onlyTreeSplit_oneArgumentsearchTest()
 onlyDataSplit_oneArgumentsearchTest()
 
+simplePatternSearchTest()
+print("Finished running all tests, overall time: %s" % runTest.over_all_time)
 
+"""
 # basic functionality tests
 oneArgumentsearchTest()
 simplePatternSearchTest()
@@ -956,3 +959,4 @@ except ImportError:  # tweepy might not be installed
     pass
 finally:
     print("Finished running all tests, overall time: %s" % runTest.over_all_time)
+    """

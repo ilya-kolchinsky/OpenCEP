@@ -49,6 +49,7 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
         super().__init__(tree_based_eval)
         self._has_leafs = has_leafs
         self.add_unary_root()
+        self.thread = None
 
     def add_unary_root(self):
         root = self._evaluation_mechanism.get_tree().get_root()
@@ -74,9 +75,11 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
 
     def wait_till_finish(self):
         root = self._evaluation_mechanism.get_tree().get_root()
+
         if type(root) is not ParallelUnaryNode:
             # tree not built properly
             raise Exception()
+
         while not root.get_done():
             time.sleep(0.5)
 
@@ -127,6 +130,8 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
             time.sleep(0.5)
 
     def run_eval(self, event_stream, pattern_matches, is_async, file_path, time_limit):  # thread running
+        #print('Running thread with id', threading.get_ident())
+
         root = self._evaluation_mechanism.get_tree().get_root()
         if type(root) is not ParallelUnaryNode:
             # tree not built properly
@@ -134,11 +139,16 @@ class UnaryParallelTreeEval(ParallelExecutionFramework):
         while not root.get_done():
             self.modified_eval(event_stream, pattern_matches, is_async, file_path, time_limit)
 
+        #print('Finished running thread with id', threading.get_ident())
+        return
+
     def eval(self, event_stream, pattern_matches, is_async=False, file_path=None, time_limit: int = None):
-        thread = threading.Thread(target=self.run_eval, args=(event_stream, pattern_matches, is_async,
+        print('Running MAIN thread with id', threading.get_ident())
+
+        self.thread = threading.Thread(target=self.run_eval, args=(event_stream, pattern_matches, is_async,
+
                                                               file_path, time_limit,))
-        thread.start()
-        #self.run_eval(event_stream, pattern_matches, is_async, file_path, time_limit)
+        self.thread.start()
 
     def all_children_done(self):
         lock = threading.Lock()

@@ -21,6 +21,10 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def split_data(self, input_stream: Stream, eval_mechanism: TreeBasedEvaluationMechanism,
                    eval_mechanism_type: EvaluationMechanismTypes, eval_params: EvaluationMechanismParameters):
+        return self.split_data_to_two(input_stream, eval_mechanism,eval_mechanism_type, eval_params)
+
+    def split_data_to_two(self, input_stream: Stream, eval_mechanism: TreeBasedEvaluationMechanism,
+                   eval_mechanism_type: EvaluationMechanismTypes, eval_params: EvaluationMechanismParameters):
         #returns the data stream splitted in 2: the first pattern_size lines in one part and the rest of the stream in another
 
         self.set_source_eval_mechanism(eval_mechanism)
@@ -45,18 +49,52 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
                 counter += 1
 
         else:
-            raise Exception() #should never happen
-        if not self.get_is_tree_splitted():
-            tree_based_eval_one = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
-                                                                                                 eval_params,
-                                                                                                 self.pattern)
-            tree_based_eval_two = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
-                                                                                                 eval_params,
-                                                                                                 self.pattern)
+            raise Exception() # should never happen
 
-            self.masters = [UnaryParallelTreeEval(tree_based_eval_one, True)]
-            self.masters.append(UnaryParallelTreeEval(tree_based_eval_two, True))
+        self.createTreesCopiesSingleTreeMultipleData(2, eval_mechanism_type, eval_params)
+
         return output_stream
+
+    def split_data_to_five(self, input_stream: Stream, eval_mechanism: TreeBasedEvaluationMechanism,
+                   eval_mechanism_type: EvaluationMechanismTypes, eval_params: EvaluationMechanismParameters):
+        # returns the data stream splitted in 2: the first pattern_size lines in one part and the rest of the stream in another
+
+        self.set_source_eval_mechanism(eval_mechanism)
+        output_stream = []
+        if not self._is_data_splitted:
+            output_stream.append(input_stream)
+            return output_stream
+        elif self._is_data_splitted:
+            counter = 0
+            for event in input_stream:
+                event_stream = Stream()
+                event_stream.add_item(event)
+                if counter == 0:
+                    output_stream.append(event_stream)
+                elif counter < input_stream.count()/5:
+                    output_stream[0].add_item(event)
+
+                elif counter == self.pattern_size:
+                    output_stream.append(event_stream)
+                    output_stream[1].add_item(event)
+                else:
+                    output_stream[1].add_item(event)
+                counter += 1
+
+        else:
+            raise Exception()  # should never happen
+
+        self.createTreesCopiesSingleTreeMultipleData(2, eval_mechanism_type, eval_params)
+
+        return output_stream
+
+    def createTreesCopiesSingleTreeMultipleData(self, num_of_copies: int, eval_mechanism_type: EvaluationMechanismTypes,
+                                                   eval_params: EvaluationMechanismParameters):
+        self.masters = []
+        for i in range(num_of_copies):
+            tree_based_eval = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
+                                                                                             eval_params, self.pattern)
+            self.masters.append(UnaryParallelTreeEval(tree_based_eval, True))
 
     def get_masters(self):
         return self.masters
