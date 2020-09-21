@@ -1,5 +1,5 @@
 from datetime import datetime
-from base.DataFormatter import DataFormatter
+from base.DataFormatter import DataFormatter, EventTypeClassifier
 import json
 
 TWEET_MANDATORY_FIELDS = ["id", "created_at", "text", "truncated", "in_reply_to_status_id", "in_reply_to_user_id",
@@ -9,13 +9,24 @@ TWEET_OPTIONAL_FIELDS = ["quoted_status_id", "quote_count", "reply_count"]
 TWEET_OPTIONAL_DICT_FIELDS = {"place": "full_name", "retweeted_status": "id"}
 
 TWEET_EVENT_TIMESTAMP_KEY = "created_at"
-TWEET_TYPE = "Tweet"
+
+
+class DummyTwitterEventTypeClassifier(EventTypeClassifier):
+    """
+    Assigns a single dummy event type to all events
+    """
+    TWEET_TYPE = "Tweet"
+
+    def get_event_type(self, event_payload: dict):
+        return self.TWEET_TYPE
 
 
 class TweetDataFormatter(DataFormatter):
     """
     A data formatter implementation for the JSON-based data arriving via Twitter API.
     """
+    def __init__(self, event_type_classifier: EventTypeClassifier = DummyTwitterEventTypeClassifier()):
+        super().__init__(event_type_classifier)
 
     def parse_event(self, raw_data: str):
         """
@@ -30,12 +41,6 @@ class TweetDataFormatter(DataFormatter):
                                    for (primary_key, secondary_key) in TWEET_OPTIONAL_DICT_FIELDS.items()
                                    if primary_key in json_version and json_version[primary_key] is not None})
         return tweet_payload_dict
-
-    def get_event_type(self, event_payload: dict):
-        """
-        For now, all tweet-based events are untyped, i.e., the belong to a single type.
-        """
-        return TWEET_TYPE
 
     def get_event_timestamp(self, event_payload: dict):
         """

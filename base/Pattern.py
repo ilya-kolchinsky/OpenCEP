@@ -3,10 +3,10 @@ from typing import List
 
 from base.Event import Event
 from base.Formula import Formula, EqFormula, IdentifierTerm, MinusTerm, AtomicTerm, AndFormula
-from base.PatternStructure import PatternStructure, QItem, CompositeStructure
+from base.PatternStructure import PatternStructure, CompositeStructure, SeqOperator, \
+    PrimitiveEventStructure, NegationOperator
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
-from base.PatternStructure import SeqOperator, QItem, NegationOperator
 from misc.ConsumptionPolicy import ConsumptionPolicy
 
 
@@ -64,7 +64,7 @@ class Pattern:
             if type(arg) == NegationOperator:
                 # a negative event was found and needs to be extracted
                 negative_structure.args.append(arg)
-            elif type(arg) != QItem:
+            elif type(arg) != PrimitiveEventStructure:
                 # TODO: nested operator support should be provided here
                 pass
         if len(negative_structure.get_args()) == 0:
@@ -101,7 +101,7 @@ class Pattern:
         """
         An auxiliary method for returning all event types in the pattern.
         """
-        if structure.get_top_operator() == QItem:
+        if isinstance(structure, PrimitiveEventStructure):
             return [structure.type]
         return reduce(lambda x, y: x+y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
 
@@ -119,7 +119,8 @@ class Pattern:
         for contiguous_sequence in self.consumption_policy.contiguous_names:
             for i in range(len(contiguous_sequence) - 1):
                 for j in range(len(args) - 1):
-                    if args[i].get_top_operator() != QItem or args[i + 1].get_top_operator() != QItem:
+                    if not isinstance(args[i], PrimitiveEventStructure) or \
+                            not isinstance(args[i + 1], PrimitiveEventStructure):
                         continue
                     if contiguous_sequence[i] != args[j].name:
                         continue
@@ -153,11 +154,11 @@ class Pattern:
         """
         An auxiliary method for extracting flat sequences from the pattern.
         """
-        if pattern_structure.get_top_operator() == QItem:
+        if isinstance(pattern_structure, PrimitiveEventStructure):
             return None
         if pattern_structure.get_top_operator() == SeqOperator:
             # note the double brackets - we return a list composed of a single list representing this sequence
-            return [[arg.name for arg in pattern_structure.args if arg.get_top_operator() == QItem]]
+            return [[arg.name for arg in pattern_structure.args if isinstance(arg, PrimitiveEventStructure)]]
         # the pattern is a composite pattern but not a flat sequence
         result = []
         for arg in pattern_structure.args:
