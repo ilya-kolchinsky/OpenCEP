@@ -1,21 +1,7 @@
-from enum import Enum
 from typing import List
 
-
-class SelectionStrategies(Enum):
-    """
-    The selection strategies supported by the framework.
-    MATCH_NEXT - for each event only a single attempt to match it against another event is performed;
-    MATCH_SINGLE - each event is guaranteed to only be returned as a part of a single full match;
-    MATCH_ANY - each event can participate in an arbitrary number of matches.
-    """
-    MATCH_NEXT = 0,
-    MATCH_SINGLE = 1,
-    MATCH_ANY = 2
-
-
-DEFAULT_PRIMARY_SELECTION_STRATEGY = SelectionStrategies.MATCH_ANY
-DEFAULT_SECONDARY_SELECTION_STRATEGY = SelectionStrategies.MATCH_SINGLE
+from misc import DefaultConfig
+from misc.SelectionStrategies import SelectionStrategies
 
 
 class ConsumptionPolicy:
@@ -61,9 +47,9 @@ class ConsumptionPolicy:
         Initializes the selection strategy settings and performs basic sanity checks.
         """
         if primary_selection_strategy is None:
-            primary_selection_strategy = DEFAULT_PRIMARY_SELECTION_STRATEGY
+            primary_selection_strategy = DefaultConfig.PRIMARY_SELECTION_STRATEGY
         if secondary_selection_strategy is None:
-            secondary_selection_strategy = DEFAULT_SECONDARY_SELECTION_STRATEGY
+            secondary_selection_strategy = DefaultConfig.SECONDARY_SELECTION_STRATEGY
 
         if primary_selection_strategy != SelectionStrategies.MATCH_ANY:
             if single is not None or secondary_selection_strategy is not None:

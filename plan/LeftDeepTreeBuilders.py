@@ -1,46 +1,54 @@
 """
 This file contains the implementations of algorithms constructing a left-deep tree-based evaluation mechanism.
 """
-from enum import Enum
 import random
 from typing import List
 
 from base.PatternStructure import CompositeStructure
-from evaluation.IterativeImprovement import IterativeImprovementType, IterativeImprovementAlgorithmBuilder
-from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
-from evaluation.EvaluationMechanismBuilder import EvaluationMechanismBuilder
+from misc import DefaultConfig
+from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType, \
+    IterativeImprovementAlgorithmBuilder
+from plan.TreeCostModels import TreeCostModels
+from plan.TreePlan import TreePlanLeafNode
+from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
-from misc.Statistics import calculate_left_deep_tree_cost_function, MissingStatisticsException
+from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
-from evaluation.PartialMatchStorage import TreeStorageParameters
 
 
-class LeftDeepTreeBuilder(EvaluationMechanismBuilder):
+class LeftDeepTreeBuilder(TreePlanBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-    def build_single_pattern_eval_mechanism(self, pattern: Pattern, storage_params: TreeStorageParameters):
+    def _create_tree_topology(self, pattern: Pattern):
+        """
+        Invokes an algorithm (to be implemented by subclasses) that builds an evaluation order of the operands, and
+        converts it into a left-deep tree topology.
+        """
         order = self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure, CompositeStructure) else [0]
-        tree_structure = self.__build_tree_from_order(order)
-        return TreeBasedEvaluationMechanism(pattern, tree_structure, storage_params)
-
-    def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern], storage_params: TreeStorageParameters):
-        raise Exception("Unsupported")
+        return LeftDeepTreeBuilder._order_to_tree_topology(order, pattern)
 
     @staticmethod
-    def __build_tree_from_order(order: List[int]):
+    def _order_to_tree_topology(order: List[int], pattern: Pattern):
         """
-        Builds a left-deep tree structure from a given order.
+        A helper method for converting a given order to a tree topology.
         """
-        ret = order[0]
+        tree_topology = TreePlanLeafNode(order[0])
         for i in range(1, len(order)):
-            ret = (ret, order[i])
-        return ret
+            tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(order[i]))
+        return tree_topology
+
+    def _get_order_cost(self, pattern: Pattern, order: List[int]):
+        """
+        Returns the cost of a given order of event processing.
+        """
+        tree_plan = LeftDeepTreeBuilder._order_to_tree_topology(order, pattern)
+        return self._get_plan_cost(pattern, tree_plan)
 
     def _create_evaluation_order(self, pattern: Pattern):
         """
-        To be implemented by subclasses.
+        Creates an evaluation order to serve as a basis for the left-deep tree topology.
         """
         raise NotImplementedError()
 
@@ -124,18 +132,14 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
         return new_order
 
 
-class IterativeImprovementInitType(Enum):
-    RANDOM = 0
-    GREEDY = 1
-
-
 class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree using the iterative improvement procedure.
     """
-    def __init__(self, step_limit: int,
-                 ii_type: IterativeImprovementType = IterativeImprovementType.SWAP_BASED,
-                 init_type: IterativeImprovementInitType = IterativeImprovementInitType.RANDOM):
+    def __init__(self, cost_model_type: TreeCostModels, step_limit: int,
+                 ii_type: IterativeImprovementType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE,
+                 init_type: IterativeImprovementInitType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE):
+        super().__init__(cost_model_type)
         self.__iterative_improvement = IterativeImprovementAlgorithmBuilder.create_ii_algorithm(ii_type)
         self.__initType = init_type
         self.__step_limit = step_limit
@@ -150,8 +154,8 @@ class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
             order = self.__get_random_order(len(arrivalRates))
         elif self.__initType == IterativeImprovementInitType.GREEDY:
             order = GreedyLeftDeepTreeBuilder.calculate_greedy_order(selectivityMatrix, arrivalRates)
-        return self.__iterative_improvement.execute(self.__step_limit, order, selectivityMatrix, arrivalRates,
-                                                    pattern.window.total_seconds())
+        get_cost_callback = lambda o: self._get_order_cost(pattern, o)
+        return self.__iterative_improvement.execute(self.__step_limit, order, get_cost_callback)
 
     @staticmethod
     def __get_random_order(n: int):
@@ -173,14 +177,9 @@ class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivityMatrix, arrivalRates) = pattern.statistics
+            (selectivity_matrix, arrival_rates) = pattern.statistics
         else:
             raise MissingStatisticsException()
-        return DynamicProgrammingLeftDeepTreeBuilder.find_order(selectivityMatrix, arrivalRates,
-                                                                pattern.window.total_seconds())
-
-    @staticmethod
-    def find_order(selectivity_matrix: List[List[float]], arrival_rates: List[int], window: int):
         args_num = len(selectivity_matrix)
         if args_num == 1:  # boring extreme case
             return [0]
@@ -188,8 +187,7 @@ class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
         items = frozenset(range(args_num))
         # Save subsets' optimal orders, the cost and the left to add items.
         sub_orders = {frozenset({i}): ([i],
-                                       calculate_left_deep_tree_cost_function([i], selectivity_matrix, arrival_rates,
-                                                                              window),
+                                       self._get_order_cost(pattern, [i]),
                                        items.difference({i}))
                       for i in items}
 
@@ -201,7 +199,7 @@ class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
                 for item in left_to_add:
                     # calculate for optional order for set of size i
                     new_subset = frozenset(subset.union({item}))
-                    new_cost = calculate_left_deep_tree_cost_function(order, selectivity_matrix, arrival_rates, window)
+                    new_cost = self._get_order_cost(pattern, order)
                     # check if it is not the first order for that set
                     if new_subset in next_orders.keys():
                         _, t_cost, t_left = next_orders[new_subset]

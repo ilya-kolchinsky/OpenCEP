@@ -1,7 +1,7 @@
 from test.testUtils import *
 from datetime import timedelta
 from base.Formula import GreaterThanFormula, SmallerThanFormula, IdentifierTerm, AtomicTerm, AndFormula
-from base.PatternStructure import AndOperator, SeqOperator, QItem, KleeneClosureOperator
+from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, KleeneClosureOperator
 from base.Pattern import Pattern
 
 
@@ -10,12 +10,12 @@ def structuralTest1():
     Seq([a, KC(And([KC(d), KC(Seq([e, f]))]))])
     """
     structural_test_pattern = Pattern(
-        SeqOperator([QItem("GOOG", "a"),
+        SeqOperator([PrimitiveEventStructure("GOOG", "a"),
                      KleeneClosureOperator(
-                         AndOperator([QItem("GOOG", "b"),
-                                      KleeneClosureOperator(QItem("GOOG", "c"),
+                         AndOperator([PrimitiveEventStructure("GOOG", "b"),
+                                      KleeneClosureOperator(PrimitiveEventStructure("GOOG", "c"),
                                                             min_size=1, max_size=5),
-                                      KleeneClosureOperator(SeqOperator([QItem("GOOG", "d"), QItem("GOOG", "e")]),
+                                      KleeneClosureOperator(SeqOperator([PrimitiveEventStructure("GOOG", "d"), PrimitiveEventStructure("GOOG", "e")]),
                                                             min_size=1, max_size=5)]
                                      ),
                          min_size=1, max_size=5,
@@ -36,7 +36,7 @@ def structuralTest2():
     KC(a)
     """
     structural_test_pattern = Pattern(
-        KleeneClosureOperator(QItem("GOOG", "a")),
+        KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a")),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
@@ -53,7 +53,7 @@ def structuralTest3():
     """
     structural_test_pattern = Pattern(
         SeqOperator([
-            QItem("GOOG", "a"), KleeneClosureOperator(QItem("GOOG", "b"))
+            PrimitiveEventStructure("GOOG", "a"), KleeneClosureOperator(PrimitiveEventStructure("GOOG", "b"))
         ]),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
@@ -71,7 +71,7 @@ def structuralTest4():
     """
     structural_test_pattern = Pattern(
         AndOperator([
-            KleeneClosureOperator(QItem("GOOG", "a")), QItem("GOOG", "b")
+            KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a")), PrimitiveEventStructure("GOOG", "b")
         ]),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
@@ -90,8 +90,8 @@ def structuralTest5():
     structural_test_pattern = Pattern(
         KleeneClosureOperator(
             SeqOperator([
-                KleeneClosureOperator(QItem("GOOG", "a"), min_size=3, max_size=5),
-                KleeneClosureOperator(QItem("GOOG", "b"))
+                KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=3, max_size=5),
+                KleeneClosureOperator(PrimitiveEventStructure("GOOG", "b"))
             ]), min_size=1, max_size=3
         ),
         AndFormula(
@@ -110,14 +110,14 @@ def structuralTest6():
     """
     structural_test_pattern = Pattern(
         SeqOperator([
-            QItem("GOOG", "a"),
+            PrimitiveEventStructure("GOOG", "a"),
             SeqOperator([
-                QItem("GOOG", "b"),
+                PrimitiveEventStructure("GOOG", "b"),
                 AndOperator([
-                    QItem("GOOG", "c"),
-                    QItem("GOOG", "d")
+                    PrimitiveEventStructure("GOOG", "c"),
+                    PrimitiveEventStructure("GOOG", "d")
                 ]),
-                QItem("GOOG", "e")
+                PrimitiveEventStructure("GOOG", "e")
             ]),
         ]),
         AndFormula(
@@ -145,23 +145,23 @@ def structuralTest7():
     """
     structural_test_pattern = Pattern(
         AndOperator([
-            QItem("GOOG", "a"), QItem("GOOG", "b"), QItem("GOOG", "c"),
+            PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"), PrimitiveEventStructure("GOOG", "c"),
             SeqOperator([
-                QItem("GOOG", "d"),
+                PrimitiveEventStructure("GOOG", "d"),
                 KleeneClosureOperator(
                     AndOperator([
-                        QItem("GOOG", "e"), KleeneClosureOperator(QItem("GOOG", "f")), QItem("GOOG", "g")
+                        PrimitiveEventStructure("GOOG", "e"), KleeneClosureOperator(PrimitiveEventStructure("GOOG", "f")), PrimitiveEventStructure("GOOG", "g")
                     ])
                 ), AndOperator([
-                    KleeneClosureOperator(QItem("GOOG", "h")),
+                    KleeneClosureOperator(PrimitiveEventStructure("GOOG", "h")),
                     KleeneClosureOperator(
                         SeqOperator([
-                            QItem("GOOG", "i"), QItem("GOOG", "j")
+                            PrimitiveEventStructure("GOOG", "i"), PrimitiveEventStructure("GOOG", "j")
                         ]),
                     ),
                 ]),
             ]),
-            QItem("GOOG", "k"), QItem("GOOG", "l")
+            PrimitiveEventStructure("GOOG", "k"), PrimitiveEventStructure("GOOG", "l")
         ]),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
@@ -176,11 +176,11 @@ def structuralTest7():
 
 
 """
-identical to the first test in the file, with 1 exception - the QItem object is wrapped with a KC operator
+identical to the first test in the file, with 1 exception - the PrimitiveEventStructure object is wrapped with a KC operator
 """
 def oneArgumentsearchTestKleeneClosure(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([KleeneClosureOperator(QItem("AAPL", "a"), min_size=1, max_size=5)]),
+        SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("AAPL", "a"), min_size=1, max_size=5)]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
         timedelta(minutes=5)
     )
@@ -189,7 +189,7 @@ def oneArgumentsearchTestKleeneClosure(createTestFile=False):
 
 def MinMax_0_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([KleeneClosureOperator(QItem("GOOG", "a"), min_size=1, max_size=2)]),
+        SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=1, max_size=2)]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(0)),
         timedelta(minutes=5)
     )
@@ -197,7 +197,7 @@ def MinMax_0_TestKleeneClosure(createTestFile=False):
 
 def MinMax_1_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([KleeneClosureOperator(QItem("GOOG", "a"))]),
+        SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(0)),
         timedelta(minutes=5)
     )
@@ -205,7 +205,7 @@ def MinMax_1_TestKleeneClosure(createTestFile=False):
 
 def MinMax_2_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([KleeneClosureOperator(QItem("GOOG", "a"), min_size=4, max_size=5)]),
+        SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=4, max_size=5)]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(0)),
         timedelta(minutes=5)
     )
@@ -219,9 +219,9 @@ def KC_AND(createTestFile=False):
     pattern = Pattern(
         KleeneClosureOperator(
             AndOperator([
-                QItem("GOOG", "a"),
-                QItem("GOOG", "b"),
-                QItem("GOOG", "c")
+                PrimitiveEventStructure("GOOG", "a"),
+                PrimitiveEventStructure("GOOG", "b"),
+                PrimitiveEventStructure("GOOG", "c")
             ]), min_size=1, max_size=3
         ),
         AndFormula(

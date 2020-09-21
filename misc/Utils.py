@@ -6,17 +6,16 @@ from datetime import datetime
 from typing import List, Container
 
 from base.Pattern import Pattern
-from base.PatternStructure import QItem
+from base.PatternStructure import PrimitiveEventStructure
 from itertools import combinations
 from base.PatternStructure import SeqOperator
 from base.PatternMatch import PatternMatch
 from copy import deepcopy
 
-from evaluation.PartialMatch import PartialMatch
-from misc.IOUtils import Stream
+from stream.Stream import Stream
 
 
-def find_partial_match_by_timestamp(partial_matches: List[PartialMatch], timestamp: datetime):
+def find_partial_match_by_timestamp(partial_matches: List[PatternMatch], timestamp: datetime):
     """
     Returns the partial match from the given list such that its timestamp is the closest to the given timestamp.
     The list is assumed to be sorted according to the earliest event timestamp.
@@ -75,11 +74,11 @@ def str_to_number(x: str):
         return x
 
 
-def get_order_by_occurrences(qitems: List[QItem], occurrences: dict):
+def get_order_by_occurrences(primitive_events: List[PrimitiveEventStructure], occurrences: dict):
     """
     Sorts the given list according to the occurrences dictionary.
     """
-    temp_list = [(i, occurrences[qitems[i].type]) for i in range(len(qitems))]
+    temp_list = [(i, occurrences[primitive_events[i].type]) for i in range(len(primitive_events))]
     temp_list = sorted(temp_list, key=lambda x: x[1])
     return [i[0] for i in temp_list]
 
@@ -179,7 +178,7 @@ def generate_matches(pattern: Pattern, stream: Stream):
     It is used as our test creator.
     """
     args = pattern.positive_structure.args
-    types = {qitem.eventType for qitem in args}
+    types = {primitive_event.event_type for primitive_event in args}
     is_seq = (pattern.positive_structure.get_top_operator() == SeqOperator)
     events = {}
     matches = []
@@ -202,18 +201,18 @@ def generate_matches_recursive(pattern: Pattern, events: dict, is_seq: bool, mat
             if not does_match_exist(matches, match):
                 matches.append(PatternMatch(deepcopy(match)))
     else:
-        qitem = pattern.positive_structure.args[loop]
-        for event in events[qitem.eventType]:
-            min_date = min(min_event_timestamp, event.date)
-            max_date = max(max_event_timestamp, event.date)
-            binding[qitem.name] = event.event
-            if max_date - min_date <= pattern.window:
+        primitive_event = pattern.positive_structure.args[loop]
+        for event in events[primitive_event.eventType]:
+            min_timestamp = min(min_event_timestamp, event.date)
+            max_timestamp = max(max_event_timestamp, event.date)
+            binding[primitive_event.name] = event.event
+            if max_timestamp - min_timestamp <= pattern.window:
                 if not is_seq or len(match) == 0 or match[-1].date <= event.date:
                     match.append(event)
                     generate_matches_recursive(pattern, events, is_seq, match, min_timestamp, max_timestamp, matches,
                                                binding, loop + 1)
                     del match[-1]
-        del binding[qitem.name]
+        del binding[primitive_event.name]
 
 
 def does_match_exist(matches: list, match: list):

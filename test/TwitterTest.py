@@ -1,10 +1,12 @@
+import os
+
 from CEP import CEP
-from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes
-from plugin.twitter.TwitterDataFormatter import TWEET_TYPE
-from plugin.twitter.TwitterInputStream import TweetsStreamSessionInput
+from stream.FileStream import FileOutputStream
+from plugin.twitter.TwitterDataFormatter import DummyTwitterEventTypeClassifier, TweetDataFormatter
+from plugin.twitter.TwitterInputStream import TwitterInputStream
 from datetime import timedelta
 from base.Formula import EqFormula, IdentifierTerm, AtomicTerm, AndFormula, NotEqFormula
-from base.PatternStructure import SeqOperator, QItem
+from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
 
 
@@ -17,7 +19,8 @@ def run_twitter_sanity_check():
     """
     get_retweeted_status_function = lambda x: x["retweeted_status"] if "retweeted_status" in x else None
     pattern_retweet = Pattern(
-        SeqOperator([QItem(TWEET_TYPE, "a"), QItem(TWEET_TYPE, "b")]),
+        SeqOperator([PrimitiveEventStructure(DummyTwitterEventTypeClassifier.TWEET_TYPE, "a"),
+                     PrimitiveEventStructure(DummyTwitterEventTypeClassifier.TWEET_TYPE, "b")]),
         AndFormula(NotEqFormula(IdentifierTerm("a", lambda x: x["id"]), IdentifierTerm("b", lambda x: x["id"])),
                    AndFormula(NotEqFormula(IdentifierTerm("a", get_retweeted_status_function), AtomicTerm(None)),
                               EqFormula(IdentifierTerm("a", get_retweeted_status_function),
@@ -25,16 +28,13 @@ def run_twitter_sanity_check():
         timedelta(minutes=30)
     )
 
-    streaming = TweetsStreamSessionInput()
-    stream_queue = streaming.get_stream_queue(['corona'])
-
-    cep = CEP([pattern_retweet],
-              EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, None)
+    cep = CEP([pattern_retweet])
+    event_stream = TwitterInputStream(['corona'])
     try:
-        running_time = cep.run(stream_queue, is_async=True, file_path="output.txt", time_limit=5)
+        running_time = cep.run(event_stream, FileOutputStream(os.getcwd(), "output.txt", True), TweetDataFormatter())
         print("Test twitterSanityCheck result: Succeeded, Time Passed: %s" % (running_time,))
     finally:
-        streaming.disconnect()
+        event_stream.close()
 
 
 if __name__ == "__main__":
