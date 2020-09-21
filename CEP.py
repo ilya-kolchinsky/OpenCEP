@@ -30,8 +30,9 @@ class CEP:
             raise Exception("No patterns are provided")
         if len(patterns) > 1:
             raise NotImplementedError("Multi-pattern support is not yet available")
-        self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(work_load_fr, eval_mechanism_params,
-                                                                                               patterns[0])
+        self.__eval_mechanism_manager = EvaluationMechanismManager(work_load_fr, eval_mechanism_params, patterns)
+        #self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(work_load_fr, eval_mechanism_params,
+        #                                                                                       patterns[0])
         self.__pattern_matches = None
 
     def run(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):

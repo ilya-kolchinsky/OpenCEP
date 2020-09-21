@@ -1,14 +1,11 @@
 from base import Pattern
-from evaluation.PartialMatchStorage import TreeStorageParameters
-from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism, UnaryNode, Node
-from parallerization import ParallelUnaryNode
+from tree.PatternMatchStorage import TreeStorageParameters
+from tree import TreeBasedEvaluationMechanism
+from parallerization.ParallelUnaryNode import ParallelUnaryNode
 from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
-from typing import Tuple, Dict, List
-from base.PatternStructure import QItem
 from base.PatternMatch import PatternMatch
-from misc.IOUtils import Stream
+from stream.Stream import InputStream, OutputStream
 
-from datetime import timedelta, datetime
 import time
 import threading
 
@@ -23,7 +20,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         self.root = tree_based_eval.get_tree().get_root() # unaryNode
         self._has_leafs = has_leafs
         self._is_done = False
-        self.add_unary_root()
+        #self.add_unary_root() #TODO: check if needed
         self.thread = None
         self.children = [] # list of type ParallelTreeEval
         self.is_main_root = is_main_root
@@ -52,7 +49,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
     def get_data(self):
         raise NotImplementedError()
 
-    def get_final_results(self, pattern_matches: Stream):
+    def get_final_results(self, pattern_matches: OutputStream):
         for match in self._evaluation_mechanism.get_tree().get_matches():
             pattern_matches.add_item(PatternMatch(match))
         #pattern_matches.close()
@@ -84,11 +81,11 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
                 children.remove(children[i])
         return children
 
-    def get_partial_matches_from_children(self, events: Stream):
+    def get_partial_matches_from_children(self, events: InputStream):
         children = self.get_children()
         if len(children) == 0:#if self has no unaryParallelNode children, it means that it has only leaves and then needs the source input
             return events
-        aggregated_events = Stream()
+        aggregated_events = InputStream()
 
         for child in children:
             if type(child) is not ParallelUnaryNode:
@@ -99,7 +96,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
 
         return aggregated_events
 
-    def modified_eval(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
+    def modified_eval(self, events: InputStream, matches: OutputStream, data_formatter):
         input_stream = None
 
         if self.all_children_done():
@@ -111,14 +108,14 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
             input_stream.close()
 
             if self._has_leafs:
-                self.eval_util_with_leafs(input_stream, matches, is_async, file_path, time_limit)
+                self.eval_util_with_leafs(input_stream, matches, data_formatter)
             else:
-                self.eval_util_no_leafs(input_stream, matches, is_async, file_path, time_limit)
+                self.eval_util_no_leafs(input_stream, matches,data_formatter)
             self.light_is_done()
         else:
             time.sleep(0.5)
 
-    def run_eval(self, event_stream, pattern_matches, is_async, file_path, time_limit):  # thread running
+    def run_eval(self, event_stream, pattern_matches,data_formatter):  # thread running
         #print('Running thread with id', threading.get_ident())
 
         if type(self.root) is not ParallelUnaryNode:
@@ -126,17 +123,15 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
             raise Exception()
 
         while not self._is_done:
-            self.modified_eval(event_stream, pattern_matches, is_async, file_path, time_limit)
+            self.modified_eval(event_stream, pattern_matches, data_formatter)
 
         #print('Finished running thread with id', threading.get_ident())
         return
 
-    def eval(self, event_stream, pattern_matches, is_async=False, file_path=None, time_limit: int = None):
+    def eval(self, event_stream, pattern_matches, data_formatter):
         print('Running MAIN thread with id', threading.get_ident())
 
-        self.thread = threading.Thread(target=self.run_eval, args=(event_stream, pattern_matches, is_async,
-
-                                                              file_path, time_limit,))
+        self.thread = threading.Thread(target=self.run_eval, args=(event_stream, pattern_matches, data_formatter,))
         self.thread.start()
 
     def all_children_done(self):
@@ -161,45 +156,16 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         else:
             return True
 
-    def eval_util_with_leafs(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
+    def eval_util_with_leafs(self, events: InputStream, matches: OutputStream,data_formatter):
         """
         Activates the tree evaluation mechanism on the input event stream and reports all found patter matches to the
         given output stream.
         """
-        self._evaluation_mechanism.__register_event_listeners() #returns a list of event_type with all the leaves that receives this event_type
+        # TODO: check which logic is needed:
+        self._evaluation_mechanism.eval(events, matches,data_formatter) #returns a list of event_type with all the leaves that receives this event_type
 
-        start_time = time.time()
-        for event in events: #go over the event_stream
-            if time_limit is not None:
-                if time.time() - start_time > time_limit:
-                    matches.close()
-                    return
-            if event.type not in self._evaluation_mechanism.__event_types_listeners.keys():#if no leaves receives this type of event
-                continue
-            self._evaluation_mechanism.__remove_expired_freezers(event)
-            for leaf in self._evaluation_mechanism.__event_types_listeners[event.type]:
-                if self._evaluation_mechanism.__should_ignore_events_on_leaf(leaf):#if there is a freezer in place
-                    continue
-                self._evaluation_mechanism.__try_register_freezer(event, leaf)#check if the current event is a freezer
-                leaf.handle_event(event) #try to get the event through the tree => the real work
-            for match in self._evaluation_mechanism.__tree.get_matches():#for all the matches in the root
-                matches.add_item(PatternMatch(match))
-                self._evaluation_mechanism.__remove_matched_freezers(match)
-                if is_async:
-                        f = open(file_path, "a", encoding='utf-8')
-                        for itr in match:
-                            f.write("%s \n" % str(itr.payload))
-                        f.write("\n")
-                        f.close()
-
-        # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
-        # collect them now
-        for match in self.__tree.get_last_matches():
-            matches.add_item(PatternMatch(match))
-        matches.close()
-
-
-    def eval_util_no_leafs(self, partail_matches: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
+    # TODO: change implemintation
+    def eval_util_no_leafs(self, partail_matches: InputStream, matches: OutputStream, data_formatter):
 
             # TODO:
         # start_time = time.time()

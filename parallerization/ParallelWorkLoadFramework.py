@@ -1,5 +1,5 @@
 from abc import ABC
-from misc.IOUtils import Stream
+from stream.Stream import Stream
 from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters, EvaluationMechanismTypes

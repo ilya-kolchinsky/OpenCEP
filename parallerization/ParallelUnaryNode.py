@@ -1,11 +1,14 @@
-from base import PatternMatch
-from evaluation import PartialMatch
-from evaluation.TreeBasedEvaluationMechanism import UnaryNode
+from typing import List, Tuple
+
+from base.PatternMatch import PatternMatch
+from tree.UnaryNode import UnaryNode, Node
+from base.PatternStructure import PrimitiveEventStructure
+
 
 
 class ParallelUnaryNode(UnaryNode): # new root
-    def __init__(self, is_root: bool, sliding_window: timedelta, parent: Node = None,
-                 event_defs: List[Tuple[int, QItem]] = None, child: Node = None):
+    def __init__(self, is_root: bool, sliding_window, parent: Node = None,
+                 event_defs: List[Tuple[int, PrimitiveEventStructure]] = None, child: Node = None):
         super().__init__(sliding_window, parent, event_defs, child)
         self._is_done = False
         self._is_root = is_root
@@ -25,14 +28,14 @@ class ParallelUnaryNode(UnaryNode): # new root
         else:
             return [self]
 
-    def clean_expired_partial_matches(self, last_timestamp: datetime):
+    def clean_expired_partial_matches(self, last_timestamp):
         return
 
     def handle_new_partial_match(self, partial_match_source: Node):
         new_partial_match = partial_match_source.get_last_unhandled_partial_match()
         super()._add_partial_match(new_partial_match)
 
-    def handle_event(self, pm: PartialMatch):
+    def handle_event(self, pm: PatternMatch):
 
         # self.clean_expired_partial_matches(event.timestamp)
         self._validate_and_propagate_partial_match(pm.events)

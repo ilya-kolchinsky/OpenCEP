@@ -1,7 +1,7 @@
 from test.testUtils import *
 from datetime import timedelta
 from base.Formula import GreaterThanFormula, SmallerThanFormula, IdentifierTerm, AtomicTerm, AndFormula
-from base.PatternStructure import AndOperator, SeqOperator, QItem, KleeneClosureOperator
+from base.PatternStructure import AndOperator, SeqOperator, KleeneClosureOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
 
 from parallerization.ParallelTreeWorkloadFramework import ParallelTreeWorkloadFramework
@@ -9,7 +9,7 @@ from parallerization.ParallelTreeWorkloadFramework import ParallelTreeWorkloadFr
 
 def onlyDataSplit_oneArgumentsearchTest(createTestFile=False):
         pattern = Pattern(
-            SeqOperator([QItem("AAPL", "a")]),
+            SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
             timedelta(minutes=120)
         )
@@ -20,7 +20,7 @@ def onlyDataSplit_oneArgumentsearchTest(createTestFile=False):
 
 def onlyTreeSplit_oneArgumentsearchTest(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
         timedelta(minutes=120)
     )
@@ -36,7 +36,7 @@ def onlyTreeSplitsimplePatternSearchTest(createTestFile=False):
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AVID", "c")]),
         AndFormula(
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),

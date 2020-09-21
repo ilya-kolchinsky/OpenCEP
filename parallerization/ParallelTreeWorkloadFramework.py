@@ -1,5 +1,5 @@
-from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism, UnaryNode, BinaryNode, LeafNode
-from misc.IOUtils import Stream
+from tree import UnaryNode, BinaryNode, LeafNode, TreeBasedEvaluationMechanism
+from stream.Stream import Stream
 from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
 from parallerization.ParallelTreeEval import ParallelTreeEval
 from parallerization.ParallelUnaryNode import ParallelUnaryNode
@@ -7,7 +7,7 @@ from base.Pattern import Pattern
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismFactory, EvaluationMechanismTypes, EvaluationMechanismParameters
 from parallerization.ParallelTreeEval import ParallelUnaryNode
-from evaluation.PartialMatchStorage import TreeStorageParameters
+from tree.PatternMatchStorage import TreeStorageParameters
 
 
 class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
