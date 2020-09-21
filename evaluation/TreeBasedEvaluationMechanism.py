@@ -1210,6 +1210,9 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     def set_root(self, root):#EVA
         self.__tree.set_root(root)
 
+    def set_tree(self, tree):#EVA
+        self.__tree = tree
+
     def eval(self, events: Stream, matches: Stream, is_async=False, file_path=None, time_limit: int = None):
         """
         Activates the tree evaluation mechanism on the input event stream and reports all found patter matches to the

@@ -1,7 +1,8 @@
 from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism, UnaryNode, BinaryNode, LeafNode
 from misc.IOUtils import Stream
 from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
-from parallerization.ParallelTreeEval import UnaryParallelTreeEval
+from parallerization.ParallelTreeEval import ParallelTreeEval
+from parallerization.ParallelUnaryNode import ParallelUnaryNode
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismFactory, EvaluationMechanismTypes, EvaluationMechanismParameters
@@ -123,68 +124,75 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
             eval_mechanism_two = self.masters[1]
             #TODO: continue this case
         if not self.get_is_data_splitted():
+            #In this case, we want to return a list of DIFFERENT UnaryParallelTreeEval,
+            # with DIFFERENT tree_based_evaluation_mechanism, with DIFFERENT treeד, and DIFFERENT roots BUT the roots
+            # are all parts of the same tree
+
             tree_based_eval_one = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
                                                                                                  eval_params,
                                                                                                  self.pattern)
-            tree_based_eval_two = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(
-                eval_mechanism_type,
-                eval_params,
-                self.pattern)
-
-            tree = tree_based_eval_one.get_tree()
-            root = tree.get_root()
+            root = tree_based_eval_one.get_tree().get_root()
             unary_node = ParallelUnaryNode(True, root._sliding_window, child=root)
             unary_node.set_subtree(root)
             root.set_parent(unary_node)
             tree_based_eval_one.set_root(unary_node)
 
+            unary_root = tree_based_eval_one.get_tree().get_root()
             storageparams = TreeStorageParameters(True)
-            tree_based_eval_one.get_tree().get_root().create_storage_unit(storageparams)
-            if type(root) == LeafNode:
-                unaryeval = UnaryParallelTreeEval(tree_based_eval_one, True)
+            unary_root.create_storage_unit(storageparams)
+
+            if type(unary_root.get_child()) == LeafNode:
+                unaryeval = ParallelTreeEval(tree_based_eval_one, True)
                 eval_mechanism_list.append(unaryeval)
+                return eval_mechanism_list
+
             else:
-                unaryeval = UnaryParallelTreeEval(tree_based_eval_one, False)
+                unaryeval = ParallelTreeEval(tree_based_eval_one, False)
                 eval_mechanism_list.append(unaryeval)
 
-            current = tree.get_root()._child
+            tree_based_eval_two = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(
+                eval_mechanism_type,
+                eval_params,
+                self.pattern)
+            current = unary_root.get_child()
             if isinstance(current, UnaryNode):
-                unary = ParallelUnaryNode(False, root._sliding_window, child=root)
-                unary.set_subtree(current._child)
-                unary.set_parent(current)
-                current._child.set_parent(unary)
-                current.set_child(unary)
-                tree_based_eval_two.set_root(unary)
+                unarynode = ParallelUnaryNode(False, root._sliding_window)
+                unarynode.set_subtree(current._child)
+                unarynode.set_parent(current)
+                current._child.set_parent(unarynode)
+                current.set_child(unarynode)
+
+                tree_based_eval_two.set_root(unarynode)
 
                 tree_based_eval_two.get_tree().get_root().create_storage_unit(storageparams)
-                eval_mechanism_list.append(UnaryParallelTreeEval(tree_based_eval_two, True))
+                eval_mechanism_list.append(ParallelTreeEval(tree_based_eval_two, True))
 
             if isinstance(current, BinaryNode):
-                unary = ParallelUnaryNode(False, root._sliding_window, child=root)
-                unary.set_subtree(current._left_subtree)
-                unary.set_parent(current)
-                current._left_subtree.set_parent(unary)
-                current.set_subtrees(unary, current._right_subtree)
-                tree_based_eval_two.set_root(unary)
+                unarynode = ParallelUnaryNode(False, root._sliding_window)
+                unarynode.set_subtree(current._left_subtree)
+                unarynode.set_parent(current)
+                current._left_subtree.set_parent(unarynode)
+                current.set_subtrees(unarynode, current._right_subtree)
 
+                tree_based_eval_two.set_root(unarynode)
                 tree_based_eval_two.get_tree().get_root().create_storage_unit(storageparams)
-                eval_mechanism_list.append(UnaryParallelTreeEval(tree_based_eval_two, True))
+                eval_mechanism_list.append(ParallelTreeEval(tree_based_eval_two, True))
+
+                unarytwo = ParallelUnaryNode(False, root._sliding_window)
+                unarytwo.set_subtree(current._right_subtree)
+                unarytwo.set_parent(current)
+                current._right_subtree.set_parent(unarytwo)
+                current.set_subtrees(current._right_subtree, unarytwo)
 
                 tree_based_eval_three = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(
                     eval_mechanism_type,
                     eval_params,
                     self.pattern)
-
-                unarytwo = ParallelUnaryNode(False, root._sliding_window, child=root)
-                unarytwo.set_subtree(current._right_subtree)
-                unarytwo.set_parent(current)
-                current._right_subtree.set_parent(unary)
-                current.set_subtrees(current._right_subtree, unarytwo)
                 tree_based_eval_three.set_root(unarytwo)
 
                 tree_based_eval_three.get_tree().get_root().create_storage_unit(storageparams)
 
-                eval_mechanism_list.append(UnaryParallelTreeEval(tree_based_eval_three, True))
+                eval_mechanism_list.append(ParallelTreeEval(tree_based_eval_three, True))
             self.masters = [unaryeval]
 
         return eval_mechanism_list
