@@ -128,8 +128,7 @@ class EvaluationMechanismManager:
         for i in range(len(self.event_stream_splitted)):
             self.masters_list[i].thread.join()
 
-        print("Thread end count:" , threading.active_count())
-
+        #print("Thread end count:" , threading.active_count())
 
     def eval_by_multiple_tree_single_data(self, data_formatter):
         for i in range(len(self.eval_mechanism_list)):
@@ -138,7 +137,9 @@ class EvaluationMechanismManager:
             eval_mechanism = self.eval_mechanism_list[i]
             self.eval_by_single_tree_single_data( eval_mechanism, event_stream,
                                                       pattern_match, data_formatter)
-            self.masters_list[0].wait_till_finish()
+            #self.masters_list[0].wait_till_finish()
+        for i in range(len(self.event_stream_splitted)):
+            self.masters_list[i].thread.join()
 
     def eval_by_multiple_tree_multiple_data(self, data_formatter):
         start_index_of_ems = 0

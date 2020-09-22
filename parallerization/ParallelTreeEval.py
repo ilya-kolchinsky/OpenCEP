@@ -10,7 +10,6 @@ import time
 import threading
 
 
-
 class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[ParallelTreeEval]
 
     def __init__(self, tree_based_eval: TreeBasedEvaluationMechanism, has_leafs: bool, is_main_root: bool):
@@ -128,7 +127,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         while not self._is_done:
             self.modified_eval(event_stream, pattern_matches, data_formatter)
 
-        print('Finished running thread with id', threading.get_ident())
+        #print('Finished running thread with id', threading.get_ident())
         return
 
     def eval(self, event_stream, pattern_matches, data_formatter):
