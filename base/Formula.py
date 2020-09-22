@@ -48,8 +48,8 @@ class AtomicTerm(Term):
     def __repr__(self):
         return str(self.value)
 
-    def __eq__(self, other):
-        return self.value == other.value
+    def is_equal(self, other):
+        return isinstance(other, AtomicTerm) and self.value == other.value
 
 
 class IdentifierTerm(Term):
@@ -73,6 +73,10 @@ class IdentifierTerm(Term):
     def __repr__(self):
         return self.name
 
+    @staticmethod
+    def is_equal(other):
+        return isinstance(other, IdentifierTerm)
+
 
 class BinaryOperationTerm(Term):
     """
@@ -89,6 +93,9 @@ class BinaryOperationTerm(Term):
     def get_term_of(self, names: set):
         raise NotImplementedError()
 
+    def is_equal(self, other):
+        return isinstance(other, type(self))
+
 
 class PlusTerm(BinaryOperationTerm):
     def __init__(self, lhs: Term, rhs: Term):
@@ -103,6 +110,15 @@ class PlusTerm(BinaryOperationTerm):
 
     def __repr__(self):
         return "{}+{}".format(self.lhs, self.rhs)
+
+    def is_equal(self, other):
+        if super().is_equal(other):
+            v1 = self.lhs.is_equal(other.lhs)
+            v2 = self.rhs.is_equal(other.rhs)
+            v3 = self.lhs.is_equal(other.rhs)
+            v4 = self.rhs.is_equal(other.lhs)
+            return (v1 and v2) or (v3 and v4)
+        return False
 
 
 class MinusTerm(BinaryOperationTerm):
@@ -119,6 +135,13 @@ class MinusTerm(BinaryOperationTerm):
     def __repr__(self):
         return "{}-{}".format(self.lhs, self.rhs)
 
+    def is_equal(self, other):
+        if super().is_equal(other):
+            v1 = self.lhs.is_equal(other.lhs)
+            v2 = self.rhs.is_equal(other.rhs)
+            return v1 and v2
+        return False
+
 
 class MulTerm(BinaryOperationTerm):
     def __init__(self, lhs: Term, rhs: Term):
@@ -133,6 +156,15 @@ class MulTerm(BinaryOperationTerm):
 
     def __repr__(self):
         return "{}*{}".format(self.lhs, self.rhs)
+
+    def is_equal(self, other):
+        if super().is_equal(other):
+            v1 = self.lhs.is_equal(other.lhs)
+            v2 = self.rhs.is_equal(other.rhs)
+            v3 = self.lhs.is_equal(other.rhs)
+            v4 = self.rhs.is_equal(other.lhs)
+            return (v1 and v2) or (v3 and v4)
+        return False
 
 
 class DivTerm(BinaryOperationTerm):
@@ -149,6 +181,13 @@ class DivTerm(BinaryOperationTerm):
     def __repr__(self):
         return "{}/{}".format(self.lhs, self.rhs)
 
+    def is_equal(self, other):
+        if super().is_equal(other):
+            v1 = self.lhs.is_equal(other.lhs)
+            v2 = self.rhs.is_equal(other.rhs)
+            return v1 and v2
+        return False
+
 
 class Formula(ABC):
     """
@@ -161,13 +200,8 @@ class Formula(ABC):
     def get_formula_of(self, names: set):
         pass
 
-    def __eq__(self, other):
-        if (isinstance(self, TrueFormula) and not isinstance(other, TrueFormula)) or\
-                 (isinstance(other, TrueFormula) and not isinstance(self, TrueFormula)):
-            return False
-        if isinstance(self, AtomicFormula) and isinstance(other, AtomicFormula):
-            return self == other
-        return True
+    def is_equal(self, other):
+        pass
 
 
 class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
@@ -178,17 +212,15 @@ class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
         self.left_term = left_term
         self.right_term = right_term
         self.relation_op = relation_op
+        
+    def eval(self, binding: dict = None):
+        return self.relation_op(self.left_term.eval(binding), self.right_term.eval(binding))
 
     def __repr__(self):
         return "{} {} {}".format(self.left_term, self.relation_op, self.right_term)
 
     def extract_atomic_formulas(self):
         return [self]
-
-    def __eq__(self, other):
-        if self.right_term == other.right_term and isinstance(self, type(other)):
-                return True
-        return False
 
 
 class EqFormula(AtomicFormula):
@@ -208,6 +240,13 @@ class EqFormula(AtomicFormula):
     def get_relop(self):
         return RelopTypes.Equal
 
+    def is_equal(self, other):
+        v1 = self.left_term.is_equal(other.left_term)
+        v2 = self.right_term.is_equal(other.right_term)
+        v3 = self.left_term.is_equal(other.right_term)
+        v4 = self.right_term.is_equal(other.left_term)
+        return (v1 and v2) or (v3 and v4)
+
 
 class NotEqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -225,6 +264,13 @@ class NotEqFormula(AtomicFormula):
 
     def get_relop(self):
         return RelopTypes.NotEqual
+
+    def is_equal(self, other):
+        v1 = self.left_term.is_equal(other.left_term)
+        v2 = self.right_term.is_equal(other.right_term)
+        v3 = self.left_term.is_equal(other.right_term)
+        v4 = self.right_term.is_equal(other.left_term)
+        return (v1 and v2) or (v3 and v4)
 
 
 class GreaterThanFormula(AtomicFormula):
@@ -244,6 +290,17 @@ class GreaterThanFormula(AtomicFormula):
     def get_relop(self):
         return RelopTypes.Greater
 
+    def is_equal(self, other):
+        if isinstance(other, GreaterThanFormula):
+            v1 = self.left_term.is_equal(other.left_term)
+            v2 = self.right_term.is_equal(other.right_term)
+            return v1 and v2
+        elif isinstance(other, SmallerThanFormula):
+            v3 = self.left_term.is_equal(other.right_term)
+            v4 = self.right_term.is_equal(other.left_term)
+            return v3 and v4
+        return False
+
 
 class SmallerThanFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -261,6 +318,17 @@ class SmallerThanFormula(AtomicFormula):
 
     def get_relop(self):
         return RelopTypes.Smaller
+
+    def is_equal(self, other):
+        if isinstance(other, SmallerThanFormula):
+            v1 = self.left_term.is_equal(other.left_term)
+            v2 = self.right_term.is_equal(other.right_term)
+            return v1 and v2
+        elif isinstance(other, GreaterThanFormula):
+            v3 = self.left_term.is_equal(other.right_term)
+            v4 = self.right_term.is_equal(other.left_term)
+            return v3 and v4
+        return False
 
 
 class GreaterThanEqFormula(AtomicFormula):
@@ -280,6 +348,17 @@ class GreaterThanEqFormula(AtomicFormula):
     def get_relop(self):
         return RelopTypes.GreaterEqual
 
+    def is_equal(self, other):
+        if isinstance(other, GreaterThanEqFormula):
+            v1 = self.left_term.is_equal(other.left_term)
+            v2 = self.right_term.is_equal(other.right_term)
+            return v1 and v2
+        elif isinstance(other, SmallerThanEqFormula):
+            v3 = self.left_term.is_equal(other.right_term)
+            v4 = self.right_term.is_equal(other.left_term)
+            return v3 and v4
+        return False
+
 
 class SmallerThanEqFormula(AtomicFormula):
     def __init__(self, left_term: Term, right_term: Term):
@@ -297,6 +376,17 @@ class SmallerThanEqFormula(AtomicFormula):
 
     def get_relop(self):
         return RelopTypes.SmallerEqual
+
+    def is_equal(self, other):
+        if isinstance(other, SmallerThanEqFormula):
+            v1 = self.left_term.is_equal(other.left_term)
+            v2 = self.right_term.is_equal(other.right_term)
+            return v1 and v2
+        elif isinstance(other, GreaterThanEqFormula):
+            v3 = self.left_term.is_equal(other.right_term)
+            v4 = self.right_term.is_equal(other.left_term)
+            return v3 and v4
+        return False
 
 
 class BinaryLogicOpFormula(Formula):  # AND: A < B AND C < D
@@ -357,3 +447,6 @@ class TrueFormula(Formula):
 
     def extract_atomic_formulas(self):
         return []
+
+    def is_equal(self, other):
+        return isinstance(other, TrueFormula)
