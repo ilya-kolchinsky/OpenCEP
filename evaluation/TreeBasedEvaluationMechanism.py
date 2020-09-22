@@ -140,7 +140,6 @@ class Node(ABC):
         if self._parents:
             for parent in self._parents:
                 if parent in self._parent_to_unhandled_queue_dict:
-                    print("hi")
                     self._parent_to_unhandled_queue_dict[parent].put(pm)
             for parent in self._parents:
                 parent.handle_new_partial_match(self)
@@ -334,10 +333,7 @@ class LeafNode(Node):
         return self._condition
 
     def is_equal(self, other):
-        if self.get_event_type() == other.get_event_type() and self.get_condition() == other.get_condition():
-            return True
-        return False
-
+        return self.get_event_type() == other.get_event_type() and self.get_condition().is_equal(other.get_condition())
 
 class InternalNode(Node, ABC):
     """
@@ -880,8 +876,8 @@ class NegationNode(BinaryNode, ABC):
         first_unbounded_node = self.get_first_unbounded_negative_node()
         positive_event_defs = first_unbounded_node.get_event_definitions()
 
-        unbounded_negative_partial_match = partial_match_source.get_last_unhandled_partial_match()
-        negative_event_defs = partial_match_source.get_event_definitions()
+        unbounded_negative_partial_match = partial_match_source.get_last_unhandled_partial_match_by_parent(self)
+        negative_event_defs = partial_match_source.get_event_definitions_by_parent(self)
 
         matches_to_keep = []
         for positive_partial_match in first_unbounded_node.__pending_partial_matches:
@@ -991,7 +987,7 @@ class KleeneClosureNode(UnaryNode):
         if self._child is None:
             raise Exception()  # should never happen
 
-        new_partial_match = self._child.get_last_unhandled_partial_match()
+        new_partial_match = self._child.get_last_unhandled_partial_match_by_parent(self)
         self._child.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
         # create partial match sets containing the new partial match that triggered this method
@@ -1122,7 +1118,12 @@ class Tree:
             negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root)
             new_root.set_subtrees(current_root, negative_leaf)
             negative_leaf.set_parent(new_root)
+            negative_leaf.create_parent_to_info_dict()
+            negative_leaf.add_to_parent_to_unhandled_queue_dict(new_root, Queue())
             current_root.set_parent(new_root)
+            current_root.add_to_parent_to_unhandled_queue_dict(new_root, Queue())
+            if isinstance(current_root, LeafNode):
+                current_root.add_to_dict(new_root, current_root.get_event_definitions())
             current_root = new_root
         self.__root = current_root
 
