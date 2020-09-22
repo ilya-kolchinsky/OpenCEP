@@ -42,7 +42,7 @@ class CEP:
         """
         self.__pattern_matches = matches
         start = datetime.now()
-        self.__eval_mechanism_manager.eval(events, self.__pattern_matches, data_formatter) # TODO:
+        self.__eval_mechanism_manager.eval(events, self.__pattern_matches, data_formatter)
         return (datetime.now() - start).total_seconds()
 
     def get_pattern_match(self):

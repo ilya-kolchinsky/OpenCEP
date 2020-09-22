@@ -46,17 +46,17 @@ class EvaluationMechanismManager:
     def initialize_multiple_tree_single_data(self):
         self.eval_mechanism_list = self.work_load_fr.split_structure(self.source_eval_mechanism,
                                                                      self.eval_params)
-        self.event_stream_splitted = [self.source_event_stream.duplicate()]
-        rows, cols = (len(self.eval_mechanism_list), 1)
-        for i in range(rows*cols):
+        self.event_stream_splitted = [self.source_event_stream] # TODO: check here
+
+        for i in range(len(self.eval_mechanism_list)):
             self.pattern_matches_list.append(OutputStream())
 
     def initialize_single_tree_multiple_data(self):
         self.event_stream_splitted = self.work_load_fr.split_data(self.source_event_stream, self.source_eval_mechanism,
                                                                    self.eval_params)
         self.eval_mechanism_list = self.work_load_fr.get_masters()
-        rows, cols = (1, len(self.event_stream_splitted))
-        for i in range(cols):
+
+        for i in range(len(self.event_stream_splitted)):
             self.pattern_matches_list.append(OutputStream())
 
     def initialize_multiple_tree_multiple_data(self):
@@ -81,7 +81,7 @@ class EvaluationMechanismManager:
         if event_stream is None:
             raise Exception("Missing event_stream")
 
-        self.source_event_stream = event_stream.duplicate()
+        self.source_event_stream = event_stream
         self.results = pattern_matches
 
         if not self.work_load_fr.get_is_data_splitted() and not self.work_load_fr.get_is_tree_splitted():
@@ -94,16 +94,16 @@ class EvaluationMechanismManager:
             self.initialize_multiple_tree_multiple_data()
 
         self.masters_list = self.work_load_fr.get_masters()
+
         self.eval_util(data_formatter)
+
         if self.work_load_fr.get_is_data_splitted() or self.work_load_fr.get_is_tree_splitted():
             self.get_data_from_all_masters()
-        # self.pattern_matches_list[0].close()    #TODO: change for all cases
 
     def eval_util(self, data_formatter: DataFormatter):
         if not self.work_load_fr.get_is_tree_splitted() and len(self.event_stream_splitted) == 1:
             self.eval_by_single_tree_single_data( self.source_eval_mechanism,
                                                  self.source_event_stream, self.pattern_matches_list[0], data_formatter)
-            #self.masters_list[0].wait_till_finish() => if we are in this case then there is only one thread so no need to wait?
         elif not self.work_load_fr.get_is_tree_splitted() and len(self.event_stream_splitted) > 1:
             self.eval_by_single_tree_multiple_data(data_formatter)
         elif self.work_load_fr.get_is_tree_splitted() and len(self.event_stream_splitted) == 1:
@@ -125,8 +125,8 @@ class EvaluationMechanismManager:
             self.eval_by_single_tree_single_data( self.eval_mechanism_list[i],
                                                  event_stream, pattern_match, data_formatter)
 
-        for i in range(len(self.event_stream_splitted)):
-            self.masters_list[i].thread.join()
+        for i in range(len(self.eval_mechanism_list)):  #masters = #threads
+            self.eval_mechanism_list[i].thread.join()
 
         #print("Thread end count:" , threading.active_count())
 
@@ -137,9 +137,8 @@ class EvaluationMechanismManager:
             eval_mechanism = self.eval_mechanism_list[i]
             self.eval_by_single_tree_single_data( eval_mechanism, event_stream,
                                                       pattern_match, data_formatter)
-            #self.masters_list[0].wait_till_finish()
-        for i in range(len(self.event_stream_splitted)):
-            self.masters_list[i].thread.join()
+        for i in range(len(self.eval_mechanism_list)):
+            self.eval_mechanism_list[i].thread.join()
 
     def eval_by_multiple_tree_multiple_data(self, data_formatter):
         start_index_of_ems = 0
@@ -152,6 +151,9 @@ class EvaluationMechanismManager:
 
         for k in range(len(self.masters_list)):
             self.masters_list[k].wait_till_finish()
+
+        for i in range(len(self.eval_mechanism_list)):
+            self.eval_mechanism_list[i].thread.join()
 
     def get_matches(self):#EVA maybe we dont need it
         if len(self.pattern_matches_list) > 0:

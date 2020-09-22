@@ -12,18 +12,20 @@ import threading
 
 class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[ParallelTreeEval]
 
-    def __init__(self, tree_based_eval: TreeBasedEvaluationMechanism, has_leafs: bool, is_main_root: bool):
+    def __init__(self, tree_based_eval: TreeBasedEvaluationMechanism, has_leafs: bool, is_main_root: bool,
+                 is_multithreaded : bool = True):
         if type(tree_based_eval) is not TreeBasedEvaluationMechanism:
             raise Exception()
         super().__init__(tree_based_eval) # tree_based_eval is unique for thread
         self.root = tree_based_eval.get_tree().get_root() # unaryNode
-        self._has_leafs = has_leafs
+        self._all_leaves_are_original_leaves = has_leafs
         self._is_done = False
         self.add_unary_root() #TODO: check if needed
         self.thread = None
         self.children = [] # list of type ParallelTreeEval
         self.is_main_root = is_main_root
         self.all_children_done_flag = False
+        self.is_multithreaded = is_multithreaded
 
     def add_unary_root(self):
         root = self._evaluation_mechanism.get_tree().get_root()
@@ -98,43 +100,42 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
 
         return aggregated_events
 
-    def modified_eval(self, events: InputStream, matches: OutputStream, data_formatter):
+    def eval_util(self, events: InputStream, matches: OutputStream, data_formatter):
         input_stream = None
 
-        if self.all_children_done():
-            if self._has_leafs:
-                input_stream = events
+        while not self._is_done: # TODO: change implementation to waiting to synchronized var
+            if self.all_children_done():
+                if self._all_leaves_are_original_leaves:
+                    input_stream = events
+                else:
+                    input_stream = self.get_partial_matches_from_children()
+
+                # input_stream.close()
+
+                if self._all_leaves_are_original_leaves:
+                    self.eval_util_with_original_leaves(input_stream, matches, data_formatter)
+                else:
+                    self.eval_util_with_no_original_leaves(input_stream, matches)
+
+                self.light_is_done()
             else:
-                input_stream = self.get_partial_matches_from_children()
+                time.sleep(0.5) # TODO: change to wait for synchronized var
 
-            input_stream.close()
-
-            if self._has_leafs:
-                self.eval_util_with_leafs(input_stream, matches, data_formatter)
-            else:
-                self.eval_util_no_leafs(input_stream, matches,data_formatter)
-            self.light_is_done()
-        else:
-            time.sleep(0.5)
-
-    def run_eval(self, event_stream, pattern_matches,data_formatter):  # thread running
+    def run_eval(self, event_stream, pattern_matches,data_formatter):  # THREAD running
         #print('Running thread with id', threading.get_ident())
 
-        if type(self.root) is not ParallelUnaryNode:
-            # tree not built properly
-            raise Exception()
-
-        while not self._is_done:
-            self.modified_eval(event_stream, pattern_matches, data_formatter)
+        self.eval_util(event_stream, pattern_matches, data_formatter)
 
         #print('Finished running thread with id', threading.get_ident())
         return
 
     def eval(self, event_stream, pattern_matches, data_formatter):
         #print('Running MAIN thread with id', threading.get_ident())
-
-        self.thread = threading.Thread(target=self.run_eval, args=(event_stream, pattern_matches, data_formatter,))
-        self.thread.start()
+        if self.is_multithreaded:
+            self.thread = threading.Thread(target=self.run_eval, args=(event_stream, pattern_matches, data_formatter,))
+            self.thread.start()
+        else:
+            self.run_eval(event_stream, pattern_matches, data_formatter)
 
     def all_children_done(self):
         if self.all_children_done_flag == False:
@@ -158,44 +159,28 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         else:
             return True
 
-    def eval_util_with_leafs(self, events: InputStream, matches: OutputStream,data_formatter):
-        """
-        Activates the tree evaluation mechanism on the input event stream and reports all found patter matches to the
-        given output stream.
-        """
-        # TODO: check which logic is needed:
-        self._evaluation_mechanism.eval(events, matches,data_formatter) #returns a list of event_type with all the leaves that receives this event_type
+    def eval_util_with_original_leaves(self, events: InputStream, matches: OutputStream, data_formatter):
+        self._evaluation_mechanism.eval(events, matches,data_formatter)
 
-    # TODO: change implemintation
-    def eval_util_no_leafs(self, partail_matches: InputStream, matches: OutputStream, data_formatter):
-
-            # TODO:
-        # start_time = time.time()
-        #
-        # for event in events:  # go over the event_stream
-        #     if time_limit is not None:
-        #         if time.time() - start_time > time_limit:
-        #             matches.close()
-        #             return
+    def eval_util_with_no_original_leaves(self, partial_matches: InputStream, matches: OutputStream):
 
         unary_children = self.get_my_unary_children()
 
+        input_stream = []
         for child in unary_children:
-            partail_matches = child.get_partial_matches()
-            for pm in partail_matches:
-                child.handle_event(pm)
+            partial_matches_list = child.get_partial_matches()
+            input_stream += input_stream
+
+        input_stream_sotrted = sort(input_stream) #TODO:
+
+        for pm in input_stream_sotrted:
+            child = check_which_leaf(pm) #TODO:
+            child.handle_event(pm)
 
         if self.is_main_root:
-            for match in self._evaluation_mechanism.__tree.get_matches():  # for all the matches in the root
+            for match in self._evaluation_mechanism.get_tree().get_matches():  # for all the matches in the root
                 matches.add_item(PatternMatch(match))
-                self._evaluation_mechanism.__remove_matched_freezers(match)
-                if is_async:
-                    f = open(file_path, "a", encoding='utf-8')
-                    for itr in match:
-                        f.write("%s \n" % str(itr.payload))
-                    f.write("\n")
-                    f.close()
 
-        for match in self.__tree.get_last_matches():
+        for match in self._evaluation_mechanism.get_tree().get_last_matches():
             matches.add_item(PatternMatch(match))
         matches.close()

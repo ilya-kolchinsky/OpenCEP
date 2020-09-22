@@ -86,7 +86,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         self.masters = []
         for i in range(num_of_copies):
             tree_based_eval = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_params, self.pattern)
-            self.masters.append(ParallelTreeEval(tree_based_eval, True, True))
+            self.masters.append(ParallelTreeEval(tree_based_eval, True, True, True))
 
     def get_masters(self):
         return self.masters

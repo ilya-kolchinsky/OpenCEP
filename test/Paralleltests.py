@@ -42,7 +42,7 @@ def onlyTreeSplitsimplePatternSearchTest(createTestFile=False):
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    workload = ParallelTreeWorkloadFramework(2, is_data_splitted=False, is_tree_splitted=True, pattern_size=1,
+    workload_framework = ParallelTreeWorkloadFramework(3, is_data_splitted=False, is_tree_splitted=True, pattern_size=3,
                                              pattern=pattern)
-    runTest("simple", [pattern], createTestFile, workloadfr=workload)
+    runTest("simple", [pattern], createTestFile, workloadfr=workload_framework)
 

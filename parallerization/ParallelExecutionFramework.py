@@ -6,7 +6,7 @@ class ParallelExecutionFramework(ABC):
     def __init__(self, evaluation_mechanism):
         self._evaluation_mechanism = evaluation_mechanism
 
-    def eval(self, event_stream, pattern_matches):
+    def eval(self, event_stream, pattern_matches, data_formatter):
         raise NotImplementedError()
 
     def get_data(self):
