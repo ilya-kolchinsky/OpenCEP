@@ -36,7 +36,7 @@ class EvaluationMechanismManager:
         else:        # multi pattern
             raise NotImplementedError()
 
-    def initialize_single_tree_single_data(self, pattern_matches:OutputStream):
+    def initialize_single_tree_single_data(self, pattern_matches: OutputStream):
         self.eval_mechanism_list = self.work_load_fr.split_structure(self.source_eval_mechanism,
                                                                       self.eval_params)
         #self.eval_mechanism_list = [self.source_eval_mechanism]
@@ -74,6 +74,7 @@ class EvaluationMechanismManager:
                 if match is not None:
                     self.results.add_item(match)
         self.results.close()
+        #return self.results
 
 
     def eval(self, event_stream: InputStream, pattern_matches: OutputStream, data_formatter: DataFormatter):
@@ -81,6 +82,7 @@ class EvaluationMechanismManager:
             raise Exception("Missing event_stream")
 
         self.source_event_stream = event_stream.duplicate()
+        self.results = pattern_matches
 
         if not self.work_load_fr.get_is_data_splitted() and not self.work_load_fr.get_is_tree_splitted():
             self.initialize_single_tree_single_data(pattern_matches) # TODO : apply fix to all cases

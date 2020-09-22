@@ -932,7 +932,7 @@ runTest.over_all_time = 0
 
 #onlyTreeSplitsimplePatternSearchTest()
 #onlyTreeSplit_oneArgumentsearchTest()
-#onlyDataSplit_oneArgumentsearchTest()
+onlyDataSplit_oneArgumentsearchTest()
 
 #simplePatternSearchTest()
 #print("Finished running all tests, overall time: %s" % runTest.over_all_time)

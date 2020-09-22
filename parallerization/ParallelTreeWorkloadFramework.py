@@ -1,4 +1,7 @@
-from tree import UnaryNode, BinaryNode, LeafNode, TreeBasedEvaluationMechanism
+from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
+from tree.UnaryNode import UnaryNode
+from tree.BinaryNode import BinaryNode
+from tree.LeafNode import LeafNode
 from stream.Stream import Stream
 from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
 from parallerization.ParallelTreeEval import ParallelTreeEval
@@ -21,11 +24,11 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         self.masters = [self.get_source_eval_mechanism()] #to be updated in split_data and split_structure
 
     def split_data(self, input_stream: Stream, eval_mechanism: TreeBasedEvaluationMechanism,
-                   eval_mechanism_type: EvaluationMechanismTypes, eval_params: EvaluationMechanismParameters):
-        return self.split_data_to_two(input_stream, eval_mechanism,eval_mechanism_type, eval_params)
+                   eval_params: EvaluationMechanismParameters):
+        return self.split_data_to_five(input_stream, eval_mechanism, eval_params)
 
     def split_data_to_two(self, input_stream: Stream, eval_mechanism: TreeBasedEvaluationMechanism,
-                   eval_mechanism_type: EvaluationMechanismTypes, eval_params: EvaluationMechanismParameters):
+                   eval_params: EvaluationMechanismParameters):
         #returns the data stream splitted in 2: the first pattern_size lines in one part and the rest of the stream in another
 
         self.set_source_eval_mechanism(eval_mechanism)
@@ -52,12 +55,12 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         else:
             raise Exception() # should never happen
 
-        self.createTreesCopiesSingleTreeMultipleData(2, eval_mechanism_type, eval_params)
+        self.createTreesCopiesSingleTreeMultipleData(2, eval_params)
 
         return output_stream
 
     def split_data_to_five(self, input_stream: Stream, eval_mechanism: TreeBasedEvaluationMechanism,
-                   eval_mechanism_type: EvaluationMechanismTypes, eval_params: EvaluationMechanismParameters):
+                           eval_params: EvaluationMechanismParameters):
         # returns the data stream splitted in 2: the first pattern_size lines in one part and the rest of the stream in another
 
         self.set_source_eval_mechanism(eval_mechanism)
@@ -66,36 +69,24 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
             output_stream.append(input_stream)
             return output_stream
         elif self._is_data_splitted:
-            counter = 0
+            for i in range(5):
+                output_stream.append(Stream())
+            counter = input_stream.count()
             for event in input_stream:
-                event_stream = Stream()
-                event_stream.add_item(event)
-                if counter == 0:
-                    output_stream.append(event_stream)
-                elif counter < input_stream.count()/5:
-                    output_stream[0].add_item(event)
-
-                elif counter == self.pattern_size:
-                    output_stream.append(event_stream)
-                    output_stream[1].add_item(event)
-                else:
-                    output_stream[1].add_item(event)
-                counter += 1
-
+                output_stream[counter % 5].add_item(event)
+                counter -= 1
         else:
             raise Exception()  # should never happen
 
-        self.createTreesCopiesSingleTreeMultipleData(2, eval_mechanism_type, eval_params)
+        self.createTreesCopiesSingleTreeMultipleData(5, eval_params)
 
         return output_stream
 
-    def createTreesCopiesSingleTreeMultipleData(self, num_of_copies: int, eval_mechanism_type: EvaluationMechanismTypes,
-                                                   eval_params: EvaluationMechanismParameters):
+    def createTreesCopiesSingleTreeMultipleData(self, num_of_copies: int, eval_params: EvaluationMechanismParameters):
         self.masters = []
         for i in range(num_of_copies):
-            tree_based_eval = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
-                                                                                             eval_params, self.pattern)
-            self.masters.append(UnaryParallelTreeEval(tree_based_eval, True))
+            tree_based_eval = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_params, self.pattern)
+            self.masters.append(ParallelTreeEval(tree_based_eval, True, True))
 
     def get_masters(self):
         return self.masters
@@ -142,12 +133,12 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
             unary_root.create_storage_unit(storageparams)
 
             if type(unary_root.get_child()) == LeafNode:
-                unaryeval = ParallelTreeEval(tree_based_eval_one, True)
+                unaryeval = ParallelTreeEval(tree_based_eval_one, True, is_main_root=True)
                 eval_mechanism_list.append(unaryeval)
                 return eval_mechanism_list
 
             else:
-                unaryeval = ParallelTreeEval(tree_based_eval_one, False)
+                unaryeval = ParallelTreeEval(tree_based_eval_one, False, is_main_root=True)
                 eval_mechanism_list.append(unaryeval)
 
             tree_based_eval_two = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(
@@ -165,7 +156,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
                 tree_based_eval_two.set_root(unarynode)
 
                 tree_based_eval_two.get_tree().get_root().create_storage_unit(storageparams)
-                eval_mechanism_list.append(ParallelTreeEval(tree_based_eval_two, True))
+                eval_mechanism_list.append(ParallelTreeEval(tree_based_eval_two, has_leafs=True, is_main_root=False))
 
             if isinstance(current, BinaryNode):
                 unarynode = ParallelUnaryNode(False, root._sliding_window)
@@ -176,7 +167,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
                 tree_based_eval_two.set_root(unarynode)
                 tree_based_eval_two.get_tree().get_root().create_storage_unit(storageparams)
-                eval_mechanism_list.append(ParallelTreeEval(tree_based_eval_two, True))
+                eval_mechanism_list.append(ParallelTreeEval(tree_based_eval_two, True, False))
 
                 unarytwo = ParallelUnaryNode(False, root._sliding_window)
                 unarytwo.set_subtree(current._right_subtree)
@@ -192,7 +183,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
                 tree_based_eval_three.get_tree().get_root().create_storage_unit(storageparams)
 
-                eval_mechanism_list.append(ParallelTreeEval(tree_based_eval_three, True))
+                eval_mechanism_list.append(ParallelTreeEval(tree_based_eval_three, True, False))
             self.masters = [unaryeval]
 
         return eval_mechanism_list

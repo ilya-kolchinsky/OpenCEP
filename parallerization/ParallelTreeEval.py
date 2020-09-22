@@ -1,6 +1,6 @@
 from base import Pattern
 from tree.PatternMatchStorage import TreeStorageParameters
-from tree import TreeBasedEvaluationMechanism
+from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from parallerization.ParallelUnaryNode import ParallelUnaryNode
 from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
 from base.PatternMatch import PatternMatch
@@ -20,7 +20,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         self.root = tree_based_eval.get_tree().get_root() # unaryNode
         self._has_leafs = has_leafs
         self._is_done = False
-        #self.add_unary_root() #TODO: check if needed
+        self.add_unary_root() #TODO: check if needed
         self.thread = None
         self.children = [] # list of type ParallelTreeEval
         self.is_main_root = is_main_root
@@ -36,6 +36,9 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         self._evaluation_mechanism.set_root(unary_node)
         storageparams = TreeStorageParameters(True)
         self._evaluation_mechanism.get_tree().get_root().create_storage_unit(storageparams)
+
+        self.root = self._evaluation_mechanism.get_tree().get_root() # unaryNode
+
 
     def get_done(self):
         return self._is_done
@@ -125,11 +128,11 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         while not self._is_done:
             self.modified_eval(event_stream, pattern_matches, data_formatter)
 
-        #print('Finished running thread with id', threading.get_ident())
+        print('Finished running thread with id', threading.get_ident())
         return
 
     def eval(self, event_stream, pattern_matches, data_formatter):
-        print('Running MAIN thread with id', threading.get_ident())
+        #print('Running MAIN thread with id', threading.get_ident())
 
         self.thread = threading.Thread(target=self.run_eval, args=(event_stream, pattern_matches, data_formatter,))
         self.thread.start()

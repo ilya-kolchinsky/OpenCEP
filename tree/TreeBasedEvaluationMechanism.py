@@ -9,6 +9,7 @@ from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
 
 from tree.Tree import Tree
+from tree.Node import Node
 
 
 class TreeBasedEvaluationMechanism(EvaluationMechanism):
@@ -128,3 +129,13 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
     def __repr__(self):
         return self.get_structure_summary()
+
+    def get_tree(self):
+        return self.__tree
+
+    def get_root(self):
+        return self.__tree.get_root()
+
+    def set_root(self, root: Node):
+        self.__tree.set_root(root)
+

@@ -224,3 +224,9 @@ class Tree:
             if isinstance(sequence_elements[i], PrimitiveEventStructure):
                 return False
         return True
+
+    def get_root(self):
+        return self.__root
+
+    def set_root(self, root: Node):
+        self.__root = root

@@ -48,7 +48,7 @@ class ParallelWorkLoadFramework(ABC):
             raise NotImplementedError()
 
     def split_data(self, input_stream: Stream, eval_mechanism: EvaluationMechanism,
-                   eval_mechanism_type: EvaluationMechanismTypes, eval_params: EvaluationMechanismParameters):
+                   eval_params: EvaluationMechanismParameters):
         #the output needs to be a list of streams of size <= execution_units
         raise NotImplementedError()
 
