@@ -868,6 +868,7 @@ def sortedStorageBenchMarkTest(createTestFile=False):
 
 #New tests for multipattern- first approach.
 #NASDAQ SHORT
+
 def twoPatternsWithSameSubExpressionTest(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("LI", "d")), QItem("AMZN", "b"),
@@ -949,25 +950,28 @@ def sameTypeDifferentConditionTest(createTestFile = False):
     )
 
     pattern2 = Pattern(
-        SeqOperator([NegationOperator(QItem("AMZN", "b")), QItem("AAPL", "a")]),
+        SeqOperator([QItem("AMZN", "b"), QItem("AAPL", "a"), QItem("AMZN", "c")]),
         AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+            AndFormula(
+                GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
-            GreaterThanEqFormula(IdentifierTerm("b", lambda x: x["Lowest Price"]), AtomicTerm(78))
+              GreaterThanEqFormula(IdentifierTerm("b", lambda x: x["Lowest Price"]), AtomicTerm(78))
+            ),
+              SmallerThanEqFormula(IdentifierTerm("c", lambda x: x["Lowest Price"]), AtomicTerm(75))
         ),
-        timedelta(minutes=5)
+    timedelta(minutes=5)
     )
 
     patterns = [amazonInstablePattern, pattern2]
     runTest("sameTypeDiffCond", patterns, createTestFile)
 
+	
 runTest.over_all_time = 0
 
 
 #twoPatternsWithSameSubExpressionTest()
-#sameTypeDifferentConditionTest()
+sameTypeDifferentConditionTest()
 #firstPatternHasEvent3TimesTest()
-
 
 # negation tests
 simpleNotTest()
@@ -978,7 +982,6 @@ oneNotAtTheEndTest()
 multipleNotAtTheEndTest()
 multipleNotBeginAndEndTest()
 testWithMultipleNotAtBeginningMiddleEnd()
-
 
 # basic functionality tests
 oneArgumentsearchTest()
