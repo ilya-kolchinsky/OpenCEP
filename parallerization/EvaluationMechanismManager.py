@@ -113,11 +113,11 @@ class EvaluationMechanismManager:
 
     def eval_by_single_tree_single_data(self,
                                         eval_mechanism: ParallelExecutionFramework, event_stream: InputStream,
-                                        pattern_matches:OutputStream, data_formatter):
+                                        pattern_matches:OutputStream, data_formatter: DataFormatter):
             eval_mechanism.eval(event_stream, pattern_matches, data_formatter)
 
 
-    def eval_by_single_tree_multiple_data(self, data_formatter):
+    def eval_by_single_tree_multiple_data(self, data_formatter: DataFormatter):
         for i in range(len(self.event_stream_splitted)):
             event_stream = self.event_stream_splitted[i]
             pattern_match = self.pattern_matches_list[i]
@@ -130,7 +130,7 @@ class EvaluationMechanismManager:
 
         #print("Thread end count:" , threading.active_count())
 
-    def eval_by_multiple_tree_single_data(self, data_formatter):
+    def eval_by_multiple_tree_single_data(self, data_formatter: DataFormatter):
         for i in range(len(self.eval_mechanism_list)):
             event_stream = self.source_event_stream.duplicate()
             pattern_match = self.pattern_matches_list[i]
@@ -140,7 +140,7 @@ class EvaluationMechanismManager:
         for i in range(len(self.eval_mechanism_list)):
             self.eval_mechanism_list[i].thread.join()
 
-    def eval_by_multiple_tree_multiple_data(self, data_formatter):
+    def eval_by_multiple_tree_multiple_data(self, data_formatter: DataFormatter):
         start_index_of_ems = 0
         for i in range(len(self.execution_map)):
             event_stream = self.event_stream_splitted[i]

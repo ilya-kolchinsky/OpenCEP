@@ -17,15 +17,18 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         if type(tree_based_eval) is not TreeBasedEvaluationMechanism:
             raise Exception()
         super().__init__(tree_based_eval) # tree_based_eval is unique for thread
-        self.root = tree_based_eval.get_tree().get_root() # unaryNode
+        self._unary_root = tree_based_eval.get_tree().get_root() # unaryNode
         self._all_leaves_are_original_leaves = has_leafs
         self._is_done = False
+        self._thread = None
+        self._unary_children = [] # list of type ParallelTreeEval
+        self._is_main_root = is_main_root
+        self._all_children_done_flag = False
+        self._is_multithreaded = is_multithreaded
         self.add_unary_root() #TODO: check if needed
-        self.thread = None
-        self.children = [] # list of type ParallelTreeEval
-        self.is_main_root = is_main_root
-        self.all_children_done_flag = False
-        self.is_multithreaded = is_multithreaded
+
+    def add_unary_children(self, children_eval):
+        self._unary_children.append(children_eval)
 
     def add_unary_root(self):
         root = self._evaluation_mechanism.get_tree().get_root()
@@ -68,8 +71,8 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         while not root.get_done():
             time.sleep(0.5)
 
-    def get_children(self):
-        return self.children
+    def get__unary_children(self):
+        return self._unary_children
 
     def get_children_old(self):
         # returns a list of all the UnaryParallelNodes that are directly connected to self.tree_based
@@ -85,13 +88,13 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
                 children.remove(children[i])
         return children
 
-    def get_partial_matches_from_children(self, events: InputStream):
-        children = self.get_children()
-        if len(children) == 0:#if self has no unaryParallelNode children, it means that it has only leaves and then needs the source input
+    def get_partial_matches_from__unary_children(self, events: InputStream):
+        unary_children = self.get__unary_children()
+        if len(unary_children) == 0:#if self has no unaryParallelNode children, it means that it has only leaves and then needs the source input
             return events
         aggregated_events = InputStream()
 
-        for child in children:
+        for child in unary_children:
             if type(child) is not ParallelUnaryNode:
                 raise Exception()
 
@@ -104,11 +107,11 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         input_stream = None
 
         while not self._is_done: # TODO: change implementation to waiting to synchronized var
-            if self.all_children_done():
+            if self._all_children_done_flag:
                 if self._all_leaves_are_original_leaves:
                     input_stream = events
                 else:
-                    input_stream = self.get_partial_matches_from_children()
+                    input_stream = self.get_partial_matches_from_unary_children()
 
                 # input_stream.close()
 
@@ -131,7 +134,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
 
     def eval(self, event_stream, pattern_matches, data_formatter):
         #print('Running MAIN thread with id', threading.get_ident())
-        if self.is_multithreaded:
+        if self._is_multithreaded:
             self.thread = threading.Thread(target=self.run_eval, args=(event_stream, pattern_matches, data_formatter,))
             self.thread.start()
         else:
@@ -140,7 +143,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
     def all_children_done(self):
         if self.all_children_done_flag == False:
             lock = threading.Lock()
-            children = self.get_children()
+            children = self.get_unary_children()
             if len(children) == 0:
                 return True
             for child in children:
