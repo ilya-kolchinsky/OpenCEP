@@ -1,23 +1,28 @@
 # OpenCEP
-A generic CEP library in python (requires python version 3.7+).
+OpenCEP is an open-source library and framework providing advanced complex event processing (CEP) capabilities.
 
-Complex event processing, or CEP, is event processing that combines data from multiple sources to infer events or patterns that suggest more complicated circumstances.
+CEP is a prominent technology for robust and high-performance real-time detection of arbitrarily complex patterns in massive data streams. It is widely employed in many areas where extremely large amounts of streaming data are continuously generated and need to be promptly and efficiently analyzed on-the-fly. Online finance, network security monitoring, credit card fraud detection, sensor networks, traffic monitoring, healthcare industry, and IoT applications are among the many examples.
 
-CEP executes a set of algorithms which, as said, can infer events, patterns and sequences. The input of these algorithms are event streams and patterns, and the result of these calculations are pattern matches, or matches.
+CEP systems treat data items as primitive events arriving from event sources. As new primitive events are observed, they are assembled into higher-level complex events matching the specified patterns. The process of complex event detection generally consists of collecting primitive events and combining them into potential (partial) matches using some type of detection model. As more events are added to a partial match, a full pattern match is eventually formed and reported.
 
-The algorithms are accessible for use with the API of this library.
+The patterns detected by CEP engines are often of exceedingly high complexity and nesting level, and may include multiple complex operators and conditions on the data items. Moreover, these systems are typically required to operate under tight constraints on response time and detection precision, and to process multiple patterns and streams in parallel. Therefore, advanced algorithmic solutions and sophisticated optimizations must be utilized by CEP implementations to achieve an acceptable level of service quality.
 
-This short documentation will be updated regularly.
+![OpenCEP structure overview](CEP.png)
+
+The figure above presents an overview of OpenCEP structure. Incoming data streams are analyzed on-the-fly and useful statistics and data characteristics are extracted to facilitate the optimizer in applying the aforementioned optimization techniques and maximize the performance of the evaluation mechanism – a component in charge of the actual pattern matching.
+
+By incorporating a multitude of state-of-the-art methods and algorithms for scalable event processing, OpenCEP can adequately satisfy the requirements of modern event-driven domains and outperform existing alternatives, both in terms of the actual performance and the provided functionality.
+
+OpenCEP features a generic and intuitive API, making it easily applicable to any domain where event-based streaming data is present. 
 
 # How to Use
-* The "main" class of this library is the CEP class (CEP.py).
-* Users are expected to create a CEP object and then invoke it on an event stream to obtain the pattern matches.
-* The CEP object is initialized with a list of patterns to be detected and a set of configurable parameters. As of this writing, the only such parameter is the algorithm for constructing the evaluation tree.
+* Users can apply complex patterns on event streams by creating and invoking a CEP object (CEP.py).
+* The CEP object is initialized with a list of patterns to be detected and a set of configurable parameters.
 * To create an event stream, you can manually create an empty stream and add events to it, and you can also provide a csv file to the fileInput function.
 * To handle the CEP output, you can manually read the events from the CEP object or from the matches container, or use the fileOutput function to print the matches into a file.
 * To create a pattern, the following components must be specified:
     * The pattern structure - e.g., SEQ(A, B, C) or AND(X, Y).
-    * The formula that must be satisfied by the atomic items in the pattern structure.
+    * The condition that must be satisfied by the atomic items in the pattern structure.
     * The time window within which the atomic items in the pattern structure should appear in the stream.
 
 
@@ -29,7 +34,9 @@ Defining a pattern:
 # WHERE a.PeakPrice < b.PeakPrice AND b.PeakPrice < c.PeakPrice
 # WITHIN 3 minutes
 googleAscendPattern = Pattern(
-        SeqOperator([QItem("GOOG", "a"), QItem("GOOG", "b"), QItem("GOOG", "c")]),
+        SeqOperator([PrimitiveEventStructure("GOOG", "a"), 
+                     PrimitiveEventStructure("GOOG", "b"), 
+                     PrimitiveEventStructure("GOOG", "c")]),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
@@ -43,7 +50,7 @@ googleAscendPattern = Pattern(
 # WHERE a.PeakPrice <= 73 AND g.PeakPrice <= 525
 # WITHIN 1 minute
 googleAmazonLowPattern = Pattern(
-    AndOperator([QItem("AMZN", "a"), QItem("GOOG", "g")]),
+    AndOperator([PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("GOOG", "g")]),
     AndFormula(
         SmallerThanEqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(73)),
         SmallerThanEqFormula(IdentifierTerm("g", lambda x: x["Peak Price"]), AtomicTerm(525))
@@ -52,22 +59,19 @@ googleAmazonLowPattern = Pattern(
 )
 ```
 
-Creating a CEP object for monitoring the patterns from the example above:
+Creating a CEP object for monitoring the first pattern from the example above:
 ```
-cep = CEP([googleAscendPattern, googleAmazonLowPattern], 
-          EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, None)
+cep = CEP([googleAscendPattern])
 ```
 
 Defining a new file-based event stream formatted according to Metastock 7 format:
 ```
-events = file_input("test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
+events = FileInputStream("test/EventFiles/NASDAQ_SHORT.txt")
 ```
 
-Applying an existing CEP object on an event stream and storing the resulting pattern matches to a file:
+Applying an existing CEP object on an event stream created above and storing the resulting pattern matches to a file:
 ```
-cep.run(events) # potentially blocking call
-matches = cep.get_pattern_match_stream()
-file_output(matches, 'output.txt')
+cep.run(events, FileOutputStream('test/Matches', 'output.txt'), MetastockDataFormatter())
 ```
 
 ## Kleene Closure Operator 
@@ -77,7 +81,8 @@ The following is the example of a pattern containing a Kleene closure operator:
 ```
 pattern = Pattern(
         SeqOperator([
-            QItem("GOOG", "a"), KleeneClosureOperator(QItem("GOOG", "b"))
+            PrimitiveEventStructure("GOOG", "a"), 
+            KleeneClosureOperator(PrimitiveEventStructure("GOOG", "b"))
         ]),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
@@ -93,7 +98,9 @@ The following is the example of a pattern containing a negation operator:
 
 ```
 pattern = Pattern(
-        SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), 
+                     NegationOperator(PrimitiveEventStructure("AMZN", "b")), 
+                     PrimitiveEventStructure("GOOG", "c")]),
         AndFormula(
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
@@ -111,7 +118,9 @@ OpenCEP supports a variety of consumption policies provided using the Consumptio
 The following pattern definition limiting all primitive events to only appear in a single full match.
 ```
 pattern = Pattern(
-    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+    SeqOperator([PrimitiveEventStructure("AAPL", "a"), 
+                 PrimitiveEventStructure("AMZN", "b"), 
+                 PrimitiveEventStructure("AVID", "c")]), 
     TrueFormula(),
     timedelta(minutes=5),
     ConsumptionPolicy(primary_selection_strategy = SelectionStrategies.MATCH_SINGLE)
@@ -120,7 +129,9 @@ pattern = Pattern(
 This selection strategy further limits the pattern detection process, only allowing to match produce a single intermediate partial match containing an event. 
 ```
 pattern = Pattern(
-    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+    SeqOperator([PrimitiveEventStructure("AAPL", "a"), 
+                 PrimitiveEventStructure("AMZN", "b"), 
+                 PrimitiveEventStructure("AVID", "c")]), 
     TrueFormula(),
     timedelta(minutes=5),
     ConsumptionPolicy(primary_selection_strategy = SelectionStrategies.MATCH_NEXT)
@@ -129,7 +140,9 @@ pattern = Pattern(
 It is also possible to enforce either MATCH_NEXT or MATCH_SINGLE on a subset of event types. 
 ```
 pattern = Pattern(
-    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+    SeqOperator([PrimitiveEventStructure("AAPL", "a"), 
+                 PrimitiveEventStructure("AMZN", "b"), 
+                 PrimitiveEventStructure("AVID", "c")]), 
     TrueFormula(),
     timedelta(minutes=5),
     ConsumptionPolicy(single=["AMZN", "AVID"], 
@@ -140,7 +153,9 @@ This consumption policy specifies a list of events that must be contiguous in th
 no other unrelated event is allowed to appear in between.
 ```
 pattern = Pattern(
-    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+    SeqOperator([PrimitiveEventStructure("AAPL", "a"), 
+                 PrimitiveEventStructure("AMZN", "b"), 
+                 PrimitiveEventStructure("AVID", "c")]), 
     TrueFormula(),
     timedelta(minutes=5),
     ConsumptionPolicy(contiguous=["a", "b", "c"])
@@ -152,7 +167,9 @@ from the point a new "b" event is accepted and until it is either matched or exp
 ```
 # Enforce mechanism from the first event in the sequence
 pattern = Pattern(
-    SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]), 
+    SeqOperator([PrimitiveEventStructure("AAPL", "a"), 
+                 PrimitiveEventStructure("AMZN", "b"), 
+                 PrimitiveEventStructure("AVID", "c")]), 
     AndFormula(
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])), 
         GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
@@ -179,36 +196,17 @@ eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=stor
 #can be any tree based evaluation parameters, just make sure to provide storage_params
 
 
-cep = CEP(pattern, EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-        eval_mechanism_params)
+cep = CEP(pattern, eval_mechanism_params)
 ```
 
 # Twitter API support
 ### Authentication
 To receive a Twitter stream via Twitter API, provide your credentials in plugin/twitter/TwitterCredentials.py
 ### Creating a twitter stream
-To create a twitter stream, a creation of TweetsStreamSessionInput class is needed. After creating the class above, use the get_stream_queue method while supplying a list of words as parameters that will determine the income tweets through the stream.
+To create a twitter stream, create an instance of TwitterInputStream and use it as you would any other OpenCEP input stream.
+Filtering parameters for the twitter stream can be provided via the constructor of the class.
+```
+event_stream = TwitterInputStream(['corona'])
+```
 ### Tweet formation in CEP
-The formation of a tweet is defined in Tweets.py (see documentation). The tweet keys are described there based on the overview of a tweet in https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object
-### Using the timeout feature
-In order to use the timeout feature, insert a timeout parameter when creating a TweetsStreamSessionInput.
-For example: TweetsStreamSessionInput(time_out=10) if you want to stop receiving data from the stream after 10 seconds and stop the CEP run
-### Examples
-Creating a TweetsStreamSessionInput object:
-time_limit is time (in seconds) you want the streaming will run (optional).
-```
-streaming = TweetsStreamSessionInput(time_limit=x)
-```
-Get the stream queue (Stream object) of the tweets. 
-In this example we search tweets that include the word "corona":
-```
-stream_queue = streaming.get_stream_queue(['corona'])
-```
-After you created a queue, you can run the CEP. 
-Provide a path to the file you want the results will print to, and the time_limit above (optional):
-```
-cep = CEP([pattern],
-          EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, None)
-cep.run(stream_queue, is_async=True, file_path="output.txt", time_limit=x)
-
-```
+The format of a tweet is defined in Tweets.py (see documentation). The tweet keys are described there based on the overview of a tweet in https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object

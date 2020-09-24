@@ -1,80 +1,30 @@
 from typing import List
-from enum import Enum
 
 from base.Pattern import Pattern
-from evaluation.IterativeImprovement import IterativeImprovementType
-from evaluation.PartialMatchStorage import TreeStorageParameters
-
-
-class EvaluationMechanismTypes(Enum):
-    """
-    The various algorithms for constructing an efficient evaluation tree.
-    """
-    TRIVIAL_LEFT_DEEP_TREE = 0,
-    SORT_BY_FREQUENCY_LEFT_DEEP_TREE = 1,
-    GREEDY_LEFT_DEEP_TREE = 2,
-    LOCAL_SEARCH_LEFT_DEEP_TREE = 3,
-    DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE = 4,
-    DYNAMIC_PROGRAMMING_BUSHY_TREE = 5,
-    ZSTREAM_BUSHY_TREE = 6,
-    ORDERED_ZSTREAM_BUSHY_TREE = 7
+from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
+from misc import DefaultConfig
+from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
+from tree.PatternMatchStorage import TreeStorageParameters
+from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 
 
 class EvaluationMechanismParameters:
     """
-    Parameters for the evaluation mechanism builder.
+    Parameters required for evaluation mechanism creation.
     """
-    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes):
+    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes = DefaultConfig.DEFAULT_EVALUATION_MECHANISM_TYPE):
         self.type = eval_mechanism_type
-
-class MultiPatternEvaluationApproach(Enum):
-    """
-    The various approaches for constructing a multi-pattern evaluation mechanism.
-    TRIVIAL: gets a list of patterns and builds a separate tree for each pattern
-    """
-
-    TRIVIAL_SHARING_LEAVES = 0,
-    SUBTREES_UNION = 1,
-    LOCAL_SEARCH = 2
-
-class MultiPatternEvaluationParameters:
-    """
-    Parameters for the multi pattern evaluation mechanism builder.
-    """
-
-    def __init__(self, evaluation_approach: MultiPatternEvaluationApproach):
-        self.approach = evaluation_approach
-
-#changed the order of the imports to avoid circular imports
-from evaluation.BushyTreeBuilders import DynamicProgrammingBushyTreeBuilder, ZStreamTreeBuilder, ZStreamOrdTreeBuilder
-from evaluation.LeftDeepTreeBuilders import IterativeImprovementInitType, TrivialLeftDeepTreeBuilder, \
-    AscendingFrequencyTreeBuilder, GreedyLeftDeepTreeBuilder, IterativeImprovementLeftDeepTreeBuilder, \
-    DynamicProgrammingLeftDeepTreeBuilder
 
 
 class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
     """
-    shared Parameters for the Tree Based evaluation mechanism builders.
+    Parameters for the creation of a tree-based evaluation mechanism.
     """
-    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
+    def __init__(self, tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
                  storage_params: TreeStorageParameters = TreeStorageParameters()):
-        super().__init__(eval_mechanism_type)
+        super().__init__(EvaluationMechanismTypes.TREE_BASED)
+        self.tree_plan_params = tree_plan_params
         self.storage_params = storage_params
-
-
-class IterativeImprovementEvaluationMechanismParameters(TreeBasedEvaluationMechanismParameters):
-    """
-    Parameters for evaluation mechanism builders based on local search include the number of search steps, the
-    choice of the neighborhood (step) function, and the way to generate the initial state.
-    """
-    def __init__(self, step_limit: int,
-                 ii_type: IterativeImprovementType = IterativeImprovementType.SWAP_BASED,
-                 init_type: IterativeImprovementInitType = IterativeImprovementInitType.RANDOM,
-                 storage_params: TreeStorageParameters = TreeStorageParameters()):
-        super().__init__(EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE, storage_params)
-        self.ii_type = ii_type
-        self.init_type = init_type
-        self.step_limit = step_limit
 
 
 class EvaluationMechanismFactory:
@@ -83,56 +33,35 @@ class EvaluationMechanismFactory:
     """
 
     @staticmethod
-    def build_single_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,
-                                            eval_mechanism_params: EvaluationMechanismParameters,
+    def build_single_pattern_eval_mechanism(eval_mechanism_params: EvaluationMechanismParameters,
                                             pattern: Pattern):
-        storage_params = eval_mechanism_params.storage_params \
-                         if isinstance(eval_mechanism_params, TreeBasedEvaluationMechanismParameters) \
-                         else TreeStorageParameters()
-        eval_mechanism_builder = EvaluationMechanismFactory.__create_eval_mechanism_builder(eval_mechanism_type,
-                                                                                            eval_mechanism_params)
-        return eval_mechanism_builder.build_single_pattern_eval_mechanism(pattern, storage_params)
+        if eval_mechanism_params is None:
+            eval_mechanism_params = EvaluationMechanismFactory.__create_default_eval_parameters()
+        if eval_mechanism_params.type == EvaluationMechanismTypes.TREE_BASED:
+            return EvaluationMechanismFactory.__create_tree_based_eval_mechanism(eval_mechanism_params, pattern)
+        raise Exception("Unknown evaluation mechanism type: %s" % (eval_mechanism_params.type,))
 
     @staticmethod
-    def build_multi_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,
-                                           multi_pattern_eval_approach: MultiPatternEvaluationApproach,
-                                           eval_mechanism_params: EvaluationMechanismParameters,
+    def build_multi_pattern_eval_mechanism(eval_mechanism_params: EvaluationMechanismParameters,
                                            patterns: List[Pattern]):
-        storage_params = eval_mechanism_params.storage_params \
-                         if isinstance(eval_mechanism_params, TreeBasedEvaluationMechanismParameters) \
-                         else TreeStorageParameters()
-        eval_mechanism_builder = EvaluationMechanismFactory.__create_eval_mechanism_builder(eval_mechanism_type,
-                                                                                            eval_mechanism_params)
-        return eval_mechanism_builder.build_multi_pattern_eval_mechanism(patterns, storage_params, multi_pattern_eval_approach)
+        # as of now, no multi pattern evaluation mechanism is implemented
+        raise Exception("Unknown evaluation mechanism type: %s" % (eval_mechanism_params.type,))
 
     @staticmethod
-    def __create_eval_mechanism_builder(eval_mechanism_type: EvaluationMechanismTypes,
-                                        eval_mechanism_params: EvaluationMechanismParameters):
-        eval_mechanism_params = EvaluationMechanismFactory.__create_eval_mechanism_parameters(eval_mechanism_type,
-                                                                                              eval_mechanism_params)
-        if eval_mechanism_params.type == EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE:
-            return TrivialLeftDeepTreeBuilder()
-        if eval_mechanism_params.type == EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE:
-            return AscendingFrequencyTreeBuilder()
-        if eval_mechanism_params.type == EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE:
-            return GreedyLeftDeepTreeBuilder()
-        if eval_mechanism_params.type == EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE:
-            return IterativeImprovementLeftDeepTreeBuilder(eval_mechanism_params.step_limit,
-                                                           eval_mechanism_params.ii_type,
-                                                           eval_mechanism_params.init_type)
-        if eval_mechanism_params.type == EvaluationMechanismTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE:
-            return DynamicProgrammingLeftDeepTreeBuilder()
-        if eval_mechanism_params.type == EvaluationMechanismTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE:
-            return DynamicProgrammingBushyTreeBuilder()
-        if eval_mechanism_params.type == EvaluationMechanismTypes.ZSTREAM_BUSHY_TREE:
-            return ZStreamTreeBuilder()
-        if eval_mechanism_params.type == EvaluationMechanismTypes.ORDERED_ZSTREAM_BUSHY_TREE:
-            return ZStreamOrdTreeBuilder()
-        return None
+    def __create_tree_based_eval_mechanism(eval_mechanism_params: TreeBasedEvaluationMechanismParameters,
+                                           pattern: Pattern):
+        """
+        Instantiates a tree-based CEP evaluation mechanism according to the given configuration.
+        """
+        tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
+        tree_plan = tree_plan_builder.build_tree_plan(pattern)
+        return TreeBasedEvaluationMechanism(pattern, tree_plan, eval_mechanism_params.storage_params)
 
     @staticmethod
-    def __create_eval_mechanism_parameters(eval_mechanism_type: EvaluationMechanismTypes,
-                                           eval_mechanism_params: EvaluationMechanismParameters):
-        if eval_mechanism_params is not None:
-            return eval_mechanism_params
-        return EvaluationMechanismParameters(eval_mechanism_type)
+    def __create_default_eval_parameters():
+        """
+        Uses the default configuration to create evaluation mechanism parameters.
+        """
+        if DefaultConfig.DEFAULT_EVALUATION_MECHANISM_TYPE == EvaluationMechanismTypes.TREE_BASED:
+            return TreeBasedEvaluationMechanismParameters()
+        raise Exception("Unknown evaluation mechanism type: %s" % (DefaultConfig.DEFAULT_EVALUATION_MECHANISM_TYPE,))

@@ -1,8 +1,8 @@
 """
 These classes are used to represent a "parameter" to the PATTERN clause.
-These classes represent a SEQ/AND/OR/KL operator and the atomic argument QItem.
+These classes represent a SEQ/AND/OR/KL operator and the atomic argument PrimitiveEventStructure.
 The classes support nesting. Every operator class has its list of arguments.
-The QItem class has an event type and its name. The name is referred to in
+The PrimitiveEventStructure class has an event type and its name. The name is referred to in
 a pattern matching condition, represented as formula.
 """
 from abc import ABC
@@ -36,7 +36,7 @@ class PatternStructure(ABC):
         raise NotImplementedError()
 
 
-class QItem(PatternStructure):
+class PrimitiveEventStructure(PatternStructure):
     """
     Represents a simple primitive event, defined by a type and a name.
     """
@@ -45,7 +45,7 @@ class QItem(PatternStructure):
         self.name = name
 
     def duplicate(self):
-        return QItem(self.type, self.name)
+        return PrimitiveEventStructure(self.type, self.name)
 
     def __eq__(self, other):
         return type(self) == type(other) and self.name == other.name

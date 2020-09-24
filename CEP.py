@@ -2,25 +2,15 @@
 This file contains the primary engine. It processes streams of events and detects pattern matches
 by invoking the rest of the system components.
 """
-from misc.IOUtils import Stream
+from base.DataFormatter import DataFormatter
+from stream.Stream import InputStream, OutputStream
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import (
     EvaluationMechanismParameters,
-    EvaluationMechanismTypes,
     EvaluationMechanismFactory,
-    MultiPatternEvaluationApproach,
 )
 from typing import List
 from datetime import datetime
-
-class PerformanceSpecifications:
-    """
-    A sketch of QoS specifications, we assume it will be an object constructed separately, and the
-    CEP engine will refer to it if it is passed.
-    Not implemented yet.
-    """
-
-    pass
 
 
 class CEP:
@@ -28,39 +18,26 @@ class CEP:
     A CEP object contains a workload (list of patterns to be evaluated) and an evaluation mechanism.
     The evaluation mechanism is created according to the parameters specified in the constructor.
     """
-    def __init__(self, patterns: List[Pattern],
-                 eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-                 eval_mechanism_params: EvaluationMechanismParameters = None,
-                 performance_specs: PerformanceSpecifications = None,
-                 multi_pattern_eval_approach: MultiPatternEvaluationApproach = MultiPatternEvaluationApproach.TRIVIAL_SHARING_LEAVES):
+    def __init__(self, patterns: List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None):
         """
         Constructor of the class.
         """
         if patterns is None:
             raise Exception("No patterns are provided")
         if len(patterns) > 1:
-            self.__eval_mechanism = EvaluationMechanismFactory.build_multi_pattern_eval_mechanism(eval_mechanism_type,
-                                                                                                  multi_pattern_eval_approach,
-                                                                                                  eval_mechanism_params,
-                                                                                                  patterns)
-        else:
-            self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
-                                                                                               eval_mechanism_params,
+            raise NotImplementedError("Multi-pattern support is not yet available")
+        self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_params,
                                                                                                patterns[0])
         self.__pattern_matches = None
-        self.__performance_specs = performance_specs
 
-    def run(self, event_stream: Stream, is_async=False, file_path=None, time_limit=None):
+    def run(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
         Applies the evaluation mechanism to detect the predefined patterns in a given stream of events.
         Returns the total time elapsed during evaluation.
         """
-        self.__pattern_matches = Stream()
+        self.__pattern_matches = matches
         start = datetime.now()
-        if is_async:
-            self.__eval_mechanism.eval(event_stream, self.__pattern_matches, is_async=True, file_path=file_path, time_limit=time_limit)
-        else:
-            self.__eval_mechanism.eval(event_stream, self.__pattern_matches)
+        self.__eval_mechanism.eval(events, self.__pattern_matches, data_formatter)
         return (datetime.now() - start).total_seconds()
 
     def get_pattern_match(self):
@@ -85,11 +62,3 @@ class CEP:
         Returns an object summarizing the structure of the underlying evaluation mechanism.
         """
         return self.__eval_mechanism.get_structure_summary()
-
-    # For future support of dynamic workload modification
-    def add_pattern(self, pattern: Pattern, priority: int = 0):
-        raise NotImplementedError()
-
-    # For future support of dynamic workload modification
-    def remove_pattern(self, pattern: Pattern, priority: int = 0):
-        raise NotImplementedError()
