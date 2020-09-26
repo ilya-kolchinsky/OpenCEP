@@ -1035,7 +1035,7 @@ runTest.over_all_time = 0
 
 
 #twoPatternsWithSameSubExpressionTest()
-sameTypeDifferentConditionTest()
+#sameTypeDifferentConditionTest()
 #firstPatternHasEvent3TimesTest()
 
 # negation tests

@@ -42,17 +42,25 @@ class Node(ABC):
         """
         return Node.__enable_partial_match_expiration
 
-    def __init__(self, sliding_window: timedelta, parent):
-        self._parent = parent
+    def __init__(self, sliding_window: timedelta, parents):
+        if not isinstance(parents, list) and parents is not None:
+            parents = [parents]
+        self._parents = parents
         self._sliding_window = sliding_window
         self._partial_matches = None
         self._condition = TrueFormula()
-        # matches that were not yet pushed to the parent for further processing
+        # matches that were not yet pushed to the parents for further processing
         self._unhandled_partial_matches = Queue()
         # set of event types that will only appear in a single full match
         self._single_event_types = set()
         # events that were added to a partial match and cannot be added again
         self._filtered_events = set()
+        self._parent_to_unhandled_queue_dict = {}
+        if self._parents is not None:
+            self._parent_to_unhandled_queue_dict = {parent: Queue() for parent in self._parents}
+
+    def add_to_parent_to_unhandled_queue_dict(self, key, value):
+        self._parent_to_unhandled_queue_dict[key] = value
 
     def consume_first_partial_match(self):
         """
@@ -71,24 +79,37 @@ class Node(ABC):
 
     def get_last_unhandled_partial_match(self):
         """
-        Returns the last partial match buffered at this node and not yet transferred to its parent.
+        Returns the last partial match buffered at this node and not yet transferred to its parents.
         """
         return self._unhandled_partial_matches.get(block=False)
 
-    def set_parent(self, parent):
-        """
-        Sets the parent of this node.
-        """
-        self._parent = parent
+    def get_last_unhandled_partial_match_by_parent(self, parent):
+        return self._parent_to_unhandled_queue_dict[parent].get(block=False)
 
-    def get_root(self):
+    def set_parent(self, parents):
         """
-        Returns the root of the tree.
+        Sets the parents of this node.
         """
-        node = self
-        while node._parent is not None:
-            node = node._parent
-        return node
+        if not isinstance(parents, list) and parents is not None:
+            parents = [parents]
+        self._parents = parents
+
+    def add_parent(self, parent):
+        self._parents.append(parent)
+
+    def get_parents(self):
+        return self._parents
+
+    def get_roots(self):
+        """
+        Returns the roots of the tree.
+        """
+        if self._parents is None:
+            return [self]
+        roots = []
+        for parent in self._parents:
+            roots += parent.get_roots()
+        return roots
 
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
@@ -110,8 +131,9 @@ class Node(ABC):
         Recursively updates the ancestors of the node.
         """
         self._single_event_types.add(event_type)
-        if self._parent is not None:
-            self._parent.register_single_event_type(event_type)
+        if self._parents:
+            for parent in self._parents:
+                parent.register_single_event_type(event_type)
 
     def _add_partial_match(self, pm: PatternMatch):
         """
@@ -120,9 +142,13 @@ class Node(ABC):
         In case of UnsortedPatternMatchStorage the insertion is directly at the end, O(1).
         """
         self._partial_matches.add(pm)
-        if self._parent is not None:
-            self._unhandled_partial_matches.put(pm)
-            self._parent.handle_new_partial_match(self)
+        if self._parents:
+            for parent in self._parents:
+                if parent in self._parent_to_unhandled_queue_dict:
+                    self._parent_to_unhandled_queue_dict[parent].put(pm)
+            for parent in self._parents:
+                parent.handle_new_partial_match(self)
+
 
     def __can_add_partial_match(self, pm: PatternMatch) -> bool:
         """

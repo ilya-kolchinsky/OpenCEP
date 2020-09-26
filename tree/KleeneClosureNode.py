@@ -27,7 +27,7 @@ class KleeneClosureNode(UnaryNode):
         if self._child is None:
             raise Exception()  # should never happen
 
-        new_partial_match = self._child.get_last_unhandled_partial_match()
+        new_partial_match = self._child.get_last_unhandled_partial_match_by_parent(self)
         self._child.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
         # create partial match sets containing the new partial match that triggered this method

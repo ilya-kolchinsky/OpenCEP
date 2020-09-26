@@ -8,15 +8,18 @@ from base.PatternMatch import PatternMatch
 from tree.InternalNode import InternalNode
 from tree.Node import Node, PrimitiveEventDefinition
 
+#TODO: REMOVE AFTER ADDING A PARENT DICTIONARY TO AN ABTRACT NODE
+from tree.LeafNode import LeafNode
+
 
 class BinaryNode(InternalNode, ABC):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None,
+    def __init__(self, sliding_window: timedelta, parents: List[Node] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
                  left: Node = None, right: Node = None):
-        super().__init__(sliding_window, parent, event_defs)
+        super().__init__(sliding_window, parents, event_defs)
         self._left_subtree = left
         self._right_subtree = right
 
@@ -61,6 +64,17 @@ class BinaryNode(InternalNode, ABC):
         self._set_event_definitions(self._left_subtree.get_event_definitions(),
                                     self._right_subtree.get_event_definitions())
 
+
+    def replace_subtree(self, old_node: Node, new_node: Node):
+        #gets a node and replace it's subtree
+        left = self.get_left_subtree()
+        right = self.get_right_subtree()
+        if left == old_node:
+            self.set_subtrees(new_node, right)
+        elif right == old_node:
+            self.set_subtrees(left, new_node)
+        new_node.add_parent(self)
+
     def handle_new_partial_match(self, partial_match_source: Node):
         """
         Internal node's update for a new partial match in one of the subtrees.
@@ -72,14 +86,21 @@ class BinaryNode(InternalNode, ABC):
         else:
             raise Exception()  # should never happen
 
-        new_partial_match = partial_match_source.get_last_unhandled_partial_match()
+        new_partial_match = partial_match_source.get_last_unhandled_partial_match_by_parent(self)
         new_pm_key = partial_match_source.get_storage_unit().get_key_function()
-        first_event_defs = partial_match_source.get_event_definitions()
+        if isinstance(partial_match_source, LeafNode):
+            first_event_defs = partial_match_source.get_event_definitions_by_parent(self)
+        else:
+            first_event_defs = partial_match_source.get_event_definitions()
         other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
         partial_matches_to_compare = other_subtree.get_partial_matches(new_pm_key(new_partial_match))
-        second_event_defs = other_subtree.get_event_definitions()
+        if isinstance(other_subtree, LeafNode):
+            second_event_defs = other_subtree.get_event_definitions_by_parent(self)
+        else:
+            second_event_defs = other_subtree.get_event_definitions()
 
-        if self._parent is not None:
+        #we don't want to erase the partial matches of a root
+        if self._parents is not None:
             self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
         # given a partial match from one subtree, for each partial match

@@ -6,6 +6,7 @@ from misc import DefaultConfig
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
+from plan.MultiPatternEvaluationApproach import MultiPatternEvaluationApproach
 
 
 class EvaluationMechanismParameters:
@@ -21,10 +22,12 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
     Parameters for the creation of a tree-based evaluation mechanism.
     """
     def __init__(self, tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
-                 storage_params: TreeStorageParameters = TreeStorageParameters()):
+                 storage_params: TreeStorageParameters = TreeStorageParameters(),
+                 multi_pattern_eval_approach: MultiPatternEvaluationApproach = DefaultConfig.DEFAULT_MULTI_PATTERN_APPROACH):
         super().__init__(EvaluationMechanismTypes.TREE_BASED)
         self.tree_plan_params = tree_plan_params
         self.storage_params = storage_params
+        self.multi_pattern_eval_approach = multi_pattern_eval_approach
 
 
 class EvaluationMechanismFactory:
@@ -49,13 +52,15 @@ class EvaluationMechanismFactory:
 
     @staticmethod
     def __create_tree_based_eval_mechanism(eval_mechanism_params: TreeBasedEvaluationMechanismParameters,
-                                           pattern: Pattern):
+                                           patterns: List[Pattern]):
         """
         Instantiates a tree-based CEP evaluation mechanism according to the given configuration.
         """
+        if isinstance(patterns, Pattern):
+            patterns = [patterns]
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
-        tree_plan = tree_plan_builder.build_tree_plan(pattern)
-        return TreeBasedEvaluationMechanism(pattern, tree_plan, eval_mechanism_params.storage_params)
+        tree_plans = [tree_plan_builder.build_tree_plan(pattern) for pattern in patterns]
+        return TreeBasedEvaluationMechanism(patterns, tree_plans, eval_mechanism_params.storage_params, eval_mechanism_params.multi_pattern_eval_approach)
 
     @staticmethod
     def __create_default_eval_parameters():

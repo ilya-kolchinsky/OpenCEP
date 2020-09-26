@@ -5,9 +5,9 @@ Each of the values below can be overridden by providing a different value in CEP
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc.SelectionStrategies import SelectionStrategies
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType
-
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
+from plan.MultiPatternEvaluationApproach import MultiPatternEvaluationApproach
 
 
 # general settings
@@ -29,3 +29,6 @@ PRIORITIZE_SORTING_BY_TIMESTAMP = True
 # iterative improvement defaults
 ITERATIVE_IMPROVEMENT_TYPE = IterativeImprovementType.SWAP_BASED
 ITERATIVE_IMPROVEMENT_INIT_TYPE = IterativeImprovementInitType.RANDOM
+
+# multi pattern approach
+DEFAULT_MULTI_PATTERN_APPROACH = MultiPatternEvaluationApproach.TRIVIAL_SHARING_LEAVES

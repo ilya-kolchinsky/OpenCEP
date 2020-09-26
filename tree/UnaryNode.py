@@ -12,9 +12,9 @@ class UnaryNode(InternalNode, ABC):
     """
     Represents an internal tree node with a single child.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None,
+    def __init__(self, sliding_window: timedelta, parents: List[Node] = None,
                  event_defs: List[PrimitiveEventDefinition] = None, child: Node = None):
-        super().__init__(sliding_window, parent, event_defs)
+        super().__init__(sliding_window, parents, event_defs)
         self._child = child
 
     def get_leaves(self):
@@ -31,6 +31,10 @@ class UnaryNode(InternalNode, ABC):
         """
         self._child = child
         self._event_defs = child.get_event_definitions()
+
+    def replace_subtree(self, child: Node):
+        self.set_subtree(child)
+        child.add_parent(self)
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,

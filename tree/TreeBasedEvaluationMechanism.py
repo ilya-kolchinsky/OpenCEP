@@ -7,6 +7,8 @@ from tree.LeafNode import LeafNode
 from tree.PatternMatchStorage import TreeStorageParameters
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
+from plan.MultiPatternEvaluationApproach import MultiPatternEvaluationApproach
+from tree.MultiPatternTree import MultiPatternTree
 
 from tree.Tree import Tree
 
@@ -15,15 +17,30 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
-    def __init__(self, pattern: Pattern, tree_plan: TreePlan, storage_params: TreeStorageParameters):
-        self.__tree = Tree(tree_plan, pattern, storage_params)
-        self.__pattern = pattern
-        self.__freeze_map = {}
-        self.__active_freezers = []
-        self.__event_types_listeners = {}
+    def __init__(self, patterns: List[Pattern], tree_plans: List[TreePlan], storage_params: TreeStorageParameters,
+                 multi_pattern_eval_approach: MultiPatternEvaluationApproach = DefaultConfig.DEFAULT_MULTI_PATTERN_APPROACH):
 
-        if pattern.consumption_policy is not None and pattern.consumption_policy.freeze_names is not None:
-            self.__init_freeze_map()
+        if len(patterns) > 1:
+            # check for a use in freeze when there is more than one pattern
+            freeze_patterns = [pattern for pattern in patterns if
+                               pattern.consumption_policy is not None and pattern.consumption_policy.freeze_names is not None]
+            if len(freeze_patterns) > 0:
+                raise Exception("This feature is not yet supported in multi-pattern mode")
+
+            self.__tree = MultiPatternTree(tree_plans, patterns, storage_params, multi_pattern_eval_approach)
+            self.__patterns = patterns
+            self.__freeze_map = {}
+
+        else:
+            self.__tree = Tree(tree_plans[0], patterns[0], storage_params)
+            self.__pattern = patterns[0]
+            self.__freeze_map = {}
+            self.__active_freezers = []
+
+            if patterns[0].consumption_policy is not None and patterns[0].consumption_policy.freeze_names is not None:
+                self.__init_freeze_map()
+
+        self.__event_types_listeners = {}
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """

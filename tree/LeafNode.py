@@ -12,11 +12,17 @@ class LeafNode(Node):
     """
     A leaf node is responsible for a single event type of the pattern.
     """
-    def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_event: PrimitiveEventStructure, parent: Node):
-        super().__init__(sliding_window, parent)
+    def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_event: PrimitiveEventStructure, parents: List[Node]):
+        super().__init__(sliding_window, parents)
         self.__leaf_index = leaf_index
         self.__event_name = leaf_event.name
         self.__event_type = leaf_event.type
+        self.__parent_to_info_dict = {}
+
+    def create_parent_to_info_dict(self):
+         if self._parents is not None:
+            self.__parent_to_info_dict = {parent: PrimitiveEventDefinition(self.__event_type, self.__event_name, self.__leaf_index)
+                                            for parent in self._parents}
 
     def get_leaves(self):
         return [self]
@@ -28,6 +34,11 @@ class LeafNode(Node):
 
     def get_event_definitions(self):
         return [PrimitiveEventDefinition(self.__event_type, self.__event_name, self.__leaf_index)]
+
+    def get_event_definitions_by_parent(self, parent: Node):
+        if parent not in self.__parent_to_info_dict.keys():
+            raise Exception("parent is not in the dictionary.")
+        return [self.__parent_to_info_dict[parent]]
 
     def get_event_type(self):
         """
@@ -86,3 +97,12 @@ class LeafNode(Node):
 
     def get_structure_summary(self):
         return self.__event_name
+
+    def add_to_dict(self, key: Node, value: PrimitiveEventDefinition):
+        self.__parent_to_info_dict[key] = value
+
+    def get_condition(self):
+        return self._condition
+
+    def is_equal(self, other):
+        return self.get_event_type() == other.get_event_type() and self.get_condition().is_equal(other.get_condition())
