@@ -20,6 +20,8 @@ class MultiPatternTree:
                  multi_pattern_eval_approach: MultiPatternEvaluationApproach):
         self.__roots = self.__construct_multi_pattern_tree(tree_plans, patterns, storage_params,
                  multi_pattern_eval_approach)
+        self.__pattern_to_root_dict = {i+1: tree_plans[i] for i in range(len(patterns))}
+
 
     def __construct_multi_pattern_tree(self, tree_plans: List[TreePlan], patterns: List[Pattern], storage_params: TreeStorageParameters,
                  multi_pattern_eval_approach: MultiPatternEvaluationApproach):
@@ -58,6 +60,7 @@ class MultiPatternTree:
                 else:
                     index = leaves_to_counter_dict[dict_leaf]
                     our_leaf = leaves_dict[dict_leaf][index]
+                    our_leaf.set_sliding_window(max(our_leaf.get_sliding_window(), leaf.get_sliding_window()))
                     curr_parents = leaf.get_parents()
                     for parent in curr_parents:
                         our_leaf.add_to_dict(parent, PrimitiveEventDefinition(leaf.get_event_type(), leaf.get_event_name(), leaf.get_leaf_index()))
@@ -92,7 +95,7 @@ class MultiPatternTree:
     def get_matches(self):
         for root in self.__roots:
             while root.has_partial_matches():
-                yield root.consume_first_partial_match().events
+                yield root.consume_first_partial_match()
 
     def get_last_matches(self):
         for root in self.__roots:

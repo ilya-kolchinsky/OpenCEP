@@ -111,6 +111,12 @@ class Node(ABC):
             roots += parent.get_roots()
         return roots
 
+    def get_sliding_window(self):
+        return self._sliding_window
+
+    def set_sliding_window(self, new_sliding_window: timedelta):
+        self._sliding_window = new_sliding_window
+
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
         Removes partial matches whose earliest timestamp violates the time window constraint.
@@ -144,8 +150,8 @@ class Node(ABC):
         self._partial_matches.add(pm)
         if self._parents:
             for parent in self._parents:
-                if parent in self._parent_to_unhandled_queue_dict:
-                    self._parent_to_unhandled_queue_dict[parent].put(pm)
+                # if parent in self._parent_to_unhandled_queue_dict:
+                self._parent_to_unhandled_queue_dict[parent].put(pm)
             for parent in self._parents:
                 parent.handle_new_partial_match(self)
 
