@@ -2,7 +2,7 @@ from functools import reduce
 from typing import List
 
 from base.Event import Event
-from base.Formula import Formula, EqFormula, IdentifierTerm, MinusTerm, AtomicTerm, AndFormula
+from base.Formula import Formula, EqFormula, IdentifierTerm, BinaryFormula, CompositeAnd
 from base.PatternStructure import PatternStructure, QItem, CompositeStructure
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
@@ -22,6 +22,7 @@ class Pattern:
     A pattern can also carry statistics with it, in order to enable advanced
     tree construction mechanisms - this is hopefully a temporary hack.
     """
+
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Formula,
                  time_window: timedelta, consumption_policy: ConsumptionPolicy = None):
         self.full_structure = pattern_structure
@@ -103,7 +104,7 @@ class Pattern:
         """
         if structure.get_top_operator() == QItem:
             return [structure.type]
-        return reduce(lambda x, y: x+y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
+        return reduce(lambda x, y: x + y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
 
     def __init_strict_formulas(self, pattern_structure: PatternStructure):
         """
@@ -132,13 +133,13 @@ class Pattern:
         """
         Augment the pattern condition with a contiguity constraint between the given event names.
         """
-        self.condition = AndFormula(
+        pass
+        self.condition = CompositeAnd([
             self.condition,
-            EqFormula(
-                IdentifierTerm(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
-                MinusTerm(IdentifierTerm(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]), AtomicTerm(1))
-            )
-        )
+            BinaryFormula(IdentifierTerm(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
+                          IdentifierTerm(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
+                          lambda x, y: x == y - 1)
+        ])
 
     def extract_flat_sequences(self) -> List[List[str]]:
         """

@@ -1,6 +1,6 @@
 from test.testUtils import *
 from datetime import timedelta
-from base.Formula import GreaterThanFormula, SmallerThanFormula, IdentifierTerm, AtomicTerm, AndFormula
+from base.Formula import GreaterThanFormula, SmallerThanFormula, IdentifierTerm, CompositeAnd, NaryFormula
 from base.PatternStructure import AndOperator, SeqOperator, QItem, KleeneClosureOperator
 from base.Pattern import Pattern
 
@@ -20,10 +20,10 @@ def structuralTest1():
                                      ),
                          min_size=1, max_size=5,
                      )]),
-        AndFormula(
+        CompositeAnd([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
-        ),
+        ]),
         timedelta(minutes=3)
     )
 
@@ -37,10 +37,10 @@ def structuralTest2():
     """
     structural_test_pattern = Pattern(
         KleeneClosureOperator(QItem("GOOG", "a")),
-        AndFormula(
+        CompositeAnd([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
-        ),
+        ]),
         timedelta(minutes=3)
     )
     expected_result = ('KC', 'a')
@@ -55,10 +55,10 @@ def structuralTest3():
         SeqOperator([
             QItem("GOOG", "a"), KleeneClosureOperator(QItem("GOOG", "b"))
         ]),
-        AndFormula(
+        CompositeAnd([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
-        ),
+        ]),
         timedelta(minutes=3)
     )
     expected_result = ('Seq', 'a', ('KC', 'b'))
@@ -73,10 +73,10 @@ def structuralTest4():
         AndOperator([
             KleeneClosureOperator(QItem("GOOG", "a")), QItem("GOOG", "b")
         ]),
-        AndFormula(
+        CompositeAnd([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
-        ),
+        ]),
         timedelta(minutes=3)
     )
     expected_result = ('And', ('KC', 'a'), 'b')
@@ -94,10 +94,10 @@ def structuralTest5():
                 KleeneClosureOperator(QItem("GOOG", "b"))
             ]), min_size=1, max_size=3
         ),
-        AndFormula(
+        CompositeAnd([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
-        ),
+        ]),
         timedelta(minutes=3)
     )
     expected_result = ('KC', ('Seq', ('KC', 'a'), ('KC', 'b')))
@@ -120,10 +120,10 @@ def structuralTest6():
                 QItem("GOOG", "e")
             ]),
         ]),
-        AndFormula(
+        CompositeAnd([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
-        ),
+        ]),
         timedelta(minutes=3)
     )
     expected_result = ('Seq', 'a', ('Seq', ('Seq', 'b', ('And', 'c', 'd')), 'e'))
@@ -162,10 +162,10 @@ def structuralTest7():
             ]),
             QItem("GOOG", "k"), QItem("GOOG", "l")
         ]),
-        AndFormula(
+        CompositeAnd([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
-        ),
+        ]),
         timedelta(minutes=3)
     )
     expected_result = ('And', ('And', ('And', ('And', ('And', 'a', 'b'), 'c'),
@@ -180,7 +180,7 @@ identical to the first test in the file, with 1 exception - the QItem object is 
 def oneArgumentsearchTestKleeneClosure(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(QItem("AAPL", "a"), min_size=1, max_size=5)]),
-        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
+        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
         timedelta(minutes=5)
     )
     runTest("oneArgumentKC", [pattern], createTestFile)
@@ -189,7 +189,7 @@ def oneArgumentsearchTestKleeneClosure(createTestFile=False):
 def MinMax_0_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(QItem("GOOG", "a"), min_size=1, max_size=2)]),
-        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(0)),
+        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         timedelta(minutes=5)
     )
     runTest("MinMax_0_", [pattern], createTestFile, events=nasdaqEventStreamKC)
@@ -197,7 +197,7 @@ def MinMax_0_TestKleeneClosure(createTestFile=False):
 def MinMax_1_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(QItem("GOOG", "a"))]),
-        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(0)),
+        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         timedelta(minutes=5)
     )
     runTest("MinMax_1_", [pattern], createTestFile, events=nasdaqEventStreamKC)
@@ -205,7 +205,7 @@ def MinMax_1_TestKleeneClosure(createTestFile=False):
 def MinMax_2_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(QItem("GOOG", "a"), min_size=4, max_size=5)]),
-        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(0)),
+        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         timedelta(minutes=5)
     )
     runTest("MinMax_2_", [pattern], createTestFile, events=nasdaqEventStreamKC)
@@ -223,10 +223,10 @@ def KC_AND(createTestFile=False):
                 QItem("GOOG", "c")
             ]), min_size=1, max_size=3
         ),
-        AndFormula(
+        CompositeAnd([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
-        ),
+        ]),
         timedelta(minutes=3)
     )
     runTest("KC_AND_", [pattern], createTestFile, events=nasdaqEventStreamKC)

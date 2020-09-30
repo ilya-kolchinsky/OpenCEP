@@ -2,7 +2,7 @@ from queue import Queue
 from datetime import timedelta
 from base.Event import Event
 from misc.Utils import *
-from base.Formula import TrueFormula, Formula, RelopTypes, EquationSides, IdentifierTerm, AtomicFormula
+from base.Formula import TrueFormula, Formula, RelopTypes, EquationSides, IdentifierTerm, BinaryFormula
 from evaluation.PartialMatchStorage import SortedPartialMatchStorage, UnsortedPartialMatchStorage, TreeStorageParameters
 from typing import Tuple, Dict
 from base.PatternMatch import PatternMatch
@@ -495,7 +495,7 @@ class BinaryNode(InternalNode, ABC):
                 filtered_conditions.append(atomic_condition)
         return filtered_conditions
 
-    def __get_params_for_sorting_keys(self, conditions: List[AtomicFormula], attributes_priorities: dict,
+    def __get_params_for_sorting_keys(self, conditions: List[BinaryFormula], attributes_priorities: dict,
                                       left_event_names: List[str], right_event_names: List[str]):
         """
         An auxiliary method returning the best assignments for the parameters of the sorting keys according to the
