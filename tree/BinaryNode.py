@@ -18,10 +18,11 @@ class BinaryNode(InternalNode, ABC):
     """
     def __init__(self, sliding_window: timedelta, parents: List[Node] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None):
-        super().__init__(sliding_window, parents, event_defs)
+                 left: Node = None, right: Node = None, pattern_id=0):
+        super().__init__(sliding_window, parents, event_defs, pattern_id)
         self._left_subtree = left
         self._right_subtree = right
+
 
     def get_leaves(self):
         result = []

@@ -61,6 +61,7 @@ class MultiPatternTree:
                     index = leaves_to_counter_dict[dict_leaf]
                     our_leaf = leaves_dict[dict_leaf][index]
                     our_leaf.set_sliding_window(max(our_leaf.get_sliding_window(), leaf.get_sliding_window()))
+                    our_leaf.add_pattern_id(leaf.get_pattern_id())
                     curr_parents = leaf.get_parents()
                     for parent in curr_parents:
                         our_leaf.add_to_dict(parent, PrimitiveEventDefinition(leaf.get_event_type(), leaf.get_event_name(), leaf.get_leaf_index()))
@@ -109,3 +110,7 @@ class MultiPatternTree:
             # the pending matches were released and have hopefully reached the roots
 
         return self.get_matches()
+
+
+
+

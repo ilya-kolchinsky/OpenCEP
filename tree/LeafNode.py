@@ -12,8 +12,9 @@ class LeafNode(Node):
     """
     A leaf node is responsible for a single event type of the pattern.
     """
-    def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_event: PrimitiveEventStructure, parents: List[Node]):
-        super().__init__(sliding_window, parents)
+    def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_event: PrimitiveEventStructure,
+                 parents: List[Node], pattern_id=0):
+        super().__init__(sliding_window, parents, pattern_id)
         self.__leaf_index = leaf_index
         self.__event_name = leaf_event.name
         self.__event_type = leaf_event.type

@@ -42,22 +42,28 @@ class Node(ABC):
         """
         return Node.__enable_partial_match_expiration
 
-    def __init__(self, sliding_window: timedelta, parents):
+    def __init__(self, sliding_window: timedelta, parents, pattern_id=0):
         if not isinstance(parents, list) and parents is not None:
             parents = [parents]
         self._parents = parents
         self._sliding_window = sliding_window
         self._partial_matches = None
         self._condition = TrueFormula()
-        # matches that were not yet pushed to the parents for further processing
-        self._unhandled_partial_matches = Queue()
+        # matches that were not yet reported. Will be used in case of a root. In particular, in a case that we have a
+        # root which is also an internal node.
+        self._unreported_matches = Queue()
         # set of event types that will only appear in a single full match
         self._single_event_types = set()
         # events that were added to a partial match and cannot be added again
         self._filtered_events = set()
+        # matches that were not yet pushed to the parents for further processing
         self._parent_to_unhandled_queue_dict = {}
         if self._parents is not None:
             self._parent_to_unhandled_queue_dict = {parent: Queue() for parent in self._parents}
+        if isinstance(pattern_id, int):
+            pattern_id = {pattern_id}
+        self._pattern_id = pattern_id
+        self._is_root = False
 
     def add_to_parent_to_unhandled_queue_dict(self, key, value):
         self._parent_to_unhandled_queue_dict[key] = value
@@ -67,15 +73,18 @@ class Node(ABC):
         Removes and returns a single partial match buffered at this node.
         Used in the root node to collect full pattern matches.
         """
-        ret = self._partial_matches[0]
-        del self._partial_matches[0]
+        # ret = self._partial_matches[0]
+        # del self._partial_matches[0]
+        # return ret
+        ret = self._unreported_matches.get()
         return ret
 
     def has_partial_matches(self):
         """
         Returns True if this node contains any partial matches and False otherwise.
         """
-        return len(self._partial_matches) > 0
+        # return len(self._partial_matches) > 0
+        return self._unreported_matches.qsize() > 0
 
     def get_last_unhandled_partial_match(self):
         """
@@ -117,6 +126,18 @@ class Node(ABC):
     def set_sliding_window(self, new_sliding_window: timedelta):
         self._sliding_window = new_sliding_window
 
+    def get_pattern_id(self):
+        return self._pattern_id
+
+    def add_pattern_id(self, ids: set):
+        self._pattern_id |= ids
+
+    def set_is_root(self, flag: bool):
+        self._is_root = flag
+
+    def is_root(self):
+        return self._is_root
+
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
         Removes partial matches whose earliest timestamp violates the time window constraint.
@@ -154,7 +175,8 @@ class Node(ABC):
                 self._parent_to_unhandled_queue_dict[parent].put(pm)
             for parent in self._parents:
                 parent.handle_new_partial_match(self)
-
+        if self.is_root():
+            self._unreported_matches.put(pm)
 
     def __can_add_partial_match(self, pm: PatternMatch) -> bool:
         """

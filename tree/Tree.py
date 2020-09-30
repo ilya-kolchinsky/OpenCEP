@@ -20,10 +20,10 @@ class Tree:
     Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree positive_structure"
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     """
-    def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters):
+    def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters, pattern_id=0):
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
                                             Tree.__get_operator_arg_list(pattern.positive_structure),
-                                            pattern.window, None, pattern.consumption_policy)
+                                            pattern.window, None, pattern.consumption_policy, pattern_id)
 
         if pattern.consumption_policy is not None and \
                 pattern.consumption_policy.should_register_event_type_as_single(True):
@@ -32,11 +32,12 @@ class Tree:
 
         if pattern.negative_structure is not None:
             self.__adjust_leaf_indices(pattern)
-            self.__add_negative_tree_structure(pattern)
+            self.__add_negative_tree_structure(pattern, pattern_id)
 
         self.__root.apply_formula(pattern.condition)
         self.__root.create_storage_unit(storage_params)
         self.__adjust_leaf_dict()
+        self.__root.set_is_root(True)
 
     def __adjust_leaf_dict(self):
         for leaf in self.get_leaves():
@@ -58,7 +59,7 @@ class Tree:
         for event_def in self.__root.get_event_definitions():
             event_def.index = leaf_mapping[event_def.index]
 
-    def __add_negative_tree_structure(self, pattern: Pattern):
+    def __add_negative_tree_structure(self, pattern: Pattern, pattern_id=0):
         """
         Adds the negative nodes at the root of the tree.
         """
@@ -68,15 +69,17 @@ class Tree:
         for negation_operator in negative_event_list:
             if top_operator == SeqOperator:
                 new_root = NegativeSeqNode(pattern.window,
-                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
+                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator),
+                                           pattern_id=pattern_id)
             elif top_operator == AndOperator:
                 new_root = NegativeAndNode(pattern.window,
-                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
+                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator),
+                                           pattern_id=pattern_id)
             else:
                 raise Exception("Unsupported operator for negation: %s" % (top_operator,))
             negative_event = negation_operator.arg
             leaf_index = pattern.get_index_by_event_name(negative_event.name)
-            negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root)
+            negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root, pattern_id)
             new_root.set_subtrees(current_root, negative_leaf)
             negative_leaf.set_parent(new_root)
             negative_leaf.create_parent_to_info_dict()
@@ -114,7 +117,8 @@ class Tree:
         return [operator]
 
     @staticmethod
-    def __create_internal_node_by_operator(operator: PatternStructure, sliding_window: timedelta, parent: Node = None):
+    def __create_internal_node_by_operator(operator: PatternStructure, sliding_window: timedelta, parent: Node = None,
+                                           pattern_id=0):
         """
         Creates an internal node representing a given operator.
         Note that negation node types are intentionally not supported here since the negative part of a pattern is
@@ -122,17 +126,18 @@ class Tree:
         """
         operator_type = operator.get_top_operator()
         if operator_type == SeqOperator:
-            return SeqNode(sliding_window, parent)
+            return SeqNode(sliding_window, parent, pattern_id=pattern_id)
         if operator_type == AndOperator:
-            return AndNode(sliding_window, parent)
+            return AndNode(sliding_window, parent, pattern_id=pattern_id)
         if operator_type == KleeneClosureOperator:
-            return KleeneClosureNode(sliding_window, operator.min_size, operator.max_size, parent)
+            return KleeneClosureNode(sliding_window, operator.min_size, operator.max_size, parent, pattern_id)
         raise Exception("Unknown or unsupported operator %s" % (operator_type,))
 
     def __handle_primitive_event_or_nested_structure(self, tree_plan_leaf: TreePlanLeafNode,
                                                      current_operator: PatternStructure,
                                                      sliding_window: timedelta, parent: Node,
-                                                     consumption_policy: ConsumptionPolicy):
+                                                     consumption_policy: ConsumptionPolicy,
+                                                     pattern_id=0):
         """
         Constructs a single leaf node or a subtree with nested structure according to the input parameters.
         """
@@ -142,46 +147,48 @@ class Tree:
             if consumption_policy is not None and \
                     consumption_policy.should_register_event_type_as_single(False, event.type):
                 parent.register_single_event_type(event.type)
-            return LeafNode(sliding_window, tree_plan_leaf.event_index, event, parent)
+            return LeafNode(sliding_window, tree_plan_leaf.event_index, event, parent, pattern_id)
 
         if isinstance(current_operator, UnaryStructure):
             # the current operator is a unary operator hiding a nested pattern structure
-            unary_node = self.__create_internal_node_by_operator(current_operator, sliding_window, parent)
+            unary_node = self.__create_internal_node_by_operator(current_operator, sliding_window, parent, pattern_id)
             nested_operator = current_operator.arg
             child = self.__construct_tree(nested_operator, Tree.__create_nested_structure(nested_operator),
                                           Tree.__get_operator_arg_list(nested_operator), sliding_window, unary_node,
-                                          consumption_policy)
+                                          consumption_policy, pattern_id)
             unary_node.set_subtree(child)
             return unary_node
 
         # the current operator is a nested binary operator
         return self.__construct_tree(current_operator, Tree.__create_nested_structure(current_operator),
-                                     current_operator.args, sliding_window, parent, consumption_policy)
+                                     current_operator.args, sliding_window, parent, consumption_policy, pattern_id)
 
     def __construct_tree(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
                          args: List[PatternStructure], sliding_window: timedelta, parent: Node,
-                         consumption_policy: ConsumptionPolicy):
+                         consumption_policy: ConsumptionPolicy, pattern_id=0):
         """
         Recursively builds an evaluation tree according to the specified structure.
         """
         if isinstance(root_operator, UnaryStructure) and parent is None:
             # a special case where the top operator of the entire pattern is an unary operator
             return self.__handle_primitive_event_or_nested_structure(tree_plan, root_operator,
-                                                                     sliding_window, parent, consumption_policy)
+                                                                     sliding_window, parent, consumption_policy,
+                                                                     pattern_id)
 
         if type(tree_plan) == TreePlanLeafNode:
             # either a leaf node or an unary operator encapsulating a nested structure
             # TODO: must implement a mechanism for actually creating nested tree plans instead of a flat plan
             # with leaves hiding nested structure
             return self.__handle_primitive_event_or_nested_structure(tree_plan, args[tree_plan.event_index],
-                                                                     sliding_window, parent, consumption_policy)
+                                                                     sliding_window, parent, consumption_policy,
+                                                                     pattern_id)
 
         # an internal node
-        current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
+        current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent, pattern_id)
         left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
-                                             sliding_window, current, consumption_policy)
+                                             sliding_window, current, consumption_policy, pattern_id)
         right_subtree = self.__construct_tree(root_operator, tree_plan.right_child, args,
-                                              sliding_window, current, consumption_policy)
+                                              sliding_window, current, consumption_policy, pattern_id)
         current.set_subtrees(left_subtree, right_subtree)
         return current
 

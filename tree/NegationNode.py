@@ -20,8 +20,8 @@ class NegationNode(BinaryNode, ABC):
     """
     def __init__(self, sliding_window: timedelta, is_unbounded: bool, top_operator, parents: List[Node] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None):
-        super().__init__(sliding_window, parents, event_defs, left, right)
+                 left: Node = None, right: Node = None, pattern_id=0):
+        super().__init__(sliding_window, parents, event_defs, left, right, pattern_id)
 
         # aliases for the negative node subtrees to make the code more readable
         # by construction, we always have the positive subtree on the left
@@ -181,8 +181,8 @@ class NegativeAndNode(NegationNode):
     """
     def __init__(self, sliding_window: timedelta, is_unbounded: bool, parents: List[Node] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None):
-        super().__init__(sliding_window, is_unbounded, AndOperator, parents, event_defs, left, right)
+                 left: Node = None, right: Node = None, pattern_id=0):
+        super().__init__(sliding_window, is_unbounded, AndOperator, parents, event_defs, left, right, pattern_id)
 
     def get_structure_summary(self):
         return ("NAnd",
@@ -197,8 +197,8 @@ class NegativeSeqNode(NegationNode):
     """
     def __init__(self, sliding_window: timedelta, is_unbounded: bool, parents: List[Node] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None):
-        super().__init__(sliding_window, is_unbounded, SeqOperator, parents, event_defs, left, right)
+                 left: Node = None, right: Node = None, pattern_id=0):
+        super().__init__(sliding_window, is_unbounded, SeqOperator, parents, event_defs, left, right, pattern_id)
 
     def get_structure_summary(self):
         return ("NSeq",

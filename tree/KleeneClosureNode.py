@@ -12,8 +12,8 @@ class KleeneClosureNode(UnaryNode):
     An internal node representing a Kleene closure operator.
     It generates and propagates sets of partial matches provided by its sole child.
     """
-    def __init__(self, sliding_window: timedelta, min_size, max_size, parent: Node = None):
-        super().__init__(sliding_window, parent)
+    def __init__(self, sliding_window: timedelta, min_size, max_size, parent: Node = None, pattern_id=0):
+        super().__init__(sliding_window, parent, None, None, pattern_id)
         self.__min_size = min_size
         self.__max_size = max_size
 
