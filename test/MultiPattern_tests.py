@@ -4,9 +4,36 @@ from base.Formula import GreaterThanFormula, SmallerThanFormula, IdentifierTerm,
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, NegationOperator
 from base.Pattern import Pattern
 
-#New tests for multipattern first approach.
-#NASDAQ SHORT
 
+def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                         events=None, eventStream=nasdaqEventStream):
+    if events is None:
+        events = eventStream.duplicate()
+    else:
+        events = events.duplicate()
+
+    listShort = []
+    listHalfShort = []
+    listCustom = []
+    listCustom2 = ["FirstMultiPattern"]
+
+    if testName in listShort:
+        events = nasdaqEventStreamShort.duplicate()
+    elif testName in listHalfShort:
+        events = nasdaqEventStreamHalfShort.duplicate()
+    elif testName in listCustom:
+        events = custom.duplicate()
+    elif testName in listCustom2:
+        events = custom2.duplicate()
+    elif testName == "NotEverywhere":
+        events = custom3.duplicate()
+
+    for i in range(len(patterns)):
+        cep = CEP(patterns[i], eval_mechanism_params)
+        expected_directory = os.path.join(absolutePath, 'test', 'TestsExpected', 'MultiPatternMatches')
+        output_file_name = "%sMatches.txt" % (testName + str(i))
+        matches_stream = FileOutputStream(expected_directory, output_file_name)
+        cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
 
 def twoPatternsOneArgument(createTestFile = False):
     pattern1 = Pattern(
