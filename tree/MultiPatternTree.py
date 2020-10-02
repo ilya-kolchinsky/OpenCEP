@@ -18,9 +18,12 @@ class MultiPatternTree:
 
     def __init__(self, tree_plans: List[TreePlan], patterns: List[Pattern], storage_params: TreeStorageParameters,
                  multi_pattern_eval_approach: MultiPatternEvaluationApproach):
+        self.__pattern_to_root_dict = {}
         self.__roots = self.__construct_multi_pattern_tree(tree_plans, patterns, storage_params,
                  multi_pattern_eval_approach)
-        self.__pattern_to_root_dict = {i+1: tree_plans[i] for i in range(len(patterns))}
+        self.__patterns = patterns
+
+        pass
 
 
     def __construct_multi_pattern_tree(self, tree_plans: List[TreePlan], patterns: List[Pattern], storage_params: TreeStorageParameters,
@@ -31,18 +34,20 @@ class MultiPatternTree:
         if multi_pattern_eval_approach == MultiPatternEvaluationApproach.SUBTREES_UNION:
             return self.__construct_subtrees_union_tree(tree_plans, patterns, storage_params)
 
-    @staticmethod
-    def __construct_trivial_tree(tree_plans: List[TreePlan], patterns: List[Pattern],
+    def __construct_trivial_tree(self, tree_plans: List[TreePlan], patterns: List[Pattern],
                                  storage_params: TreeStorageParameters):
 
-        trees = [Tree(tree_plans[i], patterns[i], storage_params) for i in range(len(patterns))]
+        trees = [Tree(tree_plans[i], patterns[i], storage_params, i+1) for i in range(len(patterns))]
         roots = []
         leaves_to_counter_dict, leaves_dict = {}, {}
         flag = 0
 
         for tree in trees:
             curr_leaves = tree.get_leaves()
-            roots += curr_leaves[0].get_roots()
+            curr_root = curr_leaves[0].get_roots()
+            roots += curr_root
+            pattern_id = list(curr_leaves[0].get_pattern_id())[0]
+            self.__pattern_to_root_dict[pattern_id] = curr_root[0]
             for leaf in curr_leaves:
                 for dict_leaf in leaves_dict:
                     if leaf.is_equal(dict_leaf):
@@ -94,9 +99,20 @@ class MultiPatternTree:
         return leaves
 
     def get_matches(self):
+        matches = []
         for root in self.__roots:
             while root.has_partial_matches():
-                yield root.consume_first_partial_match()
+                match = root.consume_first_partial_match()
+                pattern_idx = root.get_pattern_id()
+                for idx in pattern_idx:
+                    if self.__pattern_to_root_dict[idx] != root:
+                        continue
+                    # check the timestamp
+                    # the pattern indices start from 1.
+                    if match.last_timestamp - match.first_timestamp <= self.__patterns[idx-1].window:
+                        match.add_pattern_id(idx)
+                matches.append(match)
+        return matches
 
     def get_last_matches(self):
         for root in self.__roots:
