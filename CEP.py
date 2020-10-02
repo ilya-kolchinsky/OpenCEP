@@ -24,9 +24,13 @@ class CEP:
         """
         if patterns is None:
             raise Exception("No patterns are provided")
+        if isinstance(patterns, Pattern):
+            patterns = [patterns]
         if len(patterns) > 1:
-            raise NotImplementedError("Multi-pattern support is not yet available")
-        self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_params,
+            self.__eval_mechanism = EvaluationMechanismFactory.build_multi_pattern_eval_mechanism(eval_mechanism_params,
+                                                                                                  patterns)
+        else:
+            self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_params,
                                                                                                patterns[0])
         self.__pattern_matches = None
 
@@ -39,10 +43,10 @@ class CEP:
         start = datetime.now()
         self.__eval_mechanism.eval(events, self.__pattern_matches, data_formatter)
         return (datetime.now() - start).total_seconds()
-
     def get_pattern_match(self):
         """
         Returns one match from the output stream.
+
         """
         if self.__pattern_matches is None:
             return None
