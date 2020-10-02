@@ -47,7 +47,10 @@ class EvaluationMechanismFactory:
     @staticmethod
     def build_multi_pattern_eval_mechanism(eval_mechanism_params: EvaluationMechanismParameters,
                                            patterns: List[Pattern]):
-        # as of now, no multi pattern evaluation mechanism is implemented
+        if eval_mechanism_params is None:
+            eval_mechanism_params = EvaluationMechanismFactory.__create_default_eval_parameters()
+        if eval_mechanism_params.type == EvaluationMechanismTypes.TREE_BASED:
+            return EvaluationMechanismFactory.__create_tree_based_eval_mechanism(eval_mechanism_params, patterns)
         raise Exception("Unknown evaluation mechanism type: %s" % (eval_mechanism_params.type,))
 
     @staticmethod
