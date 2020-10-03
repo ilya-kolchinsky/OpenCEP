@@ -19,7 +19,7 @@ class EvaluationMechanismManager:
         self.pattern_matches_list = []
 
         if work_load_fr is None:
-            self.work_load_fr = ParallelWorkLoadFramework(1, False, False, eval_params, patterns)  # here no split is needed
+            self.work_load_fr = ParallelWorkLoadFramework(1, False, False, eval_params, patterns)  # here no parallelism is needed
         else:
             self.work_load_fr = work_load_fr
 
