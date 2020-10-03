@@ -1,10 +1,10 @@
 from test.testUtils import *
 from datetime import timedelta
-from base.Formula import GreaterThanFormula, SmallerThanFormula, IdentifierTerm, AtomicTerm, AndFormula
-from base.PatternStructure import AndOperator, SeqOperator, KleeneClosureOperator, PrimitiveEventStructure
+from base.Formula import GreaterThanFormula, IdentifierTerm, AtomicTerm, AndFormula
+from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
 
-from parallerization.ParallelTreeWorkloadFramework import ParallelTreeWorkloadFramework
+from tree_implemintation.ParallelTreeWorkloadFramework import ParallelTreeWorkloadFramework
 
 
 def onlyDataSplit_oneArgumentsearchTest(createTestFile=False):
@@ -15,7 +15,7 @@ def onlyDataSplit_oneArgumentsearchTest(createTestFile=False):
         )
         workload = ParallelTreeWorkloadFramework(2, is_data_splitted=True, is_tree_splitted=False, pattern_size=1,
                                                  pattern=pattern)
-        runTest("one", [pattern], createTestFile, workloadfr=workload)
+        runTest("one", [pattern], createTestFile, work_load_fr=workload)
 
 
 def onlyTreeSplit_oneArgumentsearchTest(createTestFile=False):
@@ -26,7 +26,7 @@ def onlyTreeSplit_oneArgumentsearchTest(createTestFile=False):
     )
     workload = ParallelTreeWorkloadFramework(2, is_data_splitted=False, is_tree_splitted=True, pattern_size=1,
                                              pattern=pattern)
-    runTest("one", [pattern], createTestFile, workloadfr=workload)
+    runTest("one", [pattern], createTestFile, work_load_fr=workload)
 
 def onlyTreeSplitsimplePatternSearchTest(createTestFile=False):
     """
@@ -44,5 +44,5 @@ def onlyTreeSplitsimplePatternSearchTest(createTestFile=False):
     )
     workload_framework = ParallelTreeWorkloadFramework(3, is_data_splitted=False, is_tree_splitted=True, pattern_size=3,
                                              pattern=pattern)
-    runTest("simple", [pattern], createTestFile, workloadfr=workload_framework)
+    runTest("simple", [pattern], createTestFile, work_load_fr=workload_framework)
 

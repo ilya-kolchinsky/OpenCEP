@@ -13,7 +13,6 @@ from typing import List
 from datetime import datetime
 
 from parallerization.EvaluationMechanismManager import EvaluationMechanismManager
-from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
 from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
 
 
@@ -22,7 +21,8 @@ class CEP:
     A CEP object contains a workload (list of patterns to be evaluated) and an evaluation mechanism.
     The evaluation mechanism is created according to the parameters specified in the constructor.
     """
-    def __init__(self, patterns: List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None, work_load_fr: ParallelWorkLoadFramework = None):
+    def __init__(self, patterns: List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None,
+                 work_load_fr: ParallelWorkLoadFramework = None):
         """
         Constructor of the class.
         """
@@ -30,9 +30,9 @@ class CEP:
             raise Exception("No patterns are provided")
         if len(patterns) > 1:
             raise NotImplementedError("Multi-pattern support is not yet available")
+
         self.__eval_mechanism_manager = EvaluationMechanismManager(work_load_fr, eval_mechanism_params, patterns)
-        #self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(work_load_fr, eval_mechanism_params,
-        #                                                                                       patterns[0])
+
         self.__pattern_matches = None
 
     def run(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):

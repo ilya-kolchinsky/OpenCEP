@@ -1,7 +1,6 @@
-from base import Pattern
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
-from parallerization.ParallelUnaryNode import ParallelUnaryNode
+from tree_implemintation.ParallelUnaryNode import ParallelUnaryNode
 from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
 from base.PatternMatch import PatternMatch
 from stream.Stream import InputStream, OutputStream
@@ -16,7 +15,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
                  is_multithreaded : bool = True):
         if type(tree_based_eval) is not TreeBasedEvaluationMechanism:
             raise Exception()
-        super().__init__(tree_based_eval) # tree_based_eval is unique for thread
+        self._evaluation_mechanism = tree_based_eval
         self._unary_root = tree_based_eval.get_tree().get_root() # unaryNode
         self._all_leaves_are_original_leaves = has_leafs
         self._is_done = False

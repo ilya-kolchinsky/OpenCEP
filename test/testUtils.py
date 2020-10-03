@@ -146,11 +146,13 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
 def runTest(testName, patterns, createTestFile = False,
             eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
             events = None, eventStream = nasdaqEventStream
-            ,workloadfr: ParallelWorkLoadFramework = None):
+            , work_load_fr: ParallelWorkLoadFramework = None):
     if createTestFile:
         createTest(testName, patterns, events, eventStream = eventStream)
+
     if events is None:
-        events = eventStream.duplicate()
+        if eventStream is not None:
+            events = eventStream.duplicate()
     else:
         events = events.duplicate()
 
@@ -169,10 +171,7 @@ def runTest(testName, patterns, createTestFile = False,
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
 
-    if workloadfr is None:
-        workloadfr = ParallelWorkLoadFramework()
-
-    cep = CEP(patterns, eval_mechanism_params, work_load_fr=workloadfr)
+    cep = CEP(patterns, eval_mechanism_params, work_load_fr = work_load_fr)
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName

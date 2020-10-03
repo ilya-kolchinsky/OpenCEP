@@ -4,12 +4,11 @@ from tree.BinaryNode import BinaryNode
 from tree.LeafNode import LeafNode
 from stream.Stream import Stream
 from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
-from parallerization.ParallelTreeEval import ParallelTreeEval
-from parallerization.ParallelUnaryNode import ParallelUnaryNode
+from tree_implemintation.ParallelTreeEval import ParallelTreeEval
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismFactory, EvaluationMechanismTypes, EvaluationMechanismParameters
-from parallerization.ParallelTreeEval import ParallelUnaryNode
+from tree_implemintation.ParallelTreeEval import ParallelUnaryNode
 from tree.PatternMatchStorage import TreeStorageParameters
 
 
@@ -33,10 +32,10 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         self.set_source_eval_mechanism(eval_mechanism)
         output_stream = []
-        if not self._is_data_splitted:
+        if not self._is_data_parallelised:
             output_stream.append(input_stream)
             return output_stream
-        elif self._is_data_splitted:
+        elif self._is_data_parallelised:
             counter = 0
             for event in input_stream:
                 event_stream = Stream()
@@ -65,10 +64,10 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         self.set_source_eval_mechanism(eval_mechanism)
         output_stream = []
-        if not self._is_data_splitted:
+        if not self._is_data_parallelised:
             output_stream.append(input_stream)
             return output_stream
-        elif self._is_data_splitted:
+        elif self._is_data_parallelised:
             for i in range(5):
                 output_stream.append(Stream())
             counter = input_stream.count()
