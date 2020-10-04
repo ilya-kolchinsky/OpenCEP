@@ -19,9 +19,11 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         self.tree_structures = None
         self.trees_with_leafs = None
+        self.trees_with_leafs_indexes = None
 
-        self.famalies = None                    # [[tree_structures1],[tree_structures2],[]]
-        self.famalies_trees_with_leafs = None  # [[trees_with_leafs1],[trees_with_leafs2],[]]
+        self.famalies = None                           # [[tree_structures1],[tree_structures2],[]]
+        self.famalies_trees_with_leafs = None          # [[trees_with_leafs1],[trees_with_leafs2],[]]
+        self.famalies_trees_with_leafs_indexes = None  # [[index1, index2],[index1, index2],[]]
 
     def duplicate_structure(self, evaluation_mechanism: EvaluationMechanism, eval_params: EvaluationMechanismParameters = None):
         raise NotImplementedError()
@@ -31,32 +33,28 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def split_structure(self, evaluation_mechanism: EvaluationMechanism, eval_params: EvaluationMechanismParameters = None):
 
-        self.tree_structures =  [ParallelTreeEval]..
-        self.trees_with_leafs = ....
+        self.tree_structures =  [ParallelTreeEval]
+        self.trees_with_leafs =
+        self.trees_with_leafs_indexes =
         raise NotImplementedError()
 
     def get_next_event_and_destinations_em(self):
-        # next_event = self.event_stream.get_item()
-        # ems = self.get_destinations()
-        #
-        # return ems
+        next_event = self.event_stream.get_item()
 
-    def get_next_event_family_and_destinations_em(self):
-        # next_event = self.event_stream.get_item()
-        # ems = []
-        #
-        # for family in self.famalies:
-        #     ems += self.get_destinations_for_families()
+        if next_event is None:
+            return None, None
+        else:
+            return next_event, self.trees_with_leafs_indexes
 
+    def get_next_event_families_indexes_and_destinations_ems(self):
+        next_event = self.event_stream.get_item()
+        indexes_of_families = [1]
+        first_family = self.famalies[1]
+        indexes_of_ems_in_each_family = []
+        indexes_of_first_family = []
+        for i in range(len(first_family)):
+            indexes_of_first_family.append(i)
 
+        indexes_of_ems_in_each_family.append(indexes_of_first_family)
 
-    def get_destinations(self):
-        # return self.trees_with_leafs
-
-    def get_destinations_for_families(self):
-        # ems = []
-        #
-        # for trees_with_leafs in self.famalies_trees_with_leafs:
-        #     ems += trees_with_leafs
-        #
-        # return ems
+        return next_event, indexes_of_families, indexes_of_ems_in_each_family

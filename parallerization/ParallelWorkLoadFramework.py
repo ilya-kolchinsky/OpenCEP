@@ -42,7 +42,7 @@ class ParallelWorkLoadFramework(ABC):
     def get_next_event_and_destinations_em(self):
         NotImplementedError()
 
-    def get_next_event_family_and_destinations_em(self):
+    def get_next_event_families_indexes_and_destinations_ems(self):
         NotImplementedError()
 
     def duplicate_structure(self, evaluation_mechanism: EvaluationMechanism, eval_params: EvaluationMechanismParameters = None):

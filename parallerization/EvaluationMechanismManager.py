@@ -86,7 +86,7 @@ class EvaluationMechanismManager:
         elif (not multiple_data) and (multiple_structures):
             self.eval_multiple_tree_single_data()
         elif (multiple_data) and (multiple_structures):
-            self.eval_multiple_tree_multiple_data()
+            self.eval_multiple_em_multiple_data()
 
     def get_results_from_masters(self):
         for i in len(self.masters_list):
@@ -121,20 +121,21 @@ class EvaluationMechanismManager:
                 em.proccess_event(event)
             event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
 
-    def eval_multiple_tree_multiple_data(self, data_formatter: DataFormatter):
+    def eval_multiple_em_multiple_data(self, data_formatter: DataFormatter):
         for family in self.eval_mechanism_families:
             self.activate_all_ems(family)
 
-        event, families_indexes, em_indexes_list = self.work_load_fr.get_next_event_family_and_destinations_em()
+        event, families_indexes, em_indexes_list = self.work_load_fr.get_next_event_families_indexes_and_destinations_ems()
 
         while (event is not None):
-            for family_index in families_indexes:
+            for i in range(0, len(families_indexes)):
+                family_index = families_indexes[i]
                 family = self.eval_mechanism_families[family_index]
-                em_indexes = # TODO:
+                em_indexes = em_indexes_list[i]
                 for em_index in em_indexes:
                     em = family[em_index]
                     em.proccess_event(event)
-            event, family_index, em_index = self.work_load_fr.get_next_event_family_and_destinations_em()
+            event, families_indexes, em_indexes_list = self.work_load_fr.get_next_event_families_indexes_and_destinations_ems()
 
     def activate_all_ems(self, eval_mechanism_list):
         for em in eval_mechanism_list:
