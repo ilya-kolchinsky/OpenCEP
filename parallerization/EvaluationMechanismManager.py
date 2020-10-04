@@ -1,3 +1,4 @@
+from TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from evaluation.EvaluationMechanismFactory import (
     EvaluationMechanismParameters,
     EvaluationMechanismFactory,
@@ -15,12 +16,15 @@ class EvaluationMechanismManager:
     def __init__(self, work_load_fr: ParallelWorkLoadFramework, eval_params: EvaluationMechanismParameters, patterns: List[Pattern]):
         self.masters_list = None
         self.eval_mechanism_list = None
+        self.eval_mechanism_families = None
         self.eval_params = eval_params
         self.patterns = patterns
         self.pattern_matches_list = []
+        self.data_formatter = None
+
 
         if work_load_fr is None:
-            self.work_load_fr = ParallelWorkLoadFramework(1, False, False, eval_params, patterns)  # here no parallelism is needed
+            self.work_load_fr = ParallelWorkLoadFramework(1, False, False, patterns, 0)  # here no parallelism is needed
         else:
             self.work_load_fr = work_load_fr
 
@@ -48,7 +52,7 @@ class EvaluationMechanismManager:
         self.eval_mechanism_list, self.masters_list = self.work_load_fr.duplicate_structure(self.source_eval_mechanism, self.eval_params)
 
     def initialize_multiple_tree_single_data(self):
-        self.eval_mechanism_list, self.masters_list = self.work_load_fr.split_structure(self.source_eval_mechanism, self.eval_params)
+        self.eval_mechanism_list, self.masters_list = self.work_load_fr.split_structure(self.source_eval_mechanism, self.eval_params, self.patterns[0])
 
     def initialize_multiple_tree_multiple_data(self):
         self.eval_mechanism_list = None
@@ -65,6 +69,7 @@ class EvaluationMechanismManager:
         self.run_eval()
 
         if self.work_load_fr.get_is_data_parallelised() or self.work_load_fr.get_is_structure_parallelized():
+            self.notify_all_to_finish()
             self.wait_masters_to_finish()
             self.get_results_from_masters()
 
@@ -75,7 +80,7 @@ class EvaluationMechanismManager:
         multiple_structures = self.work_load_fr.get_is_structure_parallelized()
 
         if (not multiple_data) and (not multiple_structures):
-            self.eval_single_tree_single_data(self.source_event_stream)
+            self.eval_single_tree_single_data()
         elif (multiple_data) and (not multiple_structures):
             self.eval_single_tree_multiple_data()
         elif (not multiple_data) and (multiple_structures):
@@ -92,9 +97,12 @@ class EvaluationMechanismManager:
         for i in len(self.masters_list):
             self.masters_list[i].wait_till_finish()
 
-    def eval_single_tree_single_data(self, eval_mechanism: ParallelExecutionFramework, event_stream: InputStream,
-                                     pattern_matches: OutputStream, data_formatter: DataFormatter):
-        eval_mechanism.eval(event_stream, pattern_matches, data_formatter)
+    def notify_all_to_finish(self):
+        for i in len(self.eval_mechanism_list):
+            self.eval_mechanism_list[i].stop()
+
+    def eval_single_tree_single_data(self):
+        self.source_eval_mechanism.eval(self.event_stream, self.pattern_matches_list[0], self.data_formatter)
 
     def eval_single_tree_multiple_data(self):
         self.eval_util()
@@ -105,24 +113,28 @@ class EvaluationMechanismManager:
     def eval_util(self):
         self.activate_all_ems(self.eval_mechanism_list)
 
-        event, em_index = self.work_load_fr.get_next_event_and_destination_em()
+        event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
 
         while (event is not None):
-            em = self.eval_mechanism_list[em_index]
-            em.proccess_event(event)
-            event, em_index = self.work_load_fr.get_next_event_and_destination_em()
+            for index in em_indexes:
+                em = self.eval_mechanism_list[index]
+                em.proccess_event(event)
+            event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
 
     def eval_multiple_tree_multiple_data(self, data_formatter: DataFormatter):
         for family in self.eval_mechanism_families:
             self.activate_all_ems(family)
 
-        event, family_index, em_index = self.work_load_fr.get_next_event_family_and_destination_em()
+        event, families_indexes, em_indexes_list = self.work_load_fr.get_next_event_family_and_destinations_em()
 
         while (event is not None):
-            family = self.eval_mechanism_families[family_index]
-            em = family[em_index]
-            em.proccess_event(event)
-            event, family_index, em_index = self.work_load_fr.get_next_event_family_and_destination_em()
+            for family_index in families_indexes:
+                family = self.eval_mechanism_families[family_index]
+                em_indexes = # TODO:
+                for em_index in em_indexes:
+                    em = family[em_index]
+                    em.proccess_event(event)
+            event, family_index, em_index = self.work_load_fr.get_next_event_family_and_destinations_em()
 
     def activate_all_ems(self, eval_mechanism_list):
         for em in eval_mechanism_list:
