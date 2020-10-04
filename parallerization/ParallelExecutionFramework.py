@@ -4,16 +4,15 @@ from stream.Stream import OutputStream
 
 
 class ParallelExecutionFramework(ABC):
-    def __init__(self, evaluation_machanism, data_formatter):
-        self.evaluation_machanism = evaluation_machanism
+    def __init__(self, evaluation_mechanism, data_formatter):
+        self.evaluation_mechanism = evaluation_mechanism
         self.data_formatter = data_formatter
         self.pattern_matches = OutputStream()
-
 
     def activate(self):
         raise NotImplementedError
 
-    def proccess_event(self, event):
+    def process_event(self, event):
         raise NotImplementedError()
 
     def stop(self):

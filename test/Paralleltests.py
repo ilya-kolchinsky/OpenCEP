@@ -4,7 +4,7 @@ from base.Formula import GreaterThanFormula, IdentifierTerm, AtomicTerm, AndForm
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
 
-from tree_implemintation.old_ParallelTreeWorkloadFramework import ParallelTreeWorkloadFramework
+from parallerization.tree_implemintation.ParallelTreeWorkloadFramework import ParallelTreeWorkloadFramework
 
 
 def onlyDataSplit_oneArgumentsearchTest(createTestFile=False):
@@ -13,8 +13,8 @@ def onlyDataSplit_oneArgumentsearchTest(createTestFile=False):
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
             timedelta(minutes=120)
         )
-        workload = ParallelTreeWorkloadFramework(2, is_data_splitted=True, is_tree_splitted=False, pattern_size=1,
-                                                 pattern=pattern)
+        workload = ParallelTreeWorkloadFramework(pattern, execution_units=3, is_data_parallelized=True,
+                                                 is_structure_parallelized=False, num_of_families=0)
         runTest("one", [pattern], createTestFile, work_load_fr=workload)
 
 
@@ -24,8 +24,8 @@ def onlyTreeSplit_oneArgumentsearchTest(createTestFile=False):
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
         timedelta(minutes=120)
     )
-    workload = ParallelTreeWorkloadFramework(2, is_data_splitted=False, is_tree_splitted=True, pattern_size=1,
-                                             pattern=pattern)
+    workload = ParallelTreeWorkloadFramework(pattern, execution_units=3, is_data_parallelized=False,
+                                                 is_structure_parallelized=True, num_of_families=0)
     runTest("one", [pattern], createTestFile, work_load_fr=workload)
 
 def onlyTreeSplitsimplePatternSearchTest(createTestFile=False):
@@ -42,7 +42,7 @@ def onlyTreeSplitsimplePatternSearchTest(createTestFile=False):
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    workload_framework = ParallelTreeWorkloadFramework(3, is_data_splitted=False, is_tree_splitted=True, pattern_size=3,
-                                             pattern=pattern)
+    workload_framework = ParallelTreeWorkloadFramework(pattern, execution_units=3, is_data_parallelized=False,
+                                                 is_structure_parallelized=True, num_of_families=0)
     runTest("simple", [pattern], createTestFile, work_load_fr=workload_framework)
 

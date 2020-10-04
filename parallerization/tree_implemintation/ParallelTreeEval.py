@@ -1,20 +1,21 @@
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
-from tree_implemintation.ParallelUnaryNode import ParallelUnaryNode
+from parallerization.tree_implemintation.ParallelUnaryNode import ParallelUnaryNode
 from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
 from base.PatternMatch import PatternMatch
 from stream.Stream import InputStream, OutputStream
+from base.DataFormatter import DataFormatter
 
 import time
 import threading
 from queue import Queue
 
 
-
 class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[ParallelTreeEval]
 
-    def __init__(self, tree_based_eval: TreeBasedEvaluationMechanism, has_leafs: bool, is_main_root: bool, data_formatter, children = None):
-        super.__init__(tree_based_eval, data_formatter)
+    def __init__(self, tree_based_eval: TreeBasedEvaluationMechanism, has_leafs: bool, is_main_root: bool,
+                 data_formatter: DataFormatter = None, children: list = None):
+        super().__init__(tree_based_eval, data_formatter)
 
         self.has_leafs = has_leafs
         self.is_main_root = is_main_root
@@ -25,10 +26,8 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         self.finished.clear()
         self.keep_running = threading.Event()
         self.keep_running.set()
-        # self.thread = threading.Thread(target = self.run_eval, args=(self.evaluation_machanism, self.queue,
-        #                                                              self.finished, self.keep_running, self.pattern_matches, self.data_formatter, has_leafs, self.children,))
 
-        self.thread = threading.Thread(target = self.run_eval, args=(self,))
+        self.thread = threading.Thread(target=self.run_eval, args=(self,))
 
     def set_children(self, children):
         self.children = children
@@ -39,14 +38,14 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
     def stop(self):
         self.keep_running.clear()
 
-    def proccess_event(self, event):
+    def process_event(self, event):
         self.queue.put(event)
 
     def wait_till_finish(self):
         self.finished.wait()
 
     def run_eval(self): # thread
-        if (self.has_leafs):
+        if self.has_leafs:
             self.run_eval_with_leafs()
         else:
             self.run_eval_without_leafs()
@@ -54,19 +53,18 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         self.finished.set()
 
     def run_eval_with_leafs(self):
-        while (self.keep_running.is_set()):
-            if (not self.queue.empty()):
+        while self.keep_running.is_set():
+            if not self.queue.empty():
                 event = self.queue.get()
-                self.evaluation_machanism.eval(event, self.pattern_matches, self.data_formatter)
+                self.evaluation_mechanism.eval(event, self.pattern_matches, self.data_formatter)
             else:
                 pass
 
     def run_eval_without_leafs(self):
         unary_children = self.get_unary_children()
 
-        while (self.keep_running.is_set()):
-
-            if (not self.all_unary_children_finished()):
+        while self.keep_running.is_set():
+            if not self.all_unary_children_finished():
                 pass
             else:
                 partial_matches_list = []
@@ -84,7 +82,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
                     for match in self.evaluation_mechanism.get_tree().get_matches():
                         self.pattern_matches.add_item(PatternMatch(match))
 
-                for match in self._evaluation_mechanism.get_tree().get_last_matches():
+                for match in self.evaluation_mechanism.get_tree().get_last_matches():
                     self.pattern_matches.add_item(PatternMatch(match))
 
                 self.pattern_matches.close()
@@ -99,4 +97,8 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         raise NotImplementedError
 
     def get_destination(self, pm):
-        raise NotImplementedError
+        raise NotImplementedError()
+
+    def get_final_results(self, pattern_matches: OutputStream):
+        for match in self.evaluation_mechanism.get_tree().get_matches():
+            pattern_matches.add_item(PatternMatch(match))

@@ -931,7 +931,7 @@ runTest.over_all_time = 0
 #Parallel tests
 
 onlyTreeSplitsimplePatternSearchTest()
-onlyTreeSplit_oneArgumentsearchTest()
+#onlyTreeSplit_oneArgumentsearchTest()
 onlyDataSplit_oneArgumentsearchTest()
 
 #simplePatternSearchTest()
