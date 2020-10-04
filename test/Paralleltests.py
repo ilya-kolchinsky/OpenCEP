@@ -4,7 +4,7 @@ from base.Formula import GreaterThanFormula, IdentifierTerm, AtomicTerm, AndForm
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
 
-from tree_implemintation.ParallelTreeWorkloadFramework import ParallelTreeWorkloadFramework
+from tree_implemintation.old_ParallelTreeWorkloadFramework import ParallelTreeWorkloadFramework
 
 
 def onlyDataSplit_oneArgumentsearchTest(createTestFile=False):
