@@ -1,6 +1,6 @@
 from test.testUtils import *
 from datetime import timedelta
-from base.Formula import GreaterThanFormula, SmallerThanFormula, IdentifierTerm, CompositeAnd, NaryFormula
+from base.Formula import GreaterThanFormula, SmallerThanFormula, IdentifierTerm, AndFormula, NaryFormula
 from base.PatternStructure import AndOperator, SeqOperator, QItem, KleeneClosureOperator
 from base.Pattern import Pattern
 
@@ -20,7 +20,7 @@ def structuralTest1():
                                      ),
                          min_size=1, max_size=5,
                      )]),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
         ]),
@@ -37,7 +37,7 @@ def structuralTest2():
     """
     structural_test_pattern = Pattern(
         KleeneClosureOperator(QItem("GOOG", "a")),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
         ]),
@@ -55,7 +55,7 @@ def structuralTest3():
         SeqOperator([
             QItem("GOOG", "a"), KleeneClosureOperator(QItem("GOOG", "b"))
         ]),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
         ]),
@@ -73,7 +73,7 @@ def structuralTest4():
         AndOperator([
             KleeneClosureOperator(QItem("GOOG", "a")), QItem("GOOG", "b")
         ]),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
         ]),
@@ -94,7 +94,7 @@ def structuralTest5():
                 KleeneClosureOperator(QItem("GOOG", "b"))
             ]), min_size=1, max_size=3
         ),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
         ]),
@@ -120,7 +120,7 @@ def structuralTest6():
                 QItem("GOOG", "e")
             ]),
         ]),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
         ]),
@@ -162,7 +162,7 @@ def structuralTest7():
             ]),
             QItem("GOOG", "k"), QItem("GOOG", "l")
         ]),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
         ]),
@@ -223,7 +223,7 @@ def KC_AND(createTestFile=False):
                 QItem("GOOG", "c")
             ]), min_size=1, max_size=3
         ),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
         ]),

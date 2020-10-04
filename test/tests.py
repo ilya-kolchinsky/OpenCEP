@@ -8,7 +8,7 @@ from evaluation.LeftDeepTreeBuilders import *
 from evaluation.BushyTreeBuilders import *
 from datetime import timedelta
 from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, \
-    EqFormula, IdentifierTerm, TrueFormula, NaryFormula, CompositeAnd
+    EqFormula, IdentifierTerm, TrueFormula, NaryFormula, AndFormula
 from base.PatternStructure import AndOperator, SeqOperator, QItem, NegationOperator
 from base.Pattern import Pattern
 from evaluation.PartialMatchStorage import TreeStorageParameters
@@ -37,7 +37,7 @@ def simplePatternSearchTest(createTestFile=False):
     """
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("AVID", "c")]),
-        CompositeAnd(
+        AndFormula(
             [
             NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                         IdentifierTerm("b", lambda x: x["Opening Price"]),
@@ -61,7 +61,7 @@ def googleAscendPatternSearchTest(createTestFile=False):
     """
     googleAscendPattern = Pattern(
         SeqOperator([QItem("GOOG", "a"), QItem("GOOG", "b"), QItem("GOOG", "c")]),
-        CompositeAnd(
+        AndFormula(
             [
                 NaryFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                             IdentifierTerm("b", lambda x: x["Peak Price"]),
@@ -85,7 +85,7 @@ def amazonInstablePatternSearchTest(createTestFile=False):
     """
     amazonInstablePattern = Pattern(
         SeqOperator([QItem("AMZN", "x1"), QItem("AMZN", "x2"), QItem("AMZN", "x3")]),
-        CompositeAnd(
+        AndFormula(
             [
                 NaryFormula(IdentifierTerm("x1", lambda x: x["Lowest Price"]),
                             relation_op=lambda x: x <= 75),
@@ -111,7 +111,7 @@ def msftDrivRacePatternSearchTest(createTestFile=False):
     msftDrivRacePattern = Pattern(
         SeqOperator(
             [QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("MSFT", "c"), QItem("DRIV", "d"), QItem("MSFT", "e")]),
-        CompositeAnd(
+        AndFormula(
             [
                 NaryFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                             IdentifierTerm("b", lambda x: x["Peak Price"]),
@@ -170,7 +170,7 @@ def googleAmazonLowPatternSearchTest(createTestFile=False):
     """
     googleAmazonLowPattern = Pattern(
         AndOperator([QItem("AMZN", "a"), QItem("GOOG", "g")]),
-        CompositeAnd([
+        AndFormula([
             NaryFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                         relation_op=lambda x: x <= 73),
             NaryFormula(IdentifierTerm("g", lambda x: x["Peak Price"]),
@@ -189,7 +189,7 @@ def nonsensePatternSearchTest(createTestFile=False):
     """
     nonsensePattern = Pattern(
         AndOperator([QItem("AMZN", "a"), QItem("AVID", "b"), QItem("AAPL", "c")]),
-        CompositeAnd([
+        AndFormula([
             NaryFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                         IdentifierTerm("b", lambda x: x["Peak Price"]),
                         relation_op=lambda x, y: x < y),
@@ -214,7 +214,7 @@ def hierarchyPatternSearchTest(createTestFile=False):
     """
     hierarchyPattern = Pattern(
         AndOperator([QItem("AMZN", "a"), QItem("AAPL", "b"), QItem("GOOG", "c")]),
-        CompositeAnd([
+        AndFormula([
             NaryFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                         IdentifierTerm("b", lambda x: x["Peak Price"]),
                         relation_op=lambda x, y: x < y),
@@ -230,7 +230,7 @@ def hierarchyPatternSearchTest(createTestFile=False):
 def nonFrequencyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
-        CompositeAnd([
+        AndFormula([
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))
         ]),
@@ -280,7 +280,7 @@ def arrivalRatesPatternSearchTest(createTestFile=False):
 def nonFrequencyPatternSearch2Test(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("LOCM", "a"), QItem("AMZN", "b"), QItem("AAPL", "c")]),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
@@ -294,7 +294,7 @@ def nonFrequencyPatternSearch2Test(createTestFile=False):
 def frequencyPatternSearch2Test(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("LOCM", "a"), QItem("AMZN", "b"), QItem("AAPL", "c")]),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
@@ -309,7 +309,7 @@ def frequencyPatternSearch2Test(createTestFile=False):
 def greedyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                                IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
@@ -330,7 +330,7 @@ def greedyPatternSearchTest(createTestFile=False):
 def iiRandomPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
-        CompositeAnd([
+        AndFormula([
             NaryFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                         IdentifierTerm("b", lambda x: x["Peak Price"]),
                         IdentifierTerm("c", lambda x: x["Peak Price"]),
@@ -376,7 +376,7 @@ def iiRandom2PatternSearchTest(createTestFile=False):
 def iiGreedyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                                IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
@@ -400,7 +400,7 @@ def iiGreedyPatternSearchTest(createTestFile=False):
 def iiGreedy2PatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                                IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
@@ -424,7 +424,7 @@ def iiGreedy2PatternSearchTest(createTestFile=False):
 def dpLdPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                                IdentifierTerm("b", lambda x: x["Peak Price"])),
             NaryFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
@@ -445,7 +445,7 @@ def dpLdPatternSearchTest(createTestFile=False):
 def dpBPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
-        CompositeAnd([
+        AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                                IdentifierTerm("b", lambda x: x["Peak Price"])),
             NaryFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
@@ -467,8 +467,8 @@ def dpBPatternSearchTest(createTestFile=False):
 def zStreamOrdPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
-        CompositeAnd([
-            CompositeAnd([
+        AndFormula([
+            AndFormula([
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                                    IdentifierTerm("b", lambda x: x["Peak Price"])),
                 SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
@@ -491,11 +491,11 @@ def zStreamOrdPatternSearchTest(createTestFile=False):
 def zStreamPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
-        CompositeAnd([
-            CompositeAnd([
+        AndFormula([
+            AndFormula([
                 SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
                                    IdentifierTerm("b", lambda x: x["Peak Price"])),
-                CompositeAnd([
+                AndFormula([
                     SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
                                        IdentifierTerm("c", lambda x: x["Peak Price"]))
                 ])
@@ -516,7 +516,7 @@ def zStreamPatternSearchTest(createTestFile=False):
 def frequencyTailoredPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c")]),
-        CompositeAnd([
+        AndFormula([
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
@@ -625,7 +625,7 @@ def multipleNotBeginAndEndTest(createTestFile=False):
                      QItem("GOOG", "c"),
                      NegationOperator(QItem("TYP2", "y")),
                      NegationOperator(QItem("TYP3", "z"))]),
-        CompositeAnd([
+        AndFormula([
             GreaterThanFormula(IdentifierTerm("x", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("y", lambda x: x["Opening Price"]),
@@ -641,7 +641,7 @@ def multipleNotBeginAndEndTest(createTestFile=False):
 def simpleNotTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("AMZN", "b")), QItem("GOOG", "c")]),
-        CompositeAnd([
+        AndFormula([
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
@@ -658,7 +658,7 @@ def multipleNotInTheMiddleTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), NegationOperator(QItem("LI", "d")), QItem("AMZN", "b"),
                      NegationOperator(QItem("FB", "e")), QItem("GOOG", "c")]),
-        CompositeAnd([
+        AndFormula([
                 GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                    IdentifierTerm("b", lambda x: x["Opening Price"])),
                 SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
@@ -677,7 +677,7 @@ def multipleNotInTheMiddleTest(createTestFile=False):
 def oneNotAtTheBeginningTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([NegationOperator(QItem("TYP1", "x")), QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
-        CompositeAnd([
+        AndFormula([
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
@@ -692,7 +692,7 @@ def multipleNotAtTheBeginningTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([NegationOperator(QItem("TYP1", "x")), NegationOperator(QItem("TYP2", "y")),
                      NegationOperator(QItem("TYP3", "z")), QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c")]),
-        CompositeAnd([
+        AndFormula([
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
@@ -707,7 +707,7 @@ def multipleNotAtTheBeginningTest(createTestFile=False):
 def oneNotAtTheEndTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x"))]),
-        CompositeAnd([
+        AndFormula([
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
@@ -723,7 +723,7 @@ def multipleNotAtTheEndTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("GOOG", "c"), NegationOperator(QItem("TYP1", "x")),
                      NegationOperator(QItem("TYP2", "y")), NegationOperator(QItem("TYP3", "z"))]),
-        CompositeAnd([
+        AndFormula([
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
@@ -738,7 +738,7 @@ def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
     pattern = Pattern(
         SeqOperator([NegationOperator(QItem("AAPL", "a")), QItem("AMAZON", "b"), NegationOperator(QItem("GOOG", "c")),
                      QItem("FB", "d"), NegationOperator(QItem("TYP1", "x"))]),
-        CompositeAnd([
+        AndFormula([
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
                                IdentifierTerm("b", lambda x: x["Opening Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
@@ -837,7 +837,7 @@ def freezePolicy2PatternSearchTest(createTestFile = False):
 def sortedStorageTest(createTestFile=False):
     pattern = Pattern(
         AndOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c")]),
-        CompositeAnd([
+        AndFormula([
             GreaterThanFormula(
                 IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])
             ),
@@ -857,7 +857,7 @@ def sortedStorageTest(createTestFile=False):
 def sortedStorageBenchMarkTest(createTestFile=False):
     pattern = Pattern(
         AndOperator([QItem("DRIV", "a"), QItem("MSFT", "b"), QItem("CBRL", "c"), QItem("MSFT", "m")]),
-        CompositeAnd([
+        AndFormula([
             GreaterThanEqFormula(
                 IdentifierTerm("b", lambda x: x["Lowest Price"]), IdentifierTerm("a", lambda x: x["Lowest Price"])
             ),

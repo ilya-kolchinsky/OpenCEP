@@ -62,6 +62,24 @@ class Formula(ABC):
         raise NotImplementedError()
 
 
+class TrueFormula(Formula):
+    #TODO: Daniel not sure if we need it in the new implementation
+    def eval(self, binding: dict = None):
+        return True
+
+    def __repr__(self):
+        return "True Formula"
+
+    def extract_atomic_formulas(self):
+        return []
+
+    def get_formula_of(self, names):
+        return self
+
+    def extract_atomic_formulas_new(self):
+        return {}
+
+
 class NaryFormula(Formula):
     def __init__(self, *terms, relation_op: callable):
         self.terms = terms
@@ -96,153 +114,84 @@ class NaryFormula(Formula):
         return ret_dict
 
 
-class BinaryFormula(Formula):
+class BinaryFormula(NaryFormula):
     """
-    An atomic formula containing no logic operators (e.g., A < B).
+    An binary formula containing no logic operators (e.g., A < B).
     """
     def __init__(self, left_term, right_term, relation_op: callable):
+        super().__init__(left_term, right_term, relation_op=relation_op)
+
+        #TODO: Daniel, Placeholder to not break the code till a proper conditions upon a tree will be established.
         self.left_term = left_term
         self.right_term = right_term
-        self.relation_op = relation_op
 
-    def get_formula_of(self, names: set):
-        right_term = self.right_term.get_term_of(names)
-        left_term = self.left_term.get_term_of(names)
-        if left_term and right_term:
-            return self
-        return None
-
-    def eval(self, binding: dict = None):
-        try:
-            return self.relation_op(self.left_term.eval(binding), self.right_term.eval(binding))
-        except Exception as e:
-            return False
+    def extract_atomic_formulas(self):
+        return [self]
 
     def extract_atomic_formulas_new(self):
         ret_dict = {self.left_term: [(self.right_term, self.relation_op)]}
         return ret_dict
 
-    def __repr__(self):
-        return "{} {} {}".format(self.left_term, self.relation_op, self.right_term)
 
-    def extract_atomic_formulas(self):
-        return [self]
-
-    def get_relop(self):
-        raise NotImplementedError()
-
-
-class SpecialBinaryFormula(BinaryFormula, ABC):
+class BaseRelationFormula(BinaryFormula, ABC):
     def __init__(self, left_term, right_term, relation_op: callable, relop_type):
         super().__init__(left_term, right_term, relation_op)
+        #TODO: Daniel, once conditions in the tree are set, remove relop_type from the code.
         self.relop_type = relop_type
 
     def get_relop(self):
         return self.relop_type
 
+    def __repr__(self):
+        raise NotImplementedError()
 
-class EqFormula(SpecialBinaryFormula):
+
+class EqFormula(BaseRelationFormula):
     def __init__(self, left_term, right_term):
         super().__init__(left_term, right_term, lambda x, y: x == y, RelopTypes.Equal)
-
-    # def get_formula_of(self, names: set):
-    #     right_term = self.right_term.get_term_of(names)
-    #     left_term = self.left_term.get_term_of(names)
-    #     if left_term and right_term:
-    #         return EqFormula(left_term, right_term)
-    #     return None
 
     def __repr__(self):
         return "{} == {}".format(self.left_term, self.right_term)
 
 
-class NotEqFormula(SpecialBinaryFormula):
+class NotEqFormula(BaseRelationFormula):
     def __init__(self, left_term, right_term):
         super().__init__(left_term, right_term, lambda x, y: x != y, RelopTypes.NotEqual)
-
-    # def get_formula_of(self, names: set):
-    #     right_term = self.right_term.get_term_of(names)
-    #     left_term = self.left_term.get_term_of(names)
-    #     if left_term and right_term:
-    #         return NotEqFormula(left_term, right_term)
-    #     return None
 
     def __repr__(self):
         return "{} != {}".format(self.left_term, self.right_term)
 
 
-class GreaterThanFormula(SpecialBinaryFormula):
+class GreaterThanFormula(BaseRelationFormula):
     def __init__(self, left_term, right_term):
         super().__init__(left_term, right_term, lambda x, y: x > y, RelopTypes.Greater)
-
-    # def get_formula_of(self, names: set):
-    #     right_term = self.right_term.get_term_of(names)
-    #     left_term = self.left_term.get_term_of(names)
-    #     if left_term and right_term:
-    #         return GreaterThanFormula(left_term, right_term)
-    #     return None
 
     def __repr__(self):
         return "{} > {}".format(self.left_term, self.right_term)
 
 
-class SmallerThanFormula(SpecialBinaryFormula):
+class SmallerThanFormula(BaseRelationFormula):
     def __init__(self, left_term, right_term):
         super().__init__(left_term, right_term, lambda x, y: x < y, RelopTypes.Smaller)
-
-    # def get_formula_of(self, names: set):
-    #     right_term = self.right_term.get_term_of(names)
-    #     left_term = self.left_term.get_term_of(names)
-    #     if left_term and right_term:
-    #         return SmallerThanFormula(left_term, right_term)
-    #     return None
 
     def __repr__(self):
         return "{} < {}".format(self.left_term, self.right_term)
 
 
-class GreaterThanEqFormula(SpecialBinaryFormula):
+class GreaterThanEqFormula(BaseRelationFormula):
     def __init__(self, left_term, right_term):
         super().__init__(left_term, right_term, lambda x, y: x >= y, RelopTypes.GreaterEqual)
-
-    # def get_formula_of(self, names: set):
-    #     right_term = self.right_term.get_term_of(names)
-    #     left_term = self.left_term.get_term_of(names)
-    #     if left_term and right_term:
-    #         return GreaterThanEqFormula(left_term, right_term)
-    #     return None
 
     def __repr__(self):
         return "{} >= {}".format(self.left_term, self.right_term)
 
 
-class SmallerThanEqFormula(SpecialBinaryFormula):
+class SmallerThanEqFormula(BaseRelationFormula):
     def __init__(self, left_term, right_term):
         super().__init__(left_term, right_term, lambda x, y: x <= y, RelopTypes.SmallerEqual)
 
-    # def get_formula_of(self, names: set):
-    #     right_term = self.right_term.get_term_of(names)
-    #     left_term = self.left_term.get_term_of(names)
-    #     if left_term and right_term:
-    #         return SmallerThanEqFormula(left_term, right_term)
-    #     return None
-
     def __repr__(self):
         return "{} <= {}".format(self.left_term, self.right_term)
-
-
-class TrueFormula(Formula):
-    def eval(self, binding: dict = None):
-        return True
-
-    def __repr__(self):
-        return "True Formula"
-
-    def extract_atomic_formulas(self):
-        return []
-
-    def get_formula_of(self, names):
-        return self
 
 
 class CompositeFormula(Formula, ABC):
@@ -292,7 +241,7 @@ class CompositeFormula(Formula, ABC):
         return ret_dict
 
 
-class CompositeAnd(CompositeFormula):
+class AndFormula(CompositeFormula):
     """
     This class uses CompositeFormula with the terminating condition False, which complies with AND operator logic.
     """
@@ -303,12 +252,12 @@ class CompositeAnd(CompositeFormula):
         result_formulas = super().get_formula_of(names)
         # at-least 1 formula was retrieved using get_formula_of for the list of formulas
         if result_formulas:
-            return CompositeAnd(result_formulas)
+            return AndFormula(result_formulas)
         else:
             return None
 
 
-class CompositeOr(CompositeFormula):
+class OrFormula(CompositeFormula):
     """
         This class uses CompositeFormula with the terminating condition True, which complies with OR operator logic.
         """
@@ -319,6 +268,6 @@ class CompositeOr(CompositeFormula):
         result_formulas = super().get_formula_of(names)
         # at-least 1 formula was retrieved using get_formula_of for the list of formulas
         if result_formulas:
-            return CompositeOr(result_formulas)
+            return OrFormula(result_formulas)
         else:
             return None

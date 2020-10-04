@@ -2,7 +2,7 @@ from functools import reduce
 from typing import List
 
 from base.Event import Event
-from base.Formula import Formula, EqFormula, IdentifierTerm, BinaryFormula, CompositeAnd
+from base.Formula import Formula, EqFormula, IdentifierTerm, BinaryFormula, AndFormula
 from base.PatternStructure import PatternStructure, QItem, CompositeStructure
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
@@ -134,7 +134,7 @@ class Pattern:
         Augment the pattern condition with a contiguity constraint between the given event names.
         """
         pass
-        self.condition = CompositeAnd([
+        self.condition = AndFormula([
             self.condition,
             BinaryFormula(IdentifierTerm(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
                           IdentifierTerm(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
