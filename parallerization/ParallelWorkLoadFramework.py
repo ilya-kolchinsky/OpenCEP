@@ -18,7 +18,7 @@ class ParallelWorkLoadFramework(ABC):
     def get_is_data_parallelised(self):
         return self._is_data_parallelised
 
-    def get_is_evaluation_mechanism_splitted(self):
+    def get_is_structure_parallelized(self):
         return self._is_em_splitted
 
     def set_source_eval_mechanism(self, eval_mechanism: EvaluationMechanism):

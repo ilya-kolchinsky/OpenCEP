@@ -6,7 +6,8 @@ from stream.Stream import InputStream, OutputStream
 from base.Pattern import Pattern
 from base.DataFormatter import DataFormatter
 
-from parallerization import ParallelWorkLoadFramework, ParallelExecutionFramework
+from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
+from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
 from typing import List
 
 class EvaluationMechanismManager:
@@ -29,13 +30,13 @@ class EvaluationMechanismManager:
             raise NotImplementedError()
 
     def initialize(self, pattern_matches):
-        if (not self.work_load_fr.get_is_data_splitted()) and (not self.work_load_fr.get_is_evaluation_mechanism_splitted()):
+        if (not self.work_load_fr.get_is_data_splitted()) and (not self.work_load_fr.get_is_structure_parallelized()):
             self.initialize_single_tree_single_data(pattern_matches)
-        elif self.work_load_fr.get_is_data_splitted() and (not self.work_load_fr.get_is_evaluation_mechanism_splitted()):
+        elif self.work_load_fr.get_is_data_splitted() and (not self.work_load_fr.get_is_structure_parallelized()):
             self.initialize_single_tree_multiple_data()
-        elif (not self.work_load_fr.get_is_data_splitted()) and self.work_load_fr.get_is_evaluation_mechanism_splitted():
+        elif (not self.work_load_fr.get_is_data_splitted()) and self.work_load_fr.get_is_structure_parallelized():
             self.initialize_multiple_tree_single_data()
-        elif self.work_load_fr.get_is_data_splitted() and self.work_load_fr.get_is_evaluation_mechanism_splitted():
+        elif self.work_load_fr.get_is_data_splitted() and self.work_load_fr.get_is_structure_parallelized():
             self.initialize_multiple_tree_multiple_data()
 
     def initialize_single_tree_single_data(self, pattern_matches: OutputStream):
@@ -63,7 +64,7 @@ class EvaluationMechanismManager:
 
         self.run_eval()
 
-        if self.work_load_fr.get_is_data_parallelised() or self.work_load_fr.get_is_evaluation_mechanism_splitted():
+        if self.work_load_fr.get_is_data_parallelised() or self.work_load_fr.get_is_structure_parallelized():
             self.wait_masters_to_finish()
             self.get_results_from_masters()
 
@@ -71,15 +72,15 @@ class EvaluationMechanismManager:
 
     def run_eval(self):
         multiple_data = self.work_load_fr.get_is_data_parallelised()
-        multiple_tree = self.work_load_fr.get_is_evaluation_mechanism_splitted()
+        multiple_structures = self.work_load_fr.get_is_structure_parallelized()
 
-        if (not multiple_data) and (not multiple_tree):
+        if (not multiple_data) and (not multiple_structures):
             self.eval_single_tree_single_data(self.source_event_stream)
-        elif (multiple_data) and (not multiple_tree):
+        elif (multiple_data) and (not multiple_structures):
             self.eval_single_tree_multiple_data()
-        elif (not multiple_data) and (multiple_tree):
+        elif (not multiple_data) and (multiple_structures):
             self.eval_multiple_tree_single_data()
-        elif (multiple_data) and (multiple_tree):
+        elif (multiple_data) and (multiple_structures):
             self.eval_multiple_tree_multiple_data()
 
     def get_results_from_masters(self):
