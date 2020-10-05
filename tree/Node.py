@@ -64,6 +64,7 @@ class Node(ABC):
             pattern_id = {pattern_id}
         self._pattern_id = pattern_id
         self._is_root = False
+        self._parent_to_info_dict = {}
 
     def add_to_parent_to_unhandled_queue_dict(self, key, value):
         self._parent_to_unhandled_queue_dict[key] = value
@@ -235,6 +236,13 @@ class Node(ABC):
         min_timestamp = min([event.timestamp for event in events_for_new_match])
         max_timestamp = max([event.timestamp for event in events_for_new_match])
         return max_timestamp - min_timestamp <= self._sliding_window
+
+    def create_parent_to_info_dict(self):
+        # TODO DOCUMENTATION
+        raise NotImplementedError()
+
+    def add_to_dict(self, key, value):
+        self._parent_to_info_dict[key] = value
 
     def get_leaves(self):
         """

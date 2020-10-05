@@ -82,6 +82,12 @@ class NegationNode(BinaryNode, ABC):
         """
         return self._positive_subtree.get_event_definitions()
 
+    def get_event_definitions_by_parent(self, parent):
+        """
+        This is a method which continues the ugly temporary hack from above.
+        """
+        return self._positive_subtree.get_event_definitions_by_parent(self)
+
     def _try_create_new_matches(self, new_partial_match: PatternMatch, partial_matches_to_compare: List[PatternMatch],
                                 first_event_defs: List[PrimitiveEventDefinition],
                                 second_event_defs: List[PrimitiveEventDefinition]):

@@ -18,12 +18,11 @@ class LeafNode(Node):
         self.__leaf_index = leaf_index
         self.__event_name = leaf_event.name
         self.__event_type = leaf_event.type
-        self.__parent_to_info_dict = {}
 
     def create_parent_to_info_dict(self):
-         if self._parents is not None:
-            self.__parent_to_info_dict = {parent: PrimitiveEventDefinition(self.__event_type, self.__event_name, self.__leaf_index)
-                                            for parent in self._parents}
+        if self._parents is not None:
+            self.add_to_dict(self._parents[0],
+                             PrimitiveEventDefinition(self.__event_type, self.__event_name, self.__leaf_index))
 
     def get_leaves(self):
         return [self]
@@ -36,10 +35,10 @@ class LeafNode(Node):
     def get_event_definitions(self):
         return [PrimitiveEventDefinition(self.__event_type, self.__event_name, self.__leaf_index)]
 
-    def get_event_definitions_by_parent(self, parent: Node):
-        if parent not in self.__parent_to_info_dict.keys():
+    def get_event_definitions_by_parent(self, parent):
+        if parent not in self._parent_to_info_dict.keys():
             raise Exception("parent is not in the dictionary.")
-        return [self.__parent_to_info_dict[parent]]
+        return [self._parent_to_info_dict[parent]]
 
     def get_event_type(self):
         """
@@ -98,9 +97,6 @@ class LeafNode(Node):
 
     def get_structure_summary(self):
         return self.__event_name
-
-    def add_to_dict(self, key: Node, value: PrimitiveEventDefinition):
-        self.__parent_to_info_dict[key] = value
 
     def get_condition(self):
         return self._condition

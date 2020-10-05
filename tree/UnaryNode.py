@@ -36,6 +36,12 @@ class UnaryNode(InternalNode, ABC):
         self.set_subtree(child)
         child.add_parent(self)
 
+    def create_parent_to_info_dict(self):
+        if self._child:
+            self._child.create_parent_to_info_dict()
+        if self._parents:
+            self.add_to_dict(self._parents[0], self._event_defs)
+
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,
                             sort_by_first_timestamp: bool = False):
