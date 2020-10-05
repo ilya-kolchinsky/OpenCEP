@@ -931,97 +931,97 @@ runTest.over_all_time = 0
 #Parallel tests
 
 onlyTreeSplitsimplePatternSearchTest()
-#onlyTreeSplit_oneArgumentsearchTest()
-onlyDataSplit_oneArgumentsearchTest()
-
+# #onlyTreeSplit_oneArgumentsearchTest()
+# onlyDataSplit_oneArgumentsearchTest()
+#
+# #simplePatternSearchTest()
+# #print("Finished running all tests, overall time: %s" % runTest.over_all_time)
+#
+# # basic functionality tests
+# oneArgumentsearchTest()
 #simplePatternSearchTest()
-#print("Finished running all tests, overall time: %s" % runTest.over_all_time)
-
-# basic functionality tests
-oneArgumentsearchTest()
-simplePatternSearchTest()
-googleAscendPatternSearchTest()
-amazonInstablePatternSearchTest()
-msftDrivRacePatternSearchTest()
-googleIncreasePatternSearchTest()
-amazonSpecificPatternSearchTest()
-googleAmazonLowPatternSearchTest()
-nonsensePatternSearchTest()
-hierarchyPatternSearchTest()
-nonFrequencyPatternSearchTest()
-arrivalRatesPatternSearchTest()
-
-# tree plan generation algorithms
-frequencyPatternSearchTest()
-nonFrequencyPatternSearch2Test()
-frequencyPatternSearch2Test()
-nonFrequencyPatternSearch3Test()
-frequencyPatternSearch3Test()
-nonFrequencyPatternSearch4Test()
-frequencyPatternSearch4Test()
-nonFrequencyPatternSearch5Test()
-frequencyPatternSearch5Test()
-frequencyPatternSearch6Test()
-greedyPatternSearchTest()
-iiRandomPatternSearchTest()
-iiRandom2PatternSearchTest()
-iiGreedyPatternSearchTest()
-iiGreedy2PatternSearchTest()
-zStreamOrdPatternSearchTest()
-zStreamPatternSearchTest()
-dpBPatternSearchTest()
-dpLdPatternSearchTest()
-nonFrequencyTailoredPatternSearchTest()
-frequencyTailoredPatternSearchTest()
-
-# tree structure tests - CEP object only created not used
-structuralTest1()
-structuralTest2()
-structuralTest3()
-structuralTest4()
-structuralTest5()
-structuralTest6()
-structuralTest7()
-
-# Kleene closure tests
-oneArgumentsearchTestKleeneClosure()
-MinMax_0_TestKleeneClosure()
-MinMax_1_TestKleeneClosure()
-MinMax_2_TestKleeneClosure()
-KC_AND()
-
-# negation tests
-simpleNotTest()
-multipleNotInTheMiddleTest()
-oneNotAtTheBeginningTest()
-multipleNotAtTheBeginningTest()
-oneNotAtTheEndTest()
-multipleNotAtTheEndTest()
-multipleNotBeginAndEndTest()
-testWithMultipleNotAtBeginningMiddleEnd()
-
-# consumption policies tests
-singleType1PolicyPatternSearchTest()
-singleType2PolicyPatternSearchTest()
-contiguousPolicyPatternSearchTest()
-contiguousPolicy2PatternSearchTest()
-freezePolicyPatternSearchTest()
-freezePolicy2PatternSearchTest()
-
-# storage tests
-sortedStorageTest()
-run_storage_tests()
-
-# benchmarks
-if INCLUDE_BENCHMARKS:
-    sortedStorageBenchMarkTest()
-
-
-# Twitter tests
-try:
-    from TwitterTest import run_twitter_sanity_check
-    run_twitter_sanity_check()
-except ImportError:  # tweepy might not be installed
-    pass
-finally:
-    print("Finished running all tests, overall time: %s" % runTest.over_all_time)
+# googleAscendPatternSearchTest()
+# amazonInstablePatternSearchTest()
+# msftDrivRacePatternSearchTest()
+# googleIncreasePatternSearchTest()
+# amazonSpecificPatternSearchTest()
+# googleAmazonLowPatternSearchTest()
+# nonsensePatternSearchTest()
+# hierarchyPatternSearchTest()
+# nonFrequencyPatternSearchTest()
+# arrivalRatesPatternSearchTest()
+#
+# # tree plan generation algorithms
+# frequencyPatternSearchTest()
+# nonFrequencyPatternSearch2Test()
+# frequencyPatternSearch2Test()
+# nonFrequencyPatternSearch3Test()
+# frequencyPatternSearch3Test()
+# nonFrequencyPatternSearch4Test()
+# frequencyPatternSearch4Test()
+# nonFrequencyPatternSearch5Test()
+# frequencyPatternSearch5Test()
+# frequencyPatternSearch6Test()
+# greedyPatternSearchTest()
+# iiRandomPatternSearchTest()
+# iiRandom2PatternSearchTest()
+# iiGreedyPatternSearchTest()
+# iiGreedy2PatternSearchTest()
+# zStreamOrdPatternSearchTest()
+# zStreamPatternSearchTest()
+# dpBPatternSearchTest()
+# dpLdPatternSearchTest()
+# nonFrequencyTailoredPatternSearchTest()
+# frequencyTailoredPatternSearchTest()
+#
+# # tree structure tests - CEP object only created not used
+# structuralTest1()
+# structuralTest2()
+# structuralTest3()
+# structuralTest4()
+# structuralTest5()
+# structuralTest6()
+# structuralTest7()
+#
+# # Kleene closure tests
+# oneArgumentsearchTestKleeneClosure()
+# MinMax_0_TestKleeneClosure()
+# MinMax_1_TestKleeneClosure()
+# MinMax_2_TestKleeneClosure()
+# KC_AND()
+#
+# # negation tests
+# simpleNotTest()
+# multipleNotInTheMiddleTest()
+# oneNotAtTheBeginningTest()
+# multipleNotAtTheBeginningTest()
+# oneNotAtTheEndTest()
+# multipleNotAtTheEndTest()
+# multipleNotBeginAndEndTest()
+# testWithMultipleNotAtBeginningMiddleEnd()
+#
+# # consumption policies tests
+# singleType1PolicyPatternSearchTest()
+# singleType2PolicyPatternSearchTest()
+# contiguousPolicyPatternSearchTest()
+# contiguousPolicy2PatternSearchTest()
+# freezePolicyPatternSearchTest()
+# freezePolicy2PatternSearchTest()
+#
+# # storage tests
+# sortedStorageTest()
+# run_storage_tests()
+#
+# # benchmarks
+# if INCLUDE_BENCHMARKS:
+#     sortedStorageBenchMarkTest()
+#
+#
+# # Twitter tests
+# try:
+#     from TwitterTest import run_twitter_sanity_check
+#     run_twitter_sanity_check()
+# except ImportError:  # tweepy might not be installed
+#     pass
+# finally:
+#     print("Finished running all tests, overall time: %s" % runTest.over_all_time)

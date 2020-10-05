@@ -10,6 +10,7 @@ from base.DataFormatter import DataFormatter
 from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
 from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
 from typing import List
+from base.PatternMatch import PatternMatch
 
 
 class EvaluationMechanismManager:
@@ -20,7 +21,7 @@ class EvaluationMechanismManager:
         self.eval_mechanism_families = None
         self.eval_params = eval_params
         self.patterns = patterns
-        self.pattern_matches_list = []
+        self.pattern_matches_stream = OutputStream()
         self.data_formatter = None
 
         if work_load_fr is None:
@@ -74,11 +75,11 @@ class EvaluationMechanismManager:
         if self.work_load_fr.get_is_data_parallelized() or self.work_load_fr.get_is_structure_parallelized():
             self.notify_all_to_finish()
             self.wait_masters_to_finish()
-            self.get_results_from_masters()
 
-        else:
-            pattern_matches = self.pattern_matches_list[0]
-        #self.convert_to_one_stream()
+            #self.get_results_from_masters()  #TODO:
+
+        pattern_matches = self.masters_list[0].get_pattern_matches() #TODO:
+        #pattern_matches = self.pattern_matches_stream      #TODO:
 
     def run_eval(self):
         multiple_data = self.work_load_fr.get_is_data_parallelized()
@@ -96,7 +97,10 @@ class EvaluationMechanismManager:
     def get_results_from_masters(self):
         for i in range(len(self.masters_list)):
             pattern_matches = self.masters_list[i].get_pattern_matches()
-            self.pattern_matches_list += pattern_matches
+            for match in pattern_matches:
+                if match is not None:
+                    self.pattern_matches_stream.add_item(match)
+        self.pattern_matches_stream.close()
 
     def wait_masters_to_finish(self):
         for i in range(len(self.masters_list)):
@@ -120,11 +124,10 @@ class EvaluationMechanismManager:
         self.activate_all_ems(self.eval_mechanism_list)
 
         event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
-
         while event is not None:
             for index in em_indexes:
                 em = self.eval_mechanism_list[index]
-                em.proccess_event(event)
+                em.process_event(event)
             event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
 
     def eval_multiple_em_multiple_data(self):
@@ -146,8 +149,3 @@ class EvaluationMechanismManager:
     def activate_all_ems(self, eval_mechanism_list):
         for em in eval_mechanism_list:
             em.activate()
-
-    def convert_to_one_stream(self):
-        final_matches = []
-        for em in self.masters_list:
-            em.get_final_results(final_matches)

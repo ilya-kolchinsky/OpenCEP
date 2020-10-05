@@ -27,7 +27,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         self.keep_running = threading.Event()
         self.keep_running.set()
 
-        self.thread = threading.Thread(target=self.run_eval, args=(self,))
+        self.thread = threading.Thread(target=self.run_eval, args=())
 
     def set_children(self, children):
         self.children = children
@@ -53,7 +53,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         self.finished.set()
 
     def run_eval_with_leafs(self):
-        while self.keep_running.is_set():
+        while self.keep_running.is_set() or not self.queue.empty():
             if not self.queue.empty():
                 event = self.queue.get()
                 self.evaluation_mechanism.eval(event, self.pattern_matches, self.data_formatter)
@@ -101,4 +101,5 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
 
     def get_final_results(self, pattern_matches: OutputStream):
         for match in self.evaluation_mechanism.get_tree().get_matches():
-            pattern_matches.add_item(PatternMatch(match))
+            if match is not None:
+                pattern_matches.add_item(PatternMatch(match))

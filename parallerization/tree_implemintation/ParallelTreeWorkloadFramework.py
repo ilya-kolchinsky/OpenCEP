@@ -51,12 +51,18 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         raise NotImplementedError()
 
     def get_next_event_and_destinations_em(self):
-        next_event = self.event_stream.get_item()
+        next_event = None
+        count = self.event_stream.count()
+        if count > 1:
+            next_event = self.event_stream.get_item()
 
         if next_event is None:
             return None, None
         else:
-            return next_event, self.trees_with_leafs_indexes
+            input_stream = Stream()
+            input_stream.add_item(next_event)
+            input_stream.close()
+            return input_stream, self.trees_with_leafs_indexes
 
     def get_next_event_families_indexes_and_destinations_ems(self):
         next_event = self.event_stream.get_item()
@@ -123,4 +129,3 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def set_unary_children_for_all_structures(self):
         raise NotImplementedError()
-
