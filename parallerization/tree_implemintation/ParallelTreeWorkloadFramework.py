@@ -37,7 +37,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
             storageparams = TreeStorageParameters(True)
 
             root = tree_based_eval.get_tree().get_root()
-            unary_root = ParallelUnaryNode(True, root._sliding_window, child=root)
+            unary_root = ParallelUnaryNode(root._sliding_window, child=root)
             root.set_parent(unary_root)
             tree_based_eval.set_root(unary_root)
             unary_root.create_storage_unit(storageparams)
@@ -92,13 +92,13 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         if next_root is None:   #then this is the first entry to this function
             root = tree_based_eval.get_tree().get_root()
-            unary_root = ParallelUnaryNode(True, root._sliding_window, child=root)
+            unary_root = ParallelUnaryNode(root._sliding_window, child=root)
             root.set_parent(unary_root)
             tree_based_eval.set_root(unary_root)
             unary_root.create_storage_unit(storageparams)
         else:
             root = next_root
-            unary_root = ParallelUnaryNode(False, root._sliding_window, child=root)
+            unary_root = ParallelUnaryNode(root._sliding_window, child=root)
             unary_root.set_parent(root._parent)
             root.set_parent(unary_root)
             if source_is_left:

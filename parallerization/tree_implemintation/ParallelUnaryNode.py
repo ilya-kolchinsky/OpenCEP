@@ -7,17 +7,9 @@ from base.PatternStructure import PrimitiveEventStructure
 
 
 class ParallelUnaryNode(UnaryNode): # new root
-    def __init__(self, is_root: bool, sliding_window, parent: Node = None,
+    def __init__(self, sliding_window, parent: Node = None,
                  event_defs: List[Tuple[int, PrimitiveEventStructure]] = None, child: Node = None):
         super().__init__(sliding_window, parent, event_defs, child)
-        self._is_done = False
-        self._is_root = is_root
-
-    def get_done(self):
-        return self._is_done
-
-    def light_is_done(self):
-        self._is_done = True
 
     def get_child(self):
         return self._child
