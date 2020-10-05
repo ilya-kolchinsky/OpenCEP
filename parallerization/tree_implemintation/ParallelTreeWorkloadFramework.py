@@ -42,10 +42,9 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
             tree_based_eval.set_root(unary_root)
             unary_root.create_storage_unit(storageparams)
 
-            unaryeval = ParallelTreeEval(tree_based_eval, True, is_main_root=True)
+            unaryeval = ParallelTreeEval(tree_based_eval, True, is_main_root=True, data_formatter=self.data_formatter)
             self.masters.append(unaryeval)
         return self.masters, self.masters#TODO: check if in manager we need both of them
-
 
     def split_structure_to_families(self, evaluation_mechanism: EvaluationMechanism,
                                     eval_params: EvaluationMechanismParameters = None):
@@ -74,6 +73,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def split_structure(self, eval_params: EvaluationMechanismParameters = None):
         self.split_structure_utils(eval_params, self.get_execution_units())
+        self.set_unary_children_for_all_structures()
         return self.tree_structures, self.masters
         #TODO: go over tree_structures to update all unary children fields and check other fields
 
@@ -103,7 +103,13 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
             tree_based_eval.set_root(unary_root)
             unary_root.create_storage_unit(storageparams)
 
-        unaryeval = ParallelTreeEval(tree_based_eval, False, is_main_root=(next_root is None))
+        if int((execution_units_left - 1)/2) < 1:
+            unaryeval = ParallelTreeEval(tree_based_eval, has_leafs=True, is_main_root=(next_root is None), data_formatter=self.data_formatter)
+            self.trees_with_leafs.append(unaryeval)
+            self.trees_with_leafs_indexes.append(len(self.tree_structures))
+        else:
+            unaryeval = ParallelTreeEval(tree_based_eval, has_leafs=False, is_main_root=(next_root is None), data_formatter=self.data_formatter)
+
         self.tree_structures.append(unaryeval)
         if next_root is None:
             self.masters.append(unaryeval)
@@ -114,4 +120,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         elif isinstance(current, BinaryNode):
             self.split_structure_utils(eval_params, int((execution_units_left - 1)/2), current._left_subtree, True)
             self.split_structure_utils(eval_params, int((execution_units_left - 1) / 2), current._right_subtree, False)
+
+    def set_unary_children_for_all_structures(self):
+        raise NotImplementedError()
 
