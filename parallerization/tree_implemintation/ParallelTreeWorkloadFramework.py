@@ -48,8 +48,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def split_structure_to_families(self, evaluation_mechanism: EvaluationMechanism,
                                     eval_params: EvaluationMechanismParameters = None):
-        raise NotImplementedError()
-
+        pass
     def get_next_event_and_destinations_em(self):
         next_event = None
         count = self.event_stream.count()
@@ -79,7 +78,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def split_structure(self, eval_params: EvaluationMechanismParameters = None):
         self.split_structure_utils(eval_params, self.get_execution_units())
-        self.set_unary_children_for_all_structures()
+        self.set_unary_children_for_THREE_structures()
         return self.tree_structures, self.masters
         #TODO: go over tree_structures to update all unary children fields and check other fields
 
@@ -127,5 +126,5 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
             self.split_structure_utils(eval_params, int((execution_units_left - 1)/2), current._left_subtree, True)
             self.split_structure_utils(eval_params, int((execution_units_left - 1) / 2), current._right_subtree, False)
 
-    def set_unary_children_for_all_structures(self):
-        raise NotImplementedError()
+    def set_unary_children_for_THREE_structures(self):
+        self.tree_structures[0].set_children(self.tree_structures[1], self.tree_structures[2])
