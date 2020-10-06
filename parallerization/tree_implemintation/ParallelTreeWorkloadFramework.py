@@ -127,4 +127,8 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
             self.split_structure_utils(eval_params, int((execution_units_left - 1) / 2), current._right_subtree, False)
 
     def set_unary_children_for_THREE_structures(self):
-        self.tree_structures[0].set_children(self.tree_structures[1], self.tree_structures[2])
+        if self.get_execution_units() == 3:
+            children = []
+            children.append(self.tree_structures[1])
+            children.append(self.tree_structures[2])
+            self.tree_structures[0].set_children(children)
