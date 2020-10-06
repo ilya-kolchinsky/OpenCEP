@@ -22,6 +22,9 @@ class UnaryNode(InternalNode, ABC):
             raise Exception("Unary Node with no child")
         return self._child.get_leaves()
 
+    def get_child(self):
+        return self._child
+
     def _propagate_condition(self, condition: Formula):
         self._child.apply_formula(condition)
 

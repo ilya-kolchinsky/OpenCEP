@@ -180,6 +180,13 @@ class NegationNode(BinaryNode, ABC):
         self._left_subtree.create_storage_unit(storage_params)
         self._right_subtree.create_storage_unit(storage_params)
 
+    def is_structure_equal(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        v1 = self._left_subtree.is_structure_equal(other.get_left_subtree())
+        v2 = self._right_subtree.is_structure_equal(other.get_right_subtree())
+        return v1 and v2
+
 
 class NegativeAndNode(NegationNode):
     """
@@ -194,6 +201,11 @@ class NegativeAndNode(NegationNode):
         return ("NAnd",
                 self._left_subtree.get_structure_summary(),
                 self._right_subtree.get_structure_summary())
+
+    def get_structure_hash(self):
+        return ("NAnd",
+                self._left_subtree.get_structure_hash(),
+                self._right_subtree.get_structure_hash())
 
 
 class NegativeSeqNode(NegationNode):
@@ -210,6 +222,11 @@ class NegativeSeqNode(NegationNode):
         return ("NSeq",
                 self._left_subtree.get_structure_summary(),
                 self._right_subtree.get_structure_summary())
+
+    def get_structure_hash(self):
+        return ("NSeq",
+                self._left_subtree.get_structure_hash(),
+                self._right_subtree.get_structure_hash())
 
     def _set_event_definitions(self,
                                left_event_defs: List[PrimitiveEventDefinition],

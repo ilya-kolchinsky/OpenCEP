@@ -201,7 +201,7 @@ class Formula(ABC):
         pass
 
     def is_equal(self, other):
-        pass
+        return isinstance(other, type(self))
 
 
 class AtomicFormula(Formula):  # RELOP: < <= > >= == !=
@@ -436,6 +436,14 @@ class AndFormula(BinaryLogicOpFormula):  # AND: A < B AND C < D
 
     def __repr__(self):
         return "{} AND {}".format(self.left_formula, self.right_formula)
+
+    def is_equal(self, other):
+        if super().is_equal(other):
+            v1 = self.left_formula.is_equal(other.left_formula)
+            v2 = self.right_formula.is_equal(other.right_formula)
+            v3 = self.left_formula.is_equal(other.right_formula)
+            v4 = self.right_formula.is_equal(other.left_formula)
+            return (v1 and v2) or (v3 and v4)
 
 
 class TrueFormula(Formula):

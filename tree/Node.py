@@ -268,6 +268,20 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
+    def get_structure_hash(self):
+        """
+        Returns the hash of the subtree rooted at this node - to be implemented by subclasses.
+        Similar to "get_structure_summary". The difference is that the hash is composed from the node's
+        type and not from it's name.
+        """
+        raise NotImplementedError()
+
+    def is_structure_equal(self, other):
+        pass
+
+    def is_equal(self, other):
+        return self.is_structure_equal(other) and self._condition.is_equal(other.get_condition())
+
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,
                             sort_by_first_timestamp: bool = False):

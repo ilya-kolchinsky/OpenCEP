@@ -37,6 +37,18 @@ class SeqNode(BinaryNode):
                 self._left_subtree.get_structure_summary(),
                 self._right_subtree.get_structure_summary())
 
+    def get_structure_hash(self):
+        return ("Seq",
+                self._left_subtree.get_structure_hash(),
+                self._right_subtree.get_structure_hash())
+
+    def is_structure_equal(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        v1 = self._left_subtree.is_structure_equal(other.get_left_subtree())
+        v2 = self._right_subtree.is_structure_equal(other.get_right_subtree())
+        return v1 and v2
+
     def _get_sequence_based_sorting_keys(self):
         """
         Calculates the sorting keys according to the pattern sequence order and the user-provided priorities.
