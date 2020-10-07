@@ -21,7 +21,7 @@ class EvaluationMechanismManager:
         self.eval_mechanism_families = None
         self.eval_params = eval_params
         self.patterns = patterns
-        self.pattern_matches_stream = OutputStream()
+        self.pattern_matches_stream = None
         self.data_formatter = None
 
         if work_load_fr is None:
@@ -36,8 +36,10 @@ class EvaluationMechanismManager:
             raise NotImplementedError()
 
     def initialize(self, pattern_matches):
+        self.pattern_matches_stream = pattern_matches
+
         if not self.work_load_fr.get_is_data_parallelized() and not self.work_load_fr.get_is_structure_parallelized():
-            self.initialize_single_tree_single_data(pattern_matches)
+            self.initialize_single_tree_single_data(self.pattern_matches_stream)
         elif self.work_load_fr.get_is_data_parallelized() and not self.work_load_fr.get_is_structure_parallelized():
             self.initialize_single_tree_multiple_data()
         elif not self.work_load_fr.get_is_data_parallelized() and self.work_load_fr.get_is_structure_parallelized():
@@ -76,10 +78,7 @@ class EvaluationMechanismManager:
             self.notify_all_to_finish()
             self.wait_masters_to_finish()
 
-            #self.get_results_from_masters()  #TODO:
-
-        pattern_matches = self.masters_list[0].get_pattern_matches() #TODO:
-        #pattern_matches = self.pattern_matches_stream      #TODO:
+            self.get_results_from_masters()
 
     def run_eval(self):
         multiple_data = self.work_load_fr.get_is_data_parallelized()

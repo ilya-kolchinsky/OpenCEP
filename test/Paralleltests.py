@@ -43,6 +43,6 @@ def onlyTreeSplitsimplePatternSearchTest(createTestFile=False):
         timedelta(minutes=5)
     )
     workload_framework = ParallelTreeWorkloadFramework(pattern, execution_units=1, is_data_parallelized=False,
-                                                 is_structure_parallelized=True, num_of_families=0)
+                                                 is_structure_parallelized=False, num_of_families=0)
     runTest("simple", [pattern], createTestFile, work_load_fr=workload_framework)
 
