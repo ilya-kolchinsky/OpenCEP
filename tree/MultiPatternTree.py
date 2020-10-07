@@ -3,7 +3,7 @@ from queue import Queue
 from base.Pattern import Pattern
 from plan.MultiPatternEvaluationApproach import MultiPatternEvaluationApproach
 from tree.Tree import Tree
-from tree.Node import PrimitiveEventDefinition
+from tree.Node import PrimitiveEventDefinition, Node
 from tree.UnaryNode import UnaryNode
 from tree.BinaryNode import BinaryNode
 from tree.NegationNode import NegationNode
@@ -24,7 +24,6 @@ class MultiPatternTree:
         self.__patterns = patterns
 
         pass
-
 
     def __construct_multi_pattern_tree(self, tree_plans: List[TreePlan], patterns: List[Pattern], storage_params: TreeStorageParameters,
                  multi_pattern_eval_approach: MultiPatternEvaluationApproach):
@@ -81,15 +80,23 @@ class MultiPatternTree:
             leaves_to_counter_dict = {key: 0 for key in leaves_to_counter_dict}
         return roots
 
-    @staticmethod
-    def __construct_subtrees_union_tree(tree_structures: List[tuple], patterns: List[Pattern],
+    def __construct_subtrees_union_tree(self, tree_plans: List[TreePlan], patterns: List[Pattern],
                                         storage_params: TreeStorageParameters):
-        pass
+        trees = [Tree(tree_plans[i], patterns[i], storage_params, i+1) for i in range(len(patterns))]
+        roots = trees[0].get_roots()
+        for i in range(len(patterns)):
+            node = trees[i].get_root()
+            index = i+1
+            for root in roots:
 
-    @staticmethod
-    def __construct_local_search_tree(tree_structures: List[tuple], patterns: List[Pattern],
-                                      storage_params: TreeStorageParameters):
-        pass
+               while not find_and_merge_node_into_subtree(root, node, index):
+                   if isinstance(node, BinaryNode):
+                        node = node.get_left_subtree()
+                        node = node.get_right_subtree()
+                    if isinstance(node, UnaryNode):
+                        node = node.get_child()
+
+        return roots
 
     def get_leaves(self):
         leaves = set()
@@ -126,7 +133,23 @@ class MultiPatternTree:
             # the pending matches were released and have hopefully reached the roots
 
         return self.get_matches()
-
+"""
+This method gets _root and _node, and tries to find a node which is
+equivalent to _node in the subtree which _root is its root. If a node is found, it merges them.
+"""
+def find_and_merge_node_into_subtree(root: Node, node: Node, index):
+    # in this check we make sure that we are not checking shared nodes more than once
+    if min(root.get_pattern_id()) < index:
+        return False
+    if root.is_equal(node):
+        root.unite(node)
+        return True
+    elif isinstance(root, BinaryNode):
+        return find_and_merge_node_into_subtree(root.get_left_subtree(), node, index) or \
+              find_and_merge_node_into_subtree(root.get_right_subtree(), node, index)
+    elif isinstance(root, UnaryNode):
+        return find_and_merge_node_into_subtree(root.get_child(), node, index)
+    return False
 
 
 

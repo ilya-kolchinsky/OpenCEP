@@ -66,6 +66,14 @@ class KleeneClosureNode(UnaryNode):
     def get_structure_summary(self):
         return "KC", self._child.get_structure_summary()
 
+    def get_structure_hash(self):
+        return "KC", self._child.get_structure_hash()
+
+    def is_structure_equal(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        return self._child.is_structure_equal(other.get_child())
+
     @staticmethod
     def partial_match_set_to_event_list(partial_match_set: List[PatternMatch]):
         """

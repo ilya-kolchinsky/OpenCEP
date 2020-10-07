@@ -36,12 +36,11 @@ class Tree:
 
         self.__root.apply_formula(pattern.condition)
         self.__root.create_storage_unit(storage_params)
-        self.__adjust_leaf_dict()
+        self.__adjust_dict()
         self.__root.set_is_root(True)
 
-    def __adjust_leaf_dict(self):
-        for leaf in self.get_leaves():
-            leaf.create_parent_to_info_dict()
+    def __adjust_dict(self):
+        self.__root.create_parent_to_info_dict()
 
     def __adjust_leaf_indices(self, pattern: Pattern):
         """

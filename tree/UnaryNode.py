@@ -22,6 +22,9 @@ class UnaryNode(InternalNode, ABC):
             raise Exception("Unary Node with no child")
         return self._child.get_leaves()
 
+    def get_child(self):
+        return self._child
+
     def _propagate_condition(self, condition: Formula):
         self._child.apply_formula(condition)
 
@@ -35,6 +38,12 @@ class UnaryNode(InternalNode, ABC):
     def replace_subtree(self, child: Node):
         self.set_subtree(child)
         child.add_parent(self)
+
+    def create_parent_to_info_dict(self):
+        if self._child:
+            self._child.create_parent_to_info_dict()
+        if self._parents:
+            self.add_to_dict(self._parents[0], self._event_defs)
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,

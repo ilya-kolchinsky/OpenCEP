@@ -12,6 +12,20 @@ class AndNode(BinaryNode):
                 self._left_subtree.get_structure_summary(),
                 self._right_subtree.get_structure_summary())
 
+    def get_structure_hash(self):
+        return ("And",
+                self._left_subtree.get_structure_hash(),
+                self._right_subtree.get_structure_hash())
+
+    def is_structure_equal(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        v1 = self._left_subtree.is_structure_equal(other.get_left_subtree())
+        v2 = self._right_subtree.is_structure_equal(other.get_right_subtree())
+        v3 = self._left_subtree.is_structure_equal(other.get_right_subtree())
+        v4 = self._right_subtree.is_structure_equal(other.get_left_subtree())
+        return (v1 and v2) or (v3 and v4)
+
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,
                             sort_by_first_timestamp: bool = False):
