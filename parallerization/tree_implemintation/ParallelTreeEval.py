@@ -74,7 +74,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         print(" called running run_eval_with_leafs on thread " + str(self.thread.ident) + " : " + str(self.keep_running.is_set()) + " " + str(self.queue._qsize()))
 
         while self.keep_running.is_set() or not self.queue.empty():
-            # print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.empty()))
+            print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.qsize()))
             if not self.queue.empty():
                 event = self.queue.get()
                 # print(" calling eval on thread " + str(self.thread.ident))

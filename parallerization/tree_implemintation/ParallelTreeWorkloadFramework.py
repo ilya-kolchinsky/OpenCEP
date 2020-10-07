@@ -54,11 +54,11 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def stop_all(self):
         for em in self.masters:
-            if not em.get_stopped():
+             if not em.get_stopped():
                 em.join()
 
         for em in self.tree_structures:
-            if not em.get_stopped():
+             if not em.get_stopped():
                 em.join()
 
     def split_structure_to_families(self, evaluation_mechanism: EvaluationMechanism,
