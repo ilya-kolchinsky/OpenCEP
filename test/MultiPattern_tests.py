@@ -56,6 +56,68 @@ def twoPatternsOneArgument(createTestFile = False):
 
     runMultiTest("FirstMultiPattern", [pattern1, pattern2], createTestFile)
 
+def bigMultiPatternTest(createTestFile = False):
+    pattern1 = Pattern(
+        SeqOperator([PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"), PrimitiveEventStructure("GOOG", "c")]),
+        AndFormula(
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
+                               IdentifierTerm("b", lambda x: x["Peak Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
+                               IdentifierTerm("c", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+    pattern2 = Pattern(
+        SeqOperator([PrimitiveEventStructure("AMZN", "x1"), PrimitiveEventStructure("AMZN", "x2"), PrimitiveEventStructure("AMZN", "x3")]),
+        AndFormula(
+            SmallerThanEqFormula(IdentifierTerm("x1", lambda x: x["Lowest Price"]), AtomicTerm(75)),
+            AndFormula(
+                GreaterThanEqFormula(IdentifierTerm("x2", lambda x: x["Peak Price"]), AtomicTerm(78)),
+                SmallerThanEqFormula(IdentifierTerm("x3", lambda x: x["Lowest Price"]),
+                                     IdentifierTerm("x1", lambda x: x["Lowest Price"]))
+            )
+        ),
+        timedelta(days=1)
+    )
 
+    runMultiTest("BigMultiPattern", [pattern1, pattern2], createTestFile)
 
+def threePatternTest(createTestFile = False):
+    pattern1 = Pattern(
+        AndOperator([PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("AAPL", "b"),
+                     PrimitiveEventStructure("GOOG", "c")]),
+        AndFormula(
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
+                               IdentifierTerm("b", lambda x: x["Peak Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
+                               IdentifierTerm("c", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=1)
+    )
+    pattern2 = Pattern(
+        SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("MSFT", "c"), PrimitiveEventStructure("DRIV", "d"), PrimitiveEventStructure("MSFT", "e")]),
+        AndFormula(
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("b", lambda x: x["Peak Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("c", lambda x: x["Peak Price"]))
+            ),
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("c", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("d", lambda x: x["Peak Price"])),
+                SmallerThanFormula(IdentifierTerm("d", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("e", lambda x: x["Peak Price"]))
+            )
+        ),
+        timedelta(minutes=10)
+    )
+    pattern3 = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AVID", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
+            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
 
+    runMultiTest("ThreePatternTest", [pattern1, pattern2, pattern3], createTestFile)

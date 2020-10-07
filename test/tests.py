@@ -933,7 +933,12 @@ def sortedStorageBenchMarkTest(createTestFile=False):
 
 	
 runTest.over_all_time = 0
+
+# multi-pattern tests
+threePatternTest()
 twoPatternsOneArgument()
+bigMultiPatternTest()
+
 
 
 # negation tests

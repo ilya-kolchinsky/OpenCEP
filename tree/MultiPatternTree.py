@@ -93,7 +93,7 @@ class MultiPatternTree:
                    if isinstance(node, BinaryNode):
                         node = node.get_left_subtree()
                         node = node.get_right_subtree()
-                    if isinstance(node, UnaryNode):
+                   if isinstance(node, UnaryNode):
                         node = node.get_child()
 
         return roots
