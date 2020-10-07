@@ -1,9 +1,12 @@
 from test.testUtils import *
 from datetime import timedelta
-from base.Formula import GreaterThanFormula, SmallerThanFormula, IdentifierTerm, AtomicTerm, AndFormula
+from base.Formula import GreaterThanEqFormula, SmallerThanEqFormula, GreaterThanFormula, SmallerThanFormula, IdentifierTerm, AtomicTerm, AndFormula
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, NegationOperator
 from base.Pattern import Pattern
 
+currentPath = pathlib.Path(os.path.dirname(__file__))
+absolutePath = str(currentPath.parent)
+sys.path.append(absolutePath)
 
 def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                          events=None, eventStream=nasdaqEventStream):
@@ -50,5 +53,9 @@ def twoPatternsOneArgument(createTestFile = False):
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    runTest("FirstMultiPattern", [pattern1, pattern2], createTestFile)
+
+    runMultiTest("FirstMultiPattern", [pattern1, pattern2], createTestFile)
+
+
+
 

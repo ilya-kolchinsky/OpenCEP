@@ -180,6 +180,105 @@ def runTest(testName, patterns, createTestFile = False,
     os.remove(actual_matches_path)
 
 
+def runTest(testName, patterns, createTestFile = False,
+            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+            events = None, eventStream = nasdaqEventStream):
+    if createTestFile:
+        createTest(testName, patterns, events, eventStream = eventStream)
+    if events is None:
+        events = eventStream.duplicate()
+    else:
+        events = events.duplicate()
+
+    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns"]
+    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
+    listCustom = ["MultipleNotBeginAndEnd"]
+    listCustom2 = ["simpleNot"]
+    if testName in listShort:
+        events = nasdaqEventStreamShort.duplicate()
+    elif testName in listHalfShort:
+        events = nasdaqEventStreamHalfShort.duplicate()
+    elif testName in listCustom:
+        events = custom.duplicate()
+    elif testName in listCustom2:
+        events = custom2.duplicate()
+    elif testName == "NotEverywhere":
+        events = custom3.duplicate()
+
+    cep = CEP(patterns, eval_mechanism_params)
+
+    base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
+    output_file_name = "%sMatches.txt" % testName
+    matches_stream = FileOutputStream(base_matches_directory, output_file_name)
+    running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
+
+    expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
+    actual_matches_path = os.path.join(base_matches_directory, output_file_name)
+    print("Test %s result: %s, Time Passed: %s" % (testName,
+          "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
+    runTest.over_all_time += running_time
+    os.remove(actual_matches_path)
+
+
+def runMultiTest(testName, patterns, createTestFile = False,
+            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+            events = None, eventStream = nasdaqEventStream):
+    if createTestFile:
+        createTest(testName, patterns, events, eventStream = eventStream)
+    if events is None:
+        events = eventStream.duplicate()
+    else:
+        events = events.duplicate()
+
+    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns"]
+    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
+    listCustom = ["MultipleNotBeginAndEnd"]
+    listCustom2 = ["simpleNot", "FirstMultiPattern"]
+    if testName in listShort:
+        events = nasdaqEventStreamShort.duplicate()
+    elif testName in listHalfShort:
+        events = nasdaqEventStreamHalfShort.duplicate()
+    elif testName in listCustom:
+        events = custom.duplicate()
+    elif testName in listCustom2:
+        events = custom2.duplicate()
+    elif testName == "NotEverywhere":
+        events = custom3.duplicate()
+
+    cep = CEP(patterns, eval_mechanism_params)
+
+    base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
+    output_file_name = "%sMatches.txt" % testName
+    actual_matches_path = os.path.join(base_matches_directory, output_file_name)
+    matches_stream = FileOutputStream(base_matches_directory, output_file_name)
+    running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
+
+    match_set = [set() for i in range(len(patterns))]
+    flag = 0
+    with open(actual_matches_path) as matchFile:
+        all_matches = matchFile.read()
+    match_list = all_matches.split('\n\n')
+    for match in match_list:
+        if match:
+            match_set[int(match.partition(':')[0]) - 1].add(match.strip()[match.index(' ') + 1:])
+
+    for i in range(len(patterns)):
+        output_file_name = "%sMatches.txt" % (testName + str(i))
+        expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
+        with open(expected_matches_path) as expFile:
+            text = expFile.read()
+        setexp = set(text.split('\n\n'))
+        setexp.remove('')
+        #setexp = set(line.strip() for line in open(expected_matches_path))
+        if setexp != match_set[i]:
+            flag = 1
+
+    print("Test %s result: %s, Time Passed: %s" % (testName,
+          "Succeeded" if flag == 0 else "Failed", running_time))
+    runTest.over_all_time += running_time
+    os.remove(actual_matches_path)
+
+
 class DummyOutputStream(OutputStream):
     def add_item(self, item: object):
         pass
