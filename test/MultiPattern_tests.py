@@ -18,7 +18,7 @@ def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTI
     listShort = []
     listHalfShort = []
     listCustom = []
-    listCustom2 = ["FirstMultiPattern"]
+    listCustom2 = ["FirstMultiPattern", "RootAndInner"]
 
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
@@ -121,3 +121,43 @@ def threePatternTest(createTestFile = False):
     )
 
     runMultiTest("ThreePatternTest", [pattern1, pattern2, pattern3], createTestFile)
+
+def rootAndInner(createTestFile = False):
+    pattern1 = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
+        GreaterThanEqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(135)),
+        timedelta(minutes=5)
+    )
+    pattern2 = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")]),
+        AndFormula(
+            GreaterThanEqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(135)),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
+                               IdentifierTerm("c", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+
+    runMultiTest("RootAndInner", [pattern1, pattern2], createTestFile)
+
+def differentTimeStamps(createTestFile = False):
+    pattern1 = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")]),
+        AndFormula(
+            GreaterThanEqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(135)),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
+                               IdentifierTerm("c", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=5)
+    )
+    pattern2 = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")]),
+        AndFormula(
+            GreaterThanEqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(135)),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
+                               IdentifierTerm("c", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=2)
+    )
+
+    runMultiTest("DifferentTimeStamp", [pattern1, pattern2], createTestFile)

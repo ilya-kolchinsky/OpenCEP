@@ -44,7 +44,6 @@ class MultiPatternTree:
         for tree in trees:
             curr_leaves = tree.get_leaves()
             curr_root = curr_leaves[0].get_roots()
-            roots += curr_root
             pattern_id = list(curr_leaves[0].get_pattern_id())[0]
             self.__pattern_to_root_dict[pattern_id] = curr_root[0]
             for leaf in curr_leaves:
@@ -67,17 +66,25 @@ class MultiPatternTree:
                     our_leaf.set_sliding_window(max(our_leaf.get_sliding_window(), leaf.get_sliding_window()))
                     our_leaf.add_pattern_id(leaf.get_pattern_id())
                     curr_parents = leaf.get_parents()
-                    for parent in curr_parents:
-                        our_leaf.add_to_dict(parent, PrimitiveEventDefinition(leaf.get_event_type(), leaf.get_event_name(), leaf.get_leaf_index()))
-                        our_leaf.add_to_parent_to_unhandled_queue_dict(parent, Queue())
-                        if isinstance(parent, UnaryNode):
-                            parent.replace_subtree(our_leaf)
-                        elif isinstance(parent, BinaryNode):
-                            parent.replace_subtree(leaf, our_leaf)
+                    if curr_parents:
+                        for parent in curr_parents:
+                            our_leaf.add_to_dict(parent, PrimitiveEventDefinition(leaf.get_event_type(), leaf.get_event_name(), leaf.get_leaf_index()))
+                            our_leaf.add_to_parent_to_unhandled_queue_dict(parent, Queue())
+                            if isinstance(parent, UnaryNode):
+                                parent.replace_subtree(our_leaf)
+                            elif isinstance(parent, BinaryNode):
+                                parent.replace_subtree(leaf, our_leaf)
+                    # this means that we are in a root
+                    else:
+                        pattern_id = list(leaf.get_pattern_id())[0]
+                        self.__pattern_to_root_dict[pattern_id] = our_leaf
+                        curr_root = []
+
                     leaves_to_counter_dict[dict_leaf] += 1
 
                 flag = 0
             leaves_to_counter_dict = {key: 0 for key in leaves_to_counter_dict}
+            roots += curr_root
         return roots
 
     def __construct_subtrees_union_tree(self, tree_plans: List[TreePlan], patterns: List[Pattern],

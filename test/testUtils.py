@@ -233,7 +233,7 @@ def runMultiTest(testName, patterns, createTestFile = False,
     listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns"]
     listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd"]
-    listCustom2 = ["simpleNot", "FirstMultiPattern"]
+    listCustom2 = ["simpleNot", "FirstMultiPattern", "RootAndInner"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:

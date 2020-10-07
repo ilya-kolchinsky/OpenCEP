@@ -105,7 +105,10 @@ class Node(ABC):
         self._parents = parents
 
     def add_parent(self, parent):
-        self._parents.append(parent)
+        if self._parents is not None:
+            self._parents.append(parent)
+        else:
+            self._parents = [parent]
 
     def get_parents(self):
         return self._parents
