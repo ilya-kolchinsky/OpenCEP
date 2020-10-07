@@ -931,10 +931,10 @@ runTest.over_all_time = 0
 #Parallel tests
 
 onlyTreeSplitsimplePatternSearchTest()
-# #onlyTreeSplit_oneArgumentsearchTest()
+#onlyTreeSplit_oneArgumentsearchTest()
 # onlyDataSplit_oneArgumentsearchTest()
 #
-#simplePatternSearchTest()
+# simplePatternSearchTest()
 # #print("Finished running all tests, overall time: %s" % runTest.over_all_time)
 #
 # # basic functionality tests

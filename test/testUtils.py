@@ -28,6 +28,7 @@ nasdaqEventStreamMedium = FileInputStream(os.path.join(absolutePath, "test/Event
 nasdaqEventStreamFrequencyTailored = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
 nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
 nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
+shortNasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/short_NASDAQ_LONG.txt"))
 
 nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt"))
 custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"))
@@ -177,13 +178,14 @@ def runTest(testName, patterns, createTestFile = False,
     output_file_name = "%sMatches.txt" % testName
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
+    # running_time = cep.run(shortNasdaqEventStream.duplicate(), matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
 
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
     print("Test %s result: %s, Time Passed: %s" % (testName,
           "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
     runTest.over_all_time += running_time
-    os.remove(actual_matches_path)
+    #os.remove(actual_matches_path)
 
 
 class DummyOutputStream(OutputStream):

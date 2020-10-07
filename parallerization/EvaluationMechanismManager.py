@@ -96,9 +96,14 @@ class EvaluationMechanismManager:
     def get_results_from_masters(self):
         for i in range(len(self.masters_list)):
             pattern_matches = self.masters_list[i].get_pattern_matches()
-            for match in pattern_matches:
-                if match is not None:
+            pattern_matches_size = pattern_matches.count()
+            for i in range(pattern_matches_size):
+                try:
+                    match = pattern_matches.get_item()
                     self.pattern_matches_stream.add_item(match)
+                except:
+                    pass
+
         self.pattern_matches_stream.close()
 
     def wait_masters_to_finish(self):
