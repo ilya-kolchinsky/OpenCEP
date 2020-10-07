@@ -78,11 +78,13 @@ class EvaluationMechanismManager:
 
         self.run_eval()
 
+        print(" manger Finished pushing events")
+
         if self.work_load_fr.get_is_data_parallelized() or self.work_load_fr.get_is_structure_parallelized():
             self.notify_all_to_finish()
-            # self.wait_masters_to_finish()
-            # print(" Finished waiting for masters ")
-            self.work_load_fr.stop_all()
+            self.wait_masters_to_finish()
+            print(" Finished waiting for masters ")
+            # self.work_load_fr.stop_all()
             self.get_results_from_masters()
 
     def run_eval(self):
@@ -144,7 +146,6 @@ class EvaluationMechanismManager:
 
     def eval_util(self): # TODO: REMOVE
         self.activate_all_ems(self.eval_mechanism_list)
-
 
         x = self.streams[0].count()
         for i in range(x):
