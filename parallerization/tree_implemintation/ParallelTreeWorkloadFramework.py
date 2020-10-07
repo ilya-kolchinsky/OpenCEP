@@ -22,13 +22,17 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         self.masters = []
         self.pattern = pattern
 
+        # multiple structures + single data only:
         self.tree_structures = []
         self.trees_with_leafs = []
         self.trees_with_leafs_indexes = []
 
+        # families only:
         self.families = [[]]                           # [[tree_structures1],[tree_structures2],[]]
         self.families_trees_with_leafs = [[]]          # [[trees_with_leafs1],[trees_with_leafs2],[]]
         self.families_trees_with_leafs_indexes = [[]]  # [[index1, index2],[index1, index2],[]]
+
+        self.streams =[]
 
     def duplicate_structure(self, evaluation_mechanism: EvaluationMechanism,
                             eval_params: EvaluationMechanismParameters = None):
@@ -44,11 +48,23 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
             unaryeval = ParallelTreeEval(tree_based_eval, True, is_main_root=True, data_formatter=self.data_formatter)
             self.masters.append(unaryeval)
+            self.trees_with_leafs.append(unaryeval)
+
         return self.masters, self.masters#TODO: check if in manager we need both of them
+
+    def stop_all(self):
+        for em in self.masters:
+            if not em.get_stopped():
+                em.join()
+
+        for em in self.tree_structures:
+            if not em.get_stopped():
+                em.join()
 
     def split_structure_to_families(self, evaluation_mechanism: EvaluationMechanism,
                                     eval_params: EvaluationMechanismParameters = None):
         pass
+
     def get_next_event_and_destinations_em(self):
         next_event = None
         count = self.event_stream.count()
@@ -58,10 +74,40 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         if next_event is None:
             return None, None
         else:
-            input_stream = Stream()
-            input_stream.add_item(next_event)
-            input_stream.close()
-            return input_stream, self.trees_with_leafs_indexes
+            input_stream = self.create_input_stream(next_event)
+            em_indexes = self.get_indexes()
+            return input_stream, em_indexes
+
+    def get_indexes(self):
+        multiple_data = self.get_is_data_parallelized()
+        multiple_structures = self.get_is_structure_parallelized()
+
+        if not multiple_data and not multiple_structures:
+            raise Exception("Not suuported")
+        elif multiple_data and not multiple_structures:
+            return self.get_all_indexes()
+        elif not multiple_data and multiple_structures:
+           return self.trees_with_leafs_indexes
+        elif multiple_data and multiple_structures:
+            return self.get_indexes_for_families()
+
+    def get_all_indexes(self):
+        indexes = []
+
+        for i in range(len(self.masters)):
+            indexes.append(i)
+
+        return indexes
+
+    def get_indexes_for_families(self):
+        raise NotImplementedError
+
+
+    def create_input_stream(self, event):
+        input_stream = Stream()
+        input_stream.add_item(event)
+        input_stream.close()
+        return input_stream
 
     def get_next_event_families_indexes_and_destinations_ems(self):
         next_event = self.event_stream.get_item()

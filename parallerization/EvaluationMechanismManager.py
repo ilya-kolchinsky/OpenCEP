@@ -24,6 +24,8 @@ class EvaluationMechanismManager:
         self.pattern_matches_stream = None
         self.data_formatter = None
 
+        self.streams = None # TODO:
+
         if work_load_fr is None:
             self.work_load_fr = ParallelWorkLoadFramework(1, False, False, 0)  # here no parallelism is needed
         else:
@@ -68,6 +70,8 @@ class EvaluationMechanismManager:
 
     def eval(self, event_stream: InputStream, pattern_matches: OutputStream, data_formatter: DataFormatter):
         self.work_load_fr.set_events(event_stream)
+        self.streams = [self.work_load_fr.event_stream.duplicate(), self.work_load_fr.event_stream.duplicate()] # TODO: REMOVE
+
         self.work_load_fr.set_data_formatter(data_formatter)
 
         self.initialize(pattern_matches)
@@ -76,8 +80,9 @@ class EvaluationMechanismManager:
 
         if self.work_load_fr.get_is_data_parallelized() or self.work_load_fr.get_is_structure_parallelized():
             self.notify_all_to_finish()
-            self.wait_masters_to_finish()
-
+            # self.wait_masters_to_finish()
+            # print(" Finished waiting for masters ")
+            self.work_load_fr.stop_all()
             self.get_results_from_masters()
 
     def run_eval(self):
@@ -108,10 +113,12 @@ class EvaluationMechanismManager:
 
     def wait_masters_to_finish(self):
         for i in range(len(self.masters_list)):
+            print("Waiting for master " + str(self.eval_mechanism_list[i].get_thread().ident) + " to Finish")
             self.masters_list[i].wait_till_finish()
 
     def notify_all_to_finish(self):
         for i in range(len(self.eval_mechanism_list)):
+            print("Notifying thread " + str(self.eval_mechanism_list[i].get_thread().ident) + " to stop")
             self.eval_mechanism_list[i].stop()
 
     def eval_single_tree_single_data(self):
@@ -124,15 +131,37 @@ class EvaluationMechanismManager:
     def eval_multiple_tree_single_data(self):
         self.eval_util()
 
-    def eval_util(self):
+    # def eval_util(self):
+    #     self.activate_all_ems(self.eval_mechanism_list)
+    #
+    #     event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
+    #     while event is not None:
+    #         for index in em_indexes:
+    #             em = self.eval_mechanism_list[index]
+    #             em.process_event(event)
+    #         event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
+    #     print("finished pushing events to threads")
+
+    def eval_util(self): # TODO: REMOVE
         self.activate_all_ems(self.eval_mechanism_list)
 
-        event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
-        while event is not None:
-            for index in em_indexes:
-                em = self.eval_mechanism_list[index]
-                em.process_event(event)
-            event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
+
+        x = self.streams[0].count()
+        for i in range(x):
+            count = self.streams[0].count()
+            if count > 1:
+                next_event1 = self.streams[0].get_item()
+                next_event2 = self.streams[1].get_item()
+
+            if next_event1 is None:
+                pass
+            else:
+                input_stream1 = self.work_load_fr.create_input_stream(next_event1)
+                input_stream2 = self.work_load_fr.create_input_stream(next_event2)
+                em1 = self.eval_mechanism_list[0]
+                em2 = self.eval_mechanism_list[1]
+                em1.process_event(input_stream1)
+                em2.process_event(input_stream2)
 
     def eval_multiple_em_multiple_data(self):
         for family in self.eval_mechanism_families:

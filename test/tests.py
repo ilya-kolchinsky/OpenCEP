@@ -930,8 +930,8 @@ runTest.over_all_time = 0
 
 #Parallel tests
 
-onlyTreeSplitsimplePatternSearchTest()
-#onlyTreeSplit_oneArgumentsearchTest()
+# onlyTreeSplitsimplePatternSearchTest()
+onlyTreeSplit_oneArgumentsearchTest()
 # onlyDataSplit_oneArgumentsearchTest()
 #
 # simplePatternSearchTest()
@@ -940,7 +940,7 @@ onlyTreeSplitsimplePatternSearchTest()
 # # basic functionality tests
 # oneArgumentsearchTest()
 #simplePatternSearchTest()
-#googleAscendPatternSearchTest()
+# googleAscendPatternSearchTest()
 # amazonInstablePatternSearchTest()
 # msftDrivRacePatternSearchTest()
 # googleIncreasePatternSearchTest()

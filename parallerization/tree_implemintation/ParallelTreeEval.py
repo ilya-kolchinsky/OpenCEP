@@ -27,35 +27,57 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         self.keep_running = threading.Event()
         self.keep_running.set()
 
+        self.stopped = False
+
         self.thread = threading.Thread(target=self.run_eval, args=())
 
     def set_children(self, children):
         self.children = children
 
+    def get_thread(self):
+        return self.thread
+
     def activate(self):
         self.thread.start()
+        print("activating thread " + str(self.thread.ident))
 
     def stop(self):
         self.keep_running.clear()
 
     def process_event(self, event):
+        # print("pushing event to thread " + str(self.thread.ident))
         self.queue.put(event)
 
     def wait_till_finish(self):
         self.finished.wait()
 
+    def join(self):
+        self.thread.join()
+        self.stopped = True
+
+    def get_stopped(self):
+        return self.stopped
+
     def run_eval(self): # thread
+        print("run_eval of thread " + str(self.thread.ident))
         if self.has_leafs:
+            print("run_eval_with_leafs of thread " + str(self.thread.ident))
             self.run_eval_with_leafs()
         else:
+            print("run_eval_without_leafs of thread " + str(self.thread.ident))
             self.run_eval_without_leafs()
 
         self.finished.set()
+        print("finished running thread " + str(self.thread.ident))
 
     def run_eval_with_leafs(self):
+        print(" called running run_eval_with_leafs on thread " + str(self.thread.ident) + " : " + str(self.keep_running.is_set()) + " " + str(self.queue._qsize()))
+
         while self.keep_running.is_set() or not self.queue.empty():
+            # print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.empty()))
             if not self.queue.empty():
                 event = self.queue.get()
+                # print(" calling eval on thread " + str(self.thread.ident))
                 self.evaluation_mechanism.eval(event, self.pattern_matches, self.data_formatter)
             else:
                 pass
