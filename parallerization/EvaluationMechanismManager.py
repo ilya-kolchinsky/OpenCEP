@@ -70,21 +70,30 @@ class EvaluationMechanismManager:
 
     def eval(self, event_stream: InputStream, pattern_matches: OutputStream, data_formatter: DataFormatter):
         self.work_load_fr.set_events(event_stream)
+
         self.streams = [self.work_load_fr.event_stream.duplicate(), self.work_load_fr.event_stream.duplicate()] # TODO: REMOVE
 
         self.work_load_fr.set_data_formatter(data_formatter)
 
         self.initialize(pattern_matches)
-
-        self.run_eval()
+        try:
+            self.run_eval()
+        except:
+            raise Exception("7")
 
         print(" manger Finished pushing events")
 
         if self.work_load_fr.get_is_data_parallelized() or self.work_load_fr.get_is_structure_parallelized():
-            self.notify_all_to_finish()
-            self.wait_masters_to_finish()
-            print(" Finished waiting for masters ")
-            # self.work_load_fr.stop_all()
+            try:
+                self.notify_all_to_finish()
+            except:
+                raise Exception("8")
+            try:
+                # self.wait_masters_to_finish()
+                 self.work_load_fr.join_all()
+            except:
+                raise Exception("9")
+            print("get_results_from_masters")
             self.get_results_from_masters()
 
     def run_eval(self):
@@ -148,21 +157,32 @@ class EvaluationMechanismManager:
         self.activate_all_ems(self.eval_mechanism_list)
 
         x = self.streams[0].count()
-        for i in range(x):
-            count = self.streams[0].count()
-            if count > 1:
+        for i in range(x - 2):
+            try:
                 next_event1 = self.streams[0].get_item()
+            except:
+                raise Exception("2")
+            try:
                 next_event2 = self.streams[1].get_item()
+            except:
+                raise Exception("3")
 
-            if next_event1 is None:
-                pass
-            else:
+            # print("pushing events to threads" + str(i))
+            try:
                 input_stream1 = self.work_load_fr.create_input_stream(next_event1)
                 input_stream2 = self.work_load_fr.create_input_stream(next_event2)
+            except:
+                raise Exception("4")
+            try:
                 em1 = self.eval_mechanism_list[0]
                 em2 = self.eval_mechanism_list[1]
+            except:
+                raise Exception("5")
+            try:
                 em1.process_event(input_stream1)
                 em2.process_event(input_stream2)
+            except:
+                raise Exception("6")
 
     def eval_multiple_em_multiple_data(self):
         for family in self.eval_mechanism_families:

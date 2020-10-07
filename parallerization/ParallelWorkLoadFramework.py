@@ -55,7 +55,7 @@ class ParallelWorkLoadFramework(ABC):
                                     eval_params: EvaluationMechanismParameters = None):
         raise NotImplementedError()
 
-    def stop_all(self):
+    def join_all(self):
         raise NotImplementedError()
 
 

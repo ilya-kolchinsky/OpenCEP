@@ -53,33 +53,57 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
 
     def join(self):
         self.thread.join()
-        self.stopped = True
+    #     self.stopped = True
+
+    # def join(self):
+    #     self.queue.join()
 
     def get_stopped(self):
         return self.stopped
 
     def run_eval(self): # thread
-        print("run_eval of thread " + str(self.thread.ident))
-        if self.has_leafs:
-            print("run_eval_with_leafs of thread " + str(self.thread.ident))
-            self.run_eval_with_leafs()
-        else:
-            print("run_eval_without_leafs of thread " + str(self.thread.ident))
-            self.run_eval_without_leafs()
+        try:
+            print("run_eval of thread " + str(self.thread.ident))
+            if self.has_leafs:
+                print("run_eval_with_leafs of thread " + str(self.thread.ident))
+                try:
+                    self.run_eval_with_leafs()
+                except:
+                    print("**********************")
+                    raise Exception("1")
+            else:
+                print("run_eval_without_leafs of thread " + str(self.thread.ident))
+                self.run_eval_without_leafs()
 
-        self.finished.set()
-        print("finished running thread " + str(self.thread.ident))
+            print("almost finished running thread " + str(self.thread.ident))
+            self.finished.set()
+            print("finished running thread " + str(self.thread.ident))
+        except:
+            print("---------------------")
+            print("10")
+            raise Exception("10")
 
     def run_eval_with_leafs(self):
         print(" called running run_eval_with_leafs on thread " + str(self.thread.ident) + " : " + str(self.keep_running.is_set()) + " " + str(self.queue._qsize()))
 
-        while self.keep_running.is_set() or not self.queue.empty():
-            print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.qsize()))
-            if not self.queue.empty():
+        while self.keep_running.is_set():
+            # print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.qsize()))
+            try:
                 event = self.queue.get()
-                # print(" calling eval on thread " + str(self.thread.ident))
+                self.queue.task_done()
+                # print("1 calling eval on thread " + str(self.thread.ident))
                 self.evaluation_mechanism.eval(event, self.pattern_matches, self.data_formatter)
-            else:
+            except:
+                pass
+
+        while not self.queue.empty():
+            # print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.qsize()))
+            try:
+                event = self.queue.get()
+                self.queue.task_done()
+                # print("2 calling eval on thread " + str(self.thread.ident))
+                self.evaluation_mechanism.eval(event, self.pattern_matches, self.data_formatter)
+            except:
                 pass
 
     def run_eval_without_leafs(self):

@@ -52,14 +52,14 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         return self.masters, self.masters#TODO: check if in manager we need both of them
 
-    def stop_all(self):
+    def join_all(self):
         for em in self.masters:
-             if not em.get_stopped():
-                em.join()
+            print("joining thread " + str(em.get_thread().ident))
+            em.join()
 
-        for em in self.tree_structures:
-             if not em.get_stopped():
-                em.join()
+        # for em in self.tree_structures:
+        #      if not em.get_stopped():
+        #         em.join()
 
     def split_structure_to_families(self, evaluation_mechanism: EvaluationMechanism,
                                     eval_params: EvaluationMechanismParameters = None):
