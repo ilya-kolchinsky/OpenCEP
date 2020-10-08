@@ -269,7 +269,6 @@ def runMultiTest(testName, patterns, createTestFile = False,
             text = expFile.read()
         setexp = set(text.split('\n\n'))
         setexp.remove('')
-        #setexp = set(line.strip() for line in open(expected_matches_path))
         if setexp != match_set[i]:
             flag = 1
 

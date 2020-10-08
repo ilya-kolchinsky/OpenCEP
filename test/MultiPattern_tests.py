@@ -84,7 +84,7 @@ def bigMultiPatternTest(createTestFile = False):
 
 def threePatternTest(createTestFile = False):
     pattern1 = Pattern(
-        AndOperator([PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("AAPL", "b"),
+        AndOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
                      PrimitiveEventStructure("GOOG", "c")]),
         AndFormula(
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
@@ -113,10 +113,10 @@ def threePatternTest(createTestFile = False):
         timedelta(minutes=10)
     )
     pattern3 = Pattern(
-        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AVID", "c")]),
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")]),
         AndFormula(
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
-            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"])),
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
 
@@ -161,3 +161,59 @@ def differentTimeStamps(createTestFile = False):
     )
 
     runMultiTest("DifferentTimeStamp", [pattern1, pattern2], createTestFile)
+
+def multiPatternShare(createTestFile = False):
+    pattern1 = Pattern(
+        SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("MSFT", "c"), PrimitiveEventStructure("DRIV", "d"), PrimitiveEventStructure("MSFT", "e")]),
+        AndFormula(
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("b", lambda x: x["Peak Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("c", lambda x: x["Peak Price"]))
+            ),
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("c", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("d", lambda x: x["Peak Price"])),
+                SmallerThanFormula(IdentifierTerm("d", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("e", lambda x: x["Peak Price"]))
+            )
+        ),
+        timedelta(minutes=10)
+    )
+    pattern2 = Pattern(
+        SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("MSFT", "c"), PrimitiveEventStructure("DRIV", "d"), PrimitiveEventStructure("MSFT", "e")]),
+        AndFormula(
+            AndFormula(
+                GreaterThanEqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(135)),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("a", lambda x: x["Peak Price"]))
+            ),
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("c", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("b", lambda x: x["Peak Price"])),
+                SmallerThanFormula(IdentifierTerm("d", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("e", lambda x: x["Peak Price"]))
+            )
+        ),
+        timedelta(minutes=10)
+    )
+    pattern3 = Pattern(
+        SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("MSFT", "c"), PrimitiveEventStructure("DRIV", "d"), PrimitiveEventStructure("MSFT", "e")]),
+        AndFormula(
+            AndFormula(
+                GreaterThanEqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(135)),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("d", lambda x: x["Peak Price"]))
+            ),
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("c", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("d", lambda x: x["Peak Price"])),
+                SmallerThanFormula(IdentifierTerm("d", lambda x: x["Peak Price"]),
+                                   IdentifierTerm("e", lambda x: x["Peak Price"]))
+            )
+        ),
+        timedelta(minutes=10)
+    )
+
+    runMultiTest("multiPatternShare", [pattern1, pattern2, pattern3], createTestFile)
