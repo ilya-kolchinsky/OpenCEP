@@ -133,6 +133,9 @@ class Node(ABC):
     def get_pattern_id(self):
         return self._pattern_id
 
+    def get_condition(self):
+        return self._condition
+
     def add_pattern_id(self, ids: set):
         self._pattern_id |= ids
 
@@ -239,6 +242,12 @@ class Node(ABC):
         min_timestamp = min([event.timestamp for event in events_for_new_match])
         max_timestamp = max([event.timestamp for event in events_for_new_match])
         return max_timestamp - min_timestamp <= self._sliding_window
+
+    def update_sliding_window(self, sliding_window: timedelta):
+        """
+        update the sliding window in the subtree of this node.
+        """
+        raise NotImplementedError()
 
     def create_parent_to_info_dict(self):
         # TODO DOCUMENTATION

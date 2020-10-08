@@ -72,6 +72,11 @@ class BinaryNode(InternalNode, ABC):
         self._set_event_definitions(self._left_subtree.get_event_definitions(),
                                     self._right_subtree.get_event_definitions())
 
+    def update_sliding_window(self, sliding_window: timedelta):
+        self.set_sliding_window(sliding_window)
+        self._left_subtree.update_sliding_window(sliding_window)
+        self._right_subtree.update_sliding_window(sliding_window)
+
 
     def replace_subtree(self, old_node: Node, new_node: Node):
         #gets a node and replace it's subtree

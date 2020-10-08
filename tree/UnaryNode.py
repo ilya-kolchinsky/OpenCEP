@@ -35,6 +35,10 @@ class UnaryNode(InternalNode, ABC):
         self._child = child
         self._event_defs = child.get_event_definitions()
 
+    def update_sliding_window(self, sliding_window: timedelta):
+        self.set_sliding_window(sliding_window)
+        self._child.update_sliding_window(sliding_window)
+
     def replace_subtree(self, child: Node):
         self.set_subtree(child)
         child.add_parent(self)
