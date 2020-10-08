@@ -104,10 +104,13 @@ class LeafNode(Node):
     def get_condition(self):
         return self._condition
 
-    def is_equal(self, other):
-        return self.__event_type == other.get_event_type() and self.get_condition().is_equal(other.get_condition())
+    #def is_equal(self, other):
+     #   return self.__event_type == other.get_event_type() and self.get_condition().is_equal(other.get_condition())
 
     def is_structure_equal(self, other):
         if not isinstance(other, type(self)):
             return False
         return self.__event_type == other.get_event_type()
+
+    def update_sliding_window(self, sliding_window:timedelta):
+        self.set_sliding_window(sliding_window)
