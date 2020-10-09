@@ -12,12 +12,13 @@ class AndNode(BinaryNode):
                 self._left_subtree.get_structure_summary(),
                 self._right_subtree.get_structure_summary())
 
-    def get_structure_hash(self):
-        return ("And",
-                self._left_subtree.get_structure_hash(),
-                self._right_subtree.get_structure_hash())
-
     def is_structure_equal(self, other):
+        """
+        Checks if the type of both of the nodes is AndNode and then checks if:
+        the left subtrees structures is equal and the right subtrees structures is equal OR
+        the left of the first is equal to the right of the second and the right of the first is equal to the left of the
+        second.
+        """
         if not isinstance(other, type(self)):
             return False
         v1 = self._left_subtree.is_structure_equal(other.get_left_subtree())
