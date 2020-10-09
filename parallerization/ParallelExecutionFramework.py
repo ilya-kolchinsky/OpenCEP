@@ -24,4 +24,7 @@ class ParallelExecutionFramework(ABC):
     def get_pattern_matches(self):
         return self.pattern_matches
 
+    def get_evaluation_mechanism(self):
+        return self.evaluation_mechanism
+
 

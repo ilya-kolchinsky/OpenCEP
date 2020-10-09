@@ -123,11 +123,6 @@ class EvaluationMechanismManager:
 
         self.pattern_matches_stream.close()
 
-    def wait_masters_to_finish(self):
-        for i in range(len(self.masters_list)):
-            print("Waiting for master " + str(self.eval_mechanism_list[i].get_thread().ident) + " to Finish")
-            self.masters_list[i].wait_till_finish()
-
     def notify_all_to_finish(self):
         for i in range(len(self.eval_mechanism_list)):
             print("Notifying thread " + str(self.eval_mechanism_list[i].get_thread().ident) + " to stop")
@@ -137,22 +132,40 @@ class EvaluationMechanismManager:
         self.source_eval_mechanism.eval(self.work_load_fr.event_stream, self.pattern_matches_list[0],
                                         self.work_load_fr.data_formatter)
 
+    # def eval_single_tree_multiple_data(self):
+    #     self.eval_util()
+    #
+    # def eval_multiple_tree_single_data(self):
+    #     self.eval_util()
+
     def eval_single_tree_multiple_data(self):
-        self.eval_util()
-
-    def eval_multiple_tree_single_data(self):
-        self.eval_util()
-
-    def eval_util(self):
         self.activate_all_ems(self.eval_mechanism_list)
 
         event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
+        try:
+            while event is not None:
+                for index in em_indexes:
+                    em = self.eval_mechanism_list[index]
+                    # em.process_event(events[index])
+                    em.process_event(event)
+                event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
+        except:
+            pass
+        print("finished pushing events to threads")
 
-        while event is not None:
-            for index in em_indexes:
-                em = self.eval_mechanism_list[index]
-                em.process_event(event)
-            event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
+    def eval_multiple_tree_single_data(self):
+        self.activate_all_ems(self.eval_mechanism_list)
+
+        events, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
+        try:
+            while events is not None:
+                for index in em_indexes:
+                    em = self.eval_mechanism_list[index]
+                    em.process_event(events[index])
+                    # em.process_event(events)
+                events, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
+        except:
+            pass
         print("finished pushing events to threads")
 
     def testing_eval_util(self):

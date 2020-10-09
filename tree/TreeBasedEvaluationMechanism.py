@@ -50,7 +50,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         # collect them now
         for match in self.__tree.get_last_matches():
             matches.add_item(match)
-        matches.close()
+        matches.close()#TODO: remove
 
     def __register_event_listeners(self):
         """

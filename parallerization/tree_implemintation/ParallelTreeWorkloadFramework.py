@@ -68,19 +68,19 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def join_only_masters(self):
         for em in self.masters:
-            print("joining thread " + str(em.get_thread().ident))
+            print("join_only_masters: joining thread " + str(em.get_thread().ident))
             em.join()
 
     def join_only_tree_structures(self):
         for em in self.tree_structures:
-            print("joining thread " + str(em.get_thread().ident))
+            print("join_only_tree_structures: joining thread " + str(em.get_thread().ident))
             em.join()
 
     def split_structure_to_families(self, evaluation_mechanism: EvaluationMechanism,
                                     eval_params: EvaluationMechanismParameters = None):
         pass
 
-    def get_next_event_and_destinations_em(self):
+    def get_single_data_multiple_structure_info(self):
         next_event = None
         count = self.event_stream.count()
         if count > 1:
@@ -89,9 +89,77 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         if next_event is None:
             return None, None
         else:
+            input_stream1 = self.create_input_stream(next_event)
+            input_stream2 = self.create_input_stream(next_event)
+            input_stream3 = self.create_input_stream(next_event)
+
+            input_streams = []
+
+            input_streams.append(input_stream1)
+            input_streams.append(input_stream2)
+            input_streams.append(input_stream3)
+            try:
+                em_indexes = self.get_indexes()
+            except:
+                pass
+            return input_streams, em_indexes
+
+    def get_multiple_data_single_structure_info(self):
+        next_event = None
+        count = self.event_stream.count()
+        if count > 1:
+            next_event = self.event_stream.get_item()
+
+        if next_event is None:
+            raise Exception("next_event is None")
+        else:
             input_stream = self.create_input_stream(next_event)
-            em_indexes = self.get_indexes()
+            em_indexes = []
+            try:
+                em_indexes = self.get_indexes()
+            except:
+                pass
             return input_stream, em_indexes
+
+    def get_next_event_and_destinations_em(self):
+        multiple_data = self.get_is_data_parallelized()
+        multiple_structures = self.get_is_structure_parallelized()
+
+        if not multiple_data and not multiple_structures:
+            raise Exception("Not suuported")
+        elif multiple_data and not multiple_structures:
+            return self.get_multiple_data_single_structure_info()
+        elif not multiple_data and multiple_structures:
+           return self.get_single_data_multiple_structure_info()
+        elif multiple_data and multiple_structures:
+            return self.get_multiple_data_multiple_structures_info()
+
+    def get_indexes_for_duplicated_data(self):
+        return self.get_indexes_for_duplicated_data_and_single_event_pattern()
+
+    def get_indexes_for_duplicated_data_and_single_event_pattern(self):
+        count = self.event_stream.count()
+        execution_units = self.get_execution_units()
+        res =[]
+        res.append(count % execution_units)
+        return res
+
+    def get_all_indexes(self):
+        indexes = []
+
+        for i in range(len(self.masters)):
+            indexes.append(i)
+
+        return indexes
+
+    def get_indexes_for_families(self):
+        raise NotImplementedError
+
+    def create_input_stream(self, event):
+        input_stream = Stream()
+        input_stream.add_item(event)
+        input_stream.close()
+        return input_stream
 
     def get_indexes(self):
         multiple_data = self.get_is_data_parallelized()
@@ -105,29 +173,6 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
            return self.trees_with_leafs_indexes
         elif multiple_data and multiple_structures:
             return self.get_indexes_for_families()
-
-    def get_indexes_for_duplicated_data(self):
-        count = self.event_stream.count()
-        execution_units = self.get_execution_units()
-        return [count % execution_units]
-
-    def get_all_indexes(self):
-        indexes = []
-
-        for i in range(len(self.masters)):
-            indexes.append(i)
-
-        return indexes
-
-    def get_indexes_for_families(self):
-        raise NotImplementedError
-
-
-    def create_input_stream(self, event):
-        input_stream = Stream()
-        input_stream.add_item(event)
-        input_stream.close()
-        return input_stream
 
     def get_next_event_families_indexes_and_destinations_ems(self):
         next_event = self.event_stream.get_item()

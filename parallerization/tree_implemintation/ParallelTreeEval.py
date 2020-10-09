@@ -6,6 +6,8 @@ from base.PatternMatch import PatternMatch
 from stream.Stream import InputStream, OutputStream
 from base.DataFormatter import DataFormatter
 
+from parallerization.tree_implemintation.PatternMatchWithUnarySource import PatternMatchWithUnarySource
+
 import time
 import threading
 from queue import Queue
@@ -65,14 +67,16 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
         try:
             print("run_eval of thread " + str(self.thread.ident))
             if self.has_leafs:
-                print("run_eval_with_leafs of thread " + str(self.thread.ident))
                 try:
                     self.run_eval_with_leafs()
                 except:
                     print("**********************")
                     raise Exception("1")
             else:
-                print("run_eval_without_leafs of thread " + str(self.thread.ident))
+                time.sleep(10)
+                for child in self.children:
+                    print(str(self.thread.ident) + " waiting for child " + str(child.get_thread().ident) + " to finish ")
+                    child.wait_till_finish()
                 self.run_eval_without_leafs()
 
             print("almost finished running thread " + str(self.thread.ident))
@@ -86,7 +90,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
     def run_eval_with_leafs(self):
         print(" called running run_eval_with_leafs on thread " + str(self.thread.ident) + " : " + str(self.keep_running.is_set()) + " " + str(self.queue._qsize()))
         counter = 0
-        time.sleep(10)
+        time.sleep(20)
         while self.keep_running.is_set():
             # print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.qsize()))
             try:
@@ -99,7 +103,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
                     # print("1 calling eval on thread " + str(self.thread.ident))
                     self.evaluation_mechanism.eval(event, self.pattern_matches, self.data_formatter)
             except:
-                pass
+                raise Exception("---")
 
         while not self.queue._qsize() == 0:
             # print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.qsize()))
@@ -115,34 +119,38 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
                 pass
 
     def run_eval_without_leafs(self):
+        print("run_eval_without_leafs of thread " + str(self.thread.ident))
         unary_children = self.get_unary_children()
 
-        while self.keep_running.is_set():
-            if not self.all_unary_children_finished():
-                pass
-            else:
-                partial_matches_list = []
-                for child in unary_children:
-                    partial_matches = child.get_partial_matches()
-                    partial_matches_list += partial_matches
+        partial_matches_list = []
+        i = 0
+        for unary_child in unary_children:
+            partial_matches = unary_child.get_partial_matches()
+            for match in partial_matches:
+                new_match_object = PatternMatchWithUnarySource(match, i)
+                partial_matches_list.append(new_match_object)
+            i += 1
+        partial_matches_list = sorted(partial_matches_list, key=lambda x: x.get_pattern_match_timestamp())
 
-                partial_matches_list = self.sort_partial_matches_list(partial_matches_list)
+        for pm in partial_matches_list:
+            unary_child = unary_children[pm.unary_index]
+            unary_child.handle_event(pm.pattern_match)
 
-                for pm in partial_matches_list:
-                    child = self.get_destination(pm)
-                    child.handle_event(pm)
+        if self.is_main_root:
+            for match in self.evaluation_mechanism.get_tree().get_root().get_our_matches():
+                self.pattern_matches.add_item(match)
 
-                if self.is_main_root:
-                    for match in self.evaluation_mechanism.get_tree().get_matches():
-                        self.pattern_matches.add_item(PatternMatch(match))
+            for match in self.evaluation_mechanism.get_tree().get_last_matches():
+                self.pattern_matches.add_item(match)
 
-                for match in self.evaluation_mechanism.get_tree().get_last_matches():
-                    self.pattern_matches.add_item(PatternMatch(match))
+            self.pattern_matches.close()
 
-                self.pattern_matches.close()
 
     def get_unary_children(self):
-        raise NotImplementedError
+        unary_children = []
+        for child in self.children:
+            unary_children.append(child.get_evaluation_mechanism().get_root())
+        return unary_children
 
     def all_unary_children_finished(self):
         raise NotImplementedError
