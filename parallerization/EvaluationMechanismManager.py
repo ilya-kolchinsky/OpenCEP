@@ -155,7 +155,7 @@ class EvaluationMechanismManager:
 
     def eval_util(self): # TODO: REMOVE
         self.activate_all_ems(self.eval_mechanism_list)
-
+        master_counter = 0
         x = self.streams[0].count()
         for i in range(x - 2):
             try:
@@ -179,6 +179,9 @@ class EvaluationMechanismManager:
             except:
                 raise Exception("5")
             try:
+                master_counter += 1
+                if master_counter % 10000 == 0:
+                    print("master_counter  =  " + str(master_counter))
                 em1.process_event(input_stream1)
                 em2.process_event(input_stream2)
             except:

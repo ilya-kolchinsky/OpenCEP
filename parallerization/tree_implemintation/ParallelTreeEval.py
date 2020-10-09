@@ -85,22 +85,30 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
 
     def run_eval_with_leafs(self):
         print(" called running run_eval_with_leafs on thread " + str(self.thread.ident) + " : " + str(self.keep_running.is_set()) + " " + str(self.queue._qsize()))
-
+        counter = 0
+        time.sleep(10)
         while self.keep_running.is_set():
             # print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.qsize()))
             try:
-                event = self.queue.get()
-                self.queue.task_done()
-                # print("1 calling eval on thread " + str(self.thread.ident))
-                self.evaluation_mechanism.eval(event, self.pattern_matches, self.data_formatter)
+                if not self.queue._qsize() == 0:
+                    event = self.queue.get()
+                    self.queue.task_done()
+                    counter += 1
+                    if counter % 10000 == 0:
+                        print(str(self.thread.ident) + " 1: counter  =  " + str(counter))
+                    # print("1 calling eval on thread " + str(self.thread.ident))
+                    self.evaluation_mechanism.eval(event, self.pattern_matches, self.data_formatter)
             except:
                 pass
 
-        while not self.queue.empty():
+        while not self.queue._qsize() == 0:
             # print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.qsize()))
             try:
                 event = self.queue.get()
                 self.queue.task_done()
+                counter += 1
+                if counter % 10000 == 0:
+                    print(str(self.thread.ident) + " 2: counter  =  " + str(counter))
                 # print("2 calling eval on thread " + str(self.thread.ident))
                 self.evaluation_mechanism.eval(event, self.pattern_matches, self.data_formatter)
             except:
