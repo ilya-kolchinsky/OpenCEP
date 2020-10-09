@@ -64,9 +64,15 @@ class Node(ABC):
             pattern_id = {pattern_id}
         self._pattern_id = pattern_id
         self._is_root = False
+        # maps parent to event type, event name and index. This field helps to pass the parents a partial match with
+        # the right definitions.
         self._parent_to_info_dict = {}
 
     def add_to_parent_to_unhandled_queue_dict(self, key, value):
+        """
+        Adds an entry to parent_to_unhandled_queue_dict.
+        This entry maps between the key (a parent) and the value (a queue).
+        """
         self._parent_to_unhandled_queue_dict[key] = value
 
     def consume_first_partial_match(self):
@@ -105,12 +111,18 @@ class Node(ABC):
         self._parents = parents
 
     def add_parent(self, parent):
+        """
+        Adds a parent to this node.
+        """
         if self._parents is not None:
             self._parents.append(parent)
         else:
             self._parents = [parent]
 
     def get_parents(self):
+        """
+        Returns the parents of this node.
+        """
         return self._parents
 
     def get_roots(self):
@@ -125,24 +137,45 @@ class Node(ABC):
         return roots
 
     def get_sliding_window(self):
+        """
+        Returns the sliding window of this node.
+        """
         return self._sliding_window
 
     def set_sliding_window(self, new_sliding_window: timedelta):
+        """
+        Sets the sliding window of this node.
+        """
         self._sliding_window = new_sliding_window
 
     def get_pattern_id(self):
+        """
+        Returns the pattern ids of this node.
+        """
         return self._pattern_id
 
     def get_condition(self):
+        """
+        Returns the condition of this node.
+        """
         return self._condition
 
     def add_pattern_id(self, ids: set):
+        """
+        Adds a pattern id to this node.
+        """
         self._pattern_id |= ids
 
     def set_is_root(self, flag: bool):
+        """
+        Sets is_root to be flag.
+        """
         self._is_root = flag
 
     def is_root(self):
+        """
+        Returns whether this node is a root.
+        """
         return self._is_root
 
     def clean_expired_partial_matches(self, last_timestamp: datetime):
@@ -178,7 +211,6 @@ class Node(ABC):
         self._partial_matches.add(pm)
         if self._parents:
             for parent in self._parents:
-                # if parent in self._parent_to_unhandled_queue_dict:
                 self._parent_to_unhandled_queue_dict[parent].put(pm)
             for parent in self._parents:
                 parent.handle_new_partial_match(self)
@@ -250,10 +282,18 @@ class Node(ABC):
         raise NotImplementedError()
 
     def create_parent_to_info_dict(self):
-        # TODO DOCUMENTATION
+        """
+        This dictionary maps parent to event type, event name and index.
+        This dictionary helps to pass the parents a partial match with the right definitions.
+        To be implemented by subclasses.
+        """
         raise NotImplementedError()
 
     def add_to_dict(self, key, value):
+        """
+        Adds an entry to parent_to_info_dict.
+        This entry maps between the key (a parent) and the value (info- event type, event name and index).
+        """
         self._parent_to_info_dict[key] = value
 
     def get_leaves(self):
@@ -280,18 +320,19 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    def get_structure_hash(self):
-        """
-        Returns the hash of the subtree rooted at this node - to be implemented by subclasses.
-        Similar to "get_structure_summary". The difference is that the hash is composed from the node's
-        type and not from it's name.
-        """
-        raise NotImplementedError()
-
     def is_structure_equal(self, other):
+        """
+        Gets two nodes and returns whether their structure is equal.
+        The structure is composed from the leaves type and the operations between them (like And, Seq)
+        - to be implemented by subclasses.
+        """
         pass
 
     def is_equal(self, other):
+        """
+        Gets two nodes and returns whether they are equal.
+        Two nodes are equal if their structures are equal and their conditions are equal.
+        """
         return self.is_structure_equal(other) and self._condition.is_equal(other.get_condition())
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
