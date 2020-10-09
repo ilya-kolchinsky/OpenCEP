@@ -250,11 +250,11 @@ def runMultiTest(testName, patterns, createTestFile = False,
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
+    expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
 
     match_set = [set() for i in range(len(patterns))]
-    flag = 0
     with open(actual_matches_path) as matchFile:
         all_matches = matchFile.read()
     match_list = all_matches.split('\n\n')
@@ -262,18 +262,16 @@ def runMultiTest(testName, patterns, createTestFile = False,
         if match:
             match_set[int(match.partition(':')[0]) - 1].add(match.strip()[match.index(' ') + 1:])
 
-    for i in range(len(patterns)):
-        output_file_name = "%sMatches.txt" % (testName + str(i))
-        expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
-        with open(expected_matches_path) as expFile:
-            text = expFile.read()
-        setexp = set(text.split('\n\n'))
-        setexp.remove('')
-        if setexp != match_set[i]:
-            flag = 1
+    exp_set = [set() for i in range(len(patterns))]
+    with open(expected_matches_path) as expFile:
+        all_exp_matches = expFile.read()
+    exp_match_list = all_exp_matches.split('\n\n')
+    for match in exp_match_list:
+        if match:
+            exp_set[int(match.partition(':')[0]) - 1].add(match.strip()[match.index(' ') + 1:])
 
     print("Test %s result: %s, Time Passed: %s" % (testName,
-          "Succeeded" if flag == 0 else "Failed", running_time))
+          "Succeeded" if exp_set == match_set else "Failed", running_time))
     runTest.over_all_time += running_time
     os.remove(actual_matches_path)
 

@@ -38,6 +38,25 @@ def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTI
         matches_stream = FileOutputStream(expected_directory, output_file_name)
         cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
 
+def uniteFiles(testName, numOfPatterns):
+    base_matches_directory = os.path.join(absolutePath, 'test', 'TestsExpected', 'MultiPatternMatches')
+    output_file_name = "%sMatches.txt" % testName
+    output_file = os.path.join(base_matches_directory, output_file_name)
+    with open(output_file, 'w') as f:
+        for i in range(numOfPatterns):
+            prefix = "%d: " % (i + 1)
+            prefix += '% s'
+            input_file_name = "%sMatches.txt" % (testName + str(i))
+            file = os.path.join(base_matches_directory, input_file_name)
+            with open(file) as expFile:
+                text = expFile.read()
+            setexp = set(text.split('\n\n'))
+            setexp.remove('')
+            setexp = {prefix % j for j in setexp}
+            for line in setexp:
+                f.write(line)
+                f.write('\n\n')
+
 def twoPatternsOneArgument(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
@@ -217,3 +236,4 @@ def multiPatternShare(createTestFile = False):
     )
 
     runMultiTest("multiPatternShare", [pattern1, pattern2, pattern3], createTestFile)
+
