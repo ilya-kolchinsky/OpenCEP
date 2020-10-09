@@ -8,54 +8,7 @@ currentPath = pathlib.Path(os.path.dirname(__file__))
 absolutePath = str(currentPath.parent)
 sys.path.append(absolutePath)
 
-def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                         events=None, eventStream=nasdaqEventStream):
-    if events is None:
-        events = eventStream.duplicate()
-    else:
-        events = events.duplicate()
 
-    listShort = []
-    listHalfShort = []
-    listCustom = []
-    listCustom2 = ["FirstMultiPattern", "RootAndInner"]
-
-    if testName in listShort:
-        events = nasdaqEventStreamShort.duplicate()
-    elif testName in listHalfShort:
-        events = nasdaqEventStreamHalfShort.duplicate()
-    elif testName in listCustom:
-        events = custom.duplicate()
-    elif testName in listCustom2:
-        events = custom2.duplicate()
-    elif testName == "NotEverywhere":
-        events = custom3.duplicate()
-
-    for i in range(len(patterns)):
-        cep = CEP(patterns[i], eval_mechanism_params)
-        expected_directory = os.path.join(absolutePath, 'test', 'TestsExpected', 'MultiPatternMatches')
-        output_file_name = "%sMatches.txt" % (testName + str(i))
-        matches_stream = FileOutputStream(expected_directory, output_file_name)
-        cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
-
-def uniteFiles(testName, numOfPatterns):
-    base_matches_directory = os.path.join(absolutePath, 'test', 'TestsExpected', 'MultiPatternMatches')
-    output_file_name = "%sMatches.txt" % testName
-    output_file = os.path.join(base_matches_directory, output_file_name)
-    with open(output_file, 'w') as f:
-        for i in range(numOfPatterns):
-            prefix = "%d: " % (i + 1)
-            prefix += '% s'
-            input_file_name = "%sMatches.txt" % (testName + str(i))
-            file = os.path.join(base_matches_directory, input_file_name)
-            with open(file) as expFile:
-                text = expFile.read()
-            setexp = set(text.split('\n\n'))
-            setexp.remove('')
-            setexp = {prefix % j for j in setexp}
-            for line in setexp:
-                f.write(line)
-                f.write('\n\n')
 
 def twoPatternsOneArgument(createTestFile = False):
     pattern1 = Pattern(
@@ -235,5 +188,36 @@ def multiPatternShare(createTestFile = False):
         timedelta(minutes=10)
     )
 
+
     runMultiTest("multiPatternShare", [pattern1, pattern2, pattern3], createTestFile)
+
+#SHARING EQUIVALENT SUBTREES
+def onePatternIncludesOther(createTestFile = False):
+    pattern1 = Pattern(
+        SeqOperator([PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"),
+                     PrimitiveEventStructure("AAPL", "c")]),
+        AndFormula(
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
+                               IdentifierTerm("b", lambda x: x["Peak Price"])),
+            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
+                               IdentifierTerm("c", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+
+    pattern2 = Pattern(
+        SeqOperator([PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b")]),
+        SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
+                           IdentifierTerm("b", lambda x: x["Peak Price"]))
+        ,
+        timedelta(minutes=3)
+    )
+
+    eval_mechanism_params = TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                                                     TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
+                                           TreeStorageParameters(sort_storage=False,
+                                                                 clean_up_interval=10,
+                                                                 prioritize_sorting_by_timestamp=True),
+                                                                  MultiPatternEvaluationApproach.SUBTREES_UNION)
+    runMultiTest("onePatternIncludesOther", [pattern1, pattern2], createTestFile, eval_mechanism_params)
 

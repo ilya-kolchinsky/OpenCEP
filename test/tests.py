@@ -202,32 +202,6 @@ def hierarchyPatternSearchTest(createTestFile=False):
     runTest('hierarchy', [hierarchyPattern], createTestFile)
 
 
-def multiplePatternSearchTest(createTestFile=False):
-    amazonInstablePattern = Pattern(
-        SeqOperator([PrimitiveEventStructure("AMZN", "x1"), PrimitiveEventStructure("AMZN", "x2"), PrimitiveEventStructure("AMZN", "x3")]),
-        AndFormula(
-            SmallerThanEqFormula(IdentifierTerm("x1", lambda x: x["Lowest Price"]), AtomicTerm(75)),
-            AndFormula(
-                GreaterThanEqFormula(IdentifierTerm("x2", lambda x: x["Peak Price"]), AtomicTerm(78)),
-                SmallerThanEqFormula(IdentifierTerm("x3", lambda x: x["Lowest Price"]),
-                                     IdentifierTerm("x1", lambda x: x["Lowest Price"]))
-            )
-        ),
-        timedelta(days=1)
-    )
-    googleAscendPattern = Pattern(
-        SeqOperator([PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"), PrimitiveEventStructure("GOOG", "c")]),
-        AndFormula(
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
-                               IdentifierTerm("b", lambda x: x["Peak Price"])),
-            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
-                               IdentifierTerm("c", lambda x: x["Peak Price"]))
-        ),
-        timedelta(minutes=3)
-    )
-    runTest('multiplePatterns', [amazonInstablePattern, googleAscendPattern], createTestFile)
-
-
 def nonFrequencyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("LOCM", "c")]),
@@ -935,12 +909,13 @@ def sortedStorageBenchMarkTest(createTestFile=False):
 runTest.over_all_time = 0
 
 # multi-pattern tests
-twoPatternsOneArgument()
+onePatternIncludesOther()
 multiPatternShare()
 threePatternTest()
 differentTimeStamps()
 rootAndInner()
 bigMultiPatternTest()
+twoPatternsOneArgument()
 
 
 
