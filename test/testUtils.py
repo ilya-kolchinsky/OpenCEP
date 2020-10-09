@@ -180,60 +180,57 @@ def runTest(testName, patterns, createTestFile = False,
     os.remove(actual_matches_path)
 
 
-def runTest(testName, patterns, createTestFile = False,
-            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events = None, eventStream = nasdaqEventStream):
-    if createTestFile:
-        createTest(testName, patterns, events, eventStream = eventStream)
-    if events is None:
-        events = eventStream.duplicate()
-    else:
-        events = events.duplicate()
+def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                         events=None, eventStream=nasdaqEventStream):
+    curr_events = events
+    expected_directory = os.path.join(absolutePath, 'test', 'TestsExpected')
+    filenames = []
+    for i in range(len(patterns)):
+        next_events = curr_events.duplicate()
+        cep = CEP(patterns[i], eval_mechanism_params)
+        output_file_name = "%sMatches.txt" % (testName + str(i))
+        filenames.append(output_file_name)
+        matches_stream = FileOutputStream(expected_directory, output_file_name)
+        cep.run(curr_events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
+        curr_events = next_events
+    uniteFiles(testName, len(patterns))
 
-    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns"]
-    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
-    listCustom = ["MultipleNotBeginAndEnd"]
-    listCustom2 = ["simpleNot"]
-    if testName in listShort:
-        events = nasdaqEventStreamShort.duplicate()
-    elif testName in listHalfShort:
-        events = nasdaqEventStreamHalfShort.duplicate()
-    elif testName in listCustom:
-        events = custom.duplicate()
-    elif testName in listCustom2:
-        events = custom2.duplicate()
-    elif testName == "NotEverywhere":
-        events = custom3.duplicate()
+    for filename in filenames:
+        single_pattern_path = os.path.join(expected_directory, filename)
+        os.remove(single_pattern_path)
 
-    cep = CEP(patterns, eval_mechanism_params)
-
-    base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
+def uniteFiles(testName, numOfPatterns):
+    base_matches_directory = os.path.join(absolutePath, 'test', 'TestsExpected')
     output_file_name = "%sMatches.txt" % testName
-    matches_stream = FileOutputStream(base_matches_directory, output_file_name)
-    running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
-
-    expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
-    actual_matches_path = os.path.join(base_matches_directory, output_file_name)
-    print("Test %s result: %s, Time Passed: %s" % (testName,
-          "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
-    runTest.over_all_time += running_time
-    os.remove(actual_matches_path)
-
+    output_file = os.path.join(base_matches_directory, output_file_name)
+    with open(output_file, 'w') as f:
+        for i in range(numOfPatterns):
+            prefix = "%d: " % (i + 1)
+            prefix += '% s'
+            input_file_name = "%sMatches.txt" % (testName + str(i))
+            file = os.path.join(base_matches_directory, input_file_name)
+            with open(file) as expFile:
+                text = expFile.read()
+            setexp = set(text.split('\n\n'))
+            setexp.remove('')
+            setexp = {prefix % j for j in setexp}
+            for line in setexp:
+                f.write(line)
+                f.write('\n\n')
 
 def runMultiTest(testName, patterns, createTestFile = False,
             eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
             events = None, eventStream = nasdaqEventStream):
-    if createTestFile:
-        createTest(testName, patterns, events, eventStream = eventStream)
+
     if events is None:
         events = eventStream.duplicate()
     else:
         events = events.duplicate()
 
-    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns"]
-    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
-    listCustom = ["MultipleNotBeginAndEnd"]
-    listCustom2 = ["simpleNot", "FirstMultiPattern", "RootAndInner"]
+    listShort = ["multiplePatterns", "distinctPatterns"]
+    listHalfShort = ["onePatternIncludesOther"]
+    listCustom = []
+    listCustom2 = ["FirstMultiPattern", "RootAndInner"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
@@ -244,6 +241,9 @@ def runMultiTest(testName, patterns, createTestFile = False,
         events = custom2.duplicate()
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
+
+    if createTestFile:
+        createExpectedOutput(testName, patterns, eval_mechanism_params, events.duplicate(), eventStream)
 
     cep = CEP(patterns, eval_mechanism_params)
 
@@ -270,8 +270,9 @@ def runMultiTest(testName, patterns, createTestFile = False,
         if match:
             exp_set[int(match.partition(':')[0]) - 1].add(match.strip()[match.index(' ') + 1:])
 
+    res = (exp_set == match_set)
     print("Test %s result: %s, Time Passed: %s" % (testName,
-          "Succeeded" if exp_set == match_set else "Failed", running_time))
+          "Succeeded" if res else "Failed", running_time))
     runTest.over_all_time += running_time
     os.remove(actual_matches_path)
 
