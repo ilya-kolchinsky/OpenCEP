@@ -24,7 +24,7 @@ def onlyTreeSplit_oneArgumentsearchTest(createTestFile=False):
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
         timedelta(minutes=120)
     )
-    workload = ParallelTreeWorkloadFramework(pattern, execution_units=2, is_data_parallelized=True,
+    workload = ParallelTreeWorkloadFramework(pattern, execution_units=10, is_data_parallelized=True,
                                                  is_structure_parallelized=False, num_of_families=0)
     runTest("one", [pattern], createTestFile, work_load_fr=workload)
 

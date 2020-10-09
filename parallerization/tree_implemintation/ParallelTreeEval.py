@@ -58,8 +58,8 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
     # def join(self):
     #     self.queue.join()
 
-    def get_stopped(self):
-        return self.stopped
+    # def get_stopped(self):
+    #     return self.stopped
 
     def run_eval(self): # thread
         try:
@@ -92,7 +92,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
             try:
                 if not self.queue._qsize() == 0:
                     event = self.queue.get()
-                    self.queue.task_done()
+                    # self.queue.task_done()
                     counter += 1
                     if counter % 10000 == 0:
                         print(str(self.thread.ident) + " 1: counter  =  " + str(counter))
@@ -105,7 +105,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
             # print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.qsize()))
             try:
                 event = self.queue.get()
-                self.queue.task_done()
+                # self.queue.task_done()
                 counter += 1
                 if counter % 10000 == 0:
                     print(str(self.thread.ident) + " 2: counter  =  " + str(counter))

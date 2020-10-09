@@ -52,14 +52,29 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         return self.masters, self.masters#TODO: check if in manager we need both of them
 
-    def join_all(self):
+
+    def wait_masters_to_finish(self):
+        multiple_data = self.get_is_data_parallelized()
+        multiple_structures = self.get_is_structure_parallelized()
+
+        if not multiple_data and not multiple_structures:
+            raise Exception("Not suuported")
+        elif multiple_data and not multiple_structures:
+            return self.join_only_masters()
+        elif not multiple_data and multiple_structures:
+           return self.join_only_tree_structures()
+        elif multiple_data and multiple_structures:
+            raise NotImplementedError()
+
+    def join_only_masters(self):
         for em in self.masters:
             print("joining thread " + str(em.get_thread().ident))
             em.join()
 
-        # for em in self.tree_structures:
-        #      if not em.get_stopped():
-        #         em.join()
+    def join_only_tree_structures(self):
+        for em in self.tree_structures:
+            print("joining thread " + str(em.get_thread().ident))
+            em.join()
 
     def split_structure_to_families(self, evaluation_mechanism: EvaluationMechanism,
                                     eval_params: EvaluationMechanismParameters = None):
@@ -85,11 +100,16 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         if not multiple_data and not multiple_structures:
             raise Exception("Not suuported")
         elif multiple_data and not multiple_structures:
-            return self.get_all_indexes()
+            return self.get_indexes_for_duplicated_data()
         elif not multiple_data and multiple_structures:
            return self.trees_with_leafs_indexes
         elif multiple_data and multiple_structures:
             return self.get_indexes_for_families()
+
+    def get_indexes_for_duplicated_data(self):
+        count = self.event_stream.count()
+        execution_units = self.get_execution_units()
+        return [count % execution_units]
 
     def get_all_indexes(self):
         indexes = []

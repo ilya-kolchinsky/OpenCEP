@@ -71,7 +71,7 @@ class EvaluationMechanismManager:
     def eval(self, event_stream: InputStream, pattern_matches: OutputStream, data_formatter: DataFormatter):
         self.work_load_fr.set_events(event_stream)
 
-        self.streams = [self.work_load_fr.event_stream.duplicate(), self.work_load_fr.event_stream.duplicate()] # TODO: REMOVE
+        # self.streams = [self.work_load_fr.event_stream.duplicate(), self.work_load_fr.event_stream.duplicate()] # TODO: REMOVE
 
         self.work_load_fr.set_data_formatter(data_formatter)
 
@@ -89,12 +89,13 @@ class EvaluationMechanismManager:
             except:
                 raise Exception("8")
             try:
-                # self.wait_masters_to_finish()
-                 self.work_load_fr.join_all()
+                 self.work_load_fr.wait_masters_to_finish()
             except:
                 raise Exception("9")
             print("get_results_from_masters")
             self.get_results_from_masters()
+
+        print('manager finished')
 
     def run_eval(self):
         multiple_data = self.work_load_fr.get_is_data_parallelized()
@@ -142,18 +143,19 @@ class EvaluationMechanismManager:
     def eval_multiple_tree_single_data(self):
         self.eval_util()
 
-    # def eval_util(self):
-    #     self.activate_all_ems(self.eval_mechanism_list)
-    #
-    #     event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
-    #     while event is not None:
-    #         for index in em_indexes:
-    #             em = self.eval_mechanism_list[index]
-    #             em.process_event(event)
-    #         event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
-    #     print("finished pushing events to threads")
+    def eval_util(self):
+        self.activate_all_ems(self.eval_mechanism_list)
 
-    def eval_util(self): # TODO: REMOVE
+        event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
+
+        while event is not None:
+            for index in em_indexes:
+                em = self.eval_mechanism_list[index]
+                em.process_event(event)
+            event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
+        print("finished pushing events to threads")
+
+    def testing_eval_util(self):
         self.activate_all_ems(self.eval_mechanism_list)
         master_counter = 0
         x = self.streams[0].count()
