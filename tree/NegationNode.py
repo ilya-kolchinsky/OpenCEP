@@ -202,11 +202,6 @@ class NegativeAndNode(NegationNode):
                 self._left_subtree.get_structure_summary(),
                 self._right_subtree.get_structure_summary())
 
-    def get_structure_hash(self):
-        return ("NAnd",
-                self._left_subtree.get_structure_hash(),
-                self._right_subtree.get_structure_hash())
-
 
 class NegativeSeqNode(NegationNode):
     """
@@ -222,11 +217,6 @@ class NegativeSeqNode(NegationNode):
         return ("NSeq",
                 self._left_subtree.get_structure_summary(),
                 self._right_subtree.get_structure_summary())
-
-    def get_structure_hash(self):
-        return ("NSeq",
-                self._left_subtree.get_structure_hash(),
-                self._right_subtree.get_structure_hash())
 
     def _set_event_definitions(self,
                                left_event_defs: List[PrimitiveEventDefinition],

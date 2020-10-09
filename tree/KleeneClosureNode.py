@@ -66,9 +66,6 @@ class KleeneClosureNode(UnaryNode):
     def get_structure_summary(self):
         return "KC", self._child.get_structure_summary()
 
-    def get_structure_hash(self):
-        return "KC", self._child.get_structure_hash()
-
     def is_structure_equal(self, other):
         if not isinstance(other, type(self)):
             return False

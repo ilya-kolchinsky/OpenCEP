@@ -98,9 +98,6 @@ class LeafNode(Node):
     def get_structure_summary(self):
         return self.__event_name
 
-    def get_structure_hash(self):
-        return self.__event_type
-
     def get_condition(self):
         return self._condition
 

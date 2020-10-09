@@ -8,9 +8,6 @@ from base.PatternMatch import PatternMatch
 from tree.InternalNode import InternalNode
 from tree.Node import Node, PrimitiveEventDefinition
 
-#TODO: REMOVE AFTER ADDING A PARENT DICTIONARY TO AN ABTRACT NODE
-from tree.LeafNode import LeafNode
-
 
 class BinaryNode(InternalNode, ABC):
     """

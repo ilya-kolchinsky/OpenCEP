@@ -37,11 +37,6 @@ class SeqNode(BinaryNode):
                 self._left_subtree.get_structure_summary(),
                 self._right_subtree.get_structure_summary())
 
-    def get_structure_hash(self):
-        return ("Seq",
-                self._left_subtree.get_structure_hash(),
-                self._right_subtree.get_structure_hash())
-
     def is_structure_equal(self, other):
         if not isinstance(other, type(self)):
             return False
