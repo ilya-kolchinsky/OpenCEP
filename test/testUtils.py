@@ -179,7 +179,7 @@ def runTest(testName, patterns, createTestFile = False,
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
 
-    # running_time = cep.run(shortNasdaqEventStream.duplicate(), matches_stream, DEFAULT_TESTING_DATA_FORMATTER) # TODO:
+    #running_time = cep.run(shortNasdaqEventStream.duplicate(), matches_stream, DEFAULT_TESTING_DATA_FORMATTER) # TODO:
 
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)

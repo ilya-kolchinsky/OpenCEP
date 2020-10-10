@@ -195,8 +195,8 @@ class EvaluationMechanismManager:
                 raise Exception("5")
             try:
                 master_counter += 1
-                if master_counter % 10000 == 0:
-                    print("master_counter  =  " + str(master_counter))
+                #if master_counter % 10000 == 0:
+                    #print("master_counter  =  " + str(master_counter))
                 em1.process_event(input_stream1)
                 em2.process_event(input_stream2)
             except:

@@ -35,6 +35,7 @@ class ParallelUnaryNode(UnaryNode): # new root
     def handle_new_partial_match(self, partial_match_source: Node = None):
         new_partial_match = self.get_child().get_last_unhandled_partial_match()
         self.our_pattern_matches.append(new_partial_match)
+        self._partial_matches.add(new_partial_match)
 
     def handle_event(self, pm: PatternMatch):
 
@@ -45,7 +46,7 @@ class ParallelUnaryNode(UnaryNode): # new root
         return self.our_pattern_matches
 
     def get_partial_matches(self, filter_value: int or float = None):
-        return self.our_pattern_matches
+        return self._partial_matches
 
     def _add_partial_match(self, pm: PatternMatch):
 
