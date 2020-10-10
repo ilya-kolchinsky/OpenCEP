@@ -73,7 +73,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
                     print("**********************")
                     raise Exception("1")
             else:
-                time.sleep(10)
+                # time.sleep(10)
                 for child in self.children:
                     print(str(self.thread.ident) + " waiting for child " + str(child.get_thread().ident) + " to finish ")
                     child.wait_till_finish()
@@ -88,19 +88,18 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
             raise Exception("10")
 
     def run_eval_with_leafs(self):
+        time.sleep(30)
         print(" called running run_eval_with_leafs on thread " + str(self.thread.ident) + " : " + str(self.keep_running.is_set()) + " " + str(self.queue._qsize()))
-        #counter = 0
-        time.sleep(20)
+        counter = 0
         while self.keep_running.is_set():
             # print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.qsize()))
             try:
                 if not self.queue._qsize() == 0:
                     event = self.queue.get()
                     # self.queue.task_done()
-                    #counter += 1
-                    #if counter % 10000 == 0:
-                        #print(str(self.thread.ident) + " 1: counter  =  " + str(counter))
-                    # print("1 calling eval on thread " + str(self.thread.ident))
+                    counter += 1
+                    if counter % 10000 == 0:
+                        print(str(self.thread.ident) + " 1: counter  =  " + str(counter))
                     self.evaluation_mechanism.eval(event, self.pattern_matches, self.data_formatter)
             except:
                 raise Exception("---")
@@ -110,10 +109,9 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
             try:
                 event = self.queue.get()
                 # self.queue.task_done()
-                #counter += 1
-                #if counter % 10000 == 0:
-                #    print(str(self.thread.ident) + " 2: counter  =  " + str(counter))
-                # print("2 calling eval on thread " + str(self.thread.ident))
+                counter += 1
+                if counter % 10000 == 0:
+                   print(str(self.thread.ident) + " 2: counter  =  " + str(counter))
                 self.evaluation_mechanism.eval(event, self.pattern_matches, self.data_formatter)
             except:
                 pass

@@ -41,7 +41,7 @@ class ParallelWorkLoadFramework(ABC):
     def split_structure(self, eval_params: EvaluationMechanismParameters = None):
         raise NotImplementedError()
 
-    def get_next_event_and_destinations_em(self):
+    def get_data_stream_and_destinations(self):
         NotImplementedError()
 
     def get_next_event_families_indexes_and_destinations_ems(self):

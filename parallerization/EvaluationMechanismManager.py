@@ -55,18 +55,18 @@ class EvaluationMechanismManager:
         self.pattern_matches_list = [pattern_matches]
 
     def initialize_single_tree_multiple_data(self):
-        self.eval_mechanism_list, self.masters_list = self.work_load_fr.duplicate_structure(self.source_eval_mechanism,
-                                                                                            self.eval_params)
+        self.eval_mechanism_list, self.masters_list = self.work_load_fr.duplicate_structure(self.source_eval_mechanism, self.eval_params)
 
     def initialize_multiple_tree_single_data(self):
         self.eval_mechanism_list, self.masters_list = self.work_load_fr.split_structure(self.eval_params)
 
     def initialize_multiple_tree_multiple_data(self):
-        self.eval_mechanism_list = None
+        self.eval_mechanism_families, self.masters_list = self.work_load_fr.split_structure_to_families(self.source_eval_mechanism, self.eval_params)
+        self.eval_mechanism_list = []
 
-        # eval_mechanism_families is list of lists
-        self.eval_mechanism_families, self.masters_list = self.work_load_fr.\
-            split_structure_to_families(self.source_eval_mechanism, self.eval_params)
+        for family in self.eval_mechanism_families:
+            for em in family:
+                self.eval_mechanism_list.append(em)
 
     def eval(self, event_stream: InputStream, pattern_matches: OutputStream, data_formatter: DataFormatter):
         self.work_load_fr.set_events(event_stream)
@@ -141,14 +141,14 @@ class EvaluationMechanismManager:
     def eval_single_tree_multiple_data(self):
         self.activate_all_ems(self.eval_mechanism_list)
 
-        event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
+        event, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
         try:
             while event is not None:
                 for index in em_indexes:
                     em = self.eval_mechanism_list[index]
                     # em.process_event(events[index])
                     em.process_event(event)
-                event, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
+                event, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
         except:
             pass
         print("finished pushing events to threads")
@@ -156,17 +156,42 @@ class EvaluationMechanismManager:
     def eval_multiple_tree_single_data(self):
         self.activate_all_ems(self.eval_mechanism_list)
 
-        events, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
+        i_debbug = 0 # TODO:
+        events, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
+
         try:
             while events is not None:
                 for index in em_indexes:
                     em = self.eval_mechanism_list[index]
                     em.process_event(events[index])
-                    # em.process_event(events)
-                events, em_indexes = self.work_load_fr.get_next_event_and_destinations_em()
+                    i_debbug += 1
+                events, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
         except:
             pass
         print("finished pushing events to threads")
+
+    def eval_multiple_em_multiple_data(self):
+        self.activate_all_ems(self.eval_mechanism_list)
+
+        families_events, families_indexes, em_indexes_list = self.work_load_fr.get_data_stream_and_destinations()
+         #  [[e1, e2], [e3, e4]]          [0,1]              [[0,1], [0,1]]
+        try:
+            while families_events is not None:
+                for i in range(len(families_indexes)):
+                    family_index = families_indexes[i]
+                    family = self.eval_mechanism_families[family_index]
+                    em_indexes = em_indexes_list[i]
+                    family_events = families_events[family_index]
+                    for em_index in em_indexes:
+                        em = family[em_index]
+                        event = family_events[em_index]
+                        em.process_event(event)
+
+                families_events, families_indexes, em_indexes_list = self.work_load_fr.get_data_stream_and_destinations()
+        except:
+            raise Exception("eval_multiple_em_multiple_data")
+        print("finished pushing events to threads")
+
 
     def testing_eval_util(self):
         self.activate_all_ems(self.eval_mechanism_list)
@@ -202,22 +227,16 @@ class EvaluationMechanismManager:
             except:
                 raise Exception("6")
 
-    def eval_multiple_em_multiple_data(self):
-        for family in self.eval_mechanism_families:
-            self.activate_all_ems(family)
-
-        event, families_indexes, em_indexes_list = self.work_load_fr.get_next_event_families_indexes_and_destinations_ems()
-
-        while event is not None:
-            for i in range(0, len(families_indexes)):
-                family_index = families_indexes[i]
-                family = self.eval_mechanism_families[family_index]
-                em_indexes = em_indexes_list[i]
-                for em_index in em_indexes:
-                    em = family[em_index]
-                    em.proccess_event(event)
-            event, families_indexes, em_indexes_list = self.work_load_fr.get_next_event_families_indexes_and_destinations_ems()
 
     def activate_all_ems(self, eval_mechanism_list):
         for em in eval_mechanism_list:
             em.activate()
+
+
+# TODO:
+# multi + multi
+# finish split structure
+# refactor
+# remove None from original eval
+# decide on sleep time
+# write tests

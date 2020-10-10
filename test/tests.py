@@ -929,21 +929,22 @@ def sortedStorageBenchMarkTest(createTestFile=False):
 runTest.over_all_time = 0
 
 # Parallel tests
-OUR_msftDrivRacePatternSearchTest()
-onlyTreeSplitsimplePatternSearchTest()
+#OUR_msftDrivRacePatternSearchTest()
+#onlyTreeSplitsimplePatternSearchTest()
 # onlyTreeSplit_oneArgumentsearchTest()
-onlyDataSplit_oneArgumentsearchTest()
-#
+#MultiStructureMultiDataOneFamily_oneArgumentsearchTest()
+
+MultiStructureMultiDataTwoFamily_oneArgumentsearchTest()
 # simplePatternSearchTest()
 # #print("Finished running all tests, overall time: %s" % runTest.over_all_time)
 #
 # # basic functionality tests
-oneArgumentsearchTest()
+#oneArgumentsearchTest()
 #simplePatternSearchTest()
-googleAscendPatternSearchTest()
+#googleAscendPatternSearchTest()
 # amazonInstablePatternSearchTest()
 #msftDrivRacePatternSearchTest()
-googleIncreasePatternSearchTest()
+#googleIncreasePatternSearchTest()
 # amazonSpecificPatternSearchTest()
 # googleAmazonLowPatternSearchTest()
 #nonsensePatternSearchTest()

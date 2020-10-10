@@ -7,15 +7,26 @@ from base.Pattern import Pattern
 from parallerization.tree_implemintation.ParallelTreeWorkloadFramework import ParallelTreeWorkloadFramework
 
 
-def onlyDataSplit_oneArgumentsearchTest(createTestFile=False):
+def MultiStructureMultiDataOneFamily_oneArgumentsearchTest(createTestFile=False):
         pattern = Pattern(
             SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
             timedelta(minutes=120)
         )
-        workload = ParallelTreeWorkloadFramework(pattern, execution_units=3, is_data_parallelized=True,
-                                                 is_structure_parallelized=False, num_of_families=0)
+        workload = ParallelTreeWorkloadFramework(pattern, execution_units=1, is_data_parallelized=True,
+                                                 is_structure_parallelized=True, num_of_families=1)
         runTest("one", [pattern], createTestFile, work_load_fr=workload)
+
+
+def MultiStructureMultiDataTwoFamily_oneArgumentsearchTest(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
+        timedelta(minutes=120)
+    )
+    workload = ParallelTreeWorkloadFramework(pattern, execution_units=1, is_data_parallelized=True,
+                                             is_structure_parallelized=True, num_of_families=2)
+    runTest("one", [pattern], createTestFile, work_load_fr=workload)
 
 
 def onlyTreeSplit_oneArgumentsearchTest(createTestFile=False):
