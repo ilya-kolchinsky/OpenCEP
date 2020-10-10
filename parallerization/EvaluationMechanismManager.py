@@ -234,9 +234,10 @@ class EvaluationMechanismManager:
 
 
 # TODO:
-# multi + multi
+# multi + multi - tests
 # finish split structure
-# refactor
+# write tests
+
 # remove None from original eval
 # decide on sleep time
-# write tests
+# refactor
