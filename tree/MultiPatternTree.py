@@ -3,7 +3,7 @@ from queue import Queue
 from base.Pattern import Pattern
 from plan.MultiPatternEvaluationApproach import MultiPatternEvaluationApproach
 from tree.Tree import Tree
-from tree.Node import PrimitiveEventDefinition, Node
+from tree.Node import Node
 from tree.UnaryNode import UnaryNode
 from tree.BinaryNode import BinaryNode
 from tree.NegationNode import NegationNode
