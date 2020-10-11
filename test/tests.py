@@ -942,23 +942,23 @@ MultipleStructuresSingleData4()
 MultipleStructuresSingleData5()
 MultipleStructuresSingleData6()
 
-# #print("Finished running all tests, overall time: %s" % runTest.over_all_time)
-#
+print("***Finished running all parallel tests, overall time: %s ***" % runTest.over_all_time)
+
 # # basic functionality tests
-#oneArgumentsearchTest()
-#simplePatternSearchTest()
-#googleAscendPatternSearchTest()
+# oneArgumentsearchTest()
+# simplePatternSearchTest()
+# googleAscendPatternSearchTest()
 # amazonInstablePatternSearchTest()
-#msftDrivRacePatternSearchTest()
-#googleIncreasePatternSearchTest()
+# msftDrivRacePatternSearchTest()
+# googleIncreasePatternSearchTest()
 # amazonSpecificPatternSearchTest()
 # googleAmazonLowPatternSearchTest()
-#nonsensePatternSearchTest()
+# nonsensePatternSearchTest()
 # hierarchyPatternSearchTest()
 # nonFrequencyPatternSearchTest()
 # arrivalRatesPatternSearchTest()
 #
-# # tree plan generation algorithms
+# tree plan generation algorithms
 # frequencyPatternSearchTest()
 # nonFrequencyPatternSearch2Test()
 # frequencyPatternSearch2Test()
@@ -985,11 +985,11 @@ MultipleStructuresSingleData6()
 # structuralTest1()
 # structuralTest2()
 # structuralTest3()
-# structuralTest4()
+# structuralTest4()    # TODO: TESTS FAIL
 # structuralTest5()
 # structuralTest6()
 # structuralTest7()
-#
+
 # # Kleene closure tests
 # oneArgumentsearchTestKleeneClosure()
 # MinMax_0_TestKleeneClosure()

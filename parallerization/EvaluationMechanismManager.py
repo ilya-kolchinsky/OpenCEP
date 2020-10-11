@@ -1,4 +1,3 @@
-from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from evaluation.EvaluationMechanismFactory import (
     EvaluationMechanismParameters,
     EvaluationMechanismFactory,
@@ -8,10 +7,7 @@ from base.Pattern import Pattern
 from base.DataFormatter import DataFormatter
 
 from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
-from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
 from typing import List
-from base.PatternMatch import PatternMatch
-
 
 class EvaluationMechanismManager:
 
@@ -23,11 +19,10 @@ class EvaluationMechanismManager:
         self.patterns = patterns
         self.pattern_matches_stream = None
         self.data_formatter = None
-
-        self.streams = None # TODO:
+        self.streams = None
 
         if work_load_fr is None:
-            self.work_load_fr = ParallelWorkLoadFramework(1, False, False, 0)  # here no parallelism is needed
+            self.work_load_fr = ParallelWorkLoadFramework(1, False, False, 0)  # no parallelism is needed
         else:
             self.work_load_fr = work_load_fr
 
@@ -70,32 +65,18 @@ class EvaluationMechanismManager:
 
     def eval(self, event_stream: InputStream, pattern_matches: OutputStream, data_formatter: DataFormatter):
         self.work_load_fr.set_events(event_stream)
-
-        # self.streams = [self.work_load_fr.event_stream.duplicate(), self.work_load_fr.event_stream.duplicate()] # TODO: REMOVE
-
         self.work_load_fr.set_data_formatter(data_formatter)
 
         self.initialize(pattern_matches)
-        try:
-            self.run_eval()
-        except:
-            raise Exception("7")
 
-        #print(" manager Finished pushing events")
+        self.run_eval()
 
         if self.work_load_fr.get_is_data_parallelized() or self.work_load_fr.get_is_structure_parallelized():
-            try:
-                self.notify_all_to_finish()
-            except:
-                raise Exception("8")
-            try:
-                 self.work_load_fr.wait_masters_to_finish()
-            except:
-                raise Exception("9")
-            #print("get_results_from_masters")
-            self.get_results_from_masters()
+            self.notify_all_to_finish()
 
-        #print('manager finished')
+            self.work_load_fr.wait_masters_to_finish()
+
+            self.get_results_from_masters()
 
     def run_eval(self):
         multiple_data = self.work_load_fr.get_is_data_parallelized()
@@ -110,10 +91,61 @@ class EvaluationMechanismManager:
         elif multiple_data and multiple_structures:
             self.eval_multiple_em_multiple_data()
 
+    def eval_single_tree_single_data(self):
+        self.source_eval_mechanism.eval(self.work_load_fr.event_stream, self.pattern_matches_list[0], self.work_load_fr.data_formatter)
+
+    def eval_single_tree_multiple_data(self):
+        self.activate_all_ems()
+
+        event, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
+        while event is not None:
+            for index in em_indexes:
+                em = self.eval_mechanism_list[index]
+                em.process_event(event)
+            event, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
+
+    def eval_multiple_tree_single_data(self):
+        self.activate_all_ems()
+
+        events, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
+        event_index = 0
+        while events is not None:
+            for index in em_indexes:
+                em = self.eval_mechanism_list[index]
+                event = events[event_index]
+                em.process_event(event)
+                event_index += 1
+            events, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
+            event_index = 0
+
+    def eval_multiple_em_multiple_data(self):
+        self.activate_all_ems()
+
+        families_events, families_indexes, em_indexes_list = self.work_load_fr.get_data_stream_and_destinations()
+
+        while families_events is not None:
+            for i in range(len(families_indexes)):
+                family_index = families_indexes[i]
+                family = self.eval_mechanism_families[family_index]
+                em_indexes = em_indexes_list[i]
+                family_events = families_events[family_index]
+
+                for em_index in em_indexes:
+                    em = family[em_index]
+                    event = family_events[em_index]
+                    em.process_event(event)
+
+            families_events, families_indexes, em_indexes_list = self.work_load_fr.get_data_stream_and_destinations()
+
+    def activate_all_ems(self):
+        for em in self.eval_mechanism_list:
+            em.activate()
+
     def get_results_from_masters(self):
         for i in range(len(self.masters_list)):
             pattern_matches = self.masters_list[i].get_pattern_matches()
             pattern_matches_size = pattern_matches.count()
+
             for i in range(pattern_matches_size):
                 try:
                     match = pattern_matches.get_item()
@@ -125,117 +157,11 @@ class EvaluationMechanismManager:
 
     def notify_all_to_finish(self):
         for i in range(len(self.eval_mechanism_list)):
-            #print("Notifying thread " + str(self.eval_mechanism_list[i].get_thread().ident) + " to stop")
             self.eval_mechanism_list[i].stop()
-
-    def eval_single_tree_single_data(self):
-        self.source_eval_mechanism.eval(self.work_load_fr.event_stream, self.pattern_matches_list[0],
-                                        self.work_load_fr.data_formatter)
-
-    # def eval_single_tree_multiple_data(self):
-    #     self.eval_util()
-    #
-    # def eval_multiple_tree_single_data(self):
-    #     self.eval_util()
-
-    def eval_single_tree_multiple_data(self):
-        self.activate_all_ems(self.eval_mechanism_list)
-
-        event, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
-        try:
-            while event is not None:
-                for index in em_indexes:
-                    em = self.eval_mechanism_list[index]
-                    # em.process_event(events[index])
-                    em.process_event(event)
-                event, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
-        except:
-            pass
-        #print("finished pushing events to threads")
-
-    def eval_multiple_tree_single_data(self):
-        self.activate_all_ems(self.eval_mechanism_list)
-
-        i_debbug = 0 # TODO:
-        events, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
-        event_index = 0#TODO: maybe change to list like multiple multiple
-        try:
-            while events is not None:
-                for index in em_indexes:
-                    em = self.eval_mechanism_list[index]
-                    em.process_event(events[event_index])
-                    event_index += 1
-                    i_debbug += 1
-                events, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
-                event_index = 0
-        except:
-            pass
-        #print("finished pushing events to threads")
-
-    def eval_multiple_em_multiple_data(self):
-        self.activate_all_ems(self.eval_mechanism_list)
-
-        families_events, families_indexes, em_indexes_list = self.work_load_fr.get_data_stream_and_destinations()
-         #  [[e1, e2], [e3, e4]]          [0,1]              [[0,1], [0,1]]
-        try:
-            while families_events is not None:
-                for i in range(len(families_indexes)):
-                    family_index = families_indexes[i]
-                    family = self.eval_mechanism_families[family_index]
-                    em_indexes = em_indexes_list[i]
-                    family_events = families_events[family_index]
-                    for em_index in em_indexes:
-                        em = family[em_index]
-                        event = family_events[em_index]
-                        em.process_event(event)
-
-                families_events, families_indexes, em_indexes_list = self.work_load_fr.get_data_stream_and_destinations()
-        except:
-            raise Exception("eval_multiple_em_multiple_data")
-        #print("finished pushing events to threads")
-
-
-    def testing_eval_util(self):
-        self.activate_all_ems(self.eval_mechanism_list)
-        master_counter = 0
-        x = self.streams[0].count()
-        for i in range(x - 2):
-            try:
-                next_event1 = self.streams[0].get_item()
-            except:
-                raise Exception("2")
-            try:
-                next_event2 = self.streams[1].get_item()
-            except:
-                raise Exception("3")
-
-            # print("pushing events to threads" + str(i))
-            try:
-                input_stream1 = self.work_load_fr.create_input_stream(next_event1)
-                input_stream2 = self.work_load_fr.create_input_stream(next_event2)
-            except:
-                raise Exception("4")
-            try:
-                em1 = self.eval_mechanism_list[0]
-                em2 = self.eval_mechanism_list[1]
-            except:
-                raise Exception("5")
-            try:
-                master_counter += 1
-                #if master_counter % 10000 == 0:
-                    #print("master_counter  =  " + str(master_counter))
-                em1.process_event(input_stream1)
-                em2.process_event(input_stream2)
-            except:
-                raise Exception("6")
-
-
-    def activate_all_ems(self, eval_mechanism_list):
-        for em in eval_mechanism_list:
-            em.activate()
 
 
 # TODO:
+# failed tests ....
 # multi + multi - tests
 # finish split structure
 # write tests

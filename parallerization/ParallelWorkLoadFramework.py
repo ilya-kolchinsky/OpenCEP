@@ -1,14 +1,12 @@
 from abc import ABC
 
-from base.DataFormatter import DataFormatter
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 
 
 class ParallelWorkLoadFramework(ABC):
 
-    def __init__(self, execution_units: int = 1, is_data_parallelized: bool = False,
-                 is_structure_parallelized: bool = False, num_of_families: int = 0):
+    def __init__(self, execution_units: int = 1, is_data_parallelized: bool = False, is_structure_parallelized: bool = False, num_of_families: int = 0):
         self._execution_units = execution_units
         self.num_of_families = num_of_families
         self._is_data_parallelized = is_data_parallelized
@@ -53,9 +51,6 @@ class ParallelWorkLoadFramework(ABC):
 
     def split_structure_to_families(self, evaluation_mechanism: EvaluationMechanism,
                                     eval_params: EvaluationMechanismParameters = None):
-        raise NotImplementedError()
-
-    def join_all(self):
         raise NotImplementedError()
 
 

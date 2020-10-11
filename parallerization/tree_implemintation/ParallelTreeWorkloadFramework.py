@@ -1,5 +1,3 @@
-from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
-from base.Pattern import Pattern
 from tree.UnaryNode import UnaryNode
 from tree.BinaryNode import BinaryNode
 from tree.LeafNode import LeafNode
@@ -21,6 +19,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         self.masters = []
         self.pattern = pattern
+        self.streams =[]
 
         # multiple structures + single data only:
         self.tree_structures = []
@@ -32,36 +31,31 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         self.families_trees_with_leafs = []          # [[trees_with_leafs1],[trees_with_leafs2],[]]
         self.families_trees_with_leafs_indexes = []  # [[index1, index2],[index1, index2],[]]
 
-        self.streams =[]
-
-    def duplicate_structure(self, evaluation_mechanism: EvaluationMechanism,
-                            eval_params: EvaluationMechanismParameters = None, num_of_copies = None):
+    def duplicate_structure(self, evaluation_mechanism: EvaluationMechanism, eval_params: EvaluationMechanismParameters = None, num_of_copies = None):
         if num_of_copies is None:
             num_of_copies = self.get_execution_units()
 
         for i in range(num_of_copies):
             tree_based_eval = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_params, self.pattern)
-            storageparams = TreeStorageParameters(True)
-
+            storage_params = TreeStorageParameters(True)
             root = tree_based_eval.get_tree().get_root()
             unary_root = ParallelUnaryNode(root._sliding_window, child=root)
             root.set_parent(unary_root)
             tree_based_eval.set_root(unary_root)
-            unary_root.create_storage_unit(storageparams)
+            unary_root.create_storage_unit(storage_params)
+            unary_eval = ParallelTreeEval(tree_based_eval, True, is_main_root=True, data_formatter=self.data_formatter)
 
-            unaryeval = ParallelTreeEval(tree_based_eval, True, is_main_root=True, data_formatter=self.data_formatter)
-            self.masters.append(unaryeval)
-            self.trees_with_leafs.append(unaryeval)
+            self.masters.append(unary_eval)
+            self.trees_with_leafs.append(unary_eval)
 
         return self.masters, self.masters
-
 
     def wait_masters_to_finish(self):
         multiple_data = self.get_is_data_parallelized()
         multiple_structures = self.get_is_structure_parallelized()
 
         if not multiple_data and not multiple_structures:
-            raise Exception("Not suuported")
+            raise Exception("Not supported")
         elif multiple_data and not multiple_structures:
             self.join_only_masters()
         elif not multiple_data and multiple_structures:
@@ -76,17 +70,13 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def join_only_masters(self):
         for em in self.masters:
-            #print("join_only_masters: joining thread " + str(em.get_thread().ident))
             em.join()
 
     def join_only_tree_structures(self):
         for em in self.tree_structures:
-            #print("join_only_tree_structures: joining thread " + str(em.get_thread().ident))
             em.join()
 
     def split_structure_to_families(self, evaluation_mechanism: EvaluationMechanism, eval_params: EvaluationMechanismParameters = None):
-        # duplicated_structures = self.duplicate_structure(evaluation_mechanism, eval_params, self.num_of_families)
-
         for i in range(self.num_of_families):
             structures, masters = self.split_structure(eval_params)
 
@@ -110,7 +100,6 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
             return None, None
 
         em_indexes = self.get_indexes()
-
         num_of_copies = len(em_indexes)
         input_streams = self.create_copies_of_event( next_event, num_of_copies)
 
@@ -118,13 +107,16 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def create_copies_of_event(self, event_to_copy, num_of_copies):
         input_streams = []
+
         for i in range(num_of_copies):
             input_streams.append(self.create_input_stream(event_to_copy))
+
         return input_streams
 
     def get_multiple_data_single_structure_info(self):
         next_event = None
         count = self.event_stream.count()
+
         if count > 1:
             next_event = self.event_stream.get_item()
 
@@ -133,19 +125,17 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         input_stream = self.create_input_stream(next_event)
         em_indexes = []
-        try:
-            em_indexes = self.get_indexes()
-        except:
-            pass
+        em_indexes = self.get_indexes()
+
         return input_stream, em_indexes
 
     def get_multiple_data_multiple_structures_info(self):
         families_indexes = self.get_indexes()
-
         indexes_of_ems_in_each_family = self.get_indexes_of_ems_in_each_family()
 
         next_event = None
         count = self.event_stream.count()
+
         if count > 1:
             next_event = self.event_stream.get_item()
 
@@ -158,6 +148,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def get_family_events(self, next_event):
         input_streams = []
+
         for i in range(self.num_of_families):
             streams = self.create_copies_of_event(next_event, self.get_execution_units())
             input_streams.append(streams)
@@ -169,10 +160,12 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         indexes_list = []
 
         for i in range(self.num_of_families):
-            for j in self.families_trees_with_leafs_indexes[i]:#TODO:
+            for j in self.families_trees_with_leafs_indexes[i]:
                 indexes_list.append(j)
+
             indexes_list_of_list.append(indexes_list)
             indexes_list = []
+
         return indexes_list_of_list
 
     def get_data_stream_and_destinations(self):
@@ -180,7 +173,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         multiple_structures = self.get_is_structure_parallelized()
 
         if not multiple_data and not multiple_structures:
-            raise Exception("Not suuported")
+            raise Exception("Not supported")
         elif multiple_data and not multiple_structures:
             return self.get_multiple_data_single_structure_info()
         elif not multiple_data and multiple_structures:
@@ -196,6 +189,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         execution_units = self.get_execution_units()
         res =[]
         res.append(count % execution_units)
+
         return res
 
     def get_all_indexes(self):
@@ -208,14 +202,17 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def get_indexes_for_families(self):
         families_indexes = []
+
         for i in range(self.num_of_families):
             families_indexes.append(i)
+
         return families_indexes
 
     def create_input_stream(self, event):
         input_stream = Stream()
         input_stream.add_item(event)
         input_stream.close()
+
         return input_stream
 
     def get_indexes(self):
@@ -223,7 +220,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         multiple_structures = self.get_is_structure_parallelized()
 
         if not multiple_data and not multiple_structures:
-            raise Exception("Not suuported")
+            raise Exception("Not supported")
         elif multiple_data and not multiple_structures:
             return self.get_indexes_for_duplicated_data()
         elif not multiple_data and multiple_structures:
@@ -231,47 +228,52 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         elif multiple_data and multiple_structures:
             return self.get_indexes_for_families()
 
+    # Split structure utils:
+
     def split_structure(self, eval_params: EvaluationMechanismParameters = None):
         self.split_structure_utils(eval_params, self.get_execution_units())
         self.set_unary_children()
+
         return self.tree_structures, self.masters
 
     def split_structure_utils(self, eval_params: EvaluationMechanismParameters, execution_units_left: int,
                               next_root=None, source_is_left: bool = False):
         if execution_units_left < 1:
             return
-        tree_based_eval = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_params, self.pattern)
-        storageparams = TreeStorageParameters(True)
 
-        if next_root is None:   #then this is the first entry to this function
+        tree_based_eval = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_params, self.pattern)
+        storage_params = TreeStorageParameters(True)
+
+        if next_root is None:   # then this is the first entry to this function
             root = tree_based_eval.get_tree().get_root()
             unary_root = ParallelUnaryNode(root._sliding_window, child=root)
             root.set_parent(unary_root)
             tree_based_eval.set_root(unary_root)
-            unary_root.create_storage_unit(storageparams)
+            unary_root.create_storage_unit(storage_params)
         else:
             root = next_root
             unary_root = ParallelUnaryNode(root._sliding_window, child=root)
             unary_root.set_parent(root._parent)
             root.set_parent(unary_root)
+
             if source_is_left:
                 unary_root._parent.set_subtrees(unary_root, unary_root._parent._right_subtree)
             else:
                 unary_root._parent.set_subtrees(unary_root._parent._left_subtree, unary_root)
 
             tree_based_eval.set_root(unary_root)
-            unary_root.create_storage_unit(storageparams)
+            unary_root.create_storage_unit(storage_params)
 
         if int((execution_units_left - 1)/2) < 1 or isinstance(next_root, LeafNode):
-            unaryeval = ParallelTreeEval(tree_based_eval, has_leafs=True, is_main_root=(next_root is None), data_formatter=self.data_formatter)
-            self.trees_with_leafs.append(unaryeval)
+            unary_eval = ParallelTreeEval(tree_based_eval, has_leafs=True, is_main_root=(next_root is None), data_formatter=self.data_formatter)
+            self.trees_with_leafs.append(unary_eval)
             self.trees_with_leafs_indexes.append(len(self.tree_structures))
         else:
-            unaryeval = ParallelTreeEval(tree_based_eval, has_leafs=False, is_main_root=(next_root is None), data_formatter=self.data_formatter)
+            unary_eval = ParallelTreeEval(tree_based_eval, has_leafs=False, is_main_root=(next_root is None), data_formatter=self.data_formatter)
 
-        self.tree_structures.append(unaryeval)
+        self.tree_structures.append(unary_eval)
         if next_root is None:
-            self.masters.append(unaryeval)
+            self.masters.append(unary_eval)
 
         current = unary_root.get_child()
         if isinstance(current, UnaryNode):
@@ -291,12 +293,13 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         for tree_structure in self.tree_structures:
             unary_root = tree_structure.get_evaluation_mechanism().get_tree().get_root()
             unary_children = unary_root.get_unary_children()
+
             for unary_child in unary_children:
                 self.find_and_set_child(tree_structure, unary_child)
 
     def find_and_set_child(self, tree_to_set, unary_child):
         for tree_structure in self.tree_structures:
             unary_root = tree_structure.get_evaluation_mechanism().get_tree().get_root()
+
             if unary_child == unary_root:
                 tree_to_set.add_child(tree_structure)
-
