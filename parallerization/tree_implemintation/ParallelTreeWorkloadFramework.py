@@ -36,7 +36,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def duplicate_structure(self, evaluation_mechanism: EvaluationMechanism,
                             eval_params: EvaluationMechanismParameters = None, num_of_copies = None):
-        if num_of_copies == 0:
+        if num_of_copies is None:
             num_of_copies = self.get_execution_units()
 
         for i in range(num_of_copies):
@@ -76,12 +76,12 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def join_only_masters(self):
         for em in self.masters:
-            print("join_only_masters: joining thread " + str(em.get_thread().ident))
+            #print("join_only_masters: joining thread " + str(em.get_thread().ident))
             em.join()
 
     def join_only_tree_structures(self):
         for em in self.tree_structures:
-            print("join_only_tree_structures: joining thread " + str(em.get_thread().ident))
+            #print("join_only_tree_structures: joining thread " + str(em.get_thread().ident))
             em.join()
 
     def split_structure_to_families(self, evaluation_mechanism: EvaluationMechanism, eval_params: EvaluationMechanismParameters = None):
@@ -110,7 +110,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         if next_event is None:
             return None, None
         else:
-            input_stream1 = self.create_input_stream(next_event)
+            input_stream1 = self.create_input_stream(next_event)#TODO: create function
             input_stream2 = self.create_input_stream(next_event)
             input_stream3 = self.create_input_stream(next_event)
 
@@ -130,6 +130,9 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         count = self.event_stream.count()
         if count > 1:
             next_event = self.event_stream.get_item()
+
+        if next_event is None:
+            return None, None
 
         input_stream = self.create_input_stream(next_event)
         em_indexes = []
@@ -230,9 +233,8 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def split_structure(self, eval_params: EvaluationMechanismParameters = None):
         self.split_structure_utils(eval_params, self.get_execution_units())
-        self.set_unary_children_for_THREE_structures()
+        self.set_unary_children()
         return self.tree_structures, self.masters
-        #TODO: go over tree_structures to update all unary children fields and check other fields
 
     def split_structure_utils(self, eval_params: EvaluationMechanismParameters, execution_units_left: int,
                               next_root=None, source_is_left: bool = False):
@@ -260,7 +262,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
             tree_based_eval.set_root(unary_root)
             unary_root.create_storage_unit(storageparams)
 
-        if int((execution_units_left - 1)/2) < 1:
+        if int((execution_units_left - 1)/2) < 1 or isinstance(next_root, LeafNode):
             unaryeval = ParallelTreeEval(tree_based_eval, has_leafs=True, is_main_root=(next_root is None), data_formatter=self.data_formatter)
             self.trees_with_leafs.append(unaryeval)
             self.trees_with_leafs_indexes.append(len(self.tree_structures))
@@ -284,3 +286,17 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
             children.append(self.tree_structures[1])
             children.append(self.tree_structures[2])
             self.tree_structures[0].set_children(children)
+
+    def set_unary_children(self):
+        for tree_structure in self.tree_structures:
+            unary_root = tree_structure.get_evaluation_mechanism().get_tree().get_root()
+            unary_children = unary_root.get_unary_children()
+            for unary_child in unary_children:
+                self.find_and_set_child(tree_structure, unary_child)
+
+    def find_and_set_child(self, tree_to_set, unary_child):
+        for tree_structure in self.tree_structures:
+            unary_root = tree_structure.get_evaluation_mechanism().get_tree().get_root()
+            if unary_child == unary_root:
+                tree_to_set.add_child(tree_structure)
+

@@ -81,7 +81,7 @@ class EvaluationMechanismManager:
         except:
             raise Exception("7")
 
-        print(" manger Finished pushing events")
+        #print(" manger Finished pushing events")
 
         if self.work_load_fr.get_is_data_parallelized() or self.work_load_fr.get_is_structure_parallelized():
             try:
@@ -92,10 +92,10 @@ class EvaluationMechanismManager:
                  self.work_load_fr.wait_masters_to_finish()
             except:
                 raise Exception("9")
-            print("get_results_from_masters")
+            #print("get_results_from_masters")
             self.get_results_from_masters()
 
-        print('manager finished')
+        #print('manager finished')
 
     def run_eval(self):
         multiple_data = self.work_load_fr.get_is_data_parallelized()
@@ -125,7 +125,7 @@ class EvaluationMechanismManager:
 
     def notify_all_to_finish(self):
         for i in range(len(self.eval_mechanism_list)):
-            print("Notifying thread " + str(self.eval_mechanism_list[i].get_thread().ident) + " to stop")
+            #print("Notifying thread " + str(self.eval_mechanism_list[i].get_thread().ident) + " to stop")
             self.eval_mechanism_list[i].stop()
 
     def eval_single_tree_single_data(self):
@@ -151,24 +151,26 @@ class EvaluationMechanismManager:
                 event, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
         except:
             pass
-        print("finished pushing events to threads")
+        #print("finished pushing events to threads")
 
     def eval_multiple_tree_single_data(self):
         self.activate_all_ems(self.eval_mechanism_list)
 
         i_debbug = 0 # TODO:
         events, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
-
+        event_index = 0#TODO: maybe change to list like multiple multiple
         try:
             while events is not None:
                 for index in em_indexes:
                     em = self.eval_mechanism_list[index]
-                    em.process_event(events[index])
+                    em.process_event(events[event_index])
+                    event_index += 1
                     i_debbug += 1
                 events, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
+                event_index = 0
         except:
             pass
-        print("finished pushing events to threads")
+        #print("finished pushing events to threads")
 
     def eval_multiple_em_multiple_data(self):
         self.activate_all_ems(self.eval_mechanism_list)
@@ -190,7 +192,7 @@ class EvaluationMechanismManager:
                 families_events, families_indexes, em_indexes_list = self.work_load_fr.get_data_stream_and_destinations()
         except:
             raise Exception("eval_multiple_em_multiple_data")
-        print("finished pushing events to threads")
+        #print("finished pushing events to threads")
 
 
     def testing_eval_util(self):

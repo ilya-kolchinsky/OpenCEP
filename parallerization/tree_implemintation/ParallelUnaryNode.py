@@ -2,6 +2,7 @@ from typing import List, Tuple
 
 from base.PatternMatch import PatternMatch
 from tree.UnaryNode import UnaryNode, Node
+from tree.BinaryNode import BinaryNode
 from base.PatternStructure import PrimitiveEventStructure
 
 
@@ -57,3 +58,22 @@ class ParallelUnaryNode(UnaryNode): # new root
 
         # if self._parent is not None:
         # self._unhandled_partial_matches.put(pm)
+
+    def get_unary_children(self):
+        child = self.get_child()
+        children = []
+        if isinstance(child, UnaryNode):
+            node = child.get_child()
+            if isinstance(node, ParallelUnaryNode):
+                return [node]
+            else:
+                return []
+        if isinstance(child, BinaryNode):
+            left_child = child.get_left_subtree()
+            right_child = child.get_right_subtree()
+            if isinstance(left_child, ParallelUnaryNode):
+                children.append(left_child)
+            if isinstance(right_child, ParallelUnaryNode):
+                children.append(right_child)
+            return children
+        return children

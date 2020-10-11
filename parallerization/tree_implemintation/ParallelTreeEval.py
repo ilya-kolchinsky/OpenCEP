@@ -16,12 +16,12 @@ from queue import Queue
 class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[ParallelTreeEval]
 
     def __init__(self, tree_based_eval: TreeBasedEvaluationMechanism, has_leafs: bool, is_main_root: bool,
-                 data_formatter: DataFormatter = None, children: list = None):
+                 data_formatter: DataFormatter = None):
         super().__init__(tree_based_eval, data_formatter)
 
         self.has_leafs = has_leafs
         self.is_main_root = is_main_root
-        self.children = children
+        self.children = []
 
         self.queue = Queue()
         self.finished = threading.Event()
@@ -36,12 +36,15 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
     def set_children(self, children):
         self.children = children
 
+    def add_child(self, child):
+        self.children.append(child)
+
     def get_thread(self):
         return self.thread
 
     def activate(self):
         self.thread.start()
-        print("activating thread " + str(self.thread.ident))
+        #print("activating thread " + str(self.thread.ident))
 
     def stop(self):
         self.keep_running.clear()
@@ -65,7 +68,7 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
 
     def run_eval(self): # thread
         try:
-            print("run_eval of thread " + str(self.thread.ident))
+            #print("run_eval of thread " + str(self.thread.ident))
             if self.has_leafs:
                 try:
                     self.run_eval_with_leafs()
@@ -73,15 +76,15 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
                     print("**********************")
                     raise Exception("1")
             else:
-                # time.sleep(10)
-                for child in self.children:
-                    print(str(self.thread.ident) + " waiting for child " + str(child.get_thread().ident) + " to finish ")
+                time.sleep(10)
+                for child in self.children:#TODO: without the sleep: waiting for child None to finish
+                    #print(str(self.thread.ident) + " waiting for child " + str(child.get_thread().ident) + " to finish ")
                     child.wait_till_finish()
                 self.run_eval_without_leafs()
 
-            print("almost finished running thread " + str(self.thread.ident))
+            #print("almost finished running thread " + str(self.thread.ident))
             self.finished.set()
-            print("finished running thread " + str(self.thread.ident))
+            #print("finished running thread " + str(self.thread.ident))
         except:
             print("---------------------")
             print("10")
@@ -89,35 +92,35 @@ class ParallelTreeEval(ParallelExecutionFramework): # returns from split: List[P
 
     def run_eval_with_leafs(self):
         time.sleep(30)
-        print(" called running run_eval_with_leafs on thread " + str(self.thread.ident) + " : " + str(self.keep_running.is_set()) + " " + str(self.queue._qsize()))
+        #print(" called running run_eval_with_leafs on thread " + str(self.thread.ident) + " : " + str(self.keep_running.is_set()) + " " + str(self.queue._qsize()))
         counter = 0
         while self.keep_running.is_set():
-            # print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.qsize()))
+            #print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.qsize()))
             try:
                 if not self.queue._qsize() == 0:
                     event = self.queue.get()
                     # self.queue.task_done()
                     counter += 1
-                    if counter % 10000 == 0:
-                        print(str(self.thread.ident) + " 1: counter  =  " + str(counter))
+                    #if counter % 10000 == 0:
+                        #print(str(self.thread.ident) + " 1: counter  =  " + str(counter))
                     self.evaluation_mechanism.eval(event, self.pattern_matches, self.data_formatter)
             except:
                 raise Exception("---")
 
         while not self.queue._qsize() == 0:
-            # print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.qsize()))
+            #print(str(self.thread.ident) + " is running " + str(self.keep_running.is_set()) + " " + str(self.queue.qsize()))
             try:
                 event = self.queue.get()
                 # self.queue.task_done()
                 counter += 1
-                if counter % 10000 == 0:
-                   print(str(self.thread.ident) + " 2: counter  =  " + str(counter))
+                #if counter % 10000 == 0:
+                   #print(str(self.thread.ident) + " 2: counter  =  " + str(counter))
                 self.evaluation_mechanism.eval(event, self.pattern_matches, self.data_formatter)
             except:
                 pass
 
     def run_eval_without_leafs(self):
-        print("run_eval_without_leafs of thread " + str(self.thread.ident))
+        #print("run_eval_without_leafs of thread " + str(self.thread.ident))
         unary_children = self.get_unary_children()
 
         partial_matches_list = []
