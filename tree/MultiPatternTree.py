@@ -83,39 +83,36 @@ class MultiPatternTree:
         self.__roots = []
         for i in range(len(patterns)):
             node = trees[i].get_root()
-            index = i+1
+            pattern_id = i+1
             self.__roots.append(node)
-            self.__pattern_to_root_dict[index] = node
+            self.__pattern_to_root_dict[pattern_id] = node
             for root in self.__roots:
                 if root == node:
                     break
-                if self.try_and_merge(root, node, index):
+                if self.try_and_merge(root, node):
                     break
         return self.__roots
 
-    def try_and_merge(self, root, node, index):
-        if self.find_and_merge_node_into_subtree(root, node, index):
+    def try_and_merge(self, root, node):
+        if self.find_and_merge_node_into_subtree(root, node):
             return True
         if isinstance(node, BinaryNode):
-            left_merge = self.try_and_merge(root, node.get_left_subtree(), index)
-            right_merge = self.try_and_merge(root, node.get_right_subtree(), index)
+            left_merge = self.try_and_merge(root, node.get_left_subtree())
+            right_merge = self.try_and_merge(root, node.get_right_subtree())
             return left_merge or right_merge
         if isinstance(node, UnaryNode):
-            return self.try_and_merge(root, node.get_child(), index)
+            return self.try_and_merge(root, node.get_child())
         return False
 
-    def find_and_merge_node_into_subtree(self, root: Node, node: Node, index):
-        # in this check we make sure that we are not checking shared nodes more than once
-        # if len(root.get_pattern_id()) > 1 and min(root.get_pattern_id()) < index:
-        #    return False
+    def find_and_merge_node_into_subtree(self, root: Node, node: Node):
         if root.is_equal(node):
             self.merge_nodes(root, node)
             return True
         elif isinstance(root, BinaryNode):
-            return self.find_and_merge_node_into_subtree(root.get_left_subtree(), node, index) or \
-                   self.find_and_merge_node_into_subtree(root.get_right_subtree(), node, index)
+            return self.find_and_merge_node_into_subtree(root.get_left_subtree(), node) or \
+                   self.find_and_merge_node_into_subtree(root.get_right_subtree(), node)
         elif isinstance(root, UnaryNode):
-            return self.find_and_merge_node_into_subtree(root.get_child(), node, index)
+            return self.find_and_merge_node_into_subtree(root.get_child(), node)
         return False
 
     def merge_nodes(self, node: Node, other: Node):
