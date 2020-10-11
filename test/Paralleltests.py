@@ -28,7 +28,7 @@ def MultiStructureMultiDataTwoFamily(createTestFile=False):
     )
     workload = ParallelTreeWorkloadFramework(pattern, execution_units=1, is_data_parallelized=True,
                                              is_structure_parallelized=True, num_of_families=2)
-    print("Running test for multiple structures, multiple data parts with 2 family, 1 structure, 2 data parts")
+    print("Running test for multiple structures, multiple data parts with 2 family, 1 structure, 2 families")
 
     runTest("one", [pattern], createTestFile, work_load_fr=workload)
 
@@ -47,7 +47,9 @@ def MultiStructureMultiDataTwoFamily2(createTestFile=False):
     workload_framework = ParallelTreeWorkloadFramework(pattern, execution_units=3, is_data_parallelized=True,
                                                        is_structure_parallelized=True, num_of_families=1)
 
-    print("Running test for multiple structures, multi data part with 3 structures, 1 data part, one family")
+    print("Running test for multiple structures, multiple data part with 3 structures, 1 data part, 1 family")
+
+    runTest("simple", [pattern], createTestFile, work_load_fr=workload_framework)
 
 
 def SingleStructureMultiData1(createTestFile=False):

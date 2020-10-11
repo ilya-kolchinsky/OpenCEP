@@ -100,7 +100,6 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         return self.families, self.masters
 
-
     def get_single_data_multiple_structure_info(self):
         next_event = None
         count = self.event_stream.count()
@@ -109,21 +108,19 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         if next_event is None:
             return None, None
-        else:
-            input_stream1 = self.create_input_stream(next_event)#TODO: create function
-            input_stream2 = self.create_input_stream(next_event)
-            input_stream3 = self.create_input_stream(next_event)
 
-            input_streams = []
+        em_indexes = self.get_indexes()
 
-            input_streams.append(input_stream1)
-            input_streams.append(input_stream2)
-            input_streams.append(input_stream3)
-            try:
-                em_indexes = self.get_indexes()
-            except:
-                pass
-            return input_streams, em_indexes
+        num_of_copies = len(em_indexes)
+        input_streams = self.create_copies_of_event( next_event, num_of_copies)
+
+        return input_streams, em_indexes
+
+    def create_copies_of_event(self, event_to_copy, num_of_copies):
+        input_streams = []
+        for i in range(num_of_copies):
+            input_streams.append(self.create_input_stream(event_to_copy))
+        return input_streams
 
     def get_multiple_data_single_structure_info(self):
         next_event = None
@@ -159,20 +156,24 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         return input_streams, families_indexes, indexes_of_ems_in_each_family
 
-    def get_family_events(self, next_event): # TODO:
+    def get_family_events(self, next_event):
         input_streams = []
         for i in range(self.num_of_families):
-            stream = self.create_input_stream(next_event)
-            input_streams.append([stream])
+            streams = self.create_copies_of_event(next_event, self.get_execution_units())
+            input_streams.append(streams)
 
         return input_streams
 
     def get_indexes_of_ems_in_each_family(self):
-        indexes = []
-        for i in range(self.num_of_families):
-            indexes.append([0])
+        indexes_list_of_list = []
+        indexes_list = []
 
-        return indexes
+        for i in range(self.num_of_families):
+            for j in self.families_trees_with_leafs_indexes[i]:#TODO:
+                indexes_list.append(j)
+            indexes_list_of_list.append(indexes_list)
+            indexes_list = []
+        return indexes_list_of_list
 
     def get_data_stream_and_destinations(self):
         multiple_data = self.get_is_data_parallelized()
@@ -209,7 +210,6 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         families_indexes = []
         for i in range(self.num_of_families):
             families_indexes.append(i)
-
         return families_indexes
 
     def create_input_stream(self, event):

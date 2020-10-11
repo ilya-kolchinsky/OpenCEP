@@ -929,18 +929,18 @@ def sortedStorageBenchMarkTest(createTestFile=False):
 runTest.over_all_time = 0
 
 # Parallel tests
-MultipleStructuresSingleData1()
-MultipleStructuresSingleData2()
-MultipleStructuresSingleData3()
-MultipleStructuresSingleData4()
-MultipleStructuresSingleData5()
-MultipleStructuresSingleData6()
 MultiStructureMultiDataOneFamily()
 MultiStructureMultiDataTwoFamily()
 MultiStructureMultiDataTwoFamily2()
 SingleStructureMultiData1()
 SingleStructureMultiData2()
 SingleStructureMultiData3()
+MultipleStructuresSingleData1()
+MultipleStructuresSingleData2()
+MultipleStructuresSingleData3()
+MultipleStructuresSingleData4()
+MultipleStructuresSingleData5()
+MultipleStructuresSingleData6()
 
 # #print("Finished running all tests, overall time: %s" % runTest.over_all_time)
 #

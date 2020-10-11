@@ -81,7 +81,7 @@ class EvaluationMechanismManager:
         except:
             raise Exception("7")
 
-        #print(" manger Finished pushing events")
+        #print(" manager Finished pushing events")
 
         if self.work_load_fr.get_is_data_parallelized() or self.work_load_fr.get_is_structure_parallelized():
             try:
