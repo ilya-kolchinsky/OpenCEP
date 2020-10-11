@@ -64,7 +64,7 @@ class ParallelTreeEval(ParallelExecutionFramework):
         self.finished.set()
 
     def run_eval_with_leafs(self):
-        time.sleep(30)                  # TODO : check
+        time.sleep(15)                  # TODO : check
 
         while self.keep_running.is_set():
             if not self.queue._qsize() == 0:
