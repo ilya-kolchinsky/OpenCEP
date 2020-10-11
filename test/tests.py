@@ -909,14 +909,17 @@ def sortedStorageBenchMarkTest(createTestFile=False):
 runTest.over_all_time = 0
 
 # multi-pattern tests
-onePatternIncludesOther()
-multiPatternShare()
-threePatternTest()
-differentTimeStamps()
+#first approach: sharing leaves
+leafIsRoot()
+distinctPatterns()
+threePatternsTest()
+samePatternDifferentTimeStamps()
 rootAndInner()
-bigMultiPatternTest()
-twoPatternsOneArgument()
 
+#second approach: sharing equivalent subtrees
+onePatternIncludesOther()
+samePatternSharingRoot()
+severalPatternShareSubtree()
 
 
 # negation tests

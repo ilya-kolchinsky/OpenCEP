@@ -228,7 +228,7 @@ def runMultiTest(testName, patterns, createTestFile = False,
         events = events.duplicate()
 
     listShort = ["multiplePatterns", "distinctPatterns"]
-    listHalfShort = ["onePatternIncludesOther"]
+    listHalfShort = ["onePatternIncludesOther", "threeSharingSubtrees"]
     listCustom = []
     listCustom2 = ["FirstMultiPattern", "RootAndInner"]
     if testName in listShort:
