@@ -34,60 +34,48 @@ class MultiPatternTree:
         if multi_pattern_eval_approach == MultiPatternEvaluationApproach.SUBTREES_UNION:
             return self.__construct_subtrees_union_tree(tree_plans, patterns, storage_params)
 
+    """
+    This method gets patterns, builds a single-pattern tree to each one of them,
+    and merges equivalent leaves from different trees.
+    We are not sharing leaves from the same tree.
+    """
     def __construct_trivial_tree(self, tree_plans: List[TreePlan], patterns: List[Pattern],
                                  storage_params: TreeStorageParameters):
 
         trees = [Tree(tree_plans[i], patterns[i], storage_params, i+1) for i in range(len(patterns))]
-        roots = []
-        leaves_to_counter_dict, leaves_dict = {}, {}
-        flag = 0
+        self.__roots = []
+        #a map between a leaf and the number of equal leaves that were
+        #shared to this leaf in the current iteration
+        leaves_to_counter_dict = {}
+
+        #a map between a leaf and a list of its equivalent leaves
+        leaves_dict = {}
 
         for tree in trees:
             curr_leaves = tree.get_leaves()
-            curr_root = curr_leaves[0].get_roots()
+            curr_root = tree.get_root()
             pattern_id = list(curr_leaves[0].get_pattern_id())[0]
-            self.__pattern_to_root_dict[pattern_id] = curr_root[0]
+            self.__pattern_to_root_dict[pattern_id] = curr_root
+            self.__roots.append(curr_root)
             for leaf in curr_leaves:
                 for dict_leaf in leaves_dict:
                     if leaf.is_equal(dict_leaf):
-                        flag = 1
-                        break
-                if flag == 0:
-                    leaves_to_counter_dict[leaf] = 1
-                    leaves_dict[leaf] = []
-                    leaves_dict[leaf].append(leaf)
+                        if leaves_to_counter_dict[dict_leaf] == len(leaves_dict[dict_leaf]):
+                            # there are no free leaves to share
+                            leaves_dict[dict_leaf].append(leaf)
+                        else:
+                            #the index of the first leaf that has not been shared yet
+                            index = leaves_to_counter_dict[dict_leaf]
+                            leaf_to_merge_into = leaves_dict[dict_leaf][index]
+                            self.merge_nodes(leaf_to_merge_into, leaf)
+                        leaves_to_counter_dict[dict_leaf] += 1
 
-                elif leaves_to_counter_dict[dict_leaf] == len(leaves_dict[dict_leaf]):
-                    leaves_dict[dict_leaf].append(leaf)
-                    leaves_to_counter_dict[dict_leaf] += 1
-
-                else:
-                    index = leaves_to_counter_dict[dict_leaf]
-                    our_leaf = leaves_dict[dict_leaf][index]
-                    our_leaf.set_sliding_window(max(our_leaf.get_sliding_window(), leaf.get_sliding_window()))
-                    our_leaf.add_pattern_id(leaf.get_pattern_id())
-                    curr_parents = leaf.get_parents()
-                    if curr_parents:
-                        for parent in curr_parents:
-                            our_leaf.add_to_dict(parent, PrimitiveEventDefinition(leaf.get_event_type(), leaf.get_event_name(), leaf.get_leaf_index()))
-                            our_leaf.add_to_parent_to_unhandled_queue_dict(parent, Queue())
-                            if isinstance(parent, UnaryNode):
-                                parent.replace_subtree(our_leaf)
-                            elif isinstance(parent, BinaryNode):
-                                parent.replace_subtree(leaf, our_leaf)
-                    # this means that we are in a root
                     else:
-                        pattern_id = list(leaf.get_pattern_id())[0]
-                        self.__pattern_to_root_dict[pattern_id] = our_leaf
-                        curr_root = []
-                        our_leaf.set_is_root(True)
+                        leaves_to_counter_dict[leaf] = 1
+                        leaves_dict[leaf] = [leaf]
 
-                    leaves_to_counter_dict[dict_leaf] += 1
-
-                flag = 0
             leaves_to_counter_dict = {key: 0 for key in leaves_to_counter_dict}
-            roots += curr_root
-        return roots
+        return self.__roots
 
     def __construct_subtrees_union_tree(self, tree_plans: List[TreePlan], patterns: List[Pattern],
                                         storage_params: TreeStorageParameters):
@@ -144,7 +132,7 @@ class MultiPatternTree:
                 else:
                     event_defs = other.get_event_definitions()
 
-                node.add_to_dict(parent,event_defs)
+                node.add_to_dict(parent, event_defs)
                 node.add_to_parent_to_unhandled_queue_dict(parent, Queue())
                 if isinstance(parent, UnaryNode):
                     parent.replace_subtree(node)
@@ -195,10 +183,5 @@ class MultiPatternTree:
             # the pending matches were released and have hopefully reached the roots
 
         return self.get_matches()
-"""
-This method gets _root and _node, and tries to find a node which is
-equivalent to _node in the subtree which _root is its root. If a node is found, it merges them.
-"""
-
 
 
