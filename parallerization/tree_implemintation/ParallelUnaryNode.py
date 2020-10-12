@@ -6,9 +6,9 @@ from tree.BinaryNode import BinaryNode
 from base.PatternStructure import PrimitiveEventStructure
 
 
-class ParallelUnaryNode(UnaryNode): # new root
-    def __init__(self, sliding_window, parent: Node = None,
-                 event_defs: List[Tuple[int, PrimitiveEventStructure]] = None, child: Node = None):
+class ParallelUnaryNode(UnaryNode):
+    def __init__(self, sliding_window, parent: Node = None, event_defs: List[Tuple[int,PrimitiveEventStructure]] = None,
+                 child: Node = None):
         super().__init__(sliding_window, parent, event_defs, child)
 
         self.our_pattern_matches = []
@@ -37,14 +37,13 @@ class ParallelUnaryNode(UnaryNode): # new root
     def handle_event(self, pm: PatternMatch):
         self._validate_and_propagate_partial_match(pm.events)
 
-    def get_our_matches(self, filter_value: int or float = None):
+    def get_our_matches(self):
         return self.our_pattern_matches
 
     def get_partial_matches(self, filter_value: int or float = None):
         return self._partial_matches
 
     def _add_partial_match(self, pm: PatternMatch):
-
         self._partial_matches.add(pm)
         if self._parent is not None:
             self._unhandled_partial_matches.put(pm)
@@ -53,22 +52,15 @@ class ParallelUnaryNode(UnaryNode): # new root
     def get_unary_children(self):
         child = self.get_child()
         children = []
-
         if isinstance(child, UnaryNode):
-            node = child.get_child()
+            node = child._child
             if isinstance(node, ParallelUnaryNode):
-                return [node]
-            else:
-                return []
-
-        if isinstance(child, BinaryNode):
+                children.append(node)
+        elif isinstance(child, BinaryNode):
             left_child = child.get_left_subtree()
             right_child = child.get_right_subtree()
             if isinstance(left_child, ParallelUnaryNode):
                 children.append(left_child)
             if isinstance(right_child, ParallelUnaryNode):
                 children.append(right_child)
-
-            return children
-
         return children

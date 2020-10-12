@@ -7,4 +7,5 @@ class PatternMatchWithUnarySource:
         self.unary_index = index
 
     def get_pattern_match_timestamp(self):
-        return self.pattern_match.last_timestamp # TODO: check if this is the right parameter to compare them by
+        return self.pattern_match.last_timestamp
+

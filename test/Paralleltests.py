@@ -13,8 +13,8 @@ def MultiStructureMultiDataOneFamily(createTestFile=False):
             GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
             timedelta(minutes=120)
         )
-        workload = ParallelTreeWorkloadFramework(pattern, execution_units=1, is_data_parallelized=True,
-                                                 is_structure_parallelized=True, num_of_families=1)
+        workload = ParallelTreeWorkloadFramework(pattern, execution_units=1, is_data_parallel=True,
+                                                 is_structure_parallel=True, num_of_families=1)
         print("Running test for multiple structures, multiple data parts with 1 family, 1 structure, 1 data part")
 
         runTest("one", [pattern], createTestFile, work_load_fr=workload)
@@ -26,8 +26,8 @@ def MultiStructureMultiDataTwoFamily(createTestFile=False):
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
         timedelta(minutes=120)
     )
-    workload = ParallelTreeWorkloadFramework(pattern, execution_units=1, is_data_parallelized=True,
-                                             is_structure_parallelized=True, num_of_families=2)
+    workload = ParallelTreeWorkloadFramework(pattern, execution_units=1, is_data_parallel=True,
+                                             is_structure_parallel=True, num_of_families=2)
     print("Running test for multiple structures, multiple data parts with 2 family, 1 structure, 2 families")
 
     runTest("one", [pattern], createTestFile, work_load_fr=workload)
@@ -44,8 +44,8 @@ def MultiStructureMultiDataTwoFamily2(createTestFile=False):
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    workload_framework = ParallelTreeWorkloadFramework(pattern, execution_units=3, is_data_parallelized=True,
-                                                       is_structure_parallelized=True, num_of_families=1)
+    workload_framework = ParallelTreeWorkloadFramework(pattern, execution_units=3, is_data_parallel=True,
+                                                       is_structure_parallel=True, num_of_families=1)
 
     print("Running test for multiple structures, multiple data part with 3 structures, 1 data part, 1 family")
 
@@ -58,8 +58,8 @@ def SingleStructureMultiData1(createTestFile=False):
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
         timedelta(minutes=120)
     )
-    workload = ParallelTreeWorkloadFramework(pattern, execution_units=1, is_data_parallelized=True,
-                                                 is_structure_parallelized=False, num_of_families=0)
+    workload = ParallelTreeWorkloadFramework(pattern, execution_units=1, is_data_parallel=True,
+                                                 is_structure_parallel=False, num_of_families=0)
     print("Running test for single structure, multiple data parts with 1 structure, 1 data part")
 
     runTest("one", [pattern], createTestFile, work_load_fr=workload)
@@ -70,8 +70,8 @@ def SingleStructureMultiData2(createTestFile=False):
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
         timedelta(minutes=120)
     )
-    workload = ParallelTreeWorkloadFramework(pattern, execution_units=3, is_data_parallelized=True,
-                                                 is_structure_parallelized=False, num_of_families=0)
+    workload = ParallelTreeWorkloadFramework(pattern, execution_units=3, is_data_parallel=True,
+                                                 is_structure_parallel=False, num_of_families=0)
 
     print("Running test for single structure, multiple data parts with 1 structure, 3 data part")
 
@@ -83,8 +83,8 @@ def SingleStructureMultiData3(createTestFile=False):
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
         timedelta(minutes=120)
     )
-    workload = ParallelTreeWorkloadFramework(pattern, execution_units=10, is_data_parallelized=True,
-                                                 is_structure_parallelized=False, num_of_families=0)
+    workload = ParallelTreeWorkloadFramework(pattern, execution_units=10, is_data_parallel=True,
+                                                 is_structure_parallel=False, num_of_families=0)
 
     print("Running test for single structure, multiple data parts with 1 structure, 10 data part")
 
@@ -104,8 +104,8 @@ def MultipleStructuresSingleData1(createTestFile=False):
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    workload_framework = ParallelTreeWorkloadFramework(pattern, execution_units=1, is_data_parallelized=False,
-                                                 is_structure_parallelized=True, num_of_families=0)
+    workload_framework = ParallelTreeWorkloadFramework(pattern, execution_units=1, is_data_parallel=False,
+                                                 is_structure_parallel=True, num_of_families=0)
 
     print("Running test for multiple structures, single data part with 1 structure, 1 data part")
 
@@ -129,8 +129,8 @@ def MultipleStructuresSingleData2(createTestFile=False):
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    workload_framework = ParallelTreeWorkloadFramework(pattern, execution_units=3, is_data_parallelized=False,
-                                                       is_structure_parallelized=True, num_of_families=0)
+    workload_framework = ParallelTreeWorkloadFramework(pattern, execution_units=3, is_data_parallel=False,
+                                                       is_structure_parallel=True, num_of_families=0)
 
     print("Running test for multiple structures, single data part with 3 structures, 1 data part")
 
@@ -154,8 +154,8 @@ def MultipleStructuresSingleData3(createTestFile=False):
                                IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    workload_framework = ParallelTreeWorkloadFramework(pattern, execution_units=5, is_data_parallelized=False,
-                                                       is_structure_parallelized=True, num_of_families=0)
+    workload_framework = ParallelTreeWorkloadFramework(pattern, execution_units=5, is_data_parallel=False,
+                                                       is_structure_parallel=True, num_of_families=0)
 
     print("Running test for multiple structures, single data part with 3 structures, 1 data part")
 
@@ -187,8 +187,8 @@ def MultipleStructuresSingleData4(createTestFile=False):
         ),
         timedelta(minutes=10)
     )
-    workload_framework = ParallelTreeWorkloadFramework(msftDrivRacePattern, execution_units=1, is_data_parallelized=False,
-                                                 is_structure_parallelized=True, num_of_families=0)
+    workload_framework = ParallelTreeWorkloadFramework(msftDrivRacePattern, execution_units=1, is_data_parallel=False,
+                                                 is_structure_parallel=True, num_of_families=0)
 
     print("Running test for multiple structures, single data part with 1 structures, 1 data part")
 
@@ -223,8 +223,8 @@ def MultipleStructuresSingleData5(createTestFile=False):
         timedelta(minutes=10)
     )
     workload_framework = ParallelTreeWorkloadFramework(msftDrivRacePattern, execution_units=3,
-                                                       is_data_parallelized=False,
-                                                       is_structure_parallelized=True, num_of_families=0)
+                                                       is_data_parallel=False,
+                                                       is_structure_parallel=True, num_of_families=0)
 
     print("Running test for multiple structures, single data part with 3 structures, 1 data part")
 
@@ -259,8 +259,8 @@ def MultipleStructuresSingleData6(createTestFile=False):
         timedelta(minutes=10)
     )
     workload_framework = ParallelTreeWorkloadFramework(msftDrivRacePattern, execution_units=7,
-                                                       is_data_parallelized=False,
-                                                       is_structure_parallelized=True, num_of_families=0)
+                                                       is_data_parallel=False,
+                                                       is_structure_parallel=True, num_of_families=0)
 
     print("Running test for multiple structures, single data part with 5 structures, 1 data part")
 

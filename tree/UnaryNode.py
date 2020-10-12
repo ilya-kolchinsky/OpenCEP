@@ -37,3 +37,6 @@ class UnaryNode(InternalNode, ABC):
                             sort_by_first_timestamp: bool = False):
         self._init_storage_unit(storage_params, sorting_key, rel_op, equation_side)
         self._child.create_storage_unit(storage_params)
+
+    def get_child(self):
+        return self._child

@@ -9,6 +9,7 @@ from base.DataFormatter import DataFormatter
 from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
 from typing import List
 
+
 class EvaluationMechanismManager:
 
     def __init__(self, work_load_fr: ParallelWorkLoadFramework, eval_params: EvaluationMechanismParameters, patterns: List[Pattern]):
@@ -18,8 +19,7 @@ class EvaluationMechanismManager:
         self.eval_params = eval_params
         self.patterns = patterns
         self.pattern_matches_stream = None
-        self.data_formatter = None
-        self.streams = None
+        self.pattern_matches_list = None
 
         if work_load_fr is None:
             self.work_load_fr = ParallelWorkLoadFramework(1, False, False, 0)  # no parallelism is needed
@@ -35,13 +35,13 @@ class EvaluationMechanismManager:
     def initialize(self, pattern_matches):
         self.pattern_matches_stream = pattern_matches
 
-        if not self.work_load_fr.get_is_data_parallelized() and not self.work_load_fr.get_is_structure_parallelized():
+        if not self.work_load_fr.get_is_data_parallel() and not self.work_load_fr.get_is_structure_parallel():
             self.initialize_single_tree_single_data(self.pattern_matches_stream)
-        elif self.work_load_fr.get_is_data_parallelized() and not self.work_load_fr.get_is_structure_parallelized():
+        elif self.work_load_fr.get_is_data_parallel() and not self.work_load_fr.get_is_structure_parallel():
             self.initialize_single_tree_multiple_data()
-        elif not self.work_load_fr.get_is_data_parallelized() and self.work_load_fr.get_is_structure_parallelized():
+        elif not self.work_load_fr.get_is_data_parallel() and self.work_load_fr.get_is_structure_parallel():
             self.initialize_multiple_tree_single_data()
-        elif self.work_load_fr.get_is_data_parallelized() and self.work_load_fr.get_is_structure_parallelized():
+        elif self.work_load_fr.get_is_data_parallel() and self.work_load_fr.get_is_structure_parallel():
             self.initialize_multiple_tree_multiple_data()
 
     def initialize_single_tree_single_data(self, pattern_matches: OutputStream):
@@ -50,13 +50,13 @@ class EvaluationMechanismManager:
         self.pattern_matches_list = [pattern_matches]
 
     def initialize_single_tree_multiple_data(self):
-        self.eval_mechanism_list, self.masters_list = self.work_load_fr.duplicate_structure(self.source_eval_mechanism, self.eval_params)
+        self.eval_mechanism_list, self.masters_list = self.work_load_fr.duplicate_structure(self.eval_params)
 
     def initialize_multiple_tree_single_data(self):
         self.eval_mechanism_list, self.masters_list = self.work_load_fr.split_structure(self.eval_params)
 
     def initialize_multiple_tree_multiple_data(self):
-        self.eval_mechanism_families, self.masters_list = self.work_load_fr.split_structure_to_families(self.source_eval_mechanism, self.eval_params)
+        self.eval_mechanism_families, self.masters_list = self.work_load_fr.split_structure_to_families(self.eval_params)
         self.eval_mechanism_list = []
 
         for family in self.eval_mechanism_families:
@@ -71,7 +71,7 @@ class EvaluationMechanismManager:
 
         self.run_eval()
 
-        if self.work_load_fr.get_is_data_parallelized() or self.work_load_fr.get_is_structure_parallelized():
+        if self.work_load_fr.get_is_data_parallel() or self.work_load_fr.get_is_structure_parallel():
             self.notify_all_to_finish()
 
             self.work_load_fr.wait_masters_to_finish()
@@ -79,8 +79,8 @@ class EvaluationMechanismManager:
             self.get_results_from_masters()
 
     def run_eval(self):
-        multiple_data = self.work_load_fr.get_is_data_parallelized()
-        multiple_structures = self.work_load_fr.get_is_structure_parallelized()
+        multiple_data = self.work_load_fr.get_is_data_parallel()
+        multiple_structures = self.work_load_fr.get_is_structure_parallel()
 
         if not multiple_data and not multiple_structures:
             self.eval_single_tree_single_data()
@@ -92,7 +92,8 @@ class EvaluationMechanismManager:
             self.eval_multiple_em_multiple_data()
 
     def eval_single_tree_single_data(self):
-        self.source_eval_mechanism.eval(self.work_load_fr.event_stream, self.pattern_matches_list[0], self.work_load_fr.data_formatter)
+        self.source_eval_mechanism.eval(self.work_load_fr.event_stream, self.pattern_matches_list[0],
+                                        self.work_load_fr.data_formatter)
 
     def eval_single_tree_multiple_data(self):
         self.activate_all_ems()
@@ -159,12 +160,11 @@ class EvaluationMechanismManager:
         for i in range(len(self.eval_mechanism_list)):
             self.eval_mechanism_list[i].stop()
 
+    def get_structure_summary(self):
+        return self.source_eval_mechanism.get_structure_summary()
 
 # TODO:
-# failed tests ....
 # multi + multi - tests
-# finish split structure
-# write tests
 
 # remove None from original eval
 # decide on sleep time
