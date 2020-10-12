@@ -908,30 +908,6 @@ def sortedStorageBenchMarkTest(createTestFile=False):
 	
 runTest.over_all_time = 0
 
-# multi-pattern tests
-#first approach: sharing leaves
-leafIsRoot()
-distinctPatterns()
-threePatternsTest()
-samePatternDifferentTimeStamps()
-rootAndInner()
-
-#second approach: sharing equivalent subtrees
-onePatternIncludesOther()
-samePatternSharingRoot()
-severalPatternShareSubtree()
-
-
-# negation tests
-simpleNotTest()
-multipleNotInTheMiddleTest()
-oneNotAtTheBeginningTest()
-multipleNotAtTheBeginningTest()
-oneNotAtTheEndTest()
-multipleNotAtTheEndTest()
-multipleNotBeginAndEndTest()
-testWithMultipleNotAtBeginningMiddleEnd()
-
 # basic functionality tests
 oneArgumentsearchTest()
 simplePatternSearchTest()
@@ -985,6 +961,30 @@ MinMax_1_TestKleeneClosure()
 MinMax_2_TestKleeneClosure()
 KC_AND()
 
+# multi-pattern tests
+#first approach: sharing leaves
+leafIsRoot()
+distinctPatterns()
+threePatternsTest()
+samePatternDifferentTimeStamps()
+rootAndInner()
+
+#second approach: sharing equivalent subtrees
+onePatternIncludesOther()
+samePatternSharingRoot()
+severalPatternShareSubtree()
+notInTheBeginningShare()
+multipleParentsForInternalNode()
+
+# negation tests
+simpleNotTest()
+multipleNotInTheMiddleTest()
+oneNotAtTheBeginningTest()
+multipleNotAtTheBeginningTest()
+oneNotAtTheEndTest()
+multipleNotAtTheEndTest()
+multipleNotBeginAndEndTest()
+testWithMultipleNotAtBeginningMiddleEnd()
 
 # consumption policies tests
 singleType1PolicyPatternSearchTest()

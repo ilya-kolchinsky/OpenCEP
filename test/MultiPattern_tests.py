@@ -238,4 +238,121 @@ def severalPatternShareSubtree(createTestFile = False):
                                               IdentifierTerm("b", lambda x: x["Opening Price"])),
                        timedelta(minutes=5)
                        )
-    runMultiTest("threeSharingSubtrees", [pattern, pattern2, pattern3], createTestFile)
+
+    eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
+        TreeStorageParameters(sort_storage=False,
+                              clean_up_interval=10,
+                              prioritize_sorting_by_timestamp=True),
+        MultiPatternEvaluationApproach.SUBTREES_UNION)
+
+    runMultiTest("threeSharingSubtrees", [pattern, pattern2, pattern3], createTestFile, eval_mechanism_params)
+
+def notInTheBeginningShare(createTestFile = False):
+    pattern1 = Pattern(
+        SeqOperator([NegationOperator(PrimitiveEventStructure("TYP1", "x")),
+                     NegationOperator(PrimitiveEventStructure("TYP2", "y")),
+                     NegationOperator(PrimitiveEventStructure("TYP3", "z")), PrimitiveEventStructure("AAPL", "a"),
+                     PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+
+    pattern2 = Pattern(
+        SeqOperator([NegationOperator(PrimitiveEventStructure("TYP1", "x")),
+                     NegationOperator(PrimitiveEventStructure("TYP2", "y")),
+                     PrimitiveEventStructure("AAPL", "a"),
+                     PrimitiveEventStructure("AMZN", "b")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                           IdentifierTerm("b", lambda x: x["Opening Price"])),
+        timedelta(minutes=5)
+    )
+
+    pattern3 = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"),
+                     PrimitiveEventStructure("AMZN", "b"),
+                     PrimitiveEventStructure("GOOG", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            GreaterThanFormula(IdentifierTerm("c", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"]))
+        ),
+        timedelta(minutes=5)
+    )
+
+    eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
+        TreeStorageParameters(sort_storage=False,
+                              clean_up_interval=10,
+                              prioritize_sorting_by_timestamp=True),
+        MultiPatternEvaluationApproach.SUBTREES_UNION)
+
+
+    runMultiTest("MultipleNotBeginningShare", [pattern1, pattern2, pattern3], createTestFile, eval_mechanism_params)
+
+def multipleParentsForInternalNode(createTestFile = False):
+    pattern1 = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"),
+                     PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            GreaterThanFormula(IdentifierTerm("c", lambda x: x["Peak Price"]),
+                               AtomicTerm(500))
+        ),
+        timedelta(minutes=5)
+    )
+
+    pattern2 = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"),
+                     PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")]),
+            AndFormula(
+                GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                                   IdentifierTerm("b", lambda x: x["Opening Price"])),
+                GreaterThanFormula(IdentifierTerm("c", lambda x: x["Peak Price"]),
+                                   AtomicTerm(530))
+            ),
+            timedelta(minutes=3)
+    )
+
+    pattern3 = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"),
+                     PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("FB", "e")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            GreaterThanFormula(IdentifierTerm("e", lambda x: x["Peak Price"]),
+                               AtomicTerm(520))
+        ),
+        timedelta(minutes=5)
+    )
+
+    pattern4 = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a"),
+                     PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("LI", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            GreaterThanFormula(IdentifierTerm("c", lambda x: x["Peak Price"]),
+                               AtomicTerm(100))
+        ),
+        timedelta(minutes=2)
+    )
+
+    eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
+        TreeStorageParameters(sort_storage=False,
+                              clean_up_interval=10,
+                              prioritize_sorting_by_timestamp=True),
+        MultiPatternEvaluationApproach.SUBTREES_UNION)
+
+    runMultiTest("multipleParentsForInternalNode", [pattern1, pattern2, pattern3, pattern4], createTestFile, eval_mechanism_params)
+
