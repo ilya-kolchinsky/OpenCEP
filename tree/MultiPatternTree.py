@@ -44,11 +44,11 @@ class MultiPatternTree:
 
         trees = [Tree(tree_plans[i], patterns[i], storage_params, i+1) for i in range(len(patterns))]
         self.__roots = []
-        #a map between a leaf and the number of equal leaves that were
-        #shared to this leaf in the current iteration
+        # a map between a leaf and the number of equal leaves that were
+        # shared to this leaf in the current iteration
         leaves_to_counter_dict = {}
 
-        #a map between a leaf and a list of its equivalent leaves
+        # a map between a leaf and a list of its equivalent leaves
         leaves_dict = {}
 
         for tree in trees:
@@ -64,7 +64,7 @@ class MultiPatternTree:
                             # there are no free leaves to share
                             leaves_dict[dict_leaf].append(leaf)
                         else:
-                            #the index of the first leaf that has not been shared yet
+                            # the index of the first leaf that has not been shared yet
                             index = leaves_to_counter_dict[dict_leaf]
                             leaf_to_merge_into = leaves_dict[dict_leaf][index]
                             self.merge_nodes(leaf_to_merge_into, leaf)
@@ -116,7 +116,7 @@ class MultiPatternTree:
         return False
 
     def merge_nodes(self, node: Node, other: Node):
-        #merges other into node
+        # merges other into node
         if node.get_sliding_window() < other.get_sliding_window():
             node.update_sliding_window(other.get_sliding_window())
         node.add_pattern_id(other.get_pattern_id())
@@ -140,7 +140,7 @@ class MultiPatternTree:
             if not node.is_root():
                 node.set_is_root(True)
                 self.__roots.append(node)
-                #other is already in self.__roots, therefore we need to remove it
+                # other is already in self.__roots, therefore we need to remove it
             self.__roots.remove(other)
             other_id = list(other.get_pattern_id())[0]
             self.__pattern_to_root_dict[other_id] = node

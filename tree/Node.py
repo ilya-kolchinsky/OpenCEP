@@ -65,7 +65,7 @@ class Node(ABC):
         self._pattern_id = pattern_id
         self._is_root = False
         # maps parent to event type, event name and index. This field helps to pass the parents a partial match with
-        # the right definitions.
+        # the right event definitions.
         self._parent_to_info_dict = {}
 
     def add_to_parent_to_unhandled_queue_dict(self, key, value):

@@ -98,18 +98,12 @@ class BinaryNode(InternalNode, ABC):
 
         new_partial_match = partial_match_source.get_last_unhandled_partial_match_by_parent(self)
         new_pm_key = partial_match_source.get_storage_unit().get_key_function()
-#        if isinstance(partial_match_source, LeafNode):
         first_event_defs = partial_match_source.get_event_definitions_by_parent(self)
-#        else:
-#            first_event_defs = partial_match_source.get_event_definitions()
         other_subtree.clean_expired_partial_matches(new_partial_match.last_timestamp)
         partial_matches_to_compare = other_subtree.get_partial_matches(new_pm_key(new_partial_match))
-#        if isinstance(other_subtree, LeafNode):
         second_event_defs = other_subtree.get_event_definitions_by_parent(self)
-#        else:
-#            second_event_defs = other_subtree.get_event_definitions()
 
-        #we don't want to erase the partial matches of a root
+        # we don't want to erase the partial matches of a root
         if self._parents is not None:
             self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
