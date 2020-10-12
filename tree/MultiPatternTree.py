@@ -21,13 +21,13 @@ class MultiPatternTree:
                  multi_pattern_eval_approach: MultiPatternEvaluationApproach):
         self.__pattern_to_root_dict = {}
         self.__roots = self.__construct_multi_pattern_tree(tree_plans, patterns, storage_params,
-                 multi_pattern_eval_approach)
+                                                           multi_pattern_eval_approach)
         self.__patterns = patterns
 
         pass
 
     def __construct_multi_pattern_tree(self, tree_plans: List[TreePlan], patterns: List[Pattern], storage_params: TreeStorageParameters,
-                 multi_pattern_eval_approach: MultiPatternEvaluationApproach):
+                                       multi_pattern_eval_approach: MultiPatternEvaluationApproach):
 
         if multi_pattern_eval_approach == MultiPatternEvaluationApproach.TRIVIAL_SHARING_LEAVES:
             return self.__construct_trivial_tree(tree_plans, patterns, storage_params)
@@ -77,6 +77,11 @@ class MultiPatternTree:
             leaves_to_counter_dict = {key: 0 for key in leaves_to_counter_dict}
         return self.__roots
 
+    """
+        This method gets patterns, builds a single-pattern tree to each one of them,
+        and merges equivalent subtrees from different trees.
+        We are sharing the maximal subtree that exists in the tree.
+        """
     def __construct_subtrees_union_tree(self, tree_plans: List[TreePlan], patterns: List[Pattern],
                                         storage_params: TreeStorageParameters):
         trees = [Tree(tree_plans[i], patterns[i], storage_params, i+1) for i in range(len(patterns))]
@@ -93,17 +98,26 @@ class MultiPatternTree:
                     break
         return self.__roots
 
+    """
+    This method is trying to share the node (and its subtree) and the tree of root.
+    If the root and node is not equivalent, trying to share the children of node and root.
+    """
     def try_and_merge(self, root, node):
         if self.find_and_merge_node_into_subtree(root, node):
             return True
         if isinstance(node, BinaryNode):
             left_merge = self.try_and_merge(root, node.get_left_subtree())
-            right_merge = self.try_and_merge(root, node.get_right_subtree())
-            return left_merge or right_merge
+            if left_merge:
+                return left_merge
+            return self.try_and_merge(root, node.get_right_subtree())
         if isinstance(node, UnaryNode):
             return self.try_and_merge(root, node.get_child())
         return False
 
+    """
+    This method is trying to find node in the subtree of root (or an equivalent node).
+    If such a node is found, it merges the equivalent nodes.
+    """
     def find_and_merge_node_into_subtree(self, root: Node, node: Node):
         if root.is_equal(node):
             self.merge_nodes(root, node)
@@ -115,6 +129,9 @@ class MultiPatternTree:
             return self.find_and_merge_node_into_subtree(root.get_child(), node)
         return False
 
+    """
+    Merge two nodes, and update all the required information
+    """
     def merge_nodes(self, node: Node, other: Node):
         # merges other into node
         if node.get_sliding_window() < other.get_sliding_window():
@@ -149,7 +166,6 @@ class MultiPatternTree:
         leaves = set()
         for root in self.__roots:
             leaves |= set(root.get_leaves())
-        pass
         return leaves
 
     def get_matches(self):
@@ -160,8 +176,10 @@ class MultiPatternTree:
                 pattern_idx = root.get_pattern_id()
                 for idx in pattern_idx:
                     if self.__pattern_to_root_dict[idx] != root:
+                        # the current root is an internal node in pattern #idx, but not it's root.
+                        # we don't need to check if there are any matches for this pattern id
                         continue
-                    # check the timestamp
+                    # check the if timestamp is correct for this pattern id.
                     # the pattern indices start from 1.
                     if match.last_timestamp - match.first_timestamp <= self.__patterns[idx-1].window:
                         match.add_pattern_id(idx)
