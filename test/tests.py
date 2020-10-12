@@ -929,18 +929,24 @@ def sortedStorageBenchMarkTest(createTestFile=False):
 runTest.over_all_time = 0
 
 # Parallel tests
-MultiStructureMultiDataOneFamily()
-MultiStructureMultiDataTwoFamily()
-MultiStructureMultiDataTwoFamily2()
+
+# MultiStructureMultiDataOneFamily()
+# MultiStructureMultiDataTwoFamily()
+#
+# MultiStructureMultiDataTwoFamily2()
 SingleStructureMultiData1()
 SingleStructureMultiData2()
 SingleStructureMultiData3()
+SingleStructureMultiData4()
 MultipleStructuresSingleData1()
 MultipleStructuresSingleData2()
 MultipleStructuresSingleData3()
 MultipleStructuresSingleData4()
 MultipleStructuresSingleData5()
 MultipleStructuresSingleData6()
+MultipleStructuresSingleData7()
+MultipleStructuresSingleData8()
+MultipleStructuresSingleData9()
 
 print("***Finished running all parallel tests, overall time: %s ***" % runTest.over_all_time)
 
@@ -1018,17 +1024,17 @@ freezePolicy2PatternSearchTest()
 # storage tests
 sortedStorageTest()
 run_storage_tests()
-#
-# # benchmarks
-# if INCLUDE_BENCHMARKS:
-#     sortedStorageBenchMarkTest()
-#
-#
-# # Twitter tests
-# try:
-#     from TwitterTest import run_twitter_sanity_check
-#     run_twitter_sanity_check()
-# except ImportError:  # tweepy might not be installed
-#     pass
-# finally:
-#     print("Finished running all tests, overall time: %s" % runTest.over_all_time)
+
+# benchmarks
+if INCLUDE_BENCHMARKS:
+    sortedStorageBenchMarkTest()
+
+
+# Twitter tests
+try:
+    from TwitterTest import run_twitter_sanity_check
+    run_twitter_sanity_check()
+except ImportError:  # tweepy might not be installed
+    pass
+finally:
+    print("Finished running all tests, overall time: %s" % runTest.over_all_time)

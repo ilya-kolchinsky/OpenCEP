@@ -98,12 +98,16 @@ class EvaluationMechanismManager:
     def eval_single_tree_multiple_data(self):
         self.activate_all_ems()
 
-        event, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
-        while event is not None:
+        events, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
+        event_index = 0
+        while events is not None:
             for index in em_indexes:
                 em = self.eval_mechanism_list[index]
+                event = events[event_index]
                 em.process_event(event)
-            event, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
+                event_index += 1
+            events, em_indexes = self.work_load_fr.get_data_stream_and_destinations()
+            event_index = 0
 
     def eval_multiple_tree_single_data(self):
         self.activate_all_ems()

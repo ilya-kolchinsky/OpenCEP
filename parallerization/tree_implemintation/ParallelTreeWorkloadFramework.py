@@ -86,7 +86,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         em_indexes = self.get_indexes()
         num_of_copies = len(em_indexes)
-        input_streams = self.create_copies_of_event( next_event, num_of_copies)
+        input_streams = self.create_copies_of_event(next_event, num_of_copies)
 
         return input_streams, em_indexes
 
@@ -96,15 +96,14 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         if count > 1:
             next_event = self.event_stream.get_item()
-
         if next_event is None:
             return None, None
-
-        input_stream = self.create_input_stream(next_event)
-        em_indexes = []
         em_indexes = self.get_indexes()
 
-        return input_stream, em_indexes
+        num_of_copies = len(em_indexes)
+        input_streams = self.create_copies_of_event(next_event, num_of_copies)
+
+        return input_streams, em_indexes
 
     def get_multiple_data_multiple_structures_info(self):
         families_indexes = self.get_indexes()
@@ -165,29 +164,16 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         if not multiple_data and not multiple_structures:
             raise Exception("Not supported")
         elif multiple_data and not multiple_structures:
-            return self.get_indexes_for_duplicated_data()
+            return self.get_all_indexes()
         elif not multiple_data and multiple_structures:
             return self.trees_with_leafs_indexes
         elif multiple_data and multiple_structures:
             return self.get_indexes_for_families()
 
-    def get_indexes_for_duplicated_data(self):
-        return self.get_indexes_for_duplicated_data_and_single_event_pattern()
-
-    def get_indexes_for_duplicated_data_and_single_event_pattern(self):
-        count = self.event_stream.count()
-        execution_units = self.get_execution_units()
-        res =[]
-        res.append(count % execution_units)
-
-        return res
-
     def get_all_indexes(self):
         indexes = []
-
         for i in range(len(self.masters)):
             indexes.append(i)
-
         return indexes
 
     def get_indexes_for_families(self):
@@ -292,3 +278,4 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
             if unary_child == unary_root:
                 tree_to_set.add_child(tree_structure)
+
