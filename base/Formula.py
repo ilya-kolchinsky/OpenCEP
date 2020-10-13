@@ -2,7 +2,7 @@ from abc import ABC  # Abstract Base Class
 import copy
 from enum import Enum
 from typing import List
-
+import traceback
 
 class RelopTypes(Enum):
     """
@@ -218,7 +218,7 @@ class CompositeFormula(Formula, ABC):
     def get_formula_of(self, names: set, get_KC = False):
         result_formulas = []
         for f in self.__formulas:
-            current_formula = f.get_formula_of(names)
+            current_formula = f.get_formula_of(names, get_KC)
             if current_formula:
                 if get_KC == isinstance(current_formula, KCFormula):
                     result_formulas.extend([current_formula])
@@ -227,7 +227,7 @@ class CompositeFormula(Formula, ABC):
     def consume_formula_of(self, names: set, consume_KC = False):
         formulas_to_remove = []
         for i, f in enumerate(self.__formulas):
-            current_formula = f.get_formula_of(names)
+            current_formula = f.get_formula_of(names, consume_KC)
             if current_formula:
                 if consume_KC == isinstance(current_formula, KCFormula):
                     formulas_to_remove.append(i)
@@ -237,6 +237,9 @@ class CompositeFormula(Formula, ABC):
             else:
                 nested_formula = self.__formulas[i]
                 nested_formula.consume_formula_of(names)
+
+    def get_num_formulas(self):
+        return len(self.__formulas)
 
     def extract_atomic_formulas(self):
         result = []
@@ -267,7 +270,7 @@ class AndFormula(CompositeFormula):
         super().__init__(formula_list, False)
 
     def get_formula_of(self, names: set, get_KC = False):
-        result_formulas = super().get_formula_of(names)
+        result_formulas = super().get_formula_of(names, get_KC)
         # at-least 1 formula was retrieved using get_formula_of for the list of formulas
         if result_formulas:
             return AndFormula(result_formulas)
@@ -283,7 +286,7 @@ class OrFormula(CompositeFormula):
         super().__init__(formula_list, True)
 
     def get_formula_of(self, names: set, get_KC = False):
-        result_formulas = super().get_formula_of(names)
+        result_formulas = super().get_formula_of(names, get_KC)
         # at-least 1 formula was retrieved using get_formula_of for the list of formulas
         if result_formulas:
             return OrFormula(result_formulas)
@@ -291,57 +294,90 @@ class OrFormula(CompositeFormula):
             return None
 
 
-class KCFormula:
-    def __init__(self, identifier, relation_op):
-        self._identifier = identifier
+class KCFormula(ABC):
+    def __init__(self, names, getattr_func, relation_op):
+        self._names = names
+        self._getattr_func = getattr_func
         self._relation_op = relation_op
 
     def get_formula_of(self, names: set, get_KC = False):
-        if self._identifier.get_term_of(names):
+        if names == self._names:
             return self
+        if len(names) != len(self._names):
+            return None
+        for name in names:
+            if not any([name in local_name for local_name in self._names]):
+                return None
+        return self
 
 
-class KCOffsetFormula(KCFormula):
-    def __init__(self, identifier, index_offset, relation_op):
-        super().__init__(identifier, relation_op)
-        self._offset = index_offset
+    @staticmethod
+    def validate_index(index, iterable):
+        if index < 0 or index >= len(iterable):
+            return False
+        return True
 
     def eval(self, iterable):
+        raise NotImplementedError()
+
+
+class KCIndexFormula(KCFormula):
+    def __init__(self, names, getattr_func, relation_op, index_1, index_2=None, offset=None):
+        if index_2 is not None and offset is not None:
+            raise Exception("Invalid use of KCIndex formula. Please consult the docs.")
+        super().__init__(names, getattr_func, relation_op)
+        self._index_1 = index_1
+        self._index_2 = index_2
+        self._offset = offset
+
+    def eval(self, iterable):
+        if self._offset is None:
+            return self.eval_by_index(iterable)
+        else:
+            return self.eval_by_offset(iterable)
+
+    def eval_by_index(self, iterable):
+        if not self.validate_index(self._index_1, iterable) or not self.validate_index(self._index_2, iterable):
+            return False
+        item_1 = iterable[self._index_1]
+        item_2 = iterable[self._index_2]
+        if not self._relation_op(self._getattr_func(item_1), self._getattr_func(item_2)):
+            return False
+        return True
+
+    # very time consuming process on large power-sets -- to be discussed or whatever
+    def eval_by_offset(self, iterable):
         for i in range(len(iterable)):
-            if i - self._offset < 0 or i - self._offset > len(iterable) - 1 \
-                    or i + self._offset < 0 or i + self._offset > len(iterable) - 1:
+            if not self.validate_index(i + self._offset, iterable):
                 continue
-            if not self._relation_op(self._identifier.eval((iterable[i])),
-                                     self._identifier.eval((iterable[i+self._offset]))):
+            if not self._relation_op(self._getattr_func(iterable[i]),
+                                     self._getattr_func(iterable[i + self._offset])):
                 return False
         return True
 
 
-class KCIndexFormula(KCFormula):
-    def __init__(self, identifier, index_1, index_2, relation_op):
-        super().__init__(identifier, relation_op)
-        self._index_1 = index_1
-        self._index_2 = index_2
-
-    def eval(self, iterable):
-        if self._index_1 < 0 or self._index_1 > len(iterable) - 1 \
-                or self._index_2 < 0 or self._index_2 > len(iterable) - 1:
-            return False
-        if not self._relation_op(self._identifier.eval((iterable[self._index_1])),
-                                 self._identifier.eval((iterable[self._index_2]))):
-            return False
-        return True
-
-
 class KCValueFormula(KCFormula):
-    def __init__(self, identifier, index_1, value, relation_op):
-        super().__init__(identifier, relation_op)
-        self._index = index_1
+    def __init__(self, names, getattr_func, relation_op, value, index=None):
+        super().__init__(names, getattr_func, relation_op)
         self._value = value
+        self._index = index
 
     def eval(self, iterable):
-        if self._index < 0 or self._index > len(iterable) - 1:
+        try:
+            if not self.validate_index(self._index, iterable):
+                return False
+            if self._index is None:
+                for item in iterable:
+                    if not self._relation_op(self._getattr_func(item), self._value):
+                        return False
+            else:
+                if not self._relation_op(self._getattr_func(iterable[self._index]), self._value):
+                    return False
+            return True
+        # catch any exception during the evaluation of abstract types with no type safety. this should return
+        # RuntimeError for expected exceptions, but I do not know what to expect so any exception is caught
+        # on error - we print stack trace and return False as default value.
+        # this will allow the program to run while also printing the failure.
+        except Exception as e:
+            traceback.print_stack(e)
             return False
-        if not self._relation_op(self._identifier.eval((iterable[self._index])), self._value):
-            return False
-        return True
