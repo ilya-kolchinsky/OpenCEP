@@ -9,7 +9,6 @@ from stream.Stream import Stream
 from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
 from parallerization.tree_implemintation.ParallelTreeEval import ParallelTreeEval
 from base.Pattern import Pattern
-from evaluation.EvaluationMechanism import EvaluationMechanism
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismFactory, EvaluationMechanismTypes, EvaluationMechanismParameters
 from parallerization.tree_implemintation.ParallelUnaryNode import ParallelUnaryNode
 from tree.PatternMatchStorage import TreeStorageParameters
@@ -98,6 +97,22 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         return self.masters, self.masters
 
+    def get_data_stream_and_destinations(self):
+        """
+        This function is used to get next data stream event(s) and all destination(s)
+        """
+        multiple_data = self.get_is_data_parallel()
+        multiple_structures = self.get_is_structure_parallel()
+
+        if not multiple_data and not multiple_structures:
+            raise Exception("Not supported")
+        elif multiple_data and not multiple_structures:
+            return self.get_multiple_data_single_structure_info()
+        elif not multiple_data and multiple_structures:
+            return self.get_single_data_multiple_structure_info()
+        elif multiple_data and multiple_structures:
+            return self.get_multiple_data_multiple_structures_info()
+
     def get_single_data_multiple_structure_info(self):
         """
         Returns copies of single event processed by different mechanisms.
@@ -105,6 +120,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         """
         next_event = None
         count = self.event_stream.count()
+
         if count > 1:
             next_event = self.event_stream.get_item()
 
@@ -185,22 +201,6 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         return indexes_list_of_list
 
-    def get_data_stream_and_destinations(self):
-        """
-        This function is used to get next data stream event(s) and all destination(s)
-        """
-        multiple_data = self.get_is_data_parallel()
-        multiple_structures = self.get_is_structure_parallel()
-
-        if not multiple_data and not multiple_structures:
-            raise Exception("Not supported")
-        elif multiple_data and not multiple_structures:
-            return self.get_multiple_data_single_structure_info()
-        elif not multiple_data and multiple_structures:
-            return self.get_single_data_multiple_structure_info()
-        elif multiple_data and multiple_structures:
-            return self.get_multiple_data_multiple_structures_info()
-
     def get_indexes(self):
         """
         Returns indexes of evaluation mechanisms which should process events.
@@ -219,8 +219,10 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
     def get_all_indexes(self):
         indexes = []
+
         for i in range(len(self.masters)):
             indexes.append(i)
+
         return indexes
 
     def get_indexes_for_families(self):
@@ -235,12 +237,15 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         input_stream = Stream()
         input_stream.add_item(event)
         input_stream.close()
+
         return input_stream
 
     def create_copies_of_event(self, event_to_copy, num_of_copies):
         input_streams = []
+
         for i in range(num_of_copies):
             input_streams.append(self.create_input_stream(event_to_copy))
+
         return input_streams
 
     # **** Split structure utils: *******
@@ -267,12 +272,12 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
         Splits single evaluation mechanism to many, according by parallelism parameters.
         Also return the masters.
         """
-        self.split_structure_utils(eval_params, self.get_execution_units())
+        self.split_structure_util(eval_params, self.get_execution_units())
         self.set_unary_children()
 
         return self.tree_structures, self.masters
 
-    def split_structure_utils(self, eval_params: EvaluationMechanismParameters, execution_units_left: int,
+    def split_structure_util(self, eval_params: EvaluationMechanismParameters, execution_units_left: int,
                               next_root=None, source_is_left: bool = False):
         if execution_units_left < 1:
             return
@@ -313,10 +318,10 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
         current = unary_root.get_child()
         if isinstance(current, UnaryNode):
-            self.split_structure_utils(eval_params, execution_units_left-1, current.get_child())
+            self.split_structure_util(eval_params, execution_units_left - 1, current.get_child())
         elif isinstance(current, BinaryNode):
-            self.split_structure_utils(eval_params, int((execution_units_left - 1)/2), current._left_subtree, True)
-            self.split_structure_utils(eval_params, int((execution_units_left - 1) / 2), current._right_subtree, False)
+            self.split_structure_util(eval_params, int((execution_units_left - 1) / 2), current._left_subtree, True)
+            self.split_structure_util(eval_params, int((execution_units_left - 1) / 2), current._right_subtree, False)
 
     def set_unary_children(self):
         for tree_structure in self.tree_structures:
