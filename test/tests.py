@@ -930,10 +930,9 @@ runTest.over_all_time = 0
 
 # Parallel tests
 
-# MultiStructureMultiDataOneFamily()
-# MultiStructureMultiDataTwoFamily()
-#
-# MultiStructureMultiDataTwoFamily2()
+MultiStructureMultiDataOneFamily()
+MultiStructureMultiDataTwoFamily()
+MultiStructureMultiDataTwoFamily2()
 SingleStructureMultiData1()
 SingleStructureMultiData2()
 SingleStructureMultiData3()
