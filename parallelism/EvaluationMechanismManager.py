@@ -14,7 +14,7 @@ from stream.Stream import InputStream, OutputStream
 from base.Pattern import Pattern
 from base.DataFormatter import DataFormatter
 
-from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
+from parallelism.ParallelWorkLoadFramework import ParallelWorkLoadFramework
 from typing import List
 
 
@@ -224,6 +224,3 @@ class EvaluationMechanismManager:
     def get_structure_summary(self):
         return self.source_eval_mechanism.get_structure_summary()
 
-# TODO:
-#tree implementation change name
-# decide on sleep time

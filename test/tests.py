@@ -930,6 +930,7 @@ runTest.over_all_time = 0
 
 # Parallel tests
 
+print("*** Started running all parallel tests ***")
 MultiStructureMultiDataOneFamily()
 MultiStructureMultiDataTwoFamily()
 MultiStructureMultiDataTwoFamily2()
@@ -946,8 +947,7 @@ MultipleStructuresSingleData6()
 MultipleStructuresSingleData7()
 MultipleStructuresSingleData8()
 MultipleStructuresSingleData9()
-
-print("***Finished running all parallel tests, overall time: %s ***" % runTest.over_all_time)
+print("*** Finished running all parallel tests, overall time: %s ***" % runTest.over_all_time)
 
 # # basic functionality tests
 oneArgumentsearchTest()

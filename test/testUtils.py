@@ -13,8 +13,8 @@ from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 from plugin.stocks.Stocks import MetastockDataFormatter
 from tree.PatternMatchStorage import TreeStorageParameters
 
-from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
-from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
+from parallelism.ParallelWorkLoadFramework import ParallelWorkLoadFramework
+from parallelism.ParallelExecutionFramework import ParallelExecutionFramework
 
 currentPath = pathlib.Path(os.path.dirname(__file__))
 absolutePath = str(currentPath.parent)

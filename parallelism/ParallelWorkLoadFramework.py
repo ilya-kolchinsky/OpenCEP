@@ -78,9 +78,3 @@ class ParallelWorkLoadFramework(ABC):
         Parallelism level: multiple structures + multiple data
         """
         raise NotImplementedError()
-
-
-
-
-
-

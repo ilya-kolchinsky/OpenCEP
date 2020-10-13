@@ -6,15 +6,15 @@ from tree.UnaryNode import UnaryNode
 from tree.BinaryNode import BinaryNode
 from tree.LeafNode import LeafNode
 from stream.Stream import Stream
-from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
-from parallerization.tree_implemintation.ParallelTreeEval import ParallelTreeEval
+from parallelism.ParallelWorkLoadFramework import ParallelWorkLoadFramework
+from parallelism.tree_implemintation.ParallelTreeExecutionFrameworkImplementation import ParallelTreeExecutionFrameworkImplementation
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismFactory, EvaluationMechanismParameters
-from parallerization.tree_implemintation.ParallelUnaryNode import ParallelUnaryNode
+from parallelism.tree_implemintation.ParallelUnaryNode import ParallelUnaryNode
 from tree.PatternMatchStorage import TreeStorageParameters
 
 
-class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
+class ParallelTreeWorkloadFrameworkImplementation(ParallelWorkLoadFramework):
     """
     Manager uses this class object to handle parallelism.
     This class implements the methods required to:
@@ -93,7 +93,7 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
             tree_based_eval.set_root(unary_root)
             storage_params = TreeStorageParameters(True)
             unary_root.create_storage_unit(storage_params)
-            unary_eval = ParallelTreeEval(tree_based_eval, True, is_main_root=True, data_formatter=self.data_formatter)
+            unary_eval = ParallelTreeExecutionFrameworkImplementation(tree_based_eval, True, is_main_root=True, data_formatter=self.data_formatter)
 
             self.masters.append(unary_eval)
             self.trees_with_leafs.append(unary_eval)
@@ -282,18 +282,22 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
     def split_structure_util(self, eval_params: EvaluationMechanismParameters, execution_units_left: int,
                              next_root=None, source_is_left: bool = False):
         if execution_units_left < 1:
-            return
+            return  # then we have used all of our execution units available for this part of the tree
 
+        # for every ParallelTreeEval we need a new TreeBasedEvaluationMechanism, but the tree will be the same for all
+        # in order to allow for the communication between different parts of the tree
         tree_based_eval = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_params, self.pattern)
         storage_params = TreeStorageParameters(True)
 
-        if next_root is None:   # then this is the first entry to this function
+        if next_root is None:
+            # then this is the first entry to this function, we only need to add a unary node to be the new root
             root = tree_based_eval.get_tree().get_root()
             unary_root = ParallelUnaryNode(root._sliding_window, child=root)
             root.set_parent(unary_root)
             tree_based_eval.set_root(unary_root)
             unary_root.create_storage_unit(storage_params)
         else:
+            # in this case we also need to connect the subtrees
             root = next_root
             unary_root = ParallelUnaryNode(root._sliding_window, child=root)
             unary_root.set_parent(root._parent)
@@ -307,20 +311,24 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
             tree_based_eval.set_root(unary_root)
             unary_root.create_storage_unit(storage_params)
 
-        if int((execution_units_left - 1)/2) < 1 or isinstance(next_root, LeafNode):
-            unary_eval = ParallelTreeEval(tree_based_eval, has_leafs=True, is_main_root=(next_root is None),
+        if int((execution_units_left - 1) / 2) < 1 or isinstance(next_root, LeafNode):
+            # if we got to the end of the subtree
+            unary_eval = ParallelTreeExecutionFrameworkImplementation(tree_based_eval, has_leafs=True, is_main_root=(next_root is None),
                                           data_formatter=self.data_formatter)
             self.trees_with_leafs.append(unary_eval)
             self.trees_with_leafs_indexes.append(len(self.tree_structures))
         else:
-            unary_eval = ParallelTreeEval(tree_based_eval, has_leafs=False, is_main_root=(next_root is None),
+            unary_eval = ParallelTreeExecutionFrameworkImplementation(tree_based_eval, has_leafs=False, is_main_root=(next_root is None),
                                           data_formatter=self.data_formatter)
-
+        # we update our fields accordingly
         self.tree_structures.append(unary_eval)
         if next_root is None:
             self.masters.append(unary_eval)
 
         current = unary_root.get_child()
+        # we then split the number of executions left for the rest of the tree. For a left deep tree, this is highly
+        # inefficient since that in order to get a 5 part tree for example, we need to send 7 executions units since
+        # that some of them are "lost" in the recursive functions
         if isinstance(current, UnaryNode):
             self.split_structure_util(eval_params, execution_units_left - 1, current.get_child())
         elif isinstance(current, BinaryNode):
@@ -341,4 +349,3 @@ class ParallelTreeWorkloadFramework(ParallelWorkLoadFramework):
 
             if unary_child == unary_root:
                 tree_to_set.add_child(tree_structure)
-

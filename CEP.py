@@ -12,8 +12,8 @@ from evaluation.EvaluationMechanismFactory import (
 from typing import List
 from datetime import datetime
 
-from parallerization.EvaluationMechanismManager import EvaluationMechanismManager
-from parallerization.ParallelWorkLoadFramework import ParallelWorkLoadFramework
+from parallelism.EvaluationMechanismManager import EvaluationMechanismManager
+from parallelism.ParallelWorkLoadFramework import ParallelWorkLoadFramework
 
 
 class CEP:

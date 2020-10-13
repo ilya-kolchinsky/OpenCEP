@@ -4,18 +4,16 @@ Implementation here uses threads for parallelism.
 """
 
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
-from parallerization.ParallelExecutionFramework import ParallelExecutionFramework
+from parallelism.ParallelExecutionFramework import ParallelExecutionFramework
 from stream.Stream import OutputStream, Stream
 from base.DataFormatter import DataFormatter
-
-from parallerization.tree_implemintation.PatternMatchWithUnarySource import PatternMatchWithUnarySource
-
+from parallelism.tree_implemintation.PatternMatchWithUnarySource import PatternMatchWithUnarySource
 import time
 import threading
 from queue import Queue
 
 
-class ParallelTreeEval(ParallelExecutionFramework):
+class ParallelTreeExecutionFrameworkImplementation(ParallelExecutionFramework):
     """
     Plugin implementing ParallelExecutionFramework, used for treebased evaluation mechanism.
     Each object of the class represents single evaluation mechanism which makes all of its calculations using a thread.
@@ -89,6 +87,9 @@ class ParallelTreeEval(ParallelExecutionFramework):
         self.finished.set()
 
     def run_eval_with_leafs(self):
+        # Thread delay in order to allow the manager to start working on the input without being interrupted.
+        # Necessary mainly for big input files for the tests to run in a reasonable amount of time.
+        # Tests have shown that without wait here, test will run longer (probably this is multithreaded plugin limitation).
         time.sleep(30)
         while self.keep_running.is_set() or not self.queue.qsize() == 0:
             if not self.queue.qsize() == 0:
