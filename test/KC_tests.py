@@ -226,8 +226,16 @@ def KC_AND(createTestFile=False):
         AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
             SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])),
-            KCIndexFormula(names={'a', 'b'}, getattr_func=lambda x: x["Peak Price"],
-                           relation_op=lambda x, y: x < y, index_1=0, index_2=1),
+            KCIndexFormula(names={'a', 'b', 'c'}, getattr_func=lambda x: x["Peak Price"], relation_op=lambda x, y: x < y,
+                           index_1=0, index_2=1),
+            # KCIndexFormula(names={'a', 'b', 'c'}, getattr_func=lambda x: x["Peak Price"], relation_op=lambda x, y: x < y,
+            # offset=1)
+            # KCIndexFormula(names={'a', 'b', 'c'}, getattr_func=lambda x: x["Peak Price"], relation_op=lambda x, y: x < y,
+            # offset=-1)
+            # KCIndexFormula(names={'a', 'b', 'c'}, getattr_func=lambda x: x["Peak Price"], relation_op=lambda x, y: x > y,
+            # offset=3)
+            # KCIndexFormula(names={'a', 'b', 'c'}, getattr_func=lambda x: x["Peak Price"], relation_op=lambda x, y: x < y,
+            # index_1=3, index_2=5)
         ]),
         timedelta(minutes=3)
     )

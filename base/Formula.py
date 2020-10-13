@@ -74,6 +74,9 @@ class TrueFormula(Formula):
         return []
 
     def get_formula_of(self, names, get_KC = False):
+        # return nothing to KC nodes
+        if get_KC is True:
+            return None
         return self
 
     def extract_atomic_formulas_new(self):
@@ -99,6 +102,9 @@ class NaryFormula(Formula):
             return False
 
     def get_formula_of(self, names: set, get_KC = False):
+        # return nothing to KC nodes
+        if get_KC is True:
+            return None
         for term in self.terms:
             cur_term = term.get_term_of(names)
             if cur_term is None:
@@ -219,9 +225,8 @@ class CompositeFormula(Formula, ABC):
         result_formulas = []
         for f in self.__formulas:
             current_formula = f.get_formula_of(names, get_KC)
-            if current_formula:
-                if get_KC == isinstance(current_formula, KCFormula):
-                    result_formulas.extend([current_formula])
+            if current_formula and get_KC == isinstance(current_formula, KCFormula):
+                result_formulas.extend([current_formula])
         return result_formulas
 
     def consume_formula_of(self, names: set, consume_KC = False):
@@ -237,6 +242,8 @@ class CompositeFormula(Formula, ABC):
             else:
                 nested_formula = self.__formulas[i]
                 nested_formula.consume_formula_of(names)
+        # clear empty composite formulas
+        # self.__formulas = [formula for formula in self.__formulas if self.filter_formula(formula, consume_KC)]
 
     def get_num_formulas(self):
         return len(self.__formulas)
@@ -246,6 +253,15 @@ class CompositeFormula(Formula, ABC):
         for f in self.__formulas:
             result.extend(f.extract_atomic_formulas())
         return result
+
+    @staticmethod
+    def filter_formula(formula, ignore_KC):
+        if isinstance(formula, CompositeFormula) and formula.get_num_formulas() == 0:
+            return False
+        elif (ignore_KC and isinstance(formula, KCFormula)) or \
+                (not ignore_KC) and not isinstance(formula, KCFormula):
+            return False
+        return True
 
     #TODO: Daniel   New extract atomic_formulas`
     def extract_atomic_formulas_new(self):
@@ -269,14 +285,14 @@ class AndFormula(CompositeFormula):
     def __init__(self, formula_list: List[Formula]):
         super().__init__(formula_list, False)
 
-    def get_formula_of(self, names: set, get_KC = False):
+    def get_formula_of(self, names: set, get_KC=False):
         result_formulas = super().get_formula_of(names, get_KC)
+        # result_formulas = [formula for formula in result_formulas if CompositeFormula.filter_formula(formula, get_KC)]
         # at-least 1 formula was retrieved using get_formula_of for the list of formulas
         if result_formulas:
             return AndFormula(result_formulas)
         else:
             return None
-
 
 class OrFormula(CompositeFormula):
     """
@@ -310,7 +326,6 @@ class KCFormula(ABC):
                 return None
         return self
 
-
     @staticmethod
     def validate_index(index, iterable):
         if index < 0 or index >= len(iterable):
@@ -322,19 +337,22 @@ class KCFormula(ABC):
 
 
 class KCIndexFormula(KCFormula):
-    def __init__(self, names, getattr_func, relation_op, index_1, index_2=None, offset=None):
-        if index_2 is not None and offset is not None:
-            raise Exception("Invalid use of KCIndex formula. Please consult the docs.")
+    def __init__(self, names, getattr_func, relation_op, index_1=None, index_2=None, offset=None):
+        # enforce getting 1 of 2 options:
+        # 1) index_1 and index_2 to compare
+        # 2) offset to compare every 2 items that meet offset requirement (either positive or negative)
+        if not self.__validate_params(index_1, index_2, offset):
+            raise Exception("Invalid use of KCIndex formula.\nboth index and offset are not None\n refer to comment")
         super().__init__(names, getattr_func, relation_op)
         self._index_1 = index_1
         self._index_2 = index_2
         self._offset = offset
 
     def eval(self, iterable):
-        if self._offset is None:
-            return self.eval_by_index(iterable)
-        else:
+        if self._offset is not None:
             return self.eval_by_offset(iterable)
+        else:
+            return self.eval_by_index(iterable)
 
     def eval_by_index(self, iterable):
         if not self.validate_index(self._index_1, iterable) or not self.validate_index(self._index_2, iterable):
@@ -345,8 +363,10 @@ class KCIndexFormula(KCFormula):
             return False
         return True
 
-    # very time consuming process on large power-sets -- to be discussed or whatever
+    # very time consuming process on large power-sets -- to be discussed
     def eval_by_offset(self, iterable):
+        if self._offset >= len(iterable):
+            return False
         for i in range(len(iterable)):
             if not self.validate_index(i + self._offset, iterable):
                 continue
@@ -355,6 +375,10 @@ class KCIndexFormula(KCFormula):
                 return False
         return True
 
+    @staticmethod
+    def __validate_params(index_1, index_2, offset):
+        return ((index_1 is not None and index_2 is not None) or
+                offset is not None) and not (index_1 is not None and index_2 is not None and offset is not None)
 
 class KCValueFormula(KCFormula):
     def __init__(self, names, getattr_func, relation_op, value, index=None):

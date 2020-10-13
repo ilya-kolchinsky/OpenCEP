@@ -186,24 +186,26 @@ class Node(ABC):
         """
         Applies a given formula on all nodes in this tree - to be implemented by subclasses.
         """
-        kc_nodes = []
-        kc_nodes.extend(self._propagate_condition(formula))
-        if isinstance(self, KleeneClosureNode):
-            # save a reference to current KC node for future use
-            kc_nodes.append(self)
-        else:
-            self._assign_formula(formula)
-            if isinstance(formula, CompositeFormula):
-                self._consume_formula(formula)
-        return kc_nodes
+        # kc_nodes = []
+        # kc_nodes.extend(self._propagate_condition(formula))
+        # if isinstance(self, KleeneClosureNode):
+        #     # save a reference to current KC node for future use
+        #     kc_nodes.append(self)
+        # else:
+        self._propagate_condition(formula)
+        get_KC = isinstance(self, KleeneClosureNode)
+        self._assign_formula(formula, get_KC)
+        if isinstance(formula, CompositeFormula):
+            self._consume_formula(formula, get_KC)
+        # return kc_nodes
 
     def _propagate_condition(self, formula: Formula):
         raise NotImplementedError()
 
-    def _assign_formula(self, formula: Formula):
+    def _assign_formula(self, formula: Formula, get_KC):
         raise NotImplementedError()
 
-    def _consume_formula(self, formula: Formula):
+    def _consume_formula(self, formula: Formula, get_KC):
         raise NotImplementedError()
 
     def get_event_definitions(self):
@@ -284,15 +286,15 @@ class LeafNode(Node):
         return self._condition.eval(binding)
 
     def _propagate_condition(self, formula: Formula):
-        return []
+        return
 
-    def _assign_formula(self, formula: Formula):
+    def _assign_formula(self, formula: Formula, get_KC=False):
         condition = formula.get_formula_of(self.__event_name)
         if condition:
             self._condition = condition
 
-    def _consume_formula(self, formula: Formula):
-        formula.consume_formula_of(self.__event_name)
+    def _consume_formula(self, formula: Formula, get_KC=False):
+        formula.consume_formula_of(self.__event_name, get_KC)
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,
@@ -341,14 +343,14 @@ class InternalNode(Node, ABC):
         """
         raise NotImplementedError()
 
-    def _assign_formula(self, formula: Formula):
+    def _assign_formula(self, formula: Formula, get_KC=False):
         names = {item[1].name for item in self._event_defs}
-        condition = formula.get_formula_of(names)
+        condition = formula.get_formula_of(names, get_KC)
         self._condition = condition if condition else TrueFormula()
 
-    def _consume_formula(self, formula: Formula):
+    def _consume_formula(self, formula: Formula, get_KC=False):
         names = {item[1].name for item in self._event_defs}
-        formula.consume_formula_of(names)
+        formula.consume_formula_of(names, get_KC)
 
     def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
@@ -385,7 +387,7 @@ class UnaryNode(InternalNode, ABC):
         return self._child.get_leaves()
 
     def _propagate_condition(self, condition: Formula):
-        return self._child.apply_formula(condition)
+        self._child.apply_formula(condition)
 
     def set_subtree(self, child: Node):
         """
@@ -420,7 +422,8 @@ class BinaryNode(InternalNode, ABC):
         return result
 
     def _propagate_condition(self, condition: Formula):
-        return self._left_subtree.apply_formula(condition) + self._right_subtree.apply_formula(condition)
+        self._left_subtree.apply_formula(condition)
+        self._right_subtree.apply_formula(condition)
 
     def _set_event_definitions(self,
                                left_event_defs: List[Tuple[int, QItem]], right_event_defs: List[Tuple[int, QItem]]):
@@ -986,25 +989,13 @@ class KleeneClosureNode(UnaryNode):
         result_powerset = [item for item in result_powerset if self.__min_size <= len(item)]
         return result_powerset
 
-    def __assign_kc_formula(self, formula: Formula):
-        names = {item[1].name for item in self._event_defs}
-        condition = formula.get_formula_of(names, True)
-        self._condition = condition if condition else TrueFormula()
+    # override to send get_KC = True
+    def _assign_formula(self, formula: Formula, get_KC=True):
+        super()._assign_formula(formula, True)
 
-    def __consume_kc_formula(self, formula: Formula):
-        names = {item[1].name for item in self._event_defs}
-        formula.consume_formula_of(names, True)
-
-    # assign TrueFormula for future update if necessary
-    def _assign_formula(self, formula: Formula):
-        self._condition = TrueFormula()
-
-    def _consume_formula(self, formula: Formula):
-        return
-
-    def apply_kc_formulas(self, kc_conditions):
-        self.__assign_kc_formula(kc_conditions)
-        self.__consume_kc_formula(kc_conditions)
+    # override to send get_KC = True
+    def _consume_formula(self, formula: Formula, get_KC=True):
+        super()._consume_formula(formula, True)
 
     def get_structure_summary(self):
         return "KC", self._child.get_structure_summary()
@@ -1045,17 +1036,10 @@ class Tree:
             self.__adjust_leaf_indices(pattern)
             self.__add_negative_tree_structure(pattern)
 
-        kc_nodes = self.__root.apply_formula(pattern.condition)
-        remaining_conditions = self.__apply_kc_formulas(kc_nodes, pattern.condition)
-        if remaining_conditions.get_num_formulas() > 0:
-            print('Warning!!!\nUnused formulas found after applying formula has finished!')
+        self.__root.apply_formula(pattern.condition)
+        if isinstance(pattern.condition, CompositeFormula) and pattern.condition.get_num_formulas() > 0:
+            print('Warning!!!\nUnused formulas detected after apply_formulas has finished!')
         self.__root.create_storage_unit(storage_params)
-
-    @staticmethod
-    def __apply_kc_formulas(kc_nodes, kc_conditions):
-        for kc_node in kc_nodes:
-            kc_node.apply_kc_formulas(kc_conditions)
-        return kc_conditions
 
     def __adjust_leaf_indices(self, pattern: Pattern):
         """
