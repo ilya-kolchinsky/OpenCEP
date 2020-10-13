@@ -1,5 +1,9 @@
-from abc import ABC
+"""
+This class contains requirements from the plugin represents single evaluation mechanism.
+The manger will call this methods in order to achieve parallelism.
+"""
 
+from abc import ABC
 from stream.Stream import OutputStream, Stream
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from base.DataFormatter import DataFormatter
@@ -12,18 +16,27 @@ class ParallelExecutionFramework(ABC):
         self.pattern_matches = OutputStream()
 
     def activate(self):
+        """
+        Activate server, thread or any kind of evaluation mechanism.
+        """
         raise NotImplementedError()
 
     def stop(self):
         raise NotImplementedError()
 
     def process_event(self, event_stream: Stream):
+        """
+        This method will be called on any processed event
+        """
         raise NotImplementedError()
 
     def wait_until_finish(self):
         raise NotImplementedError()
 
     def get_pattern_matches(self):
+        """
+        Get results
+        """
         return self.pattern_matches
 
     def get_evaluation_mechanism(self):

@@ -1,6 +1,10 @@
+"""
+This class contains implementation of unary node used to connect different tree structures after split.
+"""
+
 from base.PatternMatch import PatternMatch
 
-
+# TODO:
 class PatternMatchWithUnarySource:
     def __init__(self, pattern_match: PatternMatch, index: int):
         self.pattern_match = pattern_match

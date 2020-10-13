@@ -1,11 +1,10 @@
-from parallerization.tree_implemintation.ParallelTreeWorkloadFramework import ParallelTreeWorkloadFramework
-from base.Pattern import Pattern
-
 # This new plugin is different from the other only in how it handles the distribution of the data in a multiple data
 # scenario:
 # it send an event only to one of the eval_mechanism at a time.
 # This only works on single event patterns
 
+from parallerization.tree_implemintation.ParallelTreeWorkloadFramework import ParallelTreeWorkloadFramework
+from base.Pattern import Pattern
 
 class WorkloadFrameworkForSingleEventTests(ParallelTreeWorkloadFramework):
     def __init__(self, pattern: Pattern, execution_units: int = 1, is_data_parallel: bool = False,

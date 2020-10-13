@@ -1,11 +1,14 @@
-from typing import List, Tuple
+"""
+This class contains implementation of unary node used to connect different tree structures after split.
+"""
 
+from typing import List, Tuple
 from base.PatternMatch import PatternMatch
 from tree.UnaryNode import UnaryNode, Node
 from tree.BinaryNode import BinaryNode
 from base.PatternStructure import PrimitiveEventStructure
 
-
+# TODO:
 class ParallelUnaryNode(UnaryNode):
     def __init__(self, sliding_window, parent: Node = None, event_defs: List[Tuple[int,PrimitiveEventStructure]] = None,
                  child: Node = None):
