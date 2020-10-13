@@ -5,7 +5,7 @@ it sends an event only to one of the eval_mechanism at a time.
 This only works on single event patterns
 """
 
-from parallelism.tree_implemintation.ParallelTreeWorkloadFrameworkImplementation import ParallelTreeWorkloadFrameworkImplementation
+from parallelism.Tree_implementation.ParallelTreeWorkloadFrameworkImplementation import ParallelTreeWorkloadFrameworkImplementation
 from base.Pattern import Pattern
 
 

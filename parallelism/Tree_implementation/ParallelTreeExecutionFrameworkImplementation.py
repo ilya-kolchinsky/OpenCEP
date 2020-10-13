@@ -7,7 +7,7 @@ from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from parallelism.ParallelExecutionFramework import ParallelExecutionFramework
 from stream.Stream import OutputStream, Stream
 from base.DataFormatter import DataFormatter
-from parallelism.tree_implemintation.PatternMatchWithUnarySource import PatternMatchWithUnarySource
+from parallelism.Tree_implementation.PatternMatchWithUnarySource import PatternMatchWithUnarySource
 import time
 import threading
 from queue import Queue

@@ -7,10 +7,10 @@ from tree.BinaryNode import BinaryNode
 from tree.LeafNode import LeafNode
 from stream.Stream import Stream
 from parallelism.ParallelWorkLoadFramework import ParallelWorkLoadFramework
-from parallelism.tree_implemintation.ParallelTreeExecutionFrameworkImplementation import ParallelTreeExecutionFrameworkImplementation
+from parallelism.Tree_implementation.ParallelTreeExecutionFrameworkImplementation import ParallelTreeExecutionFrameworkImplementation
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismFactory, EvaluationMechanismParameters
-from parallelism.tree_implemintation.ParallelUnaryNode import ParallelUnaryNode
+from parallelism.Tree_implementation.ParallelUnaryNode import ParallelUnaryNode
 from tree.PatternMatchStorage import TreeStorageParameters
 
 
