@@ -96,12 +96,12 @@ def SingleStructureMultiData3(createTestFile=False):
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
         timedelta(minutes=120)
     )
-    workload = WorkloadFrameworkImplementationForSingleEventTests(pattern, execution_units=5, is_data_parallel=True,
+    workload = WorkloadFrameworkImplementationForSingleEventTests(pattern, execution_units=10, is_data_parallel=True,
                                                                   is_structure_parallel=False, num_of_families=0)
 
     print("Running test for single structure, multiple data parts with 1 structure, 5 data parts")
 
-    runTest("one", [pattern], createTestFile, work_load_fr=workload)
+    runTest("ParallelTests", [pattern], createTestFile, work_load_fr=workload)
 
 def MultipleStructuresSingleData1(createTestFile=False):
     """

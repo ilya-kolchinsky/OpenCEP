@@ -158,7 +158,7 @@ def runTest(testName, patterns, createTestFile = False,
         events = events.duplicate()
 
     listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle"]
-    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
+    listHalfShort = ["OneNotEnd", "MultipleNotEnd", "ParallelTests"]
     listCustom = ["MultipleNotBeginAndEnd"]
     listCustom2 = ["simpleNot"]
     if testName in listShort:
@@ -178,8 +178,6 @@ def runTest(testName, patterns, createTestFile = False,
     output_file_name = "%sMatches.txt" % testName
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
-
-    #running_time = cep.run(shortNasdaqEventStream.duplicate(), matches_stream, DEFAULT_TESTING_DATA_FORMATTER) # TODO:
 
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)

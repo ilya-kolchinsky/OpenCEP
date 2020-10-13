@@ -1,0 +1,170 @@
+{'Stock Ticker': 'AAPL', 'Date': 200802010917, 'Opening Price': 135.68, 'Peak Price': 135.7, 'Lowest Price': 135.53, 'Close Price': 135.67, 'Volume': 3611}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010918, 'Opening Price': 135.67, 'Peak Price': 135.88, 'Lowest Price': 135.61, 'Close Price': 135.68, 'Volume': 2600}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010919, 'Opening Price': 135.67, 'Peak Price': 135.67, 'Lowest Price': 135.67, 'Close Price': 135.67, 'Volume': 300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010920, 'Opening Price': 135.68, 'Peak Price': 135.68, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 3236}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010921, 'Opening Price': 135.68, 'Peak Price': 135.68, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 818}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010922, 'Opening Price': 135.65, 'Peak Price': 135.83, 'Lowest Price': 135.65, 'Close Price': 135.82, 'Volume': 1300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010923, 'Opening Price': 135.79, 'Peak Price': 135.79, 'Lowest Price': 135.7, 'Close Price': 135.7, 'Volume': 300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010924, 'Opening Price': 135.6, 'Peak Price': 135.7, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 1500}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010926, 'Opening Price': 135.66, 'Peak Price': 135.88, 'Lowest Price': 135.66, 'Close Price': 135.88, 'Volume': 6585}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010927, 'Opening Price': 135.88, 'Peak Price': 135.91, 'Lowest Price': 135.7, 'Close Price': 135.88, 'Volume': 4200}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010928, 'Opening Price': 135.92, 'Peak Price': 136.5, 'Lowest Price': 135.88, 'Close Price': 136.09, 'Volume': 25304}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010929, 'Opening Price': 136.06, 'Peak Price': 136.39, 'Lowest Price': 135.91, 'Close Price': 136.28, 'Volume': 42822}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010930, 'Opening Price': 136.28, 'Peak Price': 136.45, 'Lowest Price': 136, 'Close Price': 136.16, 'Volume': 763544}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010931, 'Opening Price': 136.17, 'Peak Price': 136.36, 'Lowest Price': 136.04, 'Close Price': 136.11, 'Volume': 125904}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010932, 'Opening Price': 136.13, 'Peak Price': 136.136, 'Lowest Price': 135.66, 'Close Price': 135.71, 'Volume': 156730}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010933, 'Opening Price': 135.7, 'Peak Price': 135.77, 'Lowest Price': 135.42, 'Close Price': 135.6, 'Volume': 156926}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010934, 'Opening Price': 135.61, 'Peak Price': 136.4299, 'Lowest Price': 134.896, 'Close Price': 134.95, 'Volume': 231244}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010917, 'Opening Price': 135.68, 'Peak Price': 135.7, 'Lowest Price': 135.53, 'Close Price': 135.67, 'Volume': 3611}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010918, 'Opening Price': 135.67, 'Peak Price': 135.88, 'Lowest Price': 135.61, 'Close Price': 135.68, 'Volume': 2600}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010919, 'Opening Price': 135.67, 'Peak Price': 135.67, 'Lowest Price': 135.67, 'Close Price': 135.67, 'Volume': 300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010920, 'Opening Price': 135.68, 'Peak Price': 135.68, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 3236}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010921, 'Opening Price': 135.68, 'Peak Price': 135.68, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 818}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010922, 'Opening Price': 135.65, 'Peak Price': 135.83, 'Lowest Price': 135.65, 'Close Price': 135.82, 'Volume': 1300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010923, 'Opening Price': 135.79, 'Peak Price': 135.79, 'Lowest Price': 135.7, 'Close Price': 135.7, 'Volume': 300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010924, 'Opening Price': 135.6, 'Peak Price': 135.7, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 1500}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010926, 'Opening Price': 135.66, 'Peak Price': 135.88, 'Lowest Price': 135.66, 'Close Price': 135.88, 'Volume': 6585}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010927, 'Opening Price': 135.88, 'Peak Price': 135.91, 'Lowest Price': 135.7, 'Close Price': 135.88, 'Volume': 4200}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010928, 'Opening Price': 135.92, 'Peak Price': 136.5, 'Lowest Price': 135.88, 'Close Price': 136.09, 'Volume': 25304}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010929, 'Opening Price': 136.06, 'Peak Price': 136.39, 'Lowest Price': 135.91, 'Close Price': 136.28, 'Volume': 42822}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010930, 'Opening Price': 136.28, 'Peak Price': 136.45, 'Lowest Price': 136, 'Close Price': 136.16, 'Volume': 763544}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010931, 'Opening Price': 136.17, 'Peak Price': 136.36, 'Lowest Price': 136.04, 'Close Price': 136.11, 'Volume': 125904}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010932, 'Opening Price': 136.13, 'Peak Price': 136.136, 'Lowest Price': 135.66, 'Close Price': 135.71, 'Volume': 156730}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010933, 'Opening Price': 135.7, 'Peak Price': 135.77, 'Lowest Price': 135.42, 'Close Price': 135.6, 'Volume': 156926}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010934, 'Opening Price': 135.61, 'Peak Price': 136.4299, 'Lowest Price': 134.896, 'Close Price': 134.95, 'Volume': 231244}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010917, 'Opening Price': 135.68, 'Peak Price': 135.7, 'Lowest Price': 135.53, 'Close Price': 135.67, 'Volume': 3611}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010918, 'Opening Price': 135.67, 'Peak Price': 135.88, 'Lowest Price': 135.61, 'Close Price': 135.68, 'Volume': 2600}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010919, 'Opening Price': 135.67, 'Peak Price': 135.67, 'Lowest Price': 135.67, 'Close Price': 135.67, 'Volume': 300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010920, 'Opening Price': 135.68, 'Peak Price': 135.68, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 3236}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010921, 'Opening Price': 135.68, 'Peak Price': 135.68, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 818}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010922, 'Opening Price': 135.65, 'Peak Price': 135.83, 'Lowest Price': 135.65, 'Close Price': 135.82, 'Volume': 1300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010923, 'Opening Price': 135.79, 'Peak Price': 135.79, 'Lowest Price': 135.7, 'Close Price': 135.7, 'Volume': 300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010924, 'Opening Price': 135.6, 'Peak Price': 135.7, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 1500}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010926, 'Opening Price': 135.66, 'Peak Price': 135.88, 'Lowest Price': 135.66, 'Close Price': 135.88, 'Volume': 6585}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010927, 'Opening Price': 135.88, 'Peak Price': 135.91, 'Lowest Price': 135.7, 'Close Price': 135.88, 'Volume': 4200}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010928, 'Opening Price': 135.92, 'Peak Price': 136.5, 'Lowest Price': 135.88, 'Close Price': 136.09, 'Volume': 25304}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010929, 'Opening Price': 136.06, 'Peak Price': 136.39, 'Lowest Price': 135.91, 'Close Price': 136.28, 'Volume': 42822}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010930, 'Opening Price': 136.28, 'Peak Price': 136.45, 'Lowest Price': 136, 'Close Price': 136.16, 'Volume': 763544}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010931, 'Opening Price': 136.17, 'Peak Price': 136.36, 'Lowest Price': 136.04, 'Close Price': 136.11, 'Volume': 125904}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010932, 'Opening Price': 136.13, 'Peak Price': 136.136, 'Lowest Price': 135.66, 'Close Price': 135.71, 'Volume': 156730}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010933, 'Opening Price': 135.7, 'Peak Price': 135.77, 'Lowest Price': 135.42, 'Close Price': 135.6, 'Volume': 156926}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010934, 'Opening Price': 135.61, 'Peak Price': 136.4299, 'Lowest Price': 134.896, 'Close Price': 134.95, 'Volume': 231244}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010917, 'Opening Price': 135.68, 'Peak Price': 135.7, 'Lowest Price': 135.53, 'Close Price': 135.67, 'Volume': 3611}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010918, 'Opening Price': 135.67, 'Peak Price': 135.88, 'Lowest Price': 135.61, 'Close Price': 135.68, 'Volume': 2600}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010919, 'Opening Price': 135.67, 'Peak Price': 135.67, 'Lowest Price': 135.67, 'Close Price': 135.67, 'Volume': 300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010920, 'Opening Price': 135.68, 'Peak Price': 135.68, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 3236}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010921, 'Opening Price': 135.68, 'Peak Price': 135.68, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 818}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010922, 'Opening Price': 135.65, 'Peak Price': 135.83, 'Lowest Price': 135.65, 'Close Price': 135.82, 'Volume': 1300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010923, 'Opening Price': 135.79, 'Peak Price': 135.79, 'Lowest Price': 135.7, 'Close Price': 135.7, 'Volume': 300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010924, 'Opening Price': 135.6, 'Peak Price': 135.7, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 1500}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010926, 'Opening Price': 135.66, 'Peak Price': 135.88, 'Lowest Price': 135.66, 'Close Price': 135.88, 'Volume': 6585}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010927, 'Opening Price': 135.88, 'Peak Price': 135.91, 'Lowest Price': 135.7, 'Close Price': 135.88, 'Volume': 4200}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010928, 'Opening Price': 135.92, 'Peak Price': 136.5, 'Lowest Price': 135.88, 'Close Price': 136.09, 'Volume': 25304}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010929, 'Opening Price': 136.06, 'Peak Price': 136.39, 'Lowest Price': 135.91, 'Close Price': 136.28, 'Volume': 42822}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010930, 'Opening Price': 136.28, 'Peak Price': 136.45, 'Lowest Price': 136, 'Close Price': 136.16, 'Volume': 763544}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010931, 'Opening Price': 136.17, 'Peak Price': 136.36, 'Lowest Price': 136.04, 'Close Price': 136.11, 'Volume': 125904}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010932, 'Opening Price': 136.13, 'Peak Price': 136.136, 'Lowest Price': 135.66, 'Close Price': 135.71, 'Volume': 156730}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010933, 'Opening Price': 135.7, 'Peak Price': 135.77, 'Lowest Price': 135.42, 'Close Price': 135.6, 'Volume': 156926}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010934, 'Opening Price': 135.61, 'Peak Price': 136.4299, 'Lowest Price': 134.896, 'Close Price': 134.95, 'Volume': 231244}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010917, 'Opening Price': 135.68, 'Peak Price': 135.7, 'Lowest Price': 135.53, 'Close Price': 135.67, 'Volume': 3611}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010918, 'Opening Price': 135.67, 'Peak Price': 135.88, 'Lowest Price': 135.61, 'Close Price': 135.68, 'Volume': 2600}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010919, 'Opening Price': 135.67, 'Peak Price': 135.67, 'Lowest Price': 135.67, 'Close Price': 135.67, 'Volume': 300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010920, 'Opening Price': 135.68, 'Peak Price': 135.68, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 3236}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010921, 'Opening Price': 135.68, 'Peak Price': 135.68, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 818}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010922, 'Opening Price': 135.65, 'Peak Price': 135.83, 'Lowest Price': 135.65, 'Close Price': 135.82, 'Volume': 1300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010923, 'Opening Price': 135.79, 'Peak Price': 135.79, 'Lowest Price': 135.7, 'Close Price': 135.7, 'Volume': 300}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010924, 'Opening Price': 135.6, 'Peak Price': 135.7, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 1500}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010926, 'Opening Price': 135.66, 'Peak Price': 135.88, 'Lowest Price': 135.66, 'Close Price': 135.88, 'Volume': 6585}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010927, 'Opening Price': 135.88, 'Peak Price': 135.91, 'Lowest Price': 135.7, 'Close Price': 135.88, 'Volume': 4200}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010928, 'Opening Price': 135.92, 'Peak Price': 136.5, 'Lowest Price': 135.88, 'Close Price': 136.09, 'Volume': 25304}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010929, 'Opening Price': 136.06, 'Peak Price': 136.39, 'Lowest Price': 135.91, 'Close Price': 136.28, 'Volume': 42822}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010930, 'Opening Price': 136.28, 'Peak Price': 136.45, 'Lowest Price': 136, 'Close Price': 136.16, 'Volume': 763544}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010931, 'Opening Price': 136.17, 'Peak Price': 136.36, 'Lowest Price': 136.04, 'Close Price': 136.11, 'Volume': 125904}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010932, 'Opening Price': 136.13, 'Peak Price': 136.136, 'Lowest Price': 135.66, 'Close Price': 135.71, 'Volume': 156730}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010933, 'Opening Price': 135.7, 'Peak Price': 135.77, 'Lowest Price': 135.42, 'Close Price': 135.6, 'Volume': 156926}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010934, 'Opening Price': 135.61, 'Peak Price': 136.4299, 'Lowest Price': 134.896, 'Close Price': 134.95, 'Volume': 231244}
+
