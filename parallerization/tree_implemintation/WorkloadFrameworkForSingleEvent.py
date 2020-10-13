@@ -1,8 +1,8 @@
 """
-# This new plugin is different from the other only in how it handles the distribution of the data in a multiple data
-# scenario:
-# it send an event only to one of the eval_mechanism at a time.
-# This only works on single event patterns
+This new plugin is different from the other only in how it handles the distribution of the data in a multiple data
+scenario:
+it sends an event only to one of the eval_mechanism at a time.
+This only works on single event patterns
 """
 
 from parallerization.tree_implemintation.ParallelTreeWorkloadFramework import ParallelTreeWorkloadFramework
@@ -24,7 +24,5 @@ class WorkloadFrameworkForSingleEventTests(ParallelTreeWorkloadFramework):
     def get_indexes_for_duplicated_data(self):
         count = self.event_stream.count()
         execution_units = self.get_execution_units()
-        res =[]
-        res.append(count % execution_units)
-        return res
+        return [count % execution_units]
 

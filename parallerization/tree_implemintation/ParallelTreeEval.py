@@ -17,28 +17,31 @@ from queue import Queue
 
 class ParallelTreeEval(ParallelExecutionFramework):
     """
-    Plugin implementing ParallelExecutionFramework, used for tree evaluation mechanism.
+    Plugin implementing ParallelExecutionFramework, used for treebased evaluation mechanism.
     Each object of the class represents single evaluation mechanism which makes all of its calculations using a thread.
-    Each object is a tree created by the second plugin.
+    Each object has a tree created by the second plugin.
     """
 
     def __init__(self, tree_based_eval: TreeBasedEvaluationMechanism, has_leafs: bool, is_main_root: bool,
                  data_formatter: DataFormatter = None):
         super().__init__(tree_based_eval, data_formatter)
 
-        # leafs here represents the leafs of the base tree evaluation mechanism (and not unary leafs after splitting)
+        # leaves here represents the leaves of the base tree evaluation mechanism (and not unary leaves after splitting)
+        # This flag is on if the current ParallelTreeEval has leaves that need to receive events from the input stream
         self.has_leafs = has_leafs
         # root of the base tree evaluation mechanism
+        # This flag is on if we need to get the final results from this ParallelTreeEval
         self.is_main_root = is_main_root
-        # every tree has children (leafs)
+
+        # this is the list of the ParallelTreeEval that are children of self
         self.children = []
 
         # synchronized queue shared between each evaluation mechanism and the manager who pushes events into it.
         self.queue = Queue()
-        # each em notifies the manger that he is finished
+        # each evaluation mechanism notifies the manager that he has finished
         self.finished = threading.Event()
         self.finished.clear()
-        # a flag allowing the manager to stop all ems
+        # a flag allowing the manager to stop all evaluation mechanisms when there is no more incoming events
         self.keep_running = threading.Event()
         self.keep_running.set()
 
@@ -61,7 +64,8 @@ class ParallelTreeEval(ParallelExecutionFramework):
 
     def process_event(self, event_stream: Stream):
         """
-        See that in current implementation process event meaning pushing work to thread but, for example could be to send work to different server.
+        See that in current implementation process event meaning pushing work to thread but, for example could be to
+        send work to a different server.
         """
         self.queue.put(event_stream)
 
@@ -74,7 +78,7 @@ class ParallelTreeEval(ParallelExecutionFramework):
     # this is the main function that each thread executes.
     def run_eval(self):
         if self.has_leafs:
-            # case evaluation mechanism has leafs of base tree
+            # case evaluation mechanism has leaves of base tree
             self.run_eval_with_leafs()
         else:
             # case evaluation mechanism is inner subtree
@@ -91,12 +95,13 @@ class ParallelTreeEval(ParallelExecutionFramework):
                 event = self.queue.get()
                 # calls TreeBasedEvaluationMechanism eval.
                 self.evaluation_mechanism.eval(event, self.pattern_matches, self.data_formatter)
+        self.pattern_matches.close()
 
     def run_eval_without_leafs(self):
         """
         Function is called when evaluation_mechanism is inner in tree.
         """
-        # each inner tree contains unary nodes as children (leafs).
+        # each inner tree has unary nodes as children (leaves).
         unary_children = self.get_unary_children()
         # for results
         partial_matches_list = []
@@ -109,17 +114,18 @@ class ParallelTreeEval(ParallelExecutionFramework):
                 partial_matches_list.append(new_match_object)
             unary_children_index += 1
 
-        # TODO : why sorting is needed ..???
+        # sorting is needed to avoid matches being deleted by the clean expired function if we were to "free" the
+        # matches one node at a time
         partial_matches_list = sorted(partial_matches_list, key=lambda x: x.get_pattern_match_timestamp())
         for pm in partial_matches_list:
             unary_child = unary_children[pm.unary_index]
             unary_child.handle_event(pm.pattern_match)
 
-        if self.is_main_root:
-            # TODO :
+        if self.is_main_root and isinstance(self.evaluation_mechanism, TreeBasedEvaluationMechanism):
+            # get the results
             for match in self.evaluation_mechanism.get_tree().get_root().get_our_matches():
                 self.pattern_matches.add_item(match)
-            # TODO :
+
             for match in self.evaluation_mechanism.get_tree().get_last_matches():
                 self.pattern_matches.add_item(match)
 

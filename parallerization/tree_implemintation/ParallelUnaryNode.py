@@ -1,5 +1,5 @@
 """
-This class contains implementation of unary node used to connect different tree structures after split.
+This class contains the implementation of unary node used to connect different tree structures after split.
 """
 
 from typing import List, Tuple
@@ -8,12 +8,12 @@ from tree.UnaryNode import UnaryNode, Node
 from tree.BinaryNode import BinaryNode
 from base.PatternStructure import PrimitiveEventStructure
 
-# TODO:
+
 class ParallelUnaryNode(UnaryNode):
     def __init__(self, sliding_window, parent: Node = None, event_defs: List[Tuple[int,PrimitiveEventStructure]] = None,
                  child: Node = None):
         super().__init__(sliding_window, parent, event_defs, child)
-
+        # this fields will contain the matches of this node in order to keep them from expiring
         self.our_pattern_matches = []
         self._set_event_definitions()
 
@@ -53,6 +53,9 @@ class ParallelUnaryNode(UnaryNode):
             self._parent.handle_new_partial_match(self)
 
     def get_unary_children(self):
+        # Here we want to get the closest children of self that are ParallelUnaryNode. According to how we built the
+        # tree, it will always be its direct children. This is based solely on our splitting algorithm and will need
+        # updating for other splitting algorithms
         child = self.get_child()
         children = []
         if isinstance(child, UnaryNode):

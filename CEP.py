@@ -60,7 +60,7 @@ class CEP:
         """
         Returns the output stream containing the detected matches.
         """
-        return self.__eval_mechanism_manager.results
+        return self.__eval_mechanism_manager.pattern_matches_stream
 
     def get_evaluation_mechanism_structure_summary(self):
         """
