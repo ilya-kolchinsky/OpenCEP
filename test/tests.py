@@ -930,17 +930,24 @@ runTest.over_all_time = 0
 
 # Parallel tests
 
-SingleStructureMultiData3()
-
 
 print("*** Started running all parallel tests ***")
+
 MultiStructureMultiDataOneFamily()
 MultiStructureMultiDataTwoFamily()
 MultiStructureMultiDataTwoFamily2()
+MultiStructureMultiDataTwoFamily3()
+MultiStructureMultiDataTwoFamily4()
+
+SingleStructureMultiDataDefault()
 SingleStructureMultiData1()
 SingleStructureMultiData2()
 SingleStructureMultiData3()
 SingleStructureMultiData4()
+SingleStructureMultiData5()
+SingleStructureMultiData6()
+SingleStructureMultiData7()
+
 MultipleStructuresSingleData1()
 MultipleStructuresSingleData2()
 MultipleStructuresSingleData3()
@@ -950,6 +957,11 @@ MultipleStructuresSingleData6()
 MultipleStructuresSingleData7()
 MultipleStructuresSingleData8()
 MultipleStructuresSingleData9()
+
+Multiple17StructuresSingleData()
+Multiple13StructuresSingleData()
+Multiple4StructuresSingleData()
+
 print("*** Finished running all parallel tests, overall time: %s ***" % runTest.over_all_time)
 
 # # basic functionality tests

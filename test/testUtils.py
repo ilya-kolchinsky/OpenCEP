@@ -34,6 +34,7 @@ nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/Ev
 custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"))
 custom2 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom2.txt"))
 custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.txt"))
+halfnasdaq = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_20080201_1_sorted.txt"))
 
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
@@ -158,9 +159,10 @@ def runTest(testName, patterns, createTestFile = False,
         events = events.duplicate()
 
     listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle"]
-    listHalfShort = ["OneNotEnd", "MultipleNotEnd", "ParallelTests"]
+    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd"]
     listCustom2 = ["simpleNot"]
+    parallel_tests = ["ParallelTests"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
@@ -171,6 +173,8 @@ def runTest(testName, patterns, createTestFile = False,
         events = custom2.duplicate()
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
+    elif testName in parallel_tests:
+        events = shortNasdaqEventStream.duplicate()
 
     cep = CEP(patterns, eval_mechanism_params, work_load_fr = work_load_fr)
 
@@ -184,7 +188,7 @@ def runTest(testName, patterns, createTestFile = False,
     print("Test %s result: %s, Time Passed: %s" % (testName,
           "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
     runTest.over_all_time += running_time
-    #os.remove(actual_matches_path)
+    os.remove(actual_matches_path)
 
 
 class DummyOutputStream(OutputStream):

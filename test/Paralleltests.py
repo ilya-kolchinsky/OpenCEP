@@ -52,6 +52,42 @@ def MultiStructureMultiDataTwoFamily2(createTestFile=False):
 
     runTest("simple", [pattern], createTestFile, work_load_fr=workload_framework)
 
+    def MultiStructureMultiDataOneFamily(createTestFile=False):
+        pattern = Pattern(
+            SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
+            timedelta(minutes=120)
+        )
+        workload = ParallelTreeWorkloadFrameworkImplementation(pattern, execution_units=1, is_data_parallel=True,
+                                                               is_structure_parallel=True, num_of_families=1)
+        print("Running test for multiple structures, multiple data parts with 1 family, 1 structure, 1 data part")
+
+        runTest("one", [pattern], createTestFile, work_load_fr=workload)
+
+
+def MultiStructureMultiDataTwoFamily3(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
+        timedelta(minutes=120)
+    )
+    workload = WorkloadFrameworkImplementationForSingleEventTests(pattern, execution_units=1, is_data_parallel=True,
+                                                           is_structure_parallel=True, num_of_families=2)
+    print("Running test for multiple structures, multiple data parts with 2 family, 1 structure, 2 families")
+
+    runTest("ParallelTests", [pattern], createTestFile, work_load_fr=workload)
+
+def MultiStructureMultiDataTwoFamily4(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
+        timedelta(minutes=120)
+    )
+    workload = WorkloadFrameworkImplementationForSingleEventTests(pattern, execution_units=1, is_data_parallel=True,
+                                                           is_structure_parallel=True, num_of_families=3)
+    print("Running test for multiple structures, multiple data parts with 2 family, 1 structure, 3 families")
+
+    runTest("ParallelTests", [pattern], createTestFile, work_load_fr=workload)
 
 def SingleStructureMultiData1(createTestFile=False):
     pattern = Pattern(
@@ -65,7 +101,7 @@ def SingleStructureMultiData1(createTestFile=False):
 
     runTest("one", [pattern], createTestFile, work_load_fr=workload)
 
-def SingleStructureMultiData4(createTestFile=False):
+def SingleStructureMultiDataDefault(createTestFile=False):
     pattern = Pattern(
         SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
@@ -96,12 +132,65 @@ def SingleStructureMultiData3(createTestFile=False):
         GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
         timedelta(minutes=120)
     )
-    workload = WorkloadFrameworkImplementationForSingleEventTests(pattern, execution_units=10, is_data_parallel=True,
+    workload = WorkloadFrameworkImplementationForSingleEventTests(pattern, execution_units=1, is_data_parallel=True,
+                                                                  is_structure_parallel=False, num_of_families=0)
+
+    print("Running test for single structure, multiple data parts with 1 structure, 1 data parts")
+
+    runTest("ParallelTests", [pattern], createTestFile, work_load_fr=workload)
+
+def SingleStructureMultiData4(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
+        timedelta(minutes=120)
+    )
+    workload = WorkloadFrameworkImplementationForSingleEventTests(pattern, execution_units=5, is_data_parallel=True,
                                                                   is_structure_parallel=False, num_of_families=0)
 
     print("Running test for single structure, multiple data parts with 1 structure, 5 data parts")
 
-    runTest("ParallelTests", [pattern], createTestFile, work_load_fr=workload)
+    runTest("one", [pattern], createTestFile, work_load_fr=workload)
+
+def SingleStructureMultiData5(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
+        timedelta(minutes=120)
+    )
+    workload = WorkloadFrameworkImplementationForSingleEventTests(pattern, execution_units=20, is_data_parallel=True,
+                                                                  is_structure_parallel=False, num_of_families=0)
+
+    print("Running test for single structure, multiple data parts with 1 structure, 20 data parts")
+
+    runTest("one", [pattern], createTestFile, work_load_fr=workload)
+
+def SingleStructureMultiData6(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
+        timedelta(minutes=120)
+    )
+    workload = WorkloadFrameworkImplementationForSingleEventTests(pattern, execution_units=30, is_data_parallel=True,
+                                                                  is_structure_parallel=False, num_of_families=0)
+
+    print("Running test for single structure, multiple data parts with 1 structure, 30 data parts")
+
+    runTest("one", [pattern], createTestFile, work_load_fr=workload)
+
+def SingleStructureMultiData7(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
+        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), AtomicTerm(135)),
+        timedelta(minutes=120)
+    )
+    workload = WorkloadFrameworkImplementationForSingleEventTests(pattern, execution_units=100, is_data_parallel=True,
+                                                                  is_structure_parallel=False, num_of_families=0)
+
+    print("Running test for single structure, multiple data parts with 1 structure, 100 data parts")
+
+    runTest("one", [pattern], createTestFile, work_load_fr=workload)
+
 
 def MultipleStructuresSingleData1(createTestFile=False):
     """
@@ -338,6 +427,71 @@ def MultipleStructuresSingleData9(createTestFile=False):
     print("Running test for multiple structures, single data part with 5 structures, 1 data part")
 
     runTest("NotEverywhere", [pattern], createTestFile, work_load_fr=workload_framework)
+
+def Multiple17StructuresSingleData(createTestFile=False):
+    # actually only 5 threads (structures) will run because no tree was big enough
+    pattern = Pattern(
+        SeqOperator([NegationOperator(PrimitiveEventStructure("AAPL", "a")), PrimitiveEventStructure("AMAZON", "b"), NegationOperator(PrimitiveEventStructure("GOOG", "c")),
+                     PrimitiveEventStructure("FB", "d"), NegationOperator(PrimitiveEventStructure("TYP1", "x"))]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+
+    workload_framework = ParallelTreeWorkloadFrameworkImplementation(pattern, execution_units=17,
+                                                                     is_data_parallel=False,
+                                                                     is_structure_parallel=True, num_of_families=0)
+
+    print("Running test for multiple structures, single data part with 17 structures, 1 data part")
+
+    runTest("NotEverywhere", [pattern], createTestFile, work_load_fr=workload_framework)
+
+def Multiple13StructuresSingleData(createTestFile=False):
+    # actually only 5 threads (structures) will run because no tree was big enough
+    pattern = Pattern(
+        SeqOperator([NegationOperator(PrimitiveEventStructure("AAPL", "a")), PrimitiveEventStructure("AMAZON", "b"), NegationOperator(PrimitiveEventStructure("GOOG", "c")),
+                     PrimitiveEventStructure("FB", "d"), NegationOperator(PrimitiveEventStructure("TYP1", "x"))]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+
+    workload_framework = ParallelTreeWorkloadFrameworkImplementation(pattern, execution_units=13,
+                                                                     is_data_parallel=False,
+                                                                     is_structure_parallel=True, num_of_families=0)
+
+    print("Running test for multiple structures, single data part with 13 structures, 1 data part")
+
+    runTest("NotEverywhere", [pattern], createTestFile, work_load_fr=workload_framework)
+
+def Multiple4StructuresSingleData(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator([NegationOperator(PrimitiveEventStructure("AAPL", "a")), PrimitiveEventStructure("AMAZON", "b"), NegationOperator(PrimitiveEventStructure("GOOG", "c")),
+                     PrimitiveEventStructure("FB", "d"), NegationOperator(PrimitiveEventStructure("TYP1", "x"))]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                               IdentifierTerm("b", lambda x: x["Opening Price"])),
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]),
+                               IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+
+    workload_framework = ParallelTreeWorkloadFrameworkImplementation(pattern, execution_units=4,
+                                                                     is_data_parallel=False,
+                                                                     is_structure_parallel=True, num_of_families=0)
+
+    print("Running test for multiple structures, single data part with 4 structures, 1 data part")
+
+    runTest("NotEverywhere", [pattern], createTestFile, work_load_fr=workload_framework)
+
+
+
 
 
 

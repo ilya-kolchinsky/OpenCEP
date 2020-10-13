@@ -214,13 +214,13 @@ class ParallelTreeWorkloadFrameworkImplementation(ParallelWorkLoadFramework):
         if not multiple_data and not multiple_structures:
             raise Exception("Not supported")
         elif multiple_data and not multiple_structures:
-            return self.get_all_indexes()
+            return self.get_indexes_for_duplicated_data()
         elif not multiple_data and multiple_structures:
             return self.trees_with_leafs_indexes
         elif multiple_data and multiple_structures:
             return self.get_indexes_for_families()
 
-    def get_all_indexes(self):
+    def get_indexes_for_duplicated_data(self):
         indexes = []
 
         for i in range(len(self.masters)):
