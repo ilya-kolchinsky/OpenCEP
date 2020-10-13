@@ -2,7 +2,7 @@ from queue import Queue
 from datetime import timedelta
 from base.Event import Event
 from misc.Utils import *
-from base.Formula import TrueFormula, Formula, RelopTypes, EquationSides, IdentifierTerm, BinaryFormula
+from base.Formula import TrueFormula, Formula, RelopTypes, EquationSides, IdentifierTerm, BinaryFormula, CompositeFormula, KCFormula
 from evaluation.PartialMatchStorage import SortedPartialMatchStorage, UnsortedPartialMatchStorage, TreeStorageParameters
 from typing import Tuple, Dict
 from base.PatternMatch import PatternMatch
@@ -186,6 +186,18 @@ class Node(ABC):
         """
         Applies a given formula on all nodes in this tree - to be implemented by subclasses.
         """
+        self._propagate_condition(formula)
+        self._assign_formula(formula)
+        if isinstance(formula, CompositeFormula):
+            self._consume_formula(formula)
+
+    def _propagate_condition(self, formula: Formula):
+        raise NotImplementedError()
+
+    def _assign_formula(self, formula: Formula):
+        raise NotImplementedError()
+
+    def _consume_formula(self, formula: Formula):
         raise NotImplementedError()
 
     def get_event_definitions(self):
@@ -221,11 +233,6 @@ class LeafNode(Node):
 
     def get_leaves(self):
         return [self]
-
-    def apply_formula(self, formula: Formula):
-        condition = formula.get_formula_of(self.__event_name)
-        if condition is not None:
-            self._condition = condition
 
     def get_event_definitions(self):
         return [(self.__leaf_index, QItem(self.__event_type, self.__event_name))]
@@ -270,6 +277,17 @@ class LeafNode(Node):
         binding = {self.__event_name: events_for_new_match[0].payload}
         return self._condition.eval(binding)
 
+    def _propagate_condition(self, formula: Formula):
+        return
+
+    def _assign_formula(self, formula: Formula):
+        condition = formula.get_formula_of(self.__event_name)
+        if condition:
+            self._condition = condition
+
+    def _consume_formula(self, formula: Formula):
+        formula.consume_formula_of(self.__event_name)
+
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,
                             sort_by_first_timestamp: bool = False):
@@ -311,11 +329,20 @@ class InternalNode(Node, ABC):
         }
         return self._condition.eval(binding)
 
-    def apply_formula(self, formula: Formula):
+    def _propagate_condition(self, condition: Formula):
+        """
+        Propagates the given condition to the sub tree(s).
+        """
+        raise NotImplementedError()
+
+    def _assign_formula(self, formula: Formula):
         names = {item[1].name for item in self._event_defs}
         condition = formula.get_formula_of(names)
         self._condition = condition if condition else TrueFormula()
-        self._propagate_condition(formula)
+
+    def _consume_formula(self, formula: Formula):
+        names = {item[1].name for item in self._event_defs}
+        formula.consume_formula_of(names)
 
     def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
@@ -329,12 +356,6 @@ class InternalNode(Node, ABC):
         else:
             self._partial_matches = SortedPartialMatchStorage(sorting_key, rel_op, equation_side,
                                                               storage_params.clean_up_interval, sort_by_first_timestamp)
-
-    def _propagate_condition(self, condition: Formula):
-        """
-        Propagates the given condition to the child tree(s).
-        """
-        raise NotImplementedError()
 
     def handle_new_partial_match(self, partial_match_source: Node):
         """
@@ -954,6 +975,10 @@ class KleeneClosureNode(UnaryNode):
         result_powerset = [item for item in result_powerset if self.__min_size <= len(item)]
         return result_powerset
 
+    def _consume_formula(self, formula: Formula):
+        names = {item[1].name for item in self._event_defs}
+        formula.consume_formula_of(names, True)
+
     def get_structure_summary(self):
         return "KC", self._child.get_structure_summary()
 
@@ -993,6 +1018,7 @@ class Tree:
             self.__adjust_leaf_indices(pattern)
             self.__add_negative_tree_structure(pattern)
 
+        tree_formulas = pattern.condition
         self.__root.apply_formula(pattern.condition)
         self.__root.create_storage_unit(storage_params)
 

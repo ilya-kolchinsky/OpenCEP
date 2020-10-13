@@ -1,6 +1,6 @@
 from test.testUtils import *
 from datetime import timedelta
-from base.Formula import GreaterThanFormula, SmallerThanFormula, IdentifierTerm, AndFormula, NaryFormula
+from base.Formula import GreaterThanFormula, SmallerThanFormula, IdentifierTerm, AndFormula, NaryFormula, KCOffsetFormula, KCIndexFormula, KCValueFormula
 from base.PatternStructure import AndOperator, SeqOperator, QItem, KleeneClosureOperator
 from base.Pattern import Pattern
 
@@ -225,7 +225,9 @@ def KC_AND(createTestFile=False):
         ),
         AndFormula([
             SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
-            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
+            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])),
+            KCIndexFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), 0, 1, lambda x, y: x < y),
+            # KCFormula(5, lambda x, y: x > y)
         ]),
         timedelta(minutes=3)
     )

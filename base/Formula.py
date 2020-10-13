@@ -51,7 +51,7 @@ class Formula(ABC):
     def eval(self, binding: dict = None):
         raise NotImplementedError()
 
-    def get_formula_of(self, names: set):
+    def get_formula_of(self, names: set, get_KC = False):
         raise NotImplementedError()
 
     def extract_atomic_formulas(self):
@@ -73,11 +73,14 @@ class TrueFormula(Formula):
     def extract_atomic_formulas(self):
         return []
 
-    def get_formula_of(self, names):
+    def get_formula_of(self, names, get_KC = False):
         return self
 
     def extract_atomic_formulas_new(self):
         return {}
+
+    def consume_formula_of(self, names: set, consume_KC = False):
+        raise NotImplementedError()
 
 
 class NaryFormula(Formula):
@@ -95,7 +98,7 @@ class NaryFormula(Formula):
         except Exception as e:
             return False
 
-    def get_formula_of(self, names: set):
+    def get_formula_of(self, names: set, get_KC = False):
         for term in self.terms:
             cur_term = term.get_term_of(names)
             if cur_term is None:
@@ -212,13 +215,28 @@ class CompositeFormula(Formula, ABC):
                 return self.__terminating_result
         return not self.__terminating_result
 
-    def get_formula_of(self, names: set):
+    def get_formula_of(self, names: set, get_KC = False):
         result_formulas = []
         for f in self.__formulas:
             current_formula = f.get_formula_of(names)
             if current_formula:
-                result_formulas.extend([current_formula])
+                if get_KC == isinstance(current_formula, KCFormula):
+                    result_formulas.extend([current_formula])
         return result_formulas
+
+    def consume_formula_of(self, names: set, consume_KC = False):
+        formulas_to_remove = []
+        for i, f in enumerate(self.__formulas):
+            current_formula = f.get_formula_of(names)
+            if current_formula:
+                if consume_KC == isinstance(current_formula, KCFormula):
+                    formulas_to_remove.append(i)
+        for i in reversed(formulas_to_remove):
+            if not isinstance(self.__formulas[i], CompositeFormula):
+                self.__formulas.pop(i)
+            else:
+                nested_formula = self.__formulas[i]
+                nested_formula.consume_formula_of(names)
 
     def extract_atomic_formulas(self):
         result = []
@@ -248,7 +266,7 @@ class AndFormula(CompositeFormula):
     def __init__(self, formula_list: List[Formula]):
         super().__init__(formula_list, False)
 
-    def get_formula_of(self, names: set):
+    def get_formula_of(self, names: set, get_KC = False):
         result_formulas = super().get_formula_of(names)
         # at-least 1 formula was retrieved using get_formula_of for the list of formulas
         if result_formulas:
@@ -264,10 +282,66 @@ class OrFormula(CompositeFormula):
     def __init__(self, formula_list: List[Formula]):
         super().__init__(formula_list, True)
 
-    def get_formula_of(self, names: set):
+    def get_formula_of(self, names: set, get_KC = False):
         result_formulas = super().get_formula_of(names)
         # at-least 1 formula was retrieved using get_formula_of for the list of formulas
         if result_formulas:
             return OrFormula(result_formulas)
         else:
             return None
+
+
+class KCFormula:
+    def __init__(self, identifier, relation_op):
+        self._identifier = identifier
+        self._relation_op = relation_op
+
+    def get_formula_of(self, names: set, get_KC = False):
+        if self._identifier.get_term_of(names):
+            return self
+
+
+class KCOffsetFormula(KCFormula):
+    def __init__(self, identifier, index_offset, relation_op):
+        super().__init__(identifier, relation_op)
+        self._offset = index_offset
+
+    def eval(self, iterable):
+        for i in range(len(iterable)):
+            if i - self._offset < 0 or i - self._offset > len(iterable) - 1 \
+                    or i + self._offset < 0 or i + self._offset > len(iterable) - 1:
+                continue
+            if not self._relation_op(self._identifier.eval((iterable[i])),
+                                     self._identifier.eval((iterable[i+self._offset]))):
+                return False
+        return True
+
+
+class KCIndexFormula(KCFormula):
+    def __init__(self, identifier, index_1, index_2, relation_op):
+        super().__init__(identifier, relation_op)
+        self._index_1 = index_1
+        self._index_2 = index_2
+
+    def eval(self, iterable):
+        if self._index_1 < 0 or self._index_1 > len(iterable) - 1 \
+                or self._index_2 < 0 or self._index_2 > len(iterable) - 1:
+            return False
+        if not self._relation_op(self._identifier.eval((iterable[self._index_1])),
+                                 self._identifier.eval((iterable[self._index_2]))):
+            return False
+        return True
+
+
+class KCValueFormula(KCFormula):
+    def __init__(self, identifier, index_1, value, relation_op):
+        super().__init__(identifier, relation_op)
+        self._index = index_1
+        self._value = value
+
+    def eval(self, iterable):
+        if self._index < 0 or self._index > len(iterable) - 1:
+            return False
+        if not self._relation_op(self._identifier.eval((iterable[self._index])), self._value):
+            return False
+        return True
