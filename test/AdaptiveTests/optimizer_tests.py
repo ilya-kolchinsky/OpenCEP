@@ -1,19 +1,34 @@
 from optimizer.Optimizer import Optimizer
 from optimizer.ReoptimizingDecision import ReoptimizationDecisionTypes
-import time
 from datetime import timedelta
 from statisticsCollector.StatisticsTypes import StatisticsTypes
-from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, \
-    EqFormula, IdentifierTerm, AtomicTerm, AndFormula, TrueFormula
-from base.PatternStructure import AndOperator, SeqOperator, QItem
+from base.Formula import GreaterThanFormula, IdentifierTerm, AndFormula
+from base.PatternStructure import SeqOperator, QItem
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes
 
 
-class ReoptimizationParameters:
-    def __init__(self, reoptimization_type: ReoptimizationDecisionTypes, data):
-        self.type = reoptimization_type
-        self.data = data
+class ReoptimizingDecisionParameters():
+    def __init__(self, type: ReoptimizationDecisionTypes):
+        self.type = type
+
+
+class UnconditionalPeriodicalParameters(ReoptimizingDecisionParameters):
+    def __init__(self, type: ReoptimizationDecisionTypes, time_limit_data: float):
+        super().__init__(type)
+        self.data = time_limit_data
+
+
+class RelativeThresholdlParameters(ReoptimizingDecisionParameters):
+    def __init__(self, type: ReoptimizationDecisionTypes, threshold_data: float):
+        super().__init__(type)
+        self.data = threshold_data
+
+
+class InvariantsParameters(ReoptimizingDecisionParameters):
+    def __init__(self, type: ReoptimizationDecisionTypes, invariant_data):
+        super().__init__(type)
+        self.data = None
 
 
 class Stat2:
@@ -21,6 +36,24 @@ class Stat2:
         self.arrival_rates = arrival_rates
         self.selectivity_matrix = selectivity_matrix
         self.statistics_type = statistics_type
+
+    def get_generic_data(self):
+        generic_data = []
+        for rate in self.arrival_rates:
+            generic_data.insert(0, rate)
+        return generic_data
+
+
+class AdaptiveParams:
+    def __init__(self, statistics_type: StatisticsTypes, reoptimizing_decision_params: ReoptimizingDecisionParameters):
+        self.statistics_type = statistics_type
+        self.reoptimizing_decision_params = reoptimizing_decision_params
+
+
+class EvalMechanismParams:
+    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes, adaptive_parameters: AdaptiveParams = None):
+        self.type = eval_mechanism_type
+        self.adaptive_parameters = adaptive_parameters
 
 
 def decisions_test(pattern):
@@ -38,7 +71,6 @@ def decisions_test(pattern):
                                            [30, 20, 23, 29, 31],
                                            [10, 20, 23, 29, 31],
                                            [10, 20, 30, 40, 50]]
-
 
     selectivity_matrix_for_thresholds = [
         [[1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0],
@@ -106,11 +138,12 @@ def compare_invariants(invariants_array1, invariants_array2):
 
 
 def threshold_decisions_test(pattern, evaluation_mechanism_type, numbered_event_rates, selectivity_matrix, threshold):
-    reoptimization_parameters_5 = ReoptimizationParameters(
-        ReoptimizationDecisionTypes.STATIC_THRESHOLD_BASED, threshold)
+    reoptimization_parameters = UnconditionalPeriodicalParameters(
+        ReoptimizationDecisionTypes.RELATIVE_THRESHOLD_BASED, threshold)
+    adaptive_params = AdaptiveParams(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, reoptimization_parameters)
+    eval_mechanism_params = EvalMechanismParams(EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE, adaptive_params)
     result_decisions_for_threshold = []
-    optimizer = Optimizer(pattern, evaluation_mechanism_type, StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
-                          reoptimization_parameters_5)
+    optimizer = Optimizer(pattern, evaluation_mechanism_type, eval_mechanism_params)
     for i in range(len(numbered_event_rates)):
         stat2 = Stat2(numbered_event_rates[i], selectivity_matrix[i],
                       StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES)
@@ -124,25 +157,25 @@ def threshold_decisions_test(pattern, evaluation_mechanism_type, numbered_event_
 
 def threshold_decisions_tests(pattern, evaluation_mechanism_type, numbered_event_rates, selectivity_matrix):
     test_result = True
-    result_decisions_for_threshold_5 = threshold_decisions_test(pattern, evaluation_mechanism_type,
-                                                                numbered_event_rates, selectivity_matrix, 5)
-    result_decisions_for_threshold_10 = threshold_decisions_test(pattern, evaluation_mechanism_type,
-                                                                 numbered_event_rates, selectivity_matrix, 10)
-    result_decisions_for_threshold_15 = threshold_decisions_test(pattern, evaluation_mechanism_type,
-                                                                 numbered_event_rates, selectivity_matrix, 15)
+    result_decisions_for_threshold_50 = threshold_decisions_test(pattern, evaluation_mechanism_type,
+                                                                numbered_event_rates, selectivity_matrix, 50)
+    result_decisions_for_threshold_30 = threshold_decisions_test(pattern, evaluation_mechanism_type,
+                                                                 numbered_event_rates, selectivity_matrix, 30)
+    result_decisions_for_threshold_65 = threshold_decisions_test(pattern, evaluation_mechanism_type,
+                                                                 numbered_event_rates, selectivity_matrix, 65)
 
-    expected_decisions_for_threshold_5 = [True, False, True, True, True]
-    expected_decisions_for_threshold_10 = [True, False, True, True, False]
-    expected_decisions_for_threshold_15 = [True, False, False, False, False]
+    expected_decisions_for_threshold_50 = [True, False, True, True, False]
+    expected_decisions_for_threshold_30 = [True, True, True, True, True]
+    expected_decisions_for_threshold_65 = [True, False, True, False, False]
 
-    if not compare_decisions(result_decisions_for_threshold_5, expected_decisions_for_threshold_5):
-        print("Failed threshold 5")
+    if not compare_decisions(result_decisions_for_threshold_50, expected_decisions_for_threshold_50):
+        print("Failed threshold 50%")
         test_result = False
-    if not compare_decisions(result_decisions_for_threshold_10, expected_decisions_for_threshold_10):
-        print("Failed threshold 10")
+    if not compare_decisions(result_decisions_for_threshold_30, expected_decisions_for_threshold_30):
+        print("Failed threshold 30%")
         test_result = False
-    if not compare_decisions(result_decisions_for_threshold_15, expected_decisions_for_threshold_15):
-        print("Failed threshold 15")
+    if not compare_decisions(result_decisions_for_threshold_65, expected_decisions_for_threshold_65):
+        print("Failed threshold 65")
         test_result = False
 
     if test_result:
@@ -163,20 +196,22 @@ def invariants_decision_test(pattern, evaluation_mechanism_type, numbered_event_
         [(0, 1, []), (1, 2, [0]), (2, 3, [0, 1]), (3, 4, [0, 1, 2]), (4, None, None)],
         [(0, 1, []), (1, 2, [0]), (2, 3, [0, 1]), (3, 4, [0, 1, 2]), (4, None, None)]]  # same as before
     expected_decisions_for_invariants = [True, False, True, True, False, True, True, False]
-    reoptimization_parameters = ReoptimizationParameters(
+    reoptimization_parameters = InvariantsParameters(
         ReoptimizationDecisionTypes.INVARIANT_BASED, None)
+    adaptive_params = AdaptiveParams(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, reoptimization_parameters)
+    eval_mechanism_params = EvalMechanismParams(EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE, adaptive_params)
     invariants_array = []
     result_decisions_for_invariants = []
-    optimizer = Optimizer(pattern, evaluation_mechanism_type, StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
-                          reoptimization_parameters)
+    optimizer = Optimizer(pattern, evaluation_mechanism_type, eval_mechanism_params)
     for i in range(len(numbered_event_rates)):
         stat2 = Stat2(numbered_event_rates[i], selectivity_matrix[i],
                       StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES)
-        tree, invariants = optimizer.testing_invariants(stat2)
-        if tree is None:
+        plan = optimizer.run(stat2)
+        if plan is None:
             result_decisions_for_invariants.append(False)
             invariants_array.append(invariants_array[i - 1])
         else:
+            invariants = optimizer.reoptimizing_decision.invariants
             result_decisions_for_invariants.append(True)
             invariants_array.append(invariants)
     if not compare_decisions(result_decisions_for_invariants, expected_decisions_for_invariants):

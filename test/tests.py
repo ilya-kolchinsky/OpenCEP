@@ -1,20 +1,22 @@
 import os
 from CEP import CEP
-from evaluation.EvaluationMechanismFactory import EvaluationMechanismTypes, \
-    IterativeImprovementEvaluationMechanismParameters
+from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters,\
+    EvaluationMechanismTypes, IterativeImprovementEvaluationMechanismParameters
 from misc.IOUtils import file_input, file_output
 from misc.Stocks import MetastockDataFormatter
 from misc.Utils import generate_matches
 from evaluation.LeftDeepTreeBuilders import *
-from evaluation.AdaptiveLeftDeepTreeBuilders import *
+
 from evaluation.BushyTreeBuilders import *
 from datetime import timedelta
 from base.Formula import GreaterThanFormula, SmallerThanFormula, SmallerThanEqFormula, GreaterThanEqFormula, MulTerm, EqFormula, IdentifierTerm, AtomicTerm, AndFormula, TrueFormula
 from base.PatternStructure import AndOperator, SeqOperator, QItem
 from base.Pattern import Pattern
-from AdaptiveConfigurationSettings import AdaptiveParameters, ReoptimizingDecisionParameters
 from optimizer.ReoptimizingDecision import ReoptimizationDecisionTypes
-from evaluation.AdaptiveTreeReplacementAlgorithm import TreeReplacementAlgorithmTypes
+from evaluation.TreeBasedEvaluationMechanism import TreeReplacementAlgorithmTypes
+from AdaptiveConfigurationSettings import AdaptiveParameters, RelativeThresholdlParameters, \
+                                          InvariantsParameters
+from statisticsCollector.DataManagerAlgorithm import DataManagerAlgorithmTypes
 
 
 nasdaqEventStreamShort = file_input("../test/EventFiles/NASDAQ_SHORT.txt", MetastockDataFormatter())
@@ -23,9 +25,11 @@ nasdaqEventStreamFrequencyTailored = file_input("../test/EventFiles/NASDAQ_FREQU
 nasdaqEventStream_AAPL_AMZN_GOOG = file_input("../test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt", MetastockDataFormatter())
 nasdaqEventStream = file_input("../test/EventFiles/NASDAQ_LONG.txt", MetastockDataFormatter())
 
+
 def closeFiles(file1, file2):
     file1.close()
     file2.close()
+
 
 def fileCompare(pathA, pathB):
     file1 = open(pathA)
@@ -60,6 +64,7 @@ def fileCompare(pathA, pathB):
     closeFiles(file1, file2)
     return True
 
+
 def createTest(testName, patterns, events=None):
     if events == None:
         events = nasdaqEventStream.duplicate()
@@ -73,14 +78,14 @@ def createTest(testName, patterns, events=None):
 
 def runTest(testName, patterns, createTestFile=False,
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-            eval_mechanism_params=None, events=None, adaptive_parameters=None):
+            eval_mechanism_params=None, events=None):
     if createTestFile:
         createTest(testName, patterns, events)
     if events is None:
         events = nasdaqEventStream.duplicate()
     else:
         events = events.duplicate()
-    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params, adaptive_parameters)
+    cep = CEP(patterns, eval_mechanism_type, eval_mechanism_params)
     running_time = cep.run(events)
     matches = cep.get_pattern_match_stream()
     file_output(matches, '%sMatches.txt' % testName)
@@ -90,6 +95,7 @@ def runTest(testName, patterns, createTestFile=False,
             "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
     os.remove(actual_matches_path)
 
+
 def oneArgumentsearchTest(createTestFile = False):
     pattern = Pattern(
         SeqOperator([QItem("AAPL", "a")]),
@@ -97,6 +103,7 @@ def oneArgumentsearchTest(createTestFile = False):
         timedelta.max
     )
     runTest("one", [pattern], createTestFile)
+
 
 def simplePatternSearchTest(createTestFile = False):
     """
@@ -291,16 +298,39 @@ def adaptiveNonFrequencyPatternSearchTest(createTestFile = False):
             GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    reoptimizing_decision_params = ReoptimizingDecisionParameters(ReoptimizationDecisionTypes.INVARIANT_BASED, None)
+    reoptimizing_decision_params = InvariantsParameters(ReoptimizationDecisionTypes.INVARIANT_BASED, None)
     adaptive_parameters = AdaptiveParameters(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
                                              reoptimizing_decision_params,
                                              TreeReplacementAlgorithmTypes.IMMEDIATE_REPLACE_TREE,
                                              activate_statistics_collector_period=timedelta(minutes=10),
                                              activate_optimizer_period=timedelta(minutes=10),
-                                             window_coefficient=2, k=3)
+                                             data_manager_type=DataManagerAlgorithmTypes.TRIVIAL_ALGORITHM)
+    eval_mechanism_params = EvaluationMechanismParameters(eval_mechanism_type=None, adaptive_parameters=adaptive_parameters)
     runTest('adaptiveNonFrequency', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE, events=nasdaqEventStream,
-            adaptive_parameters=adaptive_parameters)
+            eval_mechanism_type=EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE,
+            eval_mechanism_params=eval_mechanism_params,
+            events=nasdaqEventStream)
+
+def adaptiveNonFrequencyPatternSearchTest2(createTestFile = False):
+    pattern = Pattern(
+        SeqOperator([QItem("AAPL", "a"), QItem("AMZN", "b"), QItem("LOCM", "c")]),
+        AndFormula(
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"])),
+            GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    reoptimizing_decision_params = RelativeThresholdlParameters(ReoptimizationDecisionTypes.RELATIVE_THRESHOLD_BASED, 50)
+    adaptive_parameters = AdaptiveParameters(StatisticsTypes.ARRIVAL_RATES,
+                                             reoptimizing_decision_params,
+                                             TreeReplacementAlgorithmTypes.IMMEDIATE_REPLACE_TREE,
+                                             activate_statistics_collector_period=timedelta(minutes=10),
+                                             activate_optimizer_period=timedelta(minutes=10),
+                                             data_manager_type=DataManagerAlgorithmTypes.TRIVIAL_ALGORITHM)
+    eval_mechanism_params = EvaluationMechanismParameters(eval_mechanism_type=None, adaptive_parameters=adaptive_parameters)
+    runTest('adaptiveNonFrequency', [pattern], createTestFile,
+            eval_mechanism_type=EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE,
+            eval_mechanism_params=eval_mechanism_params,
+            events=nasdaqEventStream)
 
 def frequencyPatternSearchTest(createTestFile = False):
     pattern = Pattern(
@@ -332,16 +362,18 @@ def adaptiveArrivalRatesPatternSearchTest(createTestFile = False):
         GreaterThanFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), IdentifierTerm("c", lambda x: x["Opening Price"]))),
     timedelta(minutes=5)
     )
-    reoptimizing_decision_params = ReoptimizingDecisionParameters(ReoptimizationDecisionTypes.STATIC_THRESHOLD_BASED, 5)
+    reoptimizing_decision_params = RelativeThresholdlParameters(ReoptimizationDecisionTypes.RELATIVE_THRESHOLD_BASED, 50)
     adaptive_parameters = AdaptiveParameters(StatisticsTypes.ARRIVAL_RATES,
                                              reoptimizing_decision_params,
                                              TreeReplacementAlgorithmTypes.SIMULTANEOUSLY_RUN_TWO_TREES,
                                              activate_statistics_collector_period=timedelta(minutes=10),
                                              activate_optimizer_period=timedelta(minutes=10),
-                                             window_coefficient=2, k=3)
+                                             data_manager_type=DataManagerAlgorithmTypes.TRIVIAL_ALGORITHM)
+    eval_mechanism_params = EvaluationMechanismParameters(eval_mechanism_type=None,
+                                                          adaptive_parameters=adaptive_parameters)
     runTest('adaptiveArrivalRates', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE, events=nasdaqEventStream,
-            adaptive_parameters=adaptive_parameters)
+            eval_mechanism_type=EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE,
+            eval_mechanism_params=eval_mechanism_params, events=nasdaqEventStream)
 
 def nonFrequencyPatternSearch2Test(createTestFile = False):
     pattern = Pattern(
@@ -457,17 +489,18 @@ def adaptiveGreedyPatternSearchTest(createTestFile = False):
         ),
         timedelta(minutes=3)
     )
-    reoptimizing_decision_params = ReoptimizingDecisionParameters(ReoptimizationDecisionTypes.INVARIANT_BASED, None)
+    reoptimizing_decision_params = InvariantsParameters(ReoptimizationDecisionTypes.INVARIANT_BASED, None)
     adaptive_parameters = AdaptiveParameters(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
                                              reoptimizing_decision_params,
                                              TreeReplacementAlgorithmTypes.IMMEDIATE_REPLACE_TREE,
                                              activate_statistics_collector_period=timedelta(minutes=10),
                                              activate_optimizer_period=timedelta(minutes=10),
-                                             window_coefficient=2, k=3)
+                                             data_manager_type=DataManagerAlgorithmTypes.TRIVIAL_ALGORITHM)
+    eval_mechanism_params = EvaluationMechanismParameters(eval_mechanism_type=None,
+                                                          adaptive_parameters=adaptive_parameters)
     runTest('adaptiveGreedy1', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE, events=nasdaqEventStream,
-            adaptive_parameters=adaptive_parameters)
-
+            eval_mechanism_type=EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE,
+            eval_mechanism_params=eval_mechanism_params, events=nasdaqEventStream)
 
 def iiRandomPatternSearchTest(createTestFile = False):
     pattern = Pattern(
@@ -502,18 +535,43 @@ def adaptive_iiRandomPatternSearchTest(createTestFile = False):
         ),
         timedelta(minutes=3)
     )
-    reoptimizing_decision_params = ReoptimizingDecisionParameters(ReoptimizationDecisionTypes.STATIC_THRESHOLD_BASED, 5)
+    reoptimizing_decision_params = RelativeThresholdlParameters(ReoptimizationDecisionTypes.RELATIVE_THRESHOLD_BASED, 30)
     adaptive_parameters = AdaptiveParameters(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
                                              reoptimizing_decision_params,
                                              TreeReplacementAlgorithmTypes.SIMULTANEOUSLY_RUN_TWO_TREES,
                                              activate_statistics_collector_period=timedelta(minutes=10),
                                              activate_optimizer_period=timedelta(minutes=10),
-                                             window_coefficient=2, k=3)
+                                             data_manager_type=DataManagerAlgorithmTypes.TRIVIAL_ALGORITHM)
     runTest('adaptive_iiRandom1', [pattern], createTestFile,
             eval_mechanism_type=EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE,
             eval_mechanism_params=IterativeImprovementEvaluationMechanismParameters(
-                20, IterativeImprovementType.SWAP_BASED, AdaptiveIterativeImprovementInitType.RANDOM),
-            events=nasdaqEventStream, adaptive_parameters=adaptive_parameters)
+                20, IterativeImprovementType.SWAP_BASED, IterativeImprovementInitType.RANDOM, adaptive_parameters),
+            events=nasdaqEventStream)
+
+def adaptive_iiRandomPatternSearchTest2(createTestFile = False):
+    pattern = Pattern(
+        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        AndFormula(
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
+            ),
+            SmallerThanFormula(IdentifierTerm("c", lambda x: x["Peak Price"]), IdentifierTerm("d", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+    reoptimizing_decision_params = RelativeThresholdlParameters(ReoptimizationDecisionTypes.RELATIVE_THRESHOLD_BASED, 30)
+    adaptive_parameters = AdaptiveParameters(StatisticsTypes.ARRIVAL_RATES,
+                                             reoptimizing_decision_params,
+                                             TreeReplacementAlgorithmTypes.SIMULTANEOUSLY_RUN_TWO_TREES,
+                                             activate_statistics_collector_period=timedelta(minutes=10),
+                                             activate_optimizer_period=timedelta(minutes=10),
+                                             data_manager_type=DataManagerAlgorithmTypes.TRIVIAL_ALGORITHM)
+    runTest('adaptive_iiRandom1', [pattern], createTestFile,
+            eval_mechanism_type=EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE,
+            eval_mechanism_params=IterativeImprovementEvaluationMechanismParameters(
+                20, IterativeImprovementType.SWAP_BASED, IterativeImprovementInitType.RANDOM, adaptive_parameters),
+            events=nasdaqEventStream)
 
 def iiRandom2PatternSearchTest(createTestFile = False):
     pattern = Pattern(
@@ -548,18 +606,18 @@ def adaptive_iiGreedyPatternSearchTest(createTestFile = False):
         ),
         timedelta(minutes=3)
     )
-    reoptimizing_decision_params = ReoptimizingDecisionParameters(ReoptimizationDecisionTypes.STATIC_THRESHOLD_BASED, 5)
+    reoptimizing_decision_params = RelativeThresholdlParameters(ReoptimizationDecisionTypes.RELATIVE_THRESHOLD_BASED, 70)
     adaptive_parameters = AdaptiveParameters(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
                                              reoptimizing_decision_params,
                                              TreeReplacementAlgorithmTypes.IMMEDIATE_REPLACE_TREE,
                                              activate_statistics_collector_period=timedelta(minutes=10),
                                              activate_optimizer_period=timedelta(minutes=10),
-                                             window_coefficient=2, k=3)
+                                             data_manager_type=DataManagerAlgorithmTypes.TRIVIAL_ALGORITHM)
     runTest('adaptive_iiGreedy1', [pattern], createTestFile,
             eval_mechanism_type=EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE,
             eval_mechanism_params=IterativeImprovementEvaluationMechanismParameters(
-                20, IterativeImprovementType.SWAP_BASED, AdaptiveIterativeImprovementInitType.GREEDY),
-            events=nasdaqEventStream, adaptive_parameters=adaptive_parameters)
+                20, IterativeImprovementType.SWAP_BASED, IterativeImprovementInitType.GREEDY, adaptive_parameters),
+            events=nasdaqEventStream)
 
 def iiGreedyPatternSearchTest(createTestFile = False):
     pattern = Pattern(
@@ -582,26 +640,6 @@ def iiGreedyPatternSearchTest(createTestFile = False):
                 20, IterativeImprovementType.SWAP_BASED, IterativeImprovementInitType.GREEDY),
             events=nasdaqEventStream)
 
-def iiGreedy2PatternSearchTest(createTestFile = False):
-    pattern = Pattern(
-        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
-        AndFormula(
-            AndFormula(
-                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
-                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
-            ),
-            SmallerThanFormula(IdentifierTerm("c", lambda x: x["Peak Price"]), IdentifierTerm("d", lambda x: x["Peak Price"]))
-        ),
-        timedelta(minutes=3)
-    )
-    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0], [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
-    arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    runTest('iiGreedy2', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE,
-            eval_mechanism_params=IterativeImprovementEvaluationMechanismParameters(
-                20, IterativeImprovementType.CIRCLE_BASED, IterativeImprovementInitType.GREEDY),
-            events=nasdaqEventStream)
 
 def dpLdPatternSearchTest(createTestFile = False):
     pattern = Pattern(
@@ -633,16 +671,45 @@ def adaptiveDpLdPatternSearchTest(createTestFile = False):
         ),
         timedelta(minutes=3)
     )
-    reoptimizing_decision_params = ReoptimizingDecisionParameters(ReoptimizationDecisionTypes.STATIC_THRESHOLD_BASED, 5)
+    reoptimizing_decision_params = RelativeThresholdlParameters(ReoptimizationDecisionTypes.RELATIVE_THRESHOLD_BASED, 50)
     adaptive_parameters = AdaptiveParameters(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
                                              reoptimizing_decision_params,
                                              TreeReplacementAlgorithmTypes.IMMEDIATE_REPLACE_TREE,
                                              activate_statistics_collector_period=timedelta(minutes=10),
                                              activate_optimizer_period=timedelta(minutes=10),
-                                             window_coefficient=2, k=3)
+                                             data_manager_type=DataManagerAlgorithmTypes.TRIVIAL_ALGORITHM)
+    eval_mechanism_params = EvaluationMechanismParameters(eval_mechanism_type=None,
+                                                          adaptive_parameters=adaptive_parameters)
     runTest('adaptiveDpLd1', [pattern], createTestFile,
-            eval_mechanism_type=EvaluationMechanismTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE, events=nasdaqEventStream,
-            adaptive_parameters=adaptive_parameters)
+            eval_mechanism_type=EvaluationMechanismTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE,
+            eval_mechanism_params=eval_mechanism_params, events=nasdaqEventStream)
+
+
+def adaptiveDpLdPatternSearchTest2(createTestFile = False):
+    pattern = Pattern(
+        SeqOperator([QItem("MSFT", "a"), QItem("DRIV", "b"), QItem("ORLY", "c"), QItem("CBRL", "d")]),
+        AndFormula(
+            AndFormula(
+                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
+                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"]))
+            ),
+            SmallerThanFormula(IdentifierTerm("c", lambda x: x["Peak Price"]), IdentifierTerm("d", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+    reoptimizing_decision_params = RelativeThresholdlParameters(ReoptimizationDecisionTypes.RELATIVE_THRESHOLD_BASED, 50)
+    adaptive_parameters = AdaptiveParameters(StatisticsTypes.ARRIVAL_RATES,
+                                             reoptimizing_decision_params,
+                                             TreeReplacementAlgorithmTypes.IMMEDIATE_REPLACE_TREE,
+                                             activate_statistics_collector_period=timedelta(minutes=10),
+                                             activate_optimizer_period=timedelta(minutes=10),
+                                             data_manager_type=DataManagerAlgorithmTypes.TRIVIAL_ALGORITHM)
+    eval_mechanism_params = EvaluationMechanismParameters(eval_mechanism_type=None,
+                                                          adaptive_parameters=adaptive_parameters)
+    runTest('adaptiveDpLd1', [pattern], createTestFile,
+            eval_mechanism_type=EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE,
+            eval_mechanism_params=eval_mechanism_params, events=nasdaqEventStream)
+
 
 def dpBPatternSearchTest(createTestFile = False):
     pattern = Pattern(
@@ -724,6 +791,7 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile = False):
     runTest('nonFrequencyTailored1', [pattern], createTestFile,
             eval_mechanism_type=EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE, events=nasdaqEventStream)
 
+
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
@@ -735,7 +803,8 @@ googleAmazonLowPatternSearchTest()
 nonsensePatternSearchTest()
 hierarchyPatternSearchTest()
 nonFrequencyPatternSearchTest()
-adaptiveNonFrequencyPatternSearchTest()
+# adaptiveNonFrequencyPatternSearchTest()  -  Not supported. Invariants using StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES
+adaptiveNonFrequencyPatternSearchTest2()
 arrivalRatesPatternSearchTest()
 adaptiveArrivalRatesPatternSearchTest()
 frequencyPatternSearchTest()
@@ -749,20 +818,22 @@ nonFrequencyPatternSearch5Test()
 frequencyPatternSearch5Test()
 frequencyPatternSearch6Test()
 greedyPatternSearchTest()
-adaptiveGreedyPatternSearchTest()
+# adaptiveGreedyPatternSearchTest() - Using Selectivity Matrix
 iiRandomPatternSearchTest()
-adaptive_iiRandomPatternSearchTest()
+# adaptive_iiRandomPatternSearchTest() - Using Selectivity Matrix
+adaptive_iiRandomPatternSearchTest2()
 iiRandom2PatternSearchTest()
 iiGreedyPatternSearchTest()
-adaptive_iiGreedyPatternSearchTest()
-iiGreedy2PatternSearchTest()
-#zStreamOrdPatternSearchTest()
-#zStreamPatternSearchTest()
+# adaptive_iiGreedyPatternSearchTest() - Using Selectivity Matrix
+# zStreamOrdPatternSearchTest()
+# zStreamPatternSearchTest()
 dpBPatternSearchTest()
-adaptiveDpLdPatternSearchTest()
+# adaptiveDpLdPatternSearchTest() - Using Selectivity Matrix
+adaptiveDpLdPatternSearchTest2()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
+
 
 # Twitter tests
 try:

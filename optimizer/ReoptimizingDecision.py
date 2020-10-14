@@ -1,7 +1,7 @@
 from enum import Enum
 import time
 from abc import ABC
-from statisticsCollector.StatisticsCollector import Stat
+from statisticsCollector.Stat import Stat
 
 
 class ReoptimizationDecisionTypes(Enum):
@@ -9,7 +9,7 @@ class ReoptimizationDecisionTypes(Enum):
     The various methods for deciding whether reoptimization is needed.
     """
     UNCONDITIONAL_PERIODICAL_ADAPTATION = 0,
-    STATIC_THRESHOLD_BASED = 1,
+    RELATIVE_THRESHOLD_BASED = 1,
     INVARIANT_BASED = 2
 
 
@@ -32,16 +32,25 @@ class UnconditionalPeriodicalAdaptationDecision:
             return False
 
 
-class StaticThresholdBasedDecision(ABC):
+class RelativeThresholdBasedDecision:
     def __init__(self, threshold):
         self.threshold = threshold
+        self.generic_data = None
 
     def decision(self, stat: Stat) -> bool:
         """
-        Go over the previous data and the current data and checks if the difference between them is
+        Go over the previous data and the current data and checks if the relative difference between them is
         higher than the threshold. If yes, returns True, otherwise returns No
         """
-        pass
+        previous_data = self.generic_data
+        self.generic_data = stat.get_generic_data()
+        if previous_data is None:
+            return True     # Meaning CEP doesn't have a plan yet and it needs to be generated
+        else:
+            for cur_data, prev_data in zip(self.generic_data, previous_data):
+                if (prev_data * (self.threshold / 100)) < abs(cur_data - prev_data):
+                    return True
+        return False
 
 
 class InvariantBasedDecision(ABC):
@@ -51,7 +60,7 @@ class InvariantBasedDecision(ABC):
 
     def decision(self, stat: Stat) -> bool:
         """
-        Checking if any of the invariants has been violated. If yes then initiate reoptimization
+        Checking if any of the invariants has been violated and initiate reoptimization if needed
         """
         pass
 
@@ -60,4 +69,3 @@ class InvariantBasedDecision(ABC):
         Getting the new generated plan and create invariants according to it
         """
         pass
-

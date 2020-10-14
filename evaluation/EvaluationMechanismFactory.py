@@ -2,17 +2,13 @@ from typing import List
 from enum import Enum
 from base.Pattern import Pattern
 from evaluation.BushyTreeBuilders import DynamicProgrammingBushyTreeBuilder, ZStreamTreeBuilder, ZStreamOrdTreeBuilder
-from evaluation.AdaptiveBushyTreeBuilders import AdaptiveDynamicProgrammingBushyTreeBuilder,\
-    AdaptiveZStreamTreeBuilder, AdaptiveZStreamOrdTreeBuilder
 from evaluation.IterativeImprovement import IterativeImprovementType
 from evaluation.LeftDeepTreeBuilders import IterativeImprovementInitType, TrivialLeftDeepTreeBuilder, \
-    AscendingFrequencyTreeBuilder, GreedyLeftDeepTreeBuilder, IterativeImprovementLeftDeepTreeBuilder, \
-    DynamicProgrammingLeftDeepTreeBuilder
-from evaluation.AdaptiveLeftDeepTreeBuilders import AdaptiveTrivialLeftDeepTreeBuilder,\
-    AdaptiveAscendingFrequencyTreeBuilder,\
-    AdaptiveGreedyLeftDeepTreeBuilder, AdaptiveIterativeImprovementLeftDeepTreeBuilder, \
-    AdaptiveDynamicProgrammingLeftDeepTreeBuilder
-from statisticsCollector.StatisticsCollector import Stat
+    AscendingFrequencyTreeBuilder, GreedyLeftDeepTreeBuilder, AdaptiveGreedyLeftDeepTreeBuilder,\
+    IterativeImprovementLeftDeepTreeBuilder, DynamicProgrammingLeftDeepTreeBuilder
+from statisticsCollector.Stat import Stat
+from AdaptiveConfigurationSettings import AdaptiveParameters
+from statisticsCollector.StatisticsCollector import StatisticsCollector
 
 
 class EvaluationMechanismTypes(Enum):
@@ -33,8 +29,9 @@ class EvaluationMechanismParameters:
     """
     Parameters for the evaluation mechanism builder.
     """
-    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes):
+    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes, adaptive_parameters: AdaptiveParameters = None):
         self.type = eval_mechanism_type
+        self.adaptive_parameters = adaptive_parameters
 
 
 class IterativeImprovementEvaluationMechanismParameters(EvaluationMechanismParameters):
@@ -44,8 +41,9 @@ class IterativeImprovementEvaluationMechanismParameters(EvaluationMechanismParam
     """
     def __init__(self, step_limit: int,
                  ii_type: IterativeImprovementType = IterativeImprovementType.SWAP_BASED,
-                 init_type: IterativeImprovementInitType = IterativeImprovementInitType.RANDOM):
-        super().__init__(EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE)
+                 init_type: IterativeImprovementInitType = IterativeImprovementInitType.RANDOM,
+                 adaptive_parameters: AdaptiveParameters = None):
+        super().__init__(EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE, adaptive_parameters)
         self.ii_type = ii_type
         self.init_type = init_type
         self.step_limit = step_limit
@@ -58,30 +56,23 @@ class EvaluationMechanismFactory:
     @staticmethod
     def build_single_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,
                                             eval_mechanism_params: EvaluationMechanismParameters,
-                                            pattern: Pattern):
+                                            pattern: Pattern, stat: Stat = None, optimizer = None,
+                                            statistics_collector: StatisticsCollector = None):
         return EvaluationMechanismFactory. \
-            __create_eval_mechanism_builder(eval_mechanism_type, eval_mechanism_params). \
-            build_single_pattern_eval_mechanism(pattern)
-
-    @staticmethod
-    def build_adaptive_single_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,
-                                                     eval_mechanism_params: EvaluationMechanismParameters,
-                                                     pattern: Pattern, stat: Stat, is_using_invariants):
-        return EvaluationMechanismFactory. \
-            __create_adaptive_eval_mechanism_builder(eval_mechanism_type, eval_mechanism_params). \
-            build_adaptive_single_pattern_eval_mechanism(pattern, stat, is_using_invariants)
+            __create_eval_mechanism_builder(eval_mechanism_type, eval_mechanism_params, optimizer). \
+            build_single_pattern_eval_mechanism(pattern=pattern, stat=stat, statistics_collector=statistics_collector)
 
     @staticmethod
     def build_multi_pattern_eval_mechanism(eval_mechanism_type: EvaluationMechanismTypes,
                                            eval_mechanism_params: EvaluationMechanismParameters,
-                                           patterns: List[Pattern]):
+                                           patterns: List[Pattern], optimizer = None):
         return EvaluationMechanismFactory. \
-            __create_eval_mechanism_builder(eval_mechanism_type, eval_mechanism_params). \
+            __create_eval_mechanism_builder(eval_mechanism_type, eval_mechanism_params, optimizer). \
             build_multi_pattern_eval_mechanism(patterns)
 
     @staticmethod
     def __create_eval_mechanism_builder(eval_mechanism_type: EvaluationMechanismTypes,
-                                        eval_mechanism_params: EvaluationMechanismParameters):
+                                        eval_mechanism_params: EvaluationMechanismParameters, optimizer):
         eval_mechanism_params = EvaluationMechanismFactory.__create_eval_mechanism_parameters(eval_mechanism_type,
                                                                                               eval_mechanism_params)
         if eval_mechanism_params.type == EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE:
@@ -89,7 +80,10 @@ class EvaluationMechanismFactory:
         if eval_mechanism_params.type == EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE:
             return AscendingFrequencyTreeBuilder()
         if eval_mechanism_params.type == EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE:
-            return GreedyLeftDeepTreeBuilder()
+            if optimizer is not None:   # Meaning we are on adaptive mode
+                return AdaptiveGreedyLeftDeepTreeBuilder(optimizer)
+            else:
+                return GreedyLeftDeepTreeBuilder()
         if eval_mechanism_params.type == EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE:
             return IterativeImprovementLeftDeepTreeBuilder(eval_mechanism_params.step_limit,
                                                            eval_mechanism_params.ii_type,
@@ -105,33 +99,9 @@ class EvaluationMechanismFactory:
         return None
 
     @staticmethod
-    def __create_adaptive_eval_mechanism_builder(eval_mechanism_type: EvaluationMechanismTypes,
-                                                 eval_mechanism_params: EvaluationMechanismParameters):
-        eval_mechanism_params = EvaluationMechanismFactory.__create_eval_mechanism_parameters(eval_mechanism_type,
-                                                                                              eval_mechanism_params)
-        if eval_mechanism_params.type == EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE:
-            return AdaptiveTrivialLeftDeepTreeBuilder()
-        if eval_mechanism_params.type == EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE:
-            return AdaptiveAscendingFrequencyTreeBuilder()
-        if eval_mechanism_params.type == EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE:
-            return AdaptiveGreedyLeftDeepTreeBuilder()
-        if eval_mechanism_params.type == EvaluationMechanismTypes.LOCAL_SEARCH_LEFT_DEEP_TREE:
-            return AdaptiveIterativeImprovementLeftDeepTreeBuilder(eval_mechanism_params.step_limit,
-                                                                   eval_mechanism_params.ii_type,
-                                                                   eval_mechanism_params.init_type)
-        if eval_mechanism_params.type == EvaluationMechanismTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE:
-            return AdaptiveDynamicProgrammingLeftDeepTreeBuilder()
-        if eval_mechanism_params.type == EvaluationMechanismTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE:
-            return AdaptiveDynamicProgrammingBushyTreeBuilder()
-        if eval_mechanism_params.type == EvaluationMechanismTypes.ZSTREAM_BUSHY_TREE:
-            return AdaptiveZStreamTreeBuilder()
-        if eval_mechanism_params.type == EvaluationMechanismTypes.ORDERED_ZSTREAM_BUSHY_TREE:
-            return AdaptiveZStreamOrdTreeBuilder()
-        return None
-
-    @staticmethod
     def __create_eval_mechanism_parameters(eval_mechanism_type: EvaluationMechanismTypes,
                                            eval_mechanism_params: EvaluationMechanismParameters):
         if eval_mechanism_params is not None:
+            eval_mechanism_params.type = eval_mechanism_type
             return eval_mechanism_params
-        return EvaluationMechanismParameters(eval_mechanism_type)
+        return EvaluationMechanismParameters(eval_mechanism_type=eval_mechanism_type)

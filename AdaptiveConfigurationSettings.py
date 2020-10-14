@@ -1,10 +1,11 @@
 from optimizer.ReoptimizingDecision import ReoptimizationDecisionTypes
 from statisticsCollector.StatisticsTypes import StatisticsTypes
-from evaluation.AdaptiveTreeReplacementAlgorithm import TreeReplacementAlgorithmTypes
+from evaluation.TreeBasedEvaluationMechanism import TreeReplacementAlgorithmTypes
 from datetime import timedelta
+from statisticsCollector.DataManagerAlgorithm import DataManagerAlgorithmTypes
 
 
-class ReoptimizingDecisionParameters:
+class ReoptimizingDecisionParameters():
     """
     A struct that includes the repotimization_decision_type and it's data accordingly. Will be used to initialize the
     Optimizer.
@@ -14,9 +15,26 @@ class ReoptimizingDecisionParameters:
     In order to use ReoptimizationDecisionTypes.INVARIANT_BASED, the evaluation mechanism type (which is received in
     the CEP constructor) will have to be EvaluationMechanismTypes.GREEDY_LEFT_DEEP_TREE
     """
-    def __init__(self, type: ReoptimizationDecisionTypes, data):
+    def __init__(self, type: ReoptimizationDecisionTypes):
         self.type = type
-        self.data = data
+
+
+class UnconditionalPeriodicalParameters(ReoptimizingDecisionParameters):
+    def __init__(self, type: ReoptimizationDecisionTypes, time_limit_data: float):
+        super().__init__(type)
+        self.data = time_limit_data
+
+
+class RelativeThresholdlParameters(ReoptimizingDecisionParameters):
+    def __init__(self, type: ReoptimizationDecisionTypes, threshold_data: float):
+        super().__init__(type)
+        self.data = threshold_data
+
+
+class InvariantsParameters(ReoptimizingDecisionParameters):
+    def __init__(self, type: ReoptimizationDecisionTypes, invariant_data):
+        super().__init__(type)
+        self.data = None
 
 
 class AdaptiveParameters:
@@ -38,14 +56,12 @@ class AdaptiveParameters:
                  tree_replacement_algorithm_type=TreeReplacementAlgorithmTypes.IMMEDIATE_REPLACE_TREE,
                  activate_statistics_collector_period: timedelta = timedelta(minutes=10),
                  activate_optimizer_period: timedelta = timedelta(minutes=10),
-                 window_coefficient=2, k=3):
+                 data_manager_type: DataManagerAlgorithmTypes = DataManagerAlgorithmTypes.TRIVIAL_ALGORITHM):
         """
         Statistics Collector parameters
         """
         self.statistics_type = statistics_type  # See class StatisticsTypes(Enum)
-
-        self.k = k  # Defines the limit of the number of buckets in the same size in the Exponential Histogram. For more information go to the article: http://www-cs-students.stanford.edu/~datar/papers/sicomp_streams.pdf
-        self.window_coefficient = window_coefficient  # Will determine the time window of the events in StatisticsCollector. The time window will be (window_coefficient * pattern.window)
+        self.data_manager_type = data_manager_type
         self.activate_statistics_collector_period = activate_statistics_collector_period  # This variable will decide how often (in time_delta) StatisticsCollector will be supply statistics
         """
         Optimizer parameters

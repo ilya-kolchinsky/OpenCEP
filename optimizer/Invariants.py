@@ -1,6 +1,6 @@
 from statisticsCollector.StatisticsTypes import StatisticsTypes
 from optimizer.ReoptimizingDecision import InvariantBasedDecision
-from statisticsCollector.StatisticsCollector import Stat
+from statisticsCollector.Stat import Stat
 
 
 class GreedyAlgorithmBasedInvariants(InvariantBasedDecision):

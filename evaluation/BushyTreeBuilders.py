@@ -10,19 +10,27 @@ from misc.Statistics import calculate_bushy_tree_cost_function, MissingStatistic
 from statisticsCollector.StatisticsTypes import StatisticsTypes
 from evaluation.LeftDeepTreeBuilders import GreedyLeftDeepTreeBuilder
 from itertools import combinations
+from statisticsCollector.Stat import Stat
+from statisticsCollector.StatisticsCollector import StatisticsCollector
 
 
 class BushyTreeBuilder(EvaluationMechanismBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-    def build_single_pattern_eval_mechanism(self, pattern: Pattern):
-        if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivityMatrix, arrivalRates) = pattern.statistics
+    def build_single_pattern_eval_mechanism(self, pattern: Pattern, stat: Stat = None,
+                                            statistics_collector: StatisticsCollector = None):
+        statistics_type = pattern.statistics_type if stat is None else stat.statistics_type
+        if statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+            if stat is None:
+                (selectivityMatrix, arrivalRates) = pattern.statistics
+            else:
+                selectivityMatrix = stat.selectivity_matrix
+                arrivalRates = stat.arrival_rates
         else:
             raise MissingStatisticsException()
         tree_structure = self._find_tree(selectivityMatrix, arrivalRates, pattern.window.total_seconds())
-        return TreeBasedEvaluationMechanism(pattern, tree_structure)
+        return TreeBasedEvaluationMechanism(pattern, tree_structure, statistics_collector), tree_structure
 
     def build_multi_pattern_eval_mechanism(self, patterns: List[Pattern]):
         raise Exception("Unsupported")

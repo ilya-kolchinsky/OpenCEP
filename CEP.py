@@ -10,7 +10,7 @@ from typing import List
 from datetime import datetime
 from statisticsCollector.StatisticsCollector import StatisticsCollector
 from optimizer.Optimizer import Optimizer
-from evaluation.AdaptiveTreeReplacementAlgorithm import create_adaptive_evaluation_mechanism_by_type
+from evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 
 
 class PerformanceSpecifications:
@@ -29,7 +29,7 @@ class CEP:
     """
     def __init__(self, patterns: List[Pattern],
                  eval_mechanism_type: EvaluationMechanismTypes = EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-                 eval_mechanism_params: EvaluationMechanismParameters = None, adaptive_parameters=None,
+                 eval_mechanism_params: EvaluationMechanismParameters = None,
                  performance_specs: PerformanceSpecifications = None
                  ):
         """
@@ -39,23 +39,23 @@ class CEP:
             raise Exception("No patterns are provided")
         if len(patterns) > 1:
             raise NotImplementedError("Multi-pattern support is not yet available")
-        if adaptive_parameters is not None:
-            self.adaptive_parameters = adaptive_parameters
-            self.__statistics_collector = StatisticsCollector(patterns[0], adaptive_parameters.statistics_type,
-                                                              adaptive_parameters.window_coefficient,
-                                                              adaptive_parameters.k)
-            self.__optimizer = Optimizer(patterns[0], eval_mechanism_type, adaptive_parameters.statistics_type,
-                                         adaptive_parameters.reoptimizing_decision_params, eval_mechanism_params)
-            initial_order_for_tree = EvaluationMechanismFactory.build_adaptive_single_pattern_eval_mechanism(
+        self.eval_mechanism_params = eval_mechanism_params
+        self.adaptive_parameters = None if eval_mechanism_params is None else eval_mechanism_params.adaptive_parameters
+        self.__statistics_collector = None
+        self.__optimizer = None
+        if self.adaptive_parameters is not None:
+            self.__statistics_collector = StatisticsCollector(patterns[0], self.adaptive_parameters.statistics_type,
+                                                              self.adaptive_parameters.data_manager_type)
+            self.__optimizer = Optimizer(patterns[0], eval_mechanism_type, eval_mechanism_params)
+            _, initial_order_for_tree = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(
                                                                         EvaluationMechanismTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                                                        None, patterns[0], None, False)
-            self.__eval_mechanism = create_adaptive_evaluation_mechanism_by_type(adaptive_parameters.tree_replacement_algorithm_type,
-                                                                                 patterns[0], initial_order_for_tree)
+                                                                        self.eval_mechanism_params, patterns[0])
+            self.__eval_mechanism = TreeBasedEvaluationMechanism(patterns[0], initial_order_for_tree,
+                                                                 self.__statistics_collector)
         else:
-            self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
-                                                                                               eval_mechanism_params,
-                                                                                               patterns[0])
-        self.is_adaptive = adaptive_parameters is not None
+            self.__eval_mechanism, _ = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_type,
+                                                                                                   self.eval_mechanism_params,
+                                                                                                   patterns[0])
         self.__pattern_matches = None
         self.__performance_specs = performance_specs
 
@@ -66,28 +66,9 @@ class CEP:
         """
         self.__pattern_matches = Stream()
         start = datetime.now()
-        if self.is_adaptive:
-            last_activated_statistics_collector_period = last_activated_optimizer_period = None
-            stat = self.__statistics_collector.get_stat()
-            for event in event_stream:
-                if last_activated_statistics_collector_period is None:
-                    last_activated_statistics_collector_period = last_activated_optimizer_period = event.timestamp
-                if event.timestamp - last_activated_statistics_collector_period >\
-                        self.adaptive_parameters.activate_statistics_collector_period:
-                    self.__statistics_collector.insert_event(event)
-                    stat = self.__statistics_collector.get_stat()
-                    last_activated_statistics_collector_period = event.timestamp
-                if event.timestamp - last_activated_optimizer_period >\
-                        self.adaptive_parameters.activate_optimizer_period:
-                    new_plan = self.__optimizer.run(stat)
-                    last_activated_optimizer_period = event.timestamp
-                else:
-                    new_plan = None
-                self.__eval_mechanism.eval(event, new_plan, self.__pattern_matches, self.__statistics_collector)
-            # After the loop
-            self.__pattern_matches.close()
-        else:
-            self.__eval_mechanism.eval(event_stream, self.__pattern_matches)
+        self.__eval_mechanism.eval(events=event_stream, matches=self.__pattern_matches,
+                                   statistics_collector=self.__statistics_collector, optimizer=self.__optimizer,
+                                   eval_mechanism_params=self.eval_mechanism_params)
         return (datetime.now() - start).total_seconds()
 
     def get_pattern_match(self):

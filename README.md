@@ -22,7 +22,7 @@ This short documentation will be updated regularly.
 * [ ] "Partial sequence" support
 * [ ] A variety of selection and consumption policies
 * [ ] Performance optimizations based on the 'lazy evaluation' principle
-* [ ] Adaptive complex event processing
+* [X] Adaptive complex event processing
 * [ ] Multi-pattern support
 * [ ] Parallel execution support
 
@@ -77,12 +77,7 @@ cep = CEP([googleAscendPattern, googleAmazonLowPattern],
 Creating a Adaptive CEP object for monitoring the patterns from the example above:
 ```
 cep = CEP([pattern], EvaluationMechanismTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE, None,
-            AdaptiveParameters(StatisticsTypes.ARRIVAL_RATES,
-                                             reoptimizing_decision_params,
-                                             TreeReplacementAlgorithmTypes.SIMULTANEOUSLY_RUN_TWO_TREES,
-                                             activate_statistics_collector_period=timedelta(minutes=10),
-                                             activate_optimizer_period=timedelta(minutes=10),
-                                             window_coefficient=2, k=3))
+            eval_mechanism_params)
 ```
 In order to use the Adaptive mechanism, adaptive_parameters needs to be initialized. for more information go to 
 AdaptiveConfigurationSettings.py
