@@ -31,6 +31,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         given output stream.
         """
         self.__register_event_listeners()
+
         for raw_event in events:
             event = Event(raw_event, data_formatter)
             if event.type not in self.__event_types_listeners.keys():

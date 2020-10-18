@@ -4,7 +4,7 @@ from queue import Queue
 from typing import List
 
 from base.Event import Event
-from base.Formula import TrueFormula, Formula, RelopTypes, EquationSides
+from base.Formula import TrueFormula, Formula, RelopTypes, EquationSides, CompositeFormula
 from base.PatternMatch import PatternMatch
 from tree.PatternMatchStorage import TreeStorageParameters
 
@@ -188,9 +188,33 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    def apply_formula(self, formula: Formula):
+    def apply_formula(self, formula: Formula, ignore_kc=True):
         """
         Applies a given formula on all nodes in this tree - to be implemented by subclasses.
+        """
+        self._propagate_condition(formula)
+        self._assign_formula(formula, ignore_kc)
+        if isinstance(formula, CompositeFormula):
+            self._consume_formula(formula, ignore_kc)
+
+    def _propagate_condition(self, formula: Formula):
+        """
+        Propagation method to successors.
+        """
+        raise NotImplementedError()
+
+    def _assign_formula(self, formula: Formula, ignore_kc):
+        """
+        Formula assign method to current node. Should assign a Formula to self._condition.
+        """
+        raise NotImplementedError()
+
+    def _consume_formula(self, formula: Formula, ignore_kc):
+        """
+        Formula consumption method. Should consume the formulas assigned to self._condition after _assign_formulas.
+        :param formula: input formula to consume formulas from.
+        :param ignore_kc: True to ignore KCFormulas, False to get them, and only them.
+        :return:
         """
         raise NotImplementedError()
 

@@ -1,6 +1,8 @@
 from datetime import timedelta
 from typing import List
 
+from base.Event import Event
+from base.Formula import Formula, CompositeFormula
 from base.PatternMatch import PatternMatch
 from misc.Utils import recursive_powerset_generator
 from tree.Node import Node
@@ -39,6 +41,12 @@ class KleeneClosureNode(UnaryNode):
             events_for_partial_match = KleeneClosureNode.partial_match_set_to_event_list(partial_match_set)
             self._validate_and_propagate_partial_match(events_for_partial_match)
 
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        """
+        Validates the condition stored in this node on the given set of events.
+        """
+        return self._condition.eval([e.payload for e in events_for_new_match])
+
     def __create_child_matches_powerset(self):
         """
         This method is a generator returning all subsets of currently available partial matches of this node child.
@@ -62,6 +70,20 @@ class KleeneClosureNode(UnaryNode):
         # enforce minimal size limit
         result_powerset = [item for item in result_powerset if self.__min_size <= len(item)]
         return result_powerset
+
+    def apply_formula(self, formula: Formula, ignore_kc=False):
+        """
+        Applies a given formula on all nodes in this tree - to be implemented by subclasses.
+        """
+        super().apply_formula(formula, False)
+
+    # override to send ignore_kc = False
+    def _assign_formula(self, formula: Formula, ignore_kc=False):
+        super()._assign_formula(formula, False)
+
+    # override to send ignore_kc = False
+    def _consume_formula(self, formula: Formula, ignore_kc=False):
+        super()._consume_formula(formula, False)
 
     def get_structure_summary(self):
         return "KC", self._child.get_structure_summary()

@@ -12,8 +12,7 @@ class InternalNode(Node, ABC):
     """
     This class represents a non-leaf node of an evaluation tree.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None,
-                 event_defs: List[PrimitiveEventDefinition] = None):
+    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[PrimitiveEventDefinition] = None):
         super().__init__(sliding_window, parent)
         self._event_defs = event_defs
 
@@ -31,11 +30,20 @@ class InternalNode(Node, ABC):
         }
         return self._condition.eval(binding)
 
-    def apply_formula(self, formula: Formula):
-        names = {definition.name for definition in self._event_defs}
-        condition = formula.get_formula_of(names)
+    def _propagate_condition(self, condition: Formula):
+        """
+        Propagates the given condition to the sub tree(s).
+        """
+        raise NotImplementedError()
+
+    def _assign_formula(self, formula: Formula, ignore_kc=True):
+        names = {item.name for item in self._event_defs}
+        condition = formula.get_formula_of(names, ignore_kc)
         self._condition = condition if condition else TrueFormula()
-        self._propagate_condition(formula)
+
+    def _consume_formula(self, formula: Formula, ignore_kc=True):
+        names = {item.name for item in self._event_defs}
+        formula.consume_formula_of(names, ignore_kc)
 
     def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
@@ -49,12 +57,6 @@ class InternalNode(Node, ABC):
         else:
             self._partial_matches = SortedPatternMatchStorage(sorting_key, rel_op, equation_side,
                                                               storage_params.clean_up_interval, sort_by_first_timestamp)
-
-    def _propagate_condition(self, condition: Formula):
-        """
-        Propagates the given condition to the child tree(s).
-        """
-        raise NotImplementedError()
 
     def handle_new_partial_match(self, partial_match_source: Node):
         """

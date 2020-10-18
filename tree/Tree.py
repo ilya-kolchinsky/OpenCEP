@@ -1,9 +1,10 @@
 from datetime import timedelta
-from typing import List
+from typing import List, Dict
 
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, CompositeStructure, UnaryStructure, \
     KleeneClosureOperator, PrimitiveEventStructure, NegationOperator
+from base.Formula import CompositeFormula
 from misc.ConsumptionPolicy import ConsumptionPolicy
 from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanBinaryNode, OperatorTypes
 from tree.AndNode import AndNode
@@ -35,7 +36,15 @@ class Tree:
             self.__add_negative_tree_structure(pattern)
 
         self.__root.apply_formula(pattern.condition)
+        if isinstance(pattern.condition, CompositeFormula) and pattern.condition.get_num_formulas() > 0:
+            self.__handle_remaining_formulas(pattern.condition)
         self.__root.create_storage_unit(storage_params)
+
+    # this handler simply prints a warning when unwanted behavior occurred while applying formula.
+    # this is an extra protection layer. it can be removed, or it may throw an exception to halt the program.
+    @staticmethod
+    def __handle_remaining_formulas(formula_list):
+        print('Warning!!!\nUnused formulas detected after apply_formulas has finished!\n{}'.format(formula_list))
 
     def __adjust_leaf_indices(self, pattern: Pattern):
         """
@@ -52,6 +61,22 @@ class Tree:
         # note that it is enough to only update the root since it contains all the event definition objects
         for event_def in self.__root.get_event_definitions():
             event_def.index = leaf_mapping[event_def.index]
+
+    def __update_event_defs(self, node: Node, leaf_mapping: Dict[int, int]):
+        """
+        Recursively modifies the event indices in the tree specified by the given node.
+        """
+        if isinstance(node, LeafNode):
+            node.set_leaf_index(leaf_mapping[node.get_leaf_index()])
+            return
+        # this node is an internal node
+        event_defs = node.get_event_definitions()
+        # no list comprehension is used since we modify the original list
+        for i in range(len(event_defs)):
+            event_def = event_defs[i]
+            event_defs[i] = (leaf_mapping[event_def[0]], event_def[1])
+        self.__update_event_defs(node.get_left_subtree(), leaf_mapping)
+        self.__update_event_defs(node.get_right_subtree(), leaf_mapping)
 
     def __add_negative_tree_structure(self, pattern: Pattern):
         """
@@ -148,7 +173,7 @@ class Tree:
         return self.__construct_tree(current_operator, Tree.__create_nested_structure(current_operator),
                                      current_operator.args, sliding_window, parent, consumption_policy)
 
-    def __construct_tree(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
+    def __construct_tree(self, root_operator: PatternStructure, tree_plan: TreePlan,
                          args: List[PatternStructure], sliding_window: timedelta, parent: Node,
                          consumption_policy: ConsumptionPolicy):
         """

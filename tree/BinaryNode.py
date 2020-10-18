@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import List, Tuple
 
 from base.Event import Event
-from base.Formula import Formula, IdentifierTerm, AtomicFormula, EquationSides
+from base.Formula import Formula, IdentifierTerm, EquationSides
 from base.PatternMatch import PatternMatch
 from tree.InternalNode import InternalNode
 from tree.Node import Node, PrimitiveEventDefinition
@@ -13,8 +13,7 @@ class BinaryNode(InternalNode, ABC):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None,
-                 event_defs: List[PrimitiveEventDefinition] = None,
+    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[PrimitiveEventDefinition] = None,
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, parent, event_defs)
         self._left_subtree = left
@@ -33,8 +32,7 @@ class BinaryNode(InternalNode, ABC):
         self._right_subtree.apply_formula(condition)
 
     def _set_event_definitions(self,
-                               left_event_defs: List[PrimitiveEventDefinition],
-                               right_event_defs: List[PrimitiveEventDefinition]):
+                               left_event_defs: List[PrimitiveEventDefinition], right_event_defs: List[PrimitiveEventDefinition]):
         """
         A helper function for collecting the event definitions from subtrees.
         """
@@ -87,8 +85,7 @@ class BinaryNode(InternalNode, ABC):
         self._try_create_new_matches(new_partial_match, partial_matches_to_compare, first_event_defs, second_event_defs)
 
     def _try_create_new_matches(self, new_partial_match: PatternMatch, partial_matches_to_compare: List[PatternMatch],
-                                first_event_defs: List[PrimitiveEventDefinition],
-                                second_event_defs: List[PrimitiveEventDefinition]):
+                                first_event_defs: List[PrimitiveEventDefinition], second_event_defs: List[PrimitiveEventDefinition]):
         """
         For each candidate pair of partial matches that can be joined to create a new one, verifies all the
         necessary conditions creates new partial matches if all constraints are satisfied.
@@ -121,19 +118,19 @@ class BinaryNode(InternalNode, ABC):
         atomic_conditions = self._condition.extract_atomic_formulas()
         filtered_conditions = []
         for atomic_condition in atomic_conditions:
-            if not isinstance(atomic_condition.left_term, IdentifierTerm):
+            if not isinstance(atomic_condition.get_left_term(), IdentifierTerm):
                 continue
-            if not isinstance(atomic_condition.right_term, IdentifierTerm):
+            if not isinstance(atomic_condition.get_right_term(), IdentifierTerm):
                 continue
-            if atomic_condition.left_term.name in left_event_names and \
-                    atomic_condition.right_term.name in right_event_names:
+            if atomic_condition.get_left_term().name in left_event_names and \
+                    atomic_condition.get_right_term().name in right_event_names:
                 filtered_conditions.append(atomic_condition)
-            elif atomic_condition.right_term.name in left_event_names and \
-                    atomic_condition.left_term.name in right_event_names:
+            elif atomic_condition.get_right_term().name in left_event_names and \
+                    atomic_condition.get_left_term().name in right_event_names:
                 filtered_conditions.append(atomic_condition)
         return filtered_conditions
 
-    def __get_params_for_sorting_keys(self, conditions: List[AtomicFormula], attributes_priorities: dict,
+    def __get_params_for_sorting_keys(self, conditions: List[Formula], attributes_priorities: dict,
                                       left_event_names: List[str], right_event_names: List[str]):
         """
         An auxiliary method returning the best assignments for the parameters of the sorting keys according to the
@@ -142,24 +139,24 @@ class BinaryNode(InternalNode, ABC):
         left_term, left_rel_op, left_equation_size = None, None, None
         right_term, right_rel_op, right_equation_size = None, None, None
         for condition in conditions:
-            if condition.left_term.name in left_event_names:
-                if left_term is None or attributes_priorities[condition.left_term.name] > \
+            if condition.get_left_term().name in left_event_names:
+                if left_term is None or attributes_priorities[condition.get_left_term().name] > \
                         attributes_priorities[left_term.name]:
                     left_term, left_rel_op, left_equation_size = \
-                        condition.left_term, condition.get_relop(), EquationSides.left
-                if right_term is None or attributes_priorities[condition.right_term.name] > \
+                        condition.get_left_term(), condition.get_relop(), EquationSides.left
+                if right_term is None or attributes_priorities[condition.get_right_term().name] > \
                         attributes_priorities[right_term.name]:
                     right_term, right_rel_op, right_equation_size = \
-                        condition.right_term, condition.get_relop(), EquationSides.right
-            elif condition.left_term.name in right_event_names:
-                if left_term is None or attributes_priorities[condition.right_term.name] > \
+                        condition.get_right_term(), condition.get_relop(), EquationSides.right
+            elif condition.get_left_term().name in right_event_names:
+                if left_term is None or attributes_priorities[condition.get_right_term().name] > \
                         attributes_priorities[left_term.name]:
                     left_term, left_rel_op, left_equation_size = \
-                        condition.right_term, condition.get_relop(), EquationSides.right
-                if right_term is None or attributes_priorities[condition.left_term.name] > \
+                        condition.get_right_term(), condition.get_relop(), EquationSides.right
+                if right_term is None or attributes_priorities[condition.get_left_term().name] > \
                         attributes_priorities[right_term.name]:
                     right_term, right_rel_op, right_equation_size = \
-                        condition.left_term, condition.get_relop(), EquationSides.left
+                        condition.get_left_term(), condition.get_relop(), EquationSides.left
             else:
                 raise Exception("Internal error")
         return left_term, left_rel_op, left_equation_size, right_term, right_rel_op, right_equation_size
