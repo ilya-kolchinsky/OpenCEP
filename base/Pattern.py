@@ -2,9 +2,9 @@ from functools import reduce
 from typing import List
 
 from base.Event import Event
-from base.Formula import Formula, EqFormula, IdentifierTerm, MinusTerm, AtomicTerm, AndFormula
-from base.PatternStructure import PatternStructure, CompositeStructure, SeqOperator, \
-    PrimitiveEventStructure, NegationOperator
+from base.Formula import Formula, EqFormula, IdentifierTerm, BinaryFormula, AndFormula
+from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
+    SeqOperator, NegationOperator
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
 from misc.ConsumptionPolicy import ConsumptionPolicy
@@ -133,13 +133,12 @@ class Pattern:
         """
         Augment the pattern condition with a contiguity constraint between the given event names.
         """
-        self.condition = AndFormula(
+        self.condition = AndFormula([
             self.condition,
-            EqFormula(
-                IdentifierTerm(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
-                MinusTerm(IdentifierTerm(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]), AtomicTerm(1))
-            )
-        )
+            BinaryFormula(IdentifierTerm(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
+                          IdentifierTerm(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
+                          lambda x, y: x == y - 1)
+        ])
 
     def extract_flat_sequences(self) -> List[List[str]]:
         """
