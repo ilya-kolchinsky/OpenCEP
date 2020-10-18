@@ -2,11 +2,11 @@ from functools import reduce
 from typing import List
 
 from base.Event import Event
-from base.Formula import Formula, EqFormula, IdentifierTerm, BinaryFormula, AndFormula
-from base.PatternStructure import PatternStructure, QItem, CompositeStructure
+from base.Formula import Formula, EqFormula, IdentifierTerm, MinusTerm, AtomicTerm, AndFormula
+from base.PatternStructure import PatternStructure, CompositeStructure, SeqOperator, \
+    PrimitiveEventStructure, NegationOperator
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
-from base.PatternStructure import SeqOperator, QItem, NegationOperator
 from misc.ConsumptionPolicy import ConsumptionPolicy
 
 
@@ -22,7 +22,6 @@ class Pattern:
     A pattern can also carry statistics with it, in order to enable advanced
     tree construction mechanisms - this is hopefully a temporary hack.
     """
-
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Formula,
                  time_window: timedelta, consumption_policy: ConsumptionPolicy = None):
         self.full_structure = pattern_structure
@@ -65,7 +64,7 @@ class Pattern:
             if type(arg) == NegationOperator:
                 # a negative event was found and needs to be extracted
                 negative_structure.args.append(arg)
-            elif type(arg) != QItem:
+            elif type(arg) != PrimitiveEventStructure:
                 # TODO: nested operator support should be provided here
                 pass
         if len(negative_structure.get_args()) == 0:
@@ -102,9 +101,9 @@ class Pattern:
         """
         An auxiliary method for returning all event types in the pattern.
         """
-        if structure.get_top_operator() == QItem:
+        if isinstance(structure, PrimitiveEventStructure):
             return [structure.type]
-        return reduce(lambda x, y: x + y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
+        return reduce(lambda x, y: x+y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
 
     def __init_strict_formulas(self, pattern_structure: PatternStructure):
         """
@@ -120,7 +119,8 @@ class Pattern:
         for contiguous_sequence in self.consumption_policy.contiguous_names:
             for i in range(len(contiguous_sequence) - 1):
                 for j in range(len(args) - 1):
-                    if args[i].get_top_operator() != QItem or args[i + 1].get_top_operator() != QItem:
+                    if not isinstance(args[i], PrimitiveEventStructure) or \
+                            not isinstance(args[i + 1], PrimitiveEventStructure):
                         continue
                     if contiguous_sequence[i] != args[j].name:
                         continue
@@ -133,13 +133,13 @@ class Pattern:
         """
         Augment the pattern condition with a contiguity constraint between the given event names.
         """
-        pass
-        self.condition = AndFormula([
+        self.condition = AndFormula(
             self.condition,
-            BinaryFormula(IdentifierTerm(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
-                          IdentifierTerm(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
-                          lambda x, y: x == y - 1)
-        ])
+            EqFormula(
+                IdentifierTerm(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
+                MinusTerm(IdentifierTerm(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]), AtomicTerm(1))
+            )
+        )
 
     def extract_flat_sequences(self) -> List[List[str]]:
         """
@@ -154,11 +154,11 @@ class Pattern:
         """
         An auxiliary method for extracting flat sequences from the pattern.
         """
-        if pattern_structure.get_top_operator() == QItem:
+        if isinstance(pattern_structure, PrimitiveEventStructure):
             return None
         if pattern_structure.get_top_operator() == SeqOperator:
             # note the double brackets - we return a list composed of a single list representing this sequence
-            return [[arg.name for arg in pattern_structure.args if arg.get_top_operator() == QItem]]
+            return [[arg.name for arg in pattern_structure.args if isinstance(arg, PrimitiveEventStructure)]]
         # the pattern is a composite pattern but not a flat sequence
         result = []
         for arg in pattern_structure.args:
@@ -168,6 +168,6 @@ class Pattern:
         return result
 
     def __repr__(self):
-        return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.full_structure,
+        return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.structure,
                                                                                 self.condition,
                                                                                 self.window)

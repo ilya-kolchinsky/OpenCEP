@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from base.DataFormatter import DataFormatter
+from base.DataFormatter import DataFormatter, EventTypeClassifier
 from misc.Utils import str_to_number
 
 METASTOCK_7_COLUMN_KEYS = [
@@ -12,8 +12,19 @@ METASTOCK_7_COLUMN_KEYS = [
     "Close Price",
     "Volume"]
 
-METASTOCK_EVENT_TYPE_KEY = "Stock Ticker"
+METASTOCK_STOCK_TICKER_KEY = "Stock Ticker"
 METASTOCK_EVENT_TIMESTAMP_KEY = "Date"
+
+
+class MetastockByTickerEventTypeClassifier(EventTypeClassifier):
+    """
+    This type classifier assigns a dedicated event type to each stock ticker.
+    """
+    def get_event_type(self, event_payload: dict):
+        """
+        The type of a stock event is equal to the stock ticker (company name).
+        """
+        return event_payload[METASTOCK_STOCK_TICKER_KEY]
 
 
 class MetastockDataFormatter(DataFormatter):
@@ -21,6 +32,9 @@ class MetastockDataFormatter(DataFormatter):
     A data formatter implementation for a stock event stream, where each event is given as a string in metastock 7
     format.
     """
+    def __init__(self, event_type_classifier: EventTypeClassifier = MetastockByTickerEventTypeClassifier()):
+        super().__init__(event_type_classifier)
+
     def parse_event(self, raw_data: str):
         """
         Parses a metastock 7 formatted string into an event.
@@ -29,12 +43,6 @@ class MetastockDataFormatter(DataFormatter):
         for j in range(len(event_attributes)):
             event_attributes[j] = str_to_number(event_attributes[j])
         return dict(zip(METASTOCK_7_COLUMN_KEYS, event_attributes))
-
-    def get_event_type(self, event_payload: dict):
-        """
-        The type of a stock event is equal to the stock ticker (company name).
-        """
-        return event_payload[METASTOCK_EVENT_TYPE_KEY]
 
     def get_event_timestamp(self, event_payload: dict):
         """

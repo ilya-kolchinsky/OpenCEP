@@ -1,7 +1,3 @@
-from datetime import timedelta
-from typing import List
-
-from misc.Statistics import calculate_left_deep_tree_cost_function
 import random
 from enum import Enum
 
@@ -16,18 +12,25 @@ class IterativeImprovementType(Enum):
     CIRCLE_BASED = 1
 
 
+class IterativeImprovementInitType(Enum):
+    """
+    The way of initializing the initial state for plan generation.
+    """
+    RANDOM = 0
+    GREEDY = 1
+
+
 class IterativeImprovement:
     """
     Implements the generic iterative improvement algorithm.
     """
-    def execute(self, step_limit: int, initial_order: list, selectivity_matrix: List[List[float]],
-                arrival_rates: List[int], time_window: timedelta):
+    def execute(self, step_limit: int, initial_order: list, get_cost_callback: callable):
         new_order = initial_order.copy()
-        curr_cost = calculate_left_deep_tree_cost_function(new_order, selectivity_matrix, arrival_rates, time_window)
+        curr_cost = get_cost_callback(new_order)
         for step in range(step_limit):
             current_move = self._movement_generator(len(new_order))
             self._movement_function(new_order, current_move)
-            new_cost = calculate_left_deep_tree_cost_function(new_order, selectivity_matrix, arrival_rates, time_window)
+            new_cost = get_cost_callback(new_order)
             if new_cost < curr_cost:
                 curr_cost = new_cost
             else:

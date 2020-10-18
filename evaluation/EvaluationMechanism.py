@@ -1,12 +1,14 @@
 from abc import ABC
-from misc.IOUtils import Stream
+
+from base.DataFormatter import DataFormatter
+from stream.Stream import InputStream, OutputStream
 
 
 class EvaluationMechanism(ABC):
     """
     Every evaluation mechanism must inherit from this class and implement the abstract methods.
     """
-    def eval(self, events: Stream, matches: Stream):
+    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
         Receives an input stream of events and outputs the detected pattern matches into a given output stream.
         """

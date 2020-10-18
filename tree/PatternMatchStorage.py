@@ -1,18 +1,16 @@
-from evaluation.PartialMatch import PartialMatch
+from base.PatternMatch import PatternMatch
+from misc import DefaultConfig
 from misc.Utils import get_first_index, get_last_index
 from datetime import datetime
 from misc.Utils import find_partial_match_by_timestamp
 from base.Formula import RelopTypes, EquationSides
 
-# the default number of partial match additions between subsequent storage cleanups
-DEFAULT_CLEANUP_INTERVAL = 10
 
-
-class PartialMatchStorage:
+class PatternMatchStorage:
     """
-    Abstract class for storing partial matches.
-    A container for partial matches is different from the typical container in one regard: upon access, it returns a
-    subset of all stored partial matches that are deemed relevant to the given key (might return an empty list, a list
+    Abstract class for storing pattern matches.
+    A container for pattern matches is different from the typical container in one regard: upon access, it returns a
+    subset of all stored matches that are deemed relevant to the given key (might return an empty list, a list
     containing a single object, multiple objects, or even the entire stored content). This behavior contradicts the
     "regular" container behavior fetching a single value corresponding to this key.
     """
@@ -34,7 +32,7 @@ class PartialMatchStorage:
 
     def __len__(self):
         """
-        Returns the number of the currently stored partial matches.
+        Returns the number of the currently stored pattern matches.
         """
         return len(self._partial_matches)
 
@@ -81,7 +79,7 @@ class PartialMatchStorage:
 
     def _clean_expired_partial_matches(self, earliest_timestamp: datetime):
         """
-        Removes partial matches whose earliest earliest_timestamp violates the time window constraint.
+        Removes pattern matches whose earliest earliest_timestamp violates the time window constraint.
         """
         if self._sorted_by_arrival_order:
             count = find_partial_match_by_timestamp(self._partial_matches, earliest_timestamp)
@@ -92,26 +90,26 @@ class PartialMatchStorage:
 
     def get_internal_buffer(self):
         """
-        Returns the internal buffer actually storing the partial matches.
+        Returns the internal buffer actually storing the pattern matches.
         """
         return self._partial_matches
 
-    def add(self, pm: PartialMatch):
+    def add(self, pm: PatternMatch):
         """
-        Adds a new partial match to the storage.
+        Adds a new pattern match to the storage.
         """
         raise NotImplementedError()
 
     def get(self, value: int or float):
         """
-        Returns a list of partial matches corresponding to the given value.
+        Returns a list of pattern matches corresponding to the given value.
         """
         raise NotImplementedError()
 
 
-class SortedPartialMatchStorage(PartialMatchStorage):
+class SortedPatternMatchStorage(PatternMatchStorage):
     """
-    This class stores the partial matches sorted in increasing order according to a function (key) on partial matches.
+    This class stores the pattern matches sorted in increasing order according to a predefined function (key).
     """
     def __init__(self, get_match_key: callable, rel_op: RelopTypes, equation_side: EquationSides,
                  clean_up_interval: int, sort_by_first_timestamp=False, in_leaf=False):
@@ -125,9 +123,9 @@ class SortedPartialMatchStorage(PartialMatchStorage):
         """
         return item in self.__get_equal(self._get_key(item))
 
-    def add(self, pm: PartialMatch):
+    def add(self, pm: PatternMatch):
         """
-        Efficiently inserts the new partial match to the storage according to its key.
+        Efficiently inserts the new pattern match to the storage according to its key.
         """
         self._access_count += 1
         if self._sorted_by_arrival_order:
@@ -140,7 +138,7 @@ class SortedPartialMatchStorage(PartialMatchStorage):
 
     def get(self, value: int or float):
         """
-        Applies the storage-specific get() function to extract the required partial matches.
+        Applies the storage-specific get() function to extract the required pattern matches.
         """
         if len(self._partial_matches) == 0:
             return []
@@ -148,7 +146,7 @@ class SortedPartialMatchStorage(PartialMatchStorage):
 
     def __get_equal(self, value: int or float):
         """
-        Returns the partial matches whose keys are equal to the given value.
+        Returns the pattern matches whose keys are equal to the given value.
         """
         left_index = get_first_index(self._partial_matches, value, self._get_key)
         if left_index == len(self._partial_matches) or left_index == -1 or \
@@ -159,7 +157,7 @@ class SortedPartialMatchStorage(PartialMatchStorage):
 
     def __get_unequal(self, value: int or float):
         """
-        Returns the partial matches whose keys are not equal to the given value.
+        Returns the pattern matches whose keys are not equal to the given value.
         """
         left_index = get_first_index(self._partial_matches, value, self._get_key)
         if left_index == len(self._partial_matches) or left_index == -1 or \
@@ -185,13 +183,13 @@ class SortedPartialMatchStorage(PartialMatchStorage):
 
     def __get_greater(self, value: int or float):
         """
-        Returns the partial matches whose keys are greater than the given value.
+        Returns the pattern matches whose keys are greater than the given value.
         """
         return self.__get_greater_aux(value, False)
 
     def __get_greater_or_equal(self, value: int or float):
         """
-        Returns the partial matches whose keys are greater than or equal to the given value.
+        Returns the pattern matches whose keys are greater than or equal to the given value.
         """
         return self.__get_greater_aux(value, True)
 
@@ -212,25 +210,25 @@ class SortedPartialMatchStorage(PartialMatchStorage):
 
     def __get_smaller(self, value: int or float):
         """
-        Returns the partial matches whose keys are smaller than the given value.
+        Returns the pattern matches whose keys are smaller than the given value.
         """
         return self.__get_smaller_aux(value, False)
 
     def __get_smaller_or_equal(self, value: int or float):
         """
-        Returns the partial matches whose keys are smaller than or equal to the given value.
+        Returns the pattern matches whose keys are smaller than or equal to the given value.
         """
         return self.__get_smaller_aux(value, True)
 
     def __get_all(self, value: int or float):
         """
-        Returns all partial matches regardless of the specified value.
+        Returns all pattern matches regardless of the specified value.
         """
         return self.get_internal_buffer()
 
     def __generate_get_function(self, rel_op: RelopTypes, equation_side: EquationSides):
         """
-        Initializes the function responsible for selecting partial matches to be returned upon a get() access.
+        Initializes the function responsible for selecting pattern matches to be returned upon a get() access.
         """
         if rel_op is None:
             # can only happen in an edge case where the entire tree is composed of a single leaf
@@ -251,17 +249,17 @@ class SortedPartialMatchStorage(PartialMatchStorage):
             return self.__get_smaller_or_equal if equation_side == EquationSides.left else self.__get_greater_or_equal
 
 
-class UnsortedPartialMatchStorage(PartialMatchStorage):
+class UnsortedPatternMatchStorage(PatternMatchStorage):
     """
-    This class stores partial matches unsorted.
+    This class stores pattern matches unsorted.
     It is used when it's difficult to specify an order that helps when receiving partial matches.
     """
     def __init__(self, clean_up_interval: int):
         super().__init__(lambda x: x, False, clean_up_interval)
 
-    def add(self, pm: PartialMatch):
+    def add(self, pm: PatternMatch):
         """
-        Appends the given partial match to the match buffer.
+        Appends the given pattern match to the match buffer.
         """
         self._access_count += 1
         self._partial_matches.append(pm)
@@ -277,16 +275,17 @@ class TreeStorageParameters:
     """
     Parameters for the evaluation tree to specify how to store the data.
     """
-    def __init__(self, sort_storage: bool = False, attributes_priorities: dict = None,
-                 clean_up_interval: int = DEFAULT_CLEANUP_INTERVAL, prioritize_sorting_by_timestamp: bool = True):
+    def __init__(self, sort_storage: bool = DefaultConfig.SHOULD_SORT_STORAGE, attributes_priorities: dict = None,
+                 clean_up_interval: int = DefaultConfig.CLEANUP_INTERVAL,
+                 prioritize_sorting_by_timestamp: bool = DefaultConfig.PRIORITIZE_SORTING_BY_TIMESTAMP):
         if sort_storage is None:
-            sort_storage = False
+            sort_storage = DefaultConfig.SHOULD_SORT_STORAGE
         if attributes_priorities is None:
             attributes_priorities = {}
         if clean_up_interval <= 0:
             raise Exception('cleanup interval should be positive.')
         if prioritize_sorting_by_timestamp is None:
-            prioritize_sorting_by_timestamp = True
+            prioritize_sorting_by_timestamp = DefaultConfig.PRIORITIZE_SORTING_BY_TIMESTAMP
 
         # True if the user is willing to use non-default sorted storage and False otherwise
         self.sort_storage = sort_storage
