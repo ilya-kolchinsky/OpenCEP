@@ -136,7 +136,7 @@ class MultiPatternTree:
         # merges other into node
         if node.get_sliding_window() < other.get_sliding_window():
             node.update_sliding_window(other.get_sliding_window())
-        node.add_pattern_id(other.get_pattern_ids())
+        node.add_pattern_ids(other.get_pattern_ids())
         other_parents = other.get_parents()
         if other_parents is not None:
             for parent in other_parents:

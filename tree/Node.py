@@ -156,9 +156,9 @@ class Node(ABC):
         """
         return self._condition
 
-    def add_pattern_id(self, ids: set):
+    def add_pattern_ids(self, ids: set):
         """
-        Adds a pattern id to this node.
+        Adds pattern ids to this node.
         """
         self._pattern_ids |= ids
 
