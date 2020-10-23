@@ -62,22 +62,6 @@ class Tree:
         for event_def in self.__root.get_event_definitions():
             event_def.index = leaf_mapping[event_def.index]
 
-    def __update_event_defs(self, node: Node, leaf_mapping: Dict[int, int]):
-        """
-        Recursively modifies the event indices in the tree specified by the given node.
-        """
-        if isinstance(node, LeafNode):
-            node.set_leaf_index(leaf_mapping[node.get_leaf_index()])
-            return
-        # this node is an internal node
-        event_defs = node.get_event_definitions()
-        # no list comprehension is used since we modify the original list
-        for i in range(len(event_defs)):
-            event_def = event_defs[i]
-            event_defs[i] = (leaf_mapping[event_def[0]], event_def[1])
-        self.__update_event_defs(node.get_left_subtree(), leaf_mapping)
-        self.__update_event_defs(node.get_right_subtree(), leaf_mapping)
-
     def __add_negative_tree_structure(self, pattern: Pattern):
         """
         Adds the negative nodes at the root of the tree.
@@ -173,7 +157,7 @@ class Tree:
         return self.__construct_tree(current_operator, Tree.__create_nested_structure(current_operator),
                                      current_operator.args, sliding_window, parent, consumption_policy)
 
-    def __construct_tree(self, root_operator: PatternStructure, tree_plan: TreePlan,
+    def __construct_tree(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
                          args: List[PatternStructure], sliding_window: timedelta, parent: Node,
                          consumption_policy: ConsumptionPolicy):
         """
