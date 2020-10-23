@@ -26,6 +26,9 @@ class BinaryNode(InternalNode, ABC):
         if self._right_subtree:
             self._right_subtree.create_parent_to_info_dict()
         if self._parents:
+            # we call this method before we share nodes so each node has only one parent (or none).
+            if len(self._parents) > 1:
+                raise Exception("This method should not be called when there is more than one parent.")
             self.add_to_dict(self._parents[0], self._event_defs)
 
     def get_leaves(self):

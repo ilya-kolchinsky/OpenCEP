@@ -21,6 +21,9 @@ class LeafNode(Node):
 
     def create_parent_to_info_dict(self):
         if self._parents is not None:
+            # we call this method before we share nodes so each node has only one parent (or none).
+            if len(self._parents) > 1:
+                raise Exception("This method should not be called when there is more than one parent.")
             self.add_to_dict(self._parents[0],
                              PrimitiveEventDefinition(self.__event_type, self.__event_name, self.__leaf_index))
 
