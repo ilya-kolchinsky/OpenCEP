@@ -1,5 +1,6 @@
 from datetime import timedelta
 from typing import List, Dict
+from copy import deepcopy
 
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, CompositeStructure, UnaryStructure, \
@@ -35,9 +36,10 @@ class Tree:
             self.__adjust_leaf_indices(pattern)
             self.__add_negative_tree_structure(pattern)
 
-        self.__root.apply_formula(pattern.condition)
-        if isinstance(pattern.condition, CompositeFormula) and pattern.condition.get_num_formulas() > 0:
-            self.__handle_remaining_formulas(pattern.condition)
+        cond_copy = deepcopy(pattern.condition)
+        self.__root.apply_formula(cond_copy)
+        if isinstance(cond_copy, CompositeFormula) and cond_copy.get_num_formulas() > 0:
+            self.__handle_remaining_formulas(cond_copy)
         self.__root.create_storage_unit(storage_params)
 
     # this handler simply prints a warning when unwanted behavior occurred while applying formula.
