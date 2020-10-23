@@ -17,7 +17,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
-    def __init__(self, patterns: List[Pattern], tree_plans: List[TreePlan], storage_params: TreeStorageParameters,
+    def __init__(self, patterns: List[Pattern], tree_plans, storage_params: TreeStorageParameters,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
 
         if len(patterns) > 1:
@@ -32,7 +32,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             self.__freeze_map = {}
 
         else:
-            self.__tree = Tree(tree_plans[0], patterns[0], storage_params)
+            self.__tree = Tree(tree_plans[patterns[0]], patterns[0], storage_params)
             self.__pattern = patterns[0]
             self.__freeze_map = {}
             self.__active_freezers = []

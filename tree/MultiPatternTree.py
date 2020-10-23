@@ -17,7 +17,7 @@ class MultiPatternTree:
     Represents a multi- pattern evaluation tree. Using the single- pattern tree builder.
     """
 
-    def __init__(self, tree_plans: List[TreePlan], patterns: List[Pattern], storage_params: TreeStorageParameters,
+    def __init__(self, tree_plans, patterns: List[Pattern], storage_params: TreeStorageParameters,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters):
         self.__pattern_to_root_dict = {}
         multi_pattern_eval_approach = multi_pattern_eval_params.approach
@@ -39,11 +39,12 @@ class MultiPatternTree:
     This method gets patterns, builds a single-pattern tree to each one of them,
     and merges equivalent leaves from different trees.
     We are not sharing leaves from the same tree.
+    We are assuming that each pattern only appears once in patterns (which is a legitimate assumption)
     """
-    def __construct_trivial_tree(self, tree_plans: List[TreePlan], patterns: List[Pattern],
+    def __construct_trivial_tree(self, tree_plans, patterns: List[Pattern],
                                  storage_params: TreeStorageParameters):
 
-        trees = [Tree(tree_plans[i], patterns[i], storage_params, i+1) for i in range(len(patterns))]
+        trees = [Tree(tree_plans[patterns[i]], patterns[i], storage_params, i+1) for i in range(len(patterns))]
         self.__roots = []
         # a map between a leaf and the number of equal leaves that were
         # shared to this leaf in the current iteration
@@ -82,10 +83,11 @@ class MultiPatternTree:
         This method gets patterns, builds a single-pattern tree to each one of them,
         and merges equivalent subtrees from different trees.
         We are sharing the maximal subtree that exists in the tree.
+        We are assuming that each pattern only appears once in patterns (which is a legitimate assumption)
         """
     def __construct_subtrees_union_tree(self, tree_plans: List[TreePlan], patterns: List[Pattern],
                                         storage_params: TreeStorageParameters):
-        trees = [Tree(tree_plans[i], patterns[i], storage_params, i+1) for i in range(len(patterns))]
+        trees = [Tree(tree_plans[patterns[i]], patterns[i], storage_params, i+1) for i in range(len(patterns))]
         self.__roots = []
         for i in range(len(patterns)):
             node = trees[i].get_root()

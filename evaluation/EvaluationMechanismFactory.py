@@ -62,7 +62,7 @@ class EvaluationMechanismFactory:
         if isinstance(patterns, Pattern):
             patterns = [patterns]
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
-        tree_plans = [tree_plan_builder.build_tree_plan(pattern) for pattern in patterns]
+        tree_plans = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
         return TreeBasedEvaluationMechanism(patterns, tree_plans, eval_mechanism_params.storage_params, eval_mechanism_params.multi_pattern_params)
 
     @staticmethod
