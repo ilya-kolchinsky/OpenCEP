@@ -341,25 +341,6 @@ class OrFormula(CompositeFormula):
         #     return None
 
 
-class OrFormula(CompositeFormula):
-    """
-        This class uses CompositeFormula with the terminating condition True, which complies with OR operator logic.
-        """
-    def __init__(self, formula_list: List[Formula]):
-        super().__init__(formula_list, True)
-        raise NotImplementedError()
-
-    def get_formula_of(self, names: set, ignore_kc=True):
-        raise NotImplementedError()
-        # an example of OR logic implementation
-        # result_formulas = super().get_formula_of(names, ignore_kc)
-        # # at-least 1 formula was retrieved using get_formula_of for the list of formulas
-        # if result_formulas:
-        #     return OrFormula(result_formulas)
-        # else:
-        #     return None
-
-
 class KCFormula(Formula, ABC):
     def __init__(self, names, getattr_func, relation_op):
         self._names = names
