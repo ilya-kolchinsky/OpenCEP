@@ -88,14 +88,12 @@ class NaryFormula(Formula):
         self.relation_op = relation_op
 
     def eval(self, binding: dict = None):
-        try:
-            rel_terms = []
-            for term in self._terms:
-                rel_terms.append(term.eval(binding))
-            rel_terms = tuple(rel_terms)
-            return self.relation_op(*rel_terms)
-        except Exception as e:
-            return False
+        rel_terms = []
+        for term in self._terms:
+            rel_terms.append(term.eval(binding))
+        rel_terms = tuple(rel_terms)
+        return self.relation_op(*rel_terms)
+
 
     def get_formula_of(self, names: set, ignore_kc=True):
         # return nothing to KC nodes
@@ -451,21 +449,14 @@ class KCValueFormula(KCFormula):
         self._index = index
 
     def eval(self, iterable: list or dict = None):
-        try:
-            if self._index is not None and not self.validate_index(self._index, iterable):
-                return False
-            if self._index is None:
-                for item in iterable:
-                    if not self._relation_op(self._getattr_func(item), self._value):
-                        return False
-            else:
-                if not self._relation_op(self._getattr_func(iterable[self._index]), self._value):
-                    return False
-            return True
-        # catch any exception during the evaluation of abstract types with no type safety. this should return
-        # RuntimeError for expected exceptions, but I do not know what to expect so any exception is caught
-        # on error - we print stack trace and return False as default value.
-        # this will allow the program to run while also printing the failure.
-        except Exception as e:
-            traceback.print_stack(e)
+        if self._index is not None and not self.validate_index(self._index, iterable):
             return False
+        if self._index is None:
+            for item in iterable:
+                if not self._relation_op(self._getattr_func(item), self._value):
+                    return False
+        else:
+            if not self._relation_op(self._getattr_func(iterable[self._index]), self._value):
+                return False
+        return True
+
