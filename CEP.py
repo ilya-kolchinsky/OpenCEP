@@ -43,6 +43,7 @@ class CEP:
         start = datetime.now()
         self.__eval_mechanism.eval(events, self.__pattern_matches, data_formatter)
         return (datetime.now() - start).total_seconds()
+
     def get_pattern_match(self):
         """
         Returns one match from the output stream.

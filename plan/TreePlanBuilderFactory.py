@@ -2,7 +2,7 @@ from plan.BushyTreeBuilders import *
 from plan.LeftDeepTreeBuilders import *
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-from plan.MultiPatternEvaluationApproach import MultiPatternEvaluationApproach
+from plan.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 
 
 class TreePlanBuilderParameters:
@@ -11,10 +11,10 @@ class TreePlanBuilderParameters:
     """
     def __init__(self, builder_type: TreePlanBuilderTypes = DefaultConfig.DEFAULT_TREE_PLAN_BUILDER,
                  cost_model_type: TreeCostModels = DefaultConfig.DEFAULT_TREE_COST_MODEL,
-                 multi_pattern_approach: MultiPatternEvaluationApproach = DefaultConfig.DEFAULT_MULTI_PATTERN_APPROACH):
+                 multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
         self.builder_type = builder_type
         self.cost_model_type = cost_model_type
-        self.multi_pattern_eval_approach = multi_pattern_approach
+        self.multi_pattern_eval_approach = multi_pattern_eval_params.approach
 
 
 class IterativeImprovementTreePlanBuilderParameters(TreePlanBuilderParameters):

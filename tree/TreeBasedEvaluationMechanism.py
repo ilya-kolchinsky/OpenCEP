@@ -7,7 +7,7 @@ from tree.LeafNode import LeafNode
 from tree.PatternMatchStorage import TreeStorageParameters
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
-from plan.MultiPatternEvaluationApproach import MultiPatternEvaluationApproach
+from plan.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from tree.MultiPatternTree import MultiPatternTree
 
 from tree.Tree import Tree
@@ -18,7 +18,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     An implementation of the tree-based evaluation mechanism.
     """
     def __init__(self, patterns: List[Pattern], tree_plans: List[TreePlan], storage_params: TreeStorageParameters,
-                 multi_pattern_eval_approach: MultiPatternEvaluationApproach = DefaultConfig.DEFAULT_MULTI_PATTERN_APPROACH):
+                 multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
 
         if len(patterns) > 1:
             # check for a use in freeze when there is more than one pattern
@@ -27,7 +27,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             if len(freeze_patterns) > 0:
                 raise Exception("This feature is not yet supported in multi-pattern mode")
 
-            self.__tree = MultiPatternTree(tree_plans, patterns, storage_params, multi_pattern_eval_approach)
+            self.__tree = MultiPatternTree(tree_plans, patterns, storage_params, multi_pattern_eval_params)
             self.__patterns = patterns
             self.__freeze_map = {}
 

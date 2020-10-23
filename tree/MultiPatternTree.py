@@ -1,7 +1,7 @@
 from typing import List
 from queue import Queue
 from base.Pattern import Pattern
-from plan.MultiPatternEvaluationApproach import MultiPatternEvaluationApproach
+from plan.MultiPatternEvaluationParameters import *
 from tree.Tree import Tree
 from tree.Node import Node
 from tree.UnaryNode import UnaryNode
@@ -18,8 +18,9 @@ class MultiPatternTree:
     """
 
     def __init__(self, tree_plans: List[TreePlan], patterns: List[Pattern], storage_params: TreeStorageParameters,
-                 multi_pattern_eval_approach: MultiPatternEvaluationApproach):
+                 multi_pattern_eval_params: MultiPatternEvaluationParameters):
         self.__pattern_to_root_dict = {}
+        multi_pattern_eval_approach = multi_pattern_eval_params.approach
         self.__roots = self.__construct_multi_pattern_tree(tree_plans, patterns, storage_params,
                                                            multi_pattern_eval_approach)
         self.__patterns = patterns
@@ -67,7 +68,7 @@ class MultiPatternTree:
                             # the index of the first leaf that has not been shared yet
                             index = leaves_to_counter_dict[dict_leaf]
                             leaf_to_merge_into = leaves_dict[dict_leaf][index]
-                            self.merge_nodes(leaf_to_merge_into, leaf)
+                            self.__merge_nodes(leaf_to_merge_into, leaf)
                         leaves_to_counter_dict[dict_leaf] += 1
 
                     else:

@@ -6,7 +6,7 @@ from misc import DefaultConfig
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
-from plan.MultiPatternEvaluationApproach import MultiPatternEvaluationApproach
+from plan.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 
 
 class EvaluationMechanismParameters:
@@ -23,11 +23,11 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
     """
     def __init__(self, tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
                  storage_params: TreeStorageParameters = TreeStorageParameters(),
-                 multi_pattern_eval_approach: MultiPatternEvaluationApproach = DefaultConfig.DEFAULT_MULTI_PATTERN_APPROACH):
+                 multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
         super().__init__(EvaluationMechanismTypes.TREE_BASED)
         self.tree_plan_params = tree_plan_params
         self.storage_params = storage_params
-        self.multi_pattern_eval_approach = multi_pattern_eval_approach
+        self.multi_pattern_params = multi_pattern_eval_params
 
 
 class EvaluationMechanismFactory:
@@ -63,7 +63,7 @@ class EvaluationMechanismFactory:
             patterns = [patterns]
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
         tree_plans = [tree_plan_builder.build_tree_plan(pattern) for pattern in patterns]
-        return TreeBasedEvaluationMechanism(patterns, tree_plans, eval_mechanism_params.storage_params, eval_mechanism_params.multi_pattern_eval_approach)
+        return TreeBasedEvaluationMechanism(patterns, tree_plans, eval_mechanism_params.storage_params, eval_mechanism_params.multi_pattern_params)
 
     @staticmethod
     def __create_default_eval_parameters():

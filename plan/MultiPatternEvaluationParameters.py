@@ -13,3 +13,12 @@ class MultiPatternEvaluationApproach(Enum):
     TRIVIAL_SHARING_LEAVES = 0,
     SUBTREES_UNION = 1
 
+
+class MultiPatternEvaluationParameters:
+    """
+    Parameters for multi-pattern evaluation mode
+    """
+
+    def __init__(self, multi_pattern_eval_approach: MultiPatternEvaluationApproach = MultiPatternEvaluationApproach.TRIVIAL_SHARING_LEAVES):
+        self.approach = multi_pattern_eval_approach
+

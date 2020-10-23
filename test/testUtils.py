@@ -3,7 +3,7 @@ import pathlib
 import sys
 
 from CEP import CEP
-from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters, MultiPatternEvaluationApproach, EvaluationMechanismTypes 
+from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
 from stream.Stream import OutputStream
 from stream.FileStream import FileInputStream, FileOutputStream
 from misc.Utils import generate_matches
