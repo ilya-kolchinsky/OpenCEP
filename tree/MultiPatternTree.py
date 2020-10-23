@@ -154,9 +154,9 @@ class MultiPatternTree:
                 elif isinstance(parent, BinaryNode):
                     parent.replace_subtree(other, node)
         else:
-            # other is a root in it's tree. the new root of the old_tree is node
-            if not node.is_root():
-                node.set_is_root(True)
+            # other is an output node in it's tree. the new output node of the old_tree is node
+            if not node.is_output_node():
+                node.set_is_output_node(True)
                 self.__roots.append(node)
                 # other is already in self.__roots, therefore we need to remove it
             self.__roots.remove(other)

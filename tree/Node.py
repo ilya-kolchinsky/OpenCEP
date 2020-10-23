@@ -49,8 +49,8 @@ class Node(ABC):
         self._sliding_window = sliding_window
         self._partial_matches = None
         self._condition = TrueFormula()
-        # matches that were not yet reported. Will be used in case of a root. In particular, in a case that we have a
-        # root which is also an internal node.
+        # matches that were not yet reported. Will be used in case of an output node. In particular, in a case that we have a
+        # output node which is also an internal node.
         self._unreported_matches = Queue()
         # set of event types that will only appear in a single full match
         self._single_event_types = set()
@@ -63,7 +63,7 @@ class Node(ABC):
         if isinstance(pattern_ids, int):
             pattern_ids = {pattern_ids}
         self._pattern_ids = pattern_ids
-        self._is_root = False
+        self._is_output_node = False
         # maps parent to event type, event name and index. This field helps to pass the parents a partial match with
         # the right event definitions.
         self._parent_to_info_dict = {}
@@ -162,17 +162,17 @@ class Node(ABC):
         """
         self._pattern_ids |= ids
 
-    def set_is_root(self, flag: bool):
+    def set_is_output_node(self, flag: bool):
         """
-        Sets is_root to be flag.
+        Sets is_output_node to be flag.
         """
-        self._is_root = flag
+        self._is_output_node = flag
 
-    def is_root(self):
+    def is_output_node(self):
         """
-        Returns whether this node is a root.
+        Returns whether this node is an output node.
         """
-        return self._is_root
+        return self._is_output_node
 
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
@@ -210,7 +210,7 @@ class Node(ABC):
                 self._parent_to_unhandled_queue_dict[parent].put(pm)
             for parent in self._parents:
                 parent.handle_new_partial_match(self)
-        if self.is_root():
+        if self.is_output_node():
             self._unreported_matches.put(pm)
 
     def __can_add_partial_match(self, pm: PatternMatch) -> bool:

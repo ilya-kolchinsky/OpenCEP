@@ -39,7 +39,7 @@ class Tree:
         self.__root.apply_formula(pattern.condition)
         self.__root.create_storage_unit(storage_params)
         self.__adjust_dict()
-        self.__root.set_is_root(True)
+        self.__root.set_is_output_node(True)
 
     def __adjust_dict(self):
         self.__root.create_parent_to_info_dict()
