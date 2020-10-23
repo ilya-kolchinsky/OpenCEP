@@ -69,7 +69,7 @@ class LeafNode(Node):
         return
 
     def _assign_formula(self, formula: Formula, ignore_kc=True):
-        condition = formula.get_formula_of(self.__event_name)
+        condition = formula.get_formula_of({self.__event_name})
         if condition:
             self._condition = condition
 
