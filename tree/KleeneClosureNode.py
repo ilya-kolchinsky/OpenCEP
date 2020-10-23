@@ -69,7 +69,7 @@ class KleeneClosureNode(UnaryNode):
     def is_structure_equal(self, other):
         if not isinstance(other, type(self)):
             return False
-        return self._child.is_structure_equal(other.get_child())
+        return self.__min_size == other.__min_size and self.__max_size == other.__max_size
 
     @staticmethod
     def partial_match_set_to_event_list(partial_match_set: List[PatternMatch]):
