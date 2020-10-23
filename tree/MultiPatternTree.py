@@ -94,7 +94,7 @@ class MultiPatternTree:
             for root in self.__roots:
                 if root == node:
                     break
-                if self.try_and_merge(root, node):
+                if self.__try_and_merge(root, node):
                     break
         return self.__roots
 
@@ -102,37 +102,37 @@ class MultiPatternTree:
     This method is trying to share the node (and its subtree) and the tree of root.
     If the root and node is not equivalent, trying to share the children of node and root.
     """
-    def try_and_merge(self, root, node):
-        if self.find_and_merge_node_into_subtree(root, node):
+    def __try_and_merge(self, root, node):
+        if self.__find_and_merge_node_into_subtree(root, node):
             return True
         if isinstance(node, BinaryNode):
-            left_merge = self.try_and_merge(root, node.get_left_subtree())
+            left_merge = self.__try_and_merge(root, node.get_left_subtree())
             if left_merge:
                 return left_merge
-            return self.try_and_merge(root, node.get_right_subtree())
+            return self.__try_and_merge(root, node.get_right_subtree())
         if isinstance(node, UnaryNode):
-            return self.try_and_merge(root, node.get_child())
+            return self.__try_and_merge(root, node.get_child())
         return False
 
     """
     This method is trying to find node in the subtree of root (or an equivalent node).
     If such a node is found, it merges the equivalent nodes.
     """
-    def find_and_merge_node_into_subtree(self, root: Node, node: Node):
+    def __find_and_merge_node_into_subtree(self, root: Node, node: Node):
         if root.is_equal(node):
-            self.merge_nodes(root, node)
+            self.__merge_nodes(root, node)
             return True
         elif isinstance(root, BinaryNode):
-            return self.find_and_merge_node_into_subtree(root.get_left_subtree(), node) or \
-                   self.find_and_merge_node_into_subtree(root.get_right_subtree(), node)
+            return self.__find_and_merge_node_into_subtree(root.get_left_subtree(), node) or \
+                   self.__find_and_merge_node_into_subtree(root.get_right_subtree(), node)
         elif isinstance(root, UnaryNode):
-            return self.find_and_merge_node_into_subtree(root.get_child(), node)
+            return self.__find_and_merge_node_into_subtree(root.get_child(), node)
         return False
 
     """
     Merge two nodes, and update all the required information
     """
-    def merge_nodes(self, node: Node, other: Node):
+    def __merge_nodes(self, node: Node, other: Node):
         # merges other into node
         if node.get_sliding_window() < other.get_sliding_window():
             node.update_sliding_window(other.get_sliding_window())
