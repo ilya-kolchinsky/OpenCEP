@@ -97,8 +97,8 @@ class Tree:
         return self.__root.get_leaves()
 
     def get_matches(self):
-        while self.__root.has_partial_matches():
-            yield self.__root.consume_first_partial_match()
+        while self.__root.has_unreported_matches():
+            yield self.__root.get_last_unreported_match()
 
     def get_structure_summary(self):
         """

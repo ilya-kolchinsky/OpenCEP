@@ -172,8 +172,8 @@ class MultiPatternTree:
     def get_matches(self):
         matches = []
         for root in self.__roots:
-            while root.has_partial_matches():
-                match = root.consume_first_partial_match()
+            while root.has_unreported_matches():
+                match = root.get_last_unreported_match()
                 pattern_idx = root.get_pattern_ids()
                 for idx in pattern_idx:
                     if self.__pattern_to_root_dict[idx] != root:

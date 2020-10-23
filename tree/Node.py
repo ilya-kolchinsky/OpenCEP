@@ -75,17 +75,17 @@ class Node(ABC):
         """
         self._parent_to_unhandled_queue_dict[key] = value
 
-    def consume_first_partial_match(self):
+    def get_last_unreported_match(self):
         """
-        Removes and returns a single partial match buffered at this node.
-        Used in the root node to collect full pattern matches.
+        Removes and returns an unreported match buffered at this node.
+        Used in a output_node to collect full pattern matches.
         """
         ret = self._unreported_matches.get()
         return ret
 
-    def has_partial_matches(self):
+    def has_unreported_matches(self):
         """
-        Returns True if this node contains any partial matches and False otherwise.
+        Returns True if this node contains any matches we did not report yet and False otherwise.
         """
         return self._unreported_matches.qsize() > 0
 
