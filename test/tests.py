@@ -21,7 +21,7 @@ except ImportError:
 def oneArgumentsearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
-        GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 135),
+        AndFormula([GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 135)]),
         timedelta(minutes=120)
     )
     runTest("one", [pattern], createTestFile)
@@ -138,9 +138,11 @@ def googleIncreasePatternSearchTest(createTestFile=False):
     """
     googleIncreasePattern = Pattern(
         SeqOperator([PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b")]),
-        NaryFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
+        AndFormula([
+            NaryFormula(IdentifierTerm("b", lambda x: x["Peak Price"]),
                     IdentifierTerm("a", lambda x: x["Peak Price"]),
-                    relation_op=lambda x, y: x >= y*1.01),
+                    relation_op=lambda x, y: x >= y*1.01)
+            ]),
         timedelta(minutes=30)
     )
     runTest('googleIncrease', [googleIncreasePattern], createTestFile)
@@ -239,10 +241,12 @@ def nonFrequencyPatternSearchTest(createTestFile=False):
 def frequencyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("LOCM", "c")]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                    IdentifierTerm("b", lambda x: x["Opening Price"]),
-                    IdentifierTerm("c", lambda x: x["Opening Price"]),
-                    relation_op=lambda x, y, z: x > y > z),
+        AndFormula([
+            NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                        IdentifierTerm("b", lambda x: x["Opening Price"]),
+                        IdentifierTerm("c", lambda x: x["Opening Price"]),
+                        relation_op=lambda x, y, z: x > y > z)
+            ]),
         timedelta(minutes=5)
     )
     runTest("nonFrequency", [pattern], createTestFile)
@@ -251,10 +255,12 @@ def frequencyPatternSearchTest(createTestFile=False):
 def arrivalRatesPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("LOCM", "c")]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                    IdentifierTerm("b", lambda x: x["Opening Price"]),
-                    IdentifierTerm("c", lambda x: x["Opening Price"]),
-                    relation_op=lambda x, y, z: x > y > z),
+        AndFormula([
+            NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                        IdentifierTerm("b", lambda x: x["Opening Price"]),
+                        IdentifierTerm("c", lambda x: x["Opening Price"]),
+                        relation_op=lambda x, y, z: x > y > z)
+            ]),
         timedelta(minutes=5)
     )
     pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0159, 0.0153, 0.0076])
@@ -439,12 +445,13 @@ def iiRandomPatternSearchTest(createTestFile=False):
 def iiRandom2PatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"), PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
-                    IdentifierTerm("b", lambda x: x["Peak Price"]),
-                    IdentifierTerm("c", lambda x: x["Peak Price"]),
-                    IdentifierTerm("d", lambda x: x["Peak Price"]),
-                    relation_op=lambda x, y, z, w: x < y < z < w),
-
+        AndFormula([
+            NaryFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
+                        IdentifierTerm("b", lambda x: x["Peak Price"]),
+                        IdentifierTerm("c", lambda x: x["Peak Price"]),
+                        IdentifierTerm("d", lambda x: x["Peak Price"]),
+                        relation_op=lambda x, y, z, w: x < y < z < w)
+            ]),
         timedelta(minutes=3)
     )
     selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
@@ -643,10 +650,12 @@ def frequencyTailoredPatternSearchTest(createTestFile=False):
 def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([PrimitiveEventStructure("DRIV", "a"), PrimitiveEventStructure("MSFT", "b"), PrimitiveEventStructure("CBRL", "c")]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
-                    IdentifierTerm("b", lambda x: x["Opening Price"]),
-                    IdentifierTerm("c", lambda x: x["Opening Price"]),
-                    relation_op= lambda x,y,z: x > y > z),
+        AndFormula([
+            NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]),
+                        IdentifierTerm("b", lambda x: x["Opening Price"]),
+                        IdentifierTerm("c", lambda x: x["Opening Price"]),
+                        relation_op= lambda x,y,z: x > y > z)
+            ]),
         timedelta(minutes=360)
     )
     eval_params = TreeBasedEvaluationMechanismParameters(

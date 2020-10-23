@@ -175,7 +175,7 @@ identical to the first test in the file, with 1 exception - the PrimitiveEventSt
 def oneArgumentsearchTestKleeneClosure(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("AAPL", "a"), min_size=1, max_size=5)]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
+        AndFormula([NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135)]),
         timedelta(minutes=5)
     )
     runTest("oneArgumentKC", [pattern], createTestFile)
@@ -184,7 +184,7 @@ def oneArgumentsearchTestKleeneClosure(createTestFile=False):
 def MinMax_0_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=1, max_size=2)]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
+        AndFormula([NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0)]),
         timedelta(minutes=5)
     )
     runTest("MinMax_0_", [pattern], createTestFile, events=nasdaqEventStreamKC)
@@ -192,7 +192,7 @@ def MinMax_0_TestKleeneClosure(createTestFile=False):
 def MinMax_1_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
+        AndFormula([NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0)]),
         timedelta(minutes=5)
     )
     runTest("MinMax_1_", [pattern], createTestFile, events=nasdaqEventStreamKC)
@@ -200,7 +200,7 @@ def MinMax_1_TestKleeneClosure(createTestFile=False):
 def MinMax_2_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=4, max_size=5)]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
+        AndFormula([NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0)]),
         timedelta(minutes=5)
     )
     runTest("MinMax_2_", [pattern], createTestFile, events=nasdaqEventStreamKC)

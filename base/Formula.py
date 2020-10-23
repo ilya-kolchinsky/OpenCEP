@@ -94,7 +94,6 @@ class NaryFormula(Formula):
         rel_terms = tuple(rel_terms)
         return self.relation_op(*rel_terms)
 
-
     def get_formula_of(self, names: set, ignore_kc=True):
         # return nothing to KC nodes
         if ignore_kc is False:
@@ -107,6 +106,13 @@ class NaryFormula(Formula):
 
     def extract_atomic_formulas(self):
         return [self]
+
+    def __repr__(self):
+        term_list = []
+        for term in self._terms:
+            term_list.append(term.__repr__())
+        separator = ', '
+        return "[" + separator.join(term_list) + "]"
 
 
 class BinaryFormula(NaryFormula):
@@ -148,6 +154,8 @@ class BaseRelationFormula(BinaryFormula, ABC):
         else:
             super().__init__(left_term, right_term, relation_op)
         self.relop_type = relop_type
+        self.left_term_repr = left_term
+        self.right_term_repr = right_term
 
     def get_relop(self):
         return self.relop_type
@@ -168,7 +176,7 @@ class EqFormula(BaseRelationFormula):
             super().__init__(left_term, right_term, lambda x, y: x == y, RelopTypes.Equal)
 
     def __repr__(self):
-        return "{} == {}".format(self.get_left_term(), self.get_right_term())
+        return "{} == {}".format(self.left_term_repr, self.right_term_repr)
 
 
 class NotEqFormula(BaseRelationFormula):
@@ -183,7 +191,7 @@ class NotEqFormula(BaseRelationFormula):
             super().__init__(left_term, right_term, lambda x, y: x != y, RelopTypes.NotEqual)
 
     def __repr__(self):
-        return "{} != {}".format(self.get_left_term(), self.get_right_term())
+        return "{} != {}".format(self.left_term_repr, self.right_term_repr)
 
 
 class GreaterThanFormula(BaseRelationFormula):
@@ -198,7 +206,7 @@ class GreaterThanFormula(BaseRelationFormula):
             super().__init__(left_term, right_term, lambda x, y: x > y, RelopTypes.Greater)
 
     def __repr__(self):
-        return "{} > {}".format(self.get_left_term(), self.get_right_term())
+        return "{} > {}".format(self.left_term_repr, self.right_term_repr)
 
 
 class SmallerThanFormula(BaseRelationFormula):
@@ -213,7 +221,7 @@ class SmallerThanFormula(BaseRelationFormula):
             super().__init__(left_term, right_term, lambda x, y: x < y, RelopTypes.Smaller)
 
     def __repr__(self):
-        return "{} < {}".format(self.get_left_term(), self.get_right_term())
+        return "{} < {}".format(self.left_term_repr, self.right_term_repr)
 
 
 class GreaterThanEqFormula(BaseRelationFormula):
@@ -228,7 +236,7 @@ class GreaterThanEqFormula(BaseRelationFormula):
             super().__init__(left_term, right_term, lambda x, y: x >= y, RelopTypes.GreaterEqual)
 
     def __repr__(self):
-        return "{} >= {}".format(self.get_left_term(), self.get_right_term())
+        return "{} >= {}".format(self.left_term_repr, self.right_term_repr)
 
 
 class SmallerThanEqFormula(BaseRelationFormula):
@@ -243,7 +251,7 @@ class SmallerThanEqFormula(BaseRelationFormula):
             super().__init__(left_term, right_term, lambda x, y: x <= y, RelopTypes.SmallerEqual)
 
     def __repr__(self):
-        return "{} <= {}".format(self.get_left_term(), self.get_right_term())
+        return "{} <= {}".format(self.left_term_repr, self.right_term_repr)
 
 
 class CompositeFormula(Formula, ABC):
@@ -307,6 +315,12 @@ class CompositeFormula(Formula, ABC):
             result.extend(f.extract_atomic_formulas())
         return result
 
+    def __repr__(self):
+        res_list = []
+        for formula in self.__formulas:
+            res_list.append(formula.__repr__())
+        return res_list
+
 
 class AndFormula(CompositeFormula):
     """
@@ -323,6 +337,9 @@ class AndFormula(CompositeFormula):
             return AndFormula(comp_formula.get_formulas_list())
         else:
             return None
+
+    def __repr__(self):
+        return " AND ".join(super().__repr__())
 
 
 class OrFormula(CompositeFormula):
@@ -342,6 +359,10 @@ class OrFormula(CompositeFormula):
         #     return OrFormula(comp_formula.get_formulas_list())
         # else:
         #     return None
+
+    def __repr__(self):
+        raise NotImplementedError()
+        # return " OR ".join(super().__repr__())
 
 
 class KCFormula(Formula, ABC):
@@ -373,6 +394,9 @@ class KCFormula(Formula, ABC):
 
     def extract_atomic_formulas(self):
         return [self]
+
+    def __repr__(self):
+        return "KC [" + ", ".join(self._names) + "]"
 
 
 class KCIndexFormula(KCFormula):
@@ -425,6 +449,12 @@ class KCIndexFormula(KCFormula):
                 (index_1 is not None and index_2 is None)                                # 0     1     0
         )
 
+    def __repr__(self):
+        if self._index_1 is not None:
+            return "KCIndex index_1={}, index_2={} [".format(self._index_1, self._index_2) + ", ".join(self._names) + "]"
+        else:
+            return "KCIndex offset={} [".format(self._offset) + ", ".join(self._names) + "]"
+
 
 class KCValueFormula(KCFormula):
     def __init__(self, names, getattr_func, relation_op, value, index=None):
@@ -444,3 +474,5 @@ class KCValueFormula(KCFormula):
                 return False
         return True
 
+    def __repr__(self):
+        return "KCValue, index={}, value={} [".format(self._index, self._value) + ", ".join(self._names) + "]"
