@@ -12,26 +12,26 @@ class PatternMatch:
         self.events = events
         self.last_timestamp = max(events, key=lambda x: x.timestamp).timestamp
         self.first_timestamp = min(events, key=lambda x: x.timestamp).timestamp
-        self.pattern_id = []
+        self.pattern_ids = []
 
     def __eq__(self, other):
-        return isinstance(other, PatternMatch) and set(self.events) == set(other.events) and self.pattern_id == other.pattern_id
+        return isinstance(other, PatternMatch) and set(self.events) == set(other.events) and self.pattern_ids == other.pattern_ids
 
     def __str__(self):
         result = ""
         match = ""
         for event in self.events:
             match += "%s\n" % event
-        if len(self.pattern_id) == 0:
+        if len(self.pattern_ids) == 0:
             result += match
             result += "\n"
         else:
-            for idx in self.pattern_id:
+            for idx in self.pattern_ids:
                 result += "%s: " % idx
                 result += match
                 result += "\n"
         return result
 
     def add_pattern_id(self, idx: int):
-        self.pattern_id.append(idx)
+        self.pattern_ids.append(idx)
 

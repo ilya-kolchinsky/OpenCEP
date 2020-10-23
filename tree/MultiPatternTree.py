@@ -54,7 +54,7 @@ class MultiPatternTree:
         for tree in trees:
             curr_leaves = tree.get_leaves()
             curr_root = tree.get_root()
-            pattern_id = list(curr_leaves[0].get_pattern_id())[0]
+            pattern_id = list(curr_leaves[0].get_pattern_ids())[0]
             self.__pattern_to_root_dict[pattern_id] = curr_root
             self.__roots.append(curr_root)
             for leaf in curr_leaves:
@@ -136,7 +136,7 @@ class MultiPatternTree:
         # merges other into node
         if node.get_sliding_window() < other.get_sliding_window():
             node.update_sliding_window(other.get_sliding_window())
-        node.add_pattern_id(other.get_pattern_id())
+        node.add_pattern_id(other.get_pattern_ids())
         other_parents = other.get_parents()
         if other_parents is not None:
             for parent in other_parents:
@@ -159,7 +159,7 @@ class MultiPatternTree:
                 self.__roots.append(node)
                 # other is already in self.__roots, therefore we need to remove it
             self.__roots.remove(other)
-            other_id = list(other.get_pattern_id())[0]
+            other_id = list(other.get_pattern_ids())[0]
             self.__pattern_to_root_dict[other_id] = node
 
     def get_leaves(self):
@@ -173,7 +173,7 @@ class MultiPatternTree:
         for root in self.__roots:
             while root.has_partial_matches():
                 match = root.consume_first_partial_match()
-                pattern_idx = root.get_pattern_id()
+                pattern_idx = root.get_pattern_ids()
                 for idx in pattern_idx:
                     if self.__pattern_to_root_dict[idx] != root:
                         # the current root is an internal node in pattern #idx, but not it's root.

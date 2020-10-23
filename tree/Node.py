@@ -42,7 +42,7 @@ class Node(ABC):
         """
         return Node.__enable_partial_match_expiration
 
-    def __init__(self, sliding_window: timedelta, parents, pattern_id=0):
+    def __init__(self, sliding_window: timedelta, parents, pattern_ids=0):
         if not isinstance(parents, list) and parents is not None:
             parents = [parents]
         self._parents = parents
@@ -60,9 +60,9 @@ class Node(ABC):
         self._parent_to_unhandled_queue_dict = {}
         if self._parents is not None:
             self._parent_to_unhandled_queue_dict = {parent: Queue() for parent in self._parents}
-        if isinstance(pattern_id, int):
-            pattern_id = {pattern_id}
-        self._pattern_id = pattern_id
+        if isinstance(pattern_ids, int):
+            pattern_ids = {pattern_ids}
+        self._pattern_ids = pattern_ids
         self._is_root = False
         # maps parent to event type, event name and index. This field helps to pass the parents a partial match with
         # the right event definitions.
@@ -148,11 +148,11 @@ class Node(ABC):
         """
         self._sliding_window = new_sliding_window
 
-    def get_pattern_id(self):
+    def get_pattern_ids(self):
         """
         Returns the pattern ids of this node.
         """
-        return self._pattern_id
+        return self._pattern_ids
 
     def get_condition(self):
         """
@@ -164,7 +164,7 @@ class Node(ABC):
         """
         Adds a pattern id to this node.
         """
-        self._pattern_id |= ids
+        self._pattern_ids |= ids
 
     def set_is_root(self, flag: bool):
         """
