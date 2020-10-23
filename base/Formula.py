@@ -270,7 +270,7 @@ class CompositeFormula(Formula, ABC):
             current_formula = f.get_formula_of(names, ignore_kc)
             if current_formula and ignore_kc != isinstance(current_formula, KCFormula):
                 result_formulas.extend([current_formula])
-        return result_formulas
+        return CompositeFormula(result_formulas, self.__terminating_result)
 
     def consume_formula_of(self, names: set, ignore_kc=True):
         formulas_to_remove = []
@@ -298,6 +298,9 @@ class CompositeFormula(Formula, ABC):
     def get_num_formulas(self):
         return len(self.__formulas)
 
+    def get_formulas_list(self):
+        return self.__formulas
+
     def extract_atomic_formulas(self):
         result = []
         for f in self.__formulas:
@@ -313,11 +316,11 @@ class AndFormula(CompositeFormula):
         super().__init__(formula_list, False)
 
     def get_formula_of(self, names: set, ignore_kc=True):
-        result_formulas = super().get_formula_of(names, ignore_kc)
+        comp_formula = super().get_formula_of(names, ignore_kc)
         # result_formulas = [formula for formula in result_formulas if CompositeFormula.filter_formula(formula, get_KC)]
         # at-least 1 formula was retrieved using get_formula_of for the list of formulas
-        if result_formulas:
-            return AndFormula(result_formulas)
+        if comp_formula:
+            return AndFormula(comp_formula.get_formulas_list())
         else:
             return None
 
@@ -332,11 +335,11 @@ class OrFormula(CompositeFormula):
 
     def get_formula_of(self, names: set, ignore_kc=True):
         raise NotImplementedError()
-        # an example of OR logic implementation
-        # result_formulas = super().get_formula_of(names, ignore_kc)
+        # # an example of OR logic implementation
+        # comp_formula = super().get_formula_of(names, ignore_kc)
         # # at-least 1 formula was retrieved using get_formula_of for the list of formulas
         # if result_formulas:
-        #     return OrFormula(result_formulas)
+        #     return OrFormula(comp_formula.get_formulas_list())
         # else:
         #     return None
 
