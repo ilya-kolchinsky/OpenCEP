@@ -19,6 +19,8 @@ class Tree:
     """
     Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree positive_structure"
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
+    This method also gets a pattern_id parameter which is used in multi-pattern mode.
+    Each node in the single-pattern tree will store the pattern_id of the tree.
     """
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters, pattern_id=0):
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
@@ -61,6 +63,7 @@ class Tree:
     def __add_negative_tree_structure(self, pattern: Pattern, pattern_id=0):
         """
         Adds the negative nodes at the root of the tree.
+        This method adds nodes to the tree, so the pattern_id is used in the creation of new nodes.
         """
         top_operator = pattern.full_structure.get_top_operator()
         negative_event_list = pattern.negative_structure.get_args()
@@ -122,6 +125,7 @@ class Tree:
         Creates an internal node representing a given operator.
         Note that negation node types are intentionally not supported here since the negative part of a pattern is
         added in a separate construction stage.
+        The pattern_id is used in the creation of the nodes.
         """
         operator_type = operator.get_top_operator()
         if operator_type == SeqOperator:
@@ -139,6 +143,7 @@ class Tree:
                                                      pattern_id=0):
         """
         Constructs a single leaf node or a subtree with nested structure according to the input parameters.
+        This method create nodes, so the pattern_id is needed in this method.
         """
         if isinstance(current_operator, PrimitiveEventStructure):
             # the current operator is a primitive event - we should simply create a leaf
@@ -167,6 +172,7 @@ class Tree:
                          consumption_policy: ConsumptionPolicy, pattern_id=0):
         """
         Recursively builds an evaluation tree according to the specified structure.
+        Each node will store the pattern_id of the tree.
         """
         if isinstance(root_operator, UnaryStructure) and parent is None:
             # a special case where the top operator of the entire pattern is an unary operator
