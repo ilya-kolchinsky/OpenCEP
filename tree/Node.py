@@ -80,9 +80,6 @@ class Node(ABC):
         Removes and returns a single partial match buffered at this node.
         Used in the root node to collect full pattern matches.
         """
-        # ret = self._partial_matches[0]
-        # del self._partial_matches[0]
-        # return ret
         ret = self._unreported_matches.get()
         return ret
 
@@ -90,7 +87,6 @@ class Node(ABC):
         """
         Returns True if this node contains any partial matches and False otherwise.
         """
-        # return len(self._partial_matches) > 0
         return self._unreported_matches.qsize() > 0
 
     def get_last_unhandled_partial_match(self):
