@@ -89,12 +89,6 @@ class Node(ABC):
         """
         return self._unreported_matches.qsize() > 0
 
-    def get_last_unhandled_partial_match(self):
-        """
-        Returns the last partial match buffered at this node and not yet transferred to its parents.
-        """
-        return self._unhandled_partial_matches.get(block=False)
-
     def get_last_unhandled_partial_match_by_parent(self, parent):
         return self._parent_to_unhandled_queue_dict[parent].get(block=False)
 
