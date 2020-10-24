@@ -12,22 +12,6 @@ class AndNode(BinaryNode):
                 self._left_subtree.get_structure_summary(),
                 self._right_subtree.get_structure_summary())
 
-    def is_structure_equal(self, other):
-        """
-        Checks if the type of both of the nodes is AndNode and then checks if:
-        the left subtrees structures is equal and the right subtrees structures is equal OR
-        the left of the first is equal to the right of the second and the right of the first is equal to the left of the
-        second.
-        """
-        if not isinstance(other, type(self)):
-            return False
-        v1 = self._left_subtree.is_structure_equal(other.get_left_subtree())
-        v2 = self._right_subtree.is_structure_equal(other.get_right_subtree())
-        if v1 and v2:
-            return True
-        v3 = self._left_subtree.is_structure_equal(other.get_right_subtree())
-        v4 = self._right_subtree.is_structure_equal(other.get_left_subtree())
-        return v3 and v4
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,

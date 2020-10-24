@@ -140,6 +140,23 @@ class BinaryNode(InternalNode, ABC):
             return second_event_list + first_event_list
         raise Exception()
 
+    def is_structure_equal(self, other):
+        """
+        Checks if the type of both of the nodes is AndNode and then checks if:
+        the left subtrees structures is equal and the right subtrees structures is equal OR
+        the left of the first is equal to the right of the second and the right of the first is equal to the left of the
+        second.
+        """
+        if not isinstance(other, type(self)):
+            return False
+        v1 = self._left_subtree.is_structure_equal(other.get_left_subtree())
+        v2 = self._right_subtree.is_structure_equal(other.get_right_subtree())
+        if v1 and v2:
+            return True
+        v3 = self._left_subtree.is_structure_equal(other.get_right_subtree())
+        v4 = self._right_subtree.is_structure_equal(other.get_left_subtree())
+        return v3 and v4
+
     def __get_filtered_conditions(self, left_event_names: List[str], right_event_names: List[str]):
         """
         An auxiliary method returning the atomic conditions containing variables from the opposite subtrees of this

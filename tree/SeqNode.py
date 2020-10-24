@@ -38,11 +38,23 @@ class SeqNode(BinaryNode):
                 self._right_subtree.get_structure_summary())
 
     def is_structure_equal(self, other):
-        if not isinstance(other, type(self)):
+        if not super().is_structure_equal(other):
             return False
-        v1 = self._left_subtree.is_structure_equal(other.get_left_subtree())
-        v2 = self._right_subtree.is_structure_equal(other.get_right_subtree())
-        return v1 and v2
+
+        first_event_defs = self.get_event_definitions()
+        second_event_defs = other.get_event_definitions()
+
+        if len(first_event_defs) != len(second_event_defs):
+            return False
+
+        #we are assuming that the event definitions in a node are ordered by index,
+        #which is a legitimate assumption due to the implementation of set_event_definitions
+        for i in range(len(first_event_defs)):
+            first_event_type = first_event_defs[i].type
+            second_event_type = second_event_defs[i].type
+            if first_event_type != second_event_type:
+                return False
+        return True
 
     def _get_sequence_based_sorting_keys(self):
         """
