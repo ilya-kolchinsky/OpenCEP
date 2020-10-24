@@ -1,5 +1,4 @@
 from typing import List
-from queue import Queue
 from base.Pattern import Pattern
 from plan.MultiPatternEvaluationParameters import *
 from tree.Tree import Tree
@@ -7,7 +6,6 @@ from tree.Node import Node
 from tree.UnaryNode import UnaryNode
 from tree.BinaryNode import BinaryNode
 from tree.NegationNode import NegationNode
-from tree.LeafNode import LeafNode
 from tree.PatternMatchStorage import TreeStorageParameters
 from plan.TreePlan import TreePlan
 
@@ -111,7 +109,7 @@ class MultiPatternTree:
         if isinstance(node, BinaryNode):
             left_merge = self.__try_and_merge(root, node.get_left_subtree())
             if left_merge:
-                return left_merge
+                return True
             return self.__try_and_merge(root, node.get_right_subtree())
         if isinstance(node, UnaryNode):
             return self.__try_and_merge(root, node.get_child())
@@ -143,14 +141,6 @@ class MultiPatternTree:
         other_parents = other.get_parents()
         if other_parents is not None:
             for parent in other_parents:
-                # assuming each node is either LeafNode or InternalNode and therefore has a get_event_definitions() method
-                if isinstance(other, LeafNode):
-                    event_defs = other.get_event_definitions()[0]
-                else:
-                    event_defs = other.get_event_definitions()
-
-                node.add_to_dict(parent, event_defs)
-                node.add_to_parent_to_unhandled_queue_dict(parent, Queue())
                 if isinstance(parent, UnaryNode):
                     parent.replace_subtree(node)
                 elif isinstance(parent, BinaryNode):

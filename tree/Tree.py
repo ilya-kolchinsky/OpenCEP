@@ -38,11 +38,9 @@ class Tree:
 
         self.__root.apply_formula(pattern.condition)
         self.__root.create_storage_unit(storage_params)
-        self.__adjust_dict()
+        self.__root.create_parent_to_info_dict()
         self.__root.set_is_output_node(True)
 
-    def __adjust_dict(self):
-        self.__root.create_parent_to_info_dict()
 
     def __adjust_leaf_indices(self, pattern: Pattern):
         """
@@ -84,12 +82,7 @@ class Tree:
             negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root, pattern_id)
             new_root.set_subtrees(current_root, negative_leaf)
             negative_leaf.set_parent(new_root)
-            negative_leaf.create_parent_to_info_dict()
-            negative_leaf.add_to_parent_to_unhandled_queue_dict(new_root, Queue())
             current_root.set_parent(new_root)
-            current_root.add_to_parent_to_unhandled_queue_dict(new_root, Queue())
-            if isinstance(current_root, LeafNode):
-                current_root.add_to_dict(new_root, current_root.get_event_definitions())
             current_root = new_root
         self.__root = current_root
 

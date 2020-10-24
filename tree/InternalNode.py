@@ -62,7 +62,3 @@ class InternalNode(Node, ABC):
         """
         raise NotImplementedError()
 
-    def get_event_definitions_by_parent(self, parent):
-        if parent not in self._parent_to_info_dict.keys():
-            raise Exception("parent is not in the dictionary.")
-        return self._parent_to_info_dict[parent]

@@ -56,24 +56,17 @@ class Node(ABC):
         self._single_event_types = set()
         # events that were added to a partial match and cannot be added again
         self._filtered_events = set()
-        # matches that were not yet pushed to the parents for further processing
-        self._parent_to_unhandled_queue_dict = {}
-        if self._parents is not None:
-            self._parent_to_unhandled_queue_dict = {parent: Queue() for parent in self._parents}
         if isinstance(pattern_ids, int):
             pattern_ids = {pattern_ids}
         self._pattern_ids = pattern_ids
         self._is_output_node = False
-        # maps parent to event type, event name and index. This field helps to pass the parents a partial match with
+        # maps parent to event definition. This field helps to pass the parents a partial match with
         # the right event definitions.
         self._parent_to_info_dict = {}
-
-    def add_to_parent_to_unhandled_queue_dict(self, key, value):
-        """
-        Adds an entry to parent_to_unhandled_queue_dict.
-        This entry maps between the key (a parent) and the value (a queue).
-        """
-        self._parent_to_unhandled_queue_dict[key] = value
+        # matches that were not yet pushed to the parents for further processing
+        self._parent_to_unhandled_queue_dict = {}
+        if self._parents is not None:
+            self._parent_to_unhandled_queue_dict = {parent: Queue() for parent in self._parents}
 
     def get_last_unreported_match(self):
         """
@@ -99,6 +92,9 @@ class Node(ABC):
         if not isinstance(parents, list) and parents is not None:
             parents = [parents]
         self._parents = parents
+        self._parent_to_unhandled_queue_dict = {parent: Queue() for parent in parents}
+        self._parent_to_info_dict = {parent: self.get_event_definitions() for parent in parents}
+
 
     def add_parent(self, parent):
         """
@@ -108,6 +104,9 @@ class Node(ABC):
             self._parents.append(parent)
         else:
             self._parents = [parent]
+        self._parent_to_unhandled_queue_dict[parent] = Queue()
+        self._parent_to_info_dict[parent] = self.get_event_definitions()
+
 
     def get_parents(self):
         """
@@ -131,6 +130,11 @@ class Node(ABC):
         Returns the sliding window of this node.
         """
         return self._sliding_window
+
+    def get_event_definitions_by_parent(self, parent):
+        if parent not in self._parent_to_info_dict.keys():
+            raise Exception("parent is not in the dictionary.")
+        return self._parent_to_info_dict[parent]
 
     def set_sliding_window(self, new_sliding_window: timedelta):
         """
@@ -279,10 +283,10 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    def add_to_dict(self, key, value):
+    def _add_to_parent_to_info_dict(self, key, value):
         """
         Adds an entry to parent_to_info_dict.
-        This entry maps between the key (a parent) and the value (info- event type, event name and index).
+        This entry maps between the key (a parent) and the value (an event definition).
         """
         self._parent_to_info_dict[key] = value
 

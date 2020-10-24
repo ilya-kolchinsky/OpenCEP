@@ -50,7 +50,7 @@ class UnaryNode(InternalNode, ABC):
             # we call this method before we share nodes so each node has only one parent (or none).
             if len(self._parents) > 1:
                 raise Exception("This method should not be called when there is more than one parent.")
-            self.add_to_dict(self._parents[0], self._event_defs)
+            self._add_to_parent_to_info_dict(self._parents[0], self._event_defs)
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,

@@ -23,9 +23,11 @@ class AndNode(BinaryNode):
             return False
         v1 = self._left_subtree.is_structure_equal(other.get_left_subtree())
         v2 = self._right_subtree.is_structure_equal(other.get_right_subtree())
+        if v1 and v2:
+            return True
         v3 = self._left_subtree.is_structure_equal(other.get_right_subtree())
         v4 = self._right_subtree.is_structure_equal(other.get_left_subtree())
-        return (v1 and v2) or (v3 and v4)
+        return v3 and v4
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,

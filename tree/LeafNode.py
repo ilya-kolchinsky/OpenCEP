@@ -24,8 +24,8 @@ class LeafNode(Node):
             # we call this method before we share nodes so each node has only one parent (or none).
             if len(self._parents) > 1:
                 raise Exception("This method should not be called when there is more than one parent.")
-            self.add_to_dict(self._parents[0],
-                             PrimitiveEventDefinition(self.__event_type, self.__event_name, self.__leaf_index))
+            self._add_to_parent_to_info_dict(self._parents[0],
+                                             [PrimitiveEventDefinition(self.__event_type, self.__event_name, self.__leaf_index)])
 
     def get_leaves(self):
         return [self]
@@ -37,11 +37,6 @@ class LeafNode(Node):
 
     def get_event_definitions(self):
         return [PrimitiveEventDefinition(self.__event_type, self.__event_name, self.__leaf_index)]
-
-    def get_event_definitions_by_parent(self, parent):
-        if parent not in self._parent_to_info_dict.keys():
-            raise Exception("parent is not in the dictionary.")
-        return [self._parent_to_info_dict[parent]]
 
     def get_event_type(self):
         """
@@ -109,5 +104,5 @@ class LeafNode(Node):
             return False
         return self.__event_type == other.get_event_type()
 
-    def update_sliding_window(self, sliding_window:timedelta):
+    def update_sliding_window(self, sliding_window: timedelta):
         self.set_sliding_window(sliding_window)
