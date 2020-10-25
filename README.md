@@ -71,6 +71,20 @@ googleAmazonLowPattern = Pattern(
     ),
     timedelta(minutes=1)
 )
+
+# Another way to define the above example is to use the generic BinaryFormula with a lambda function
+googleAmazonLowPattern = Pattern(
+    AndOperator([PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("GOOG", "g")]),
+    AndFormula(
+        BinaryFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
+                      IdentifierTerm("g", lambda x: x["Peak Price"]),
+                      lambda x, y: x <= 73 and y <= 525)
+        SmallerThanEqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(73)),
+        SmallerThanEqFormula(IdentifierTerm("g", lambda x: x["Peak Price"]), AtomicTerm(525))
+    ),
+    timedelta(minutes=1)
+)
+
 ```
 
 Creating a CEP object for monitoring the first pattern from the example above:
