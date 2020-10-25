@@ -80,6 +80,9 @@ class TrueFormula(Formula):
 
 
 class NaryFormula(Formula):
+    """
+    An Nary formula containing terms and a boolean callable operator.
+    """
     def __init__(self, *terms, relation_op: callable):
         self._terms = terms
         self.relation_op = relation_op
@@ -114,7 +117,7 @@ class NaryFormula(Formula):
 
 class BinaryFormula(NaryFormula):
     """
-    An binary formula containing no logic operators (e.g., A < B).
+    A binary formula containing no logic operators (e.g., A < B).
     """
     def __init__(self, left_term, right_term, relation_op: callable):
         if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
@@ -141,6 +144,10 @@ class BinaryFormula(NaryFormula):
 
 
 class BaseRelationFormula(BinaryFormula, ABC):
+    """
+        An abstract binary formula class which is a base for already implemented and commonly used binary relations
+        such as: >, >=, <, <=, ==, !=.
+    """
     def __init__(self, left_term, right_term, relation_op: callable, relop_type):
         if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
             raise Exception("Invalid use of BaseRelationFormula!")
@@ -162,6 +169,13 @@ class BaseRelationFormula(BinaryFormula, ABC):
 
 
 class EqFormula(BaseRelationFormula):
+    """
+        Binary Equal Formula; ==
+        This class can be called either with terms or a number:
+        Examples:
+            EqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 135)
+            EqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"]))
+    """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
             raise Exception("Invalid use of EqFormula!")
@@ -177,6 +191,12 @@ class EqFormula(BaseRelationFormula):
 
 
 class NotEqFormula(BaseRelationFormula):
+    """
+        Binary Not Equal Formula; !=
+        Examples:
+            NotEqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 135)
+            NotEqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"]))
+    """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
             raise Exception("Invalid use of NotEqFormula!")
@@ -192,6 +212,12 @@ class NotEqFormula(BaseRelationFormula):
 
 
 class GreaterThanFormula(BaseRelationFormula):
+    """
+        Binary greater than formula; >
+        Examples:
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 135)
+            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"]))
+    """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
             raise Exception("Invalid use of GreaterThanFormula!")
@@ -207,6 +233,12 @@ class GreaterThanFormula(BaseRelationFormula):
 
 
 class SmallerThanFormula(BaseRelationFormula):
+    """
+        Binary smaller than formula; <
+        Examples:
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 135)
+            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"]))
+    """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
             raise Exception("Invalid use of SmallerThanFormula!")
@@ -222,6 +254,12 @@ class SmallerThanFormula(BaseRelationFormula):
 
 
 class GreaterThanEqFormula(BaseRelationFormula):
+    """
+        Binary greater and equal than formula; >=
+        Examples:
+            GreaterThanEqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 135)
+            GreaterThanEqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"]))
+    """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
             raise Exception("Invalid use of GreaterThanEqFormula!")
@@ -237,6 +275,12 @@ class GreaterThanEqFormula(BaseRelationFormula):
 
 
 class SmallerThanEqFormula(BaseRelationFormula):
+    """
+        Binary smaller and equal than formula; <=
+        Examples:
+            SmallerThanEqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 135)
+            SmallerThanEqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"]))
+    """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
             raise Exception("Invalid use of SmallerThanEqFormula!")
