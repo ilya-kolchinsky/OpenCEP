@@ -9,7 +9,9 @@ currentPath = pathlib.Path(os.path.dirname(__file__))
 absolutePath = str(currentPath.parent)
 sys.path.append(absolutePath)
 
-
+"""
+Simple multi-pattern test with 2 patterns
+"""
 def leafIsRoot(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator([PrimitiveEventStructure("AAPL", "a")]),
@@ -28,6 +30,9 @@ def leafIsRoot(createTestFile = False):
 
     runMultiTest("FirstMultiPattern", [pattern1, pattern2], createTestFile)
 
+"""
+multi-pattern test 2 completely distinct patterns
+"""
 def distinctPatterns(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator([PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"), PrimitiveEventStructure("GOOG", "c")]),
@@ -54,6 +59,9 @@ def distinctPatterns(createTestFile = False):
 
     runMultiTest("BigMultiPattern", [pattern1, pattern2], createTestFile)
 
+"""
+multi-pattern test with 3 patterns and leaf sharing
+"""
 def threePatternsTest(createTestFile = False):
     pattern1 = Pattern(
         AndOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
@@ -94,6 +102,9 @@ def threePatternsTest(createTestFile = False):
 
     runMultiTest("ThreePatternTest", [pattern1, pattern2, pattern3], createTestFile)
 
+"""
+multi-pattern test checking case where output node is not a root
+"""
 def rootAndInner(createTestFile = False):
     #similar to leafIsRoot, but the time windows are different
     pattern1 = Pattern(
@@ -113,6 +124,9 @@ def rootAndInner(createTestFile = False):
 
     runMultiTest("RootAndInner", [pattern1, pattern2], createTestFile)
 
+"""
+multi-pattern test 2 identical patterns with different time stamp
+"""
 def samePatternDifferentTimeStamps(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")]),
@@ -135,7 +149,9 @@ def samePatternDifferentTimeStamps(createTestFile = False):
 
     runMultiTest("DifferentTimeStamp", [pattern1, pattern2], createTestFile)
 
-#SHARING EQUIVALENT SUBTREES
+"""
+multi-pattern test sharing equivalent subtrees
+"""
 def onePatternIncludesOther(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator([PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"),
@@ -165,6 +181,9 @@ def onePatternIncludesOther(createTestFile = False):
                                                                   MultiPatternEvaluationParameters(MultiPatternEvaluationApproach.SUBTREES_UNION))
     runMultiTest("onePatternIncludesOther", [pattern1, pattern2], createTestFile, eval_mechanism_params)
 
+"""
+multi-pattern test multiple patterns share the same output node
+"""
 def samePatternSharingRoot(createTestFile = False):
     hierarchyPattern = Pattern(
         AndOperator([PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("AAPL", "b"),
@@ -212,6 +231,9 @@ def samePatternSharingRoot(createTestFile = False):
 
     runMultiTest('hierarchyMultiPattern', [hierarchyPattern, hierarchyPattern2, hierarchyPattern3], createTestFile, eval_mechanism_params)
 
+"""
+multi-pattern test several patterns sharing the same subtree
+"""
 def severalPatternShareSubtree(createTestFile = False):
     pattern = Pattern(
         SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
@@ -249,6 +271,9 @@ def severalPatternShareSubtree(createTestFile = False):
 
     runMultiTest("threeSharingSubtrees", [pattern, pattern2, pattern3], createTestFile, eval_mechanism_params)
 
+"""
+multi-pattern test patterns sharing inner nodes and not leaves
+"""
 def notInTheBeginningShare(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator([NegationOperator(PrimitiveEventStructure("TYP1", "x")),
@@ -297,6 +322,9 @@ def notInTheBeginningShare(createTestFile = False):
 
     runMultiTest("MultipleNotBeginningShare", [pattern1, pattern2, pattern3], createTestFile, eval_mechanism_params)
 
+"""
+multi-pattern test sharing internal node between patterns
+"""
 def multipleParentsForInternalNode(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator([PrimitiveEventStructure("AAPL", "a"),
