@@ -44,6 +44,20 @@ googleAscendPattern = Pattern(
         timedelta(minutes=3)
     )
 
+# Another way to define the above example is to use NaryFormula and a lambda function:
+googleAscendPattern = Pattern(
+        SeqOperator([PrimitiveEventStructure("GOOG", "a"), 
+                     PrimitiveEventStructure("GOOG", "b"), 
+                     PrimitiveEventStructure("GOOG", "c")]),
+        AndFormula(
+            NaryFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), 
+                        IdentifierTerm("b", lambda x: x["Peak Price"]),
+                        IdentifierTerm("c", lambda x: x["Peak Price"]),
+                        lambda x,y,z: x < b < z)
+        ),
+        timedelta(minutes=3)
+    )
+
 
 # This pattern is looking for low prices of Amazon and Google at the same minute.
 # PATTERN AND(AmazonStockPriceUpdate a, GoogleStockPriceUpdate g)
@@ -92,6 +106,34 @@ pattern = Pattern(
     )
 ```
 
+The following example of a pattern containing a Kleene closure operator with an offset condition:
+```
+pattern = Pattern(
+    SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
+    AndFormula([
+        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
+        KCValueFormula(names={'a'}, getattr_func=lambda x: x["Peak Price"],
+                       relation_op=lambda x, y: x > y,
+                       value=530.5),
+        KCIndexFormula(names={'a'}, getattr_func=lambda x: x["Opening Price"],
+                       relation_op=lambda x, y: x+0.5 < y,
+                       offset=-1)
+    ]),
+    timedelta(minutes=5)
+)
+```
+
+The following example of a pattern containing a Kleene closure operator with a value condition:
+```
+pattern = Pattern(
+    SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
+    AndFormula([
+        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
+        KCValueFormula(names={'a'}, getattr_func=lambda x: x["Peak Price"], relation_op=lambda x, y: x > y, value=530.5)
+        ]),
+    timedelta(minutes=5)
+)
+```
 ## Negation Operator 
 
 The following is the example of a pattern containing a negation operator:
