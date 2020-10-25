@@ -75,9 +75,6 @@ class TrueFormula(Formula):
             return None
         return self
 
-    def extract_atomic_formulas_new(self):
-        return {}
-
     def consume_formula_of(self, names: set, ignore_kc=True):
         raise NotImplementedError()
 
