@@ -179,7 +179,13 @@ def runTest(testName, patterns, createTestFile = False,
     runTest.over_all_time += running_time
     os.remove(actual_matches_path)
 
-
+"""
+Input:
+testName- name of the test
+patterns- list of patterns
+Output:
+expected output file for the test.
+"""
 def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                          events=None, eventStream=nasdaqEventStream):
     curr_events = events
@@ -217,7 +223,10 @@ def uniteFiles(testName, numOfPatterns):
             for line in setexp:
                 f.write(line)
                 f.write('\n\n')
-
+"""
+This function runs multi-pattern CEP on the given list of patterns and prints
+success or fail output.
+"""
 def runMultiTest(testName, patterns, createTestFile = False,
             eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
             events = None, eventStream = nasdaqEventStream):
