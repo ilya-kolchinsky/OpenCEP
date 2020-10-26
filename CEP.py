@@ -1,25 +1,26 @@
 """
-This file contains the primary engine. It processes streams of events and detects pattern matches
+This file contains the main class of the project. It processes streams of events and detects pattern matches
 by invoking the rest of the system components.
 """
 from base.DataFormatter import DataFormatter
+from parallel.ParallelExecutionParameters import ParallelExecutionParameters
 from stream.Stream import InputStream, OutputStream
 from base.Pattern import Pattern
-from evaluation.EvaluationMechanismFactory import (
-    EvaluationMechanismParameters,
-)
+from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from typing import List
 from datetime import datetime
 
-from parallelism.EvaluationMechanismManager import EvaluationMechanismManager
+from parallel.EvaluationManager import EvaluationManager
 
 
 class CEP:
     """
-    A CEP object contains a workload (list of patterns to be evaluated) and an evaluation mechanism.
-    The evaluation mechanism is created according to the parameters specified in the constructor.
+    A CEP object wraps the engine responsible for actual processing. It accepts the desired workload (list of patterns
+    to be evaluated) and a set of settings defining the evaluation mechanism to be used and the way the workload should
+    be optimized and parallelized.
     """
-    def __init__(self, patterns: List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None):
+    def __init__(self, patterns: List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None,
+                 parallel_execution_params: ParallelExecutionParameters = None):
         """
         Constructor of the class.
         """
@@ -27,7 +28,7 @@ class CEP:
             raise Exception("No patterns are provided")
         if len(patterns) > 1:
             raise NotImplementedError("Multi-pattern support is not yet available")
-        self.__eval_mechanism_manager = EvaluationMechanismManager(None, eval_mechanism_params, patterns)
+        self.__evaluation_manager = EvaluationManager(patterns, eval_mechanism_params, parallel_execution_params)
 
     def run(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
@@ -35,7 +36,7 @@ class CEP:
         Returns the total time elapsed during evaluation.
         """
         start = datetime.now()
-        self.__eval_mechanism_manager.eval(events, matches, data_formatter)
+        self.__evaluation_manager.eval(events, matches, data_formatter)
         return (datetime.now() - start).total_seconds()
 
     def get_pattern_match(self):
@@ -51,10 +52,10 @@ class CEP:
         """
         Returns the output stream containing the detected matches.
         """
-        return self.__eval_mechanism_manager.pattern_matches_stream
+        return self.__evaluation_manager.pattern_matches_stream
 
     def get_evaluation_mechanism_structure_summary(self):
         """
         Returns an object summarizing the structure of the underlying evaluation mechanism.
         """
-        return self.__eval_mechanism_manager.get_structure_summary()
+        return self.__evaluation_manager.get_structure_summary()

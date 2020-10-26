@@ -1,9 +1,9 @@
 """
-This class contains implementation of the manager which is in charge of parallelism.
+This class contains implementation of the manager which is in charge of parallel.
 In order for the code to be executed in a parallel manner, the user needs to implement the plugins:
 ParallelWorkLoadFramework, ParallelExecutionFramework.
 Each evaluation mechanism needs to implement ParallelExecutionFramework.
-If no parallelism is required, no need to supply any plugin.
+If no parallel is required, no need to supply any plugin.
 """
 
 from evaluation.EvaluationMechanismFactory import (
@@ -17,7 +17,7 @@ from base.DataFormatter import DataFormatter
 from typing import List
 
 
-class EvaluationMechanismManager:
+class EvaluationManager:
 
     def __init__(self, work_load_fr: ParallelWorkLoadFramework, eval_params: EvaluationMechanismParameters,
                  patterns: List[Pattern]):
@@ -34,11 +34,11 @@ class EvaluationMechanismManager:
         self.pattern_matches_stream = None
 
         if work_load_fr is None:
-            # no parallelism is needed, create non parallelism plugin:
+            # no parallel is needed, create non parallel plugin:
             self.work_load_fr = ParallelWorkLoadFramework(execution_units=1, is_data_parallel=False,
                                                           is_structure_parallel=False, num_of_families=0)
         else:
-            # parallelism plugin supplied, will use it:
+            # parallel plugin supplied, will use it:
             self.work_load_fr = work_load_fr
 
         if len(patterns) == 1:
@@ -61,7 +61,7 @@ class EvaluationMechanismManager:
             self.initialize_multiple_structure_multiple_data()
 
     def initialize_single_structure_single_data(self, pattern_matches: OutputStream):
-        # here only one mechanism exists, no parallelism
+        # here only one mechanism exists, no parallel
         self.eval_mechanism_list = [self.source_eval_mechanism]
         self.masters_list = None
         self.pattern_matches_stream = pattern_matches
@@ -106,7 +106,7 @@ class EvaluationMechanismManager:
 
         self.run_eval()
 
-        # relevant only when some kind of parallelism is activated
+        # relevant only when some kind of parallel is activated
         if self.work_load_fr.get_is_data_parallel() or self.work_load_fr.get_is_structure_parallel():
             self.notify_all_to_finish()
 
@@ -132,7 +132,7 @@ class EvaluationMechanismManager:
 
     def eval_single_tree_single_data(self):
         """
-        No parallelism
+        No parallel
         """
         self.source_eval_mechanism.eval(self.work_load_fr.event_stream, self.pattern_matches_stream,
                                         self.work_load_fr.data_formatter)

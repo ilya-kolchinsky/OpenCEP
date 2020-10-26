@@ -1,6 +1,6 @@
 """
 This class contains requirements from the plugin and represents a single evaluation mechanism.
-The manager will call this methods in order to achieve parallelism.
+The manager will call this methods in order to achieve parallel.
 """
 
 from abc import ABC
