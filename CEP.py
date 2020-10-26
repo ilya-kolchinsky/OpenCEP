@@ -3,14 +3,13 @@ This file contains the main class of the project. It processes streams of events
 by invoking the rest of the system components.
 """
 from base.DataFormatter import DataFormatter
+from parallel.EvaluationManagerFactory import EvaluationManagerFactory
 from parallel.ParallelExecutionParameters import ParallelExecutionParameters
 from stream.Stream import InputStream, OutputStream
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from typing import List
 from datetime import datetime
-
-from parallel.EvaluationManager import EvaluationManager
 
 
 class CEP:
@@ -24,11 +23,11 @@ class CEP:
         """
         Constructor of the class.
         """
-        if patterns is None:
+        if patterns is None or len(patterns) == 0:
             raise Exception("No patterns are provided")
-        if len(patterns) > 1:
-            raise NotImplementedError("Multi-pattern support is not yet available")
-        self.__evaluation_manager = EvaluationManager(patterns, eval_mechanism_params, parallel_execution_params)
+        self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(patterns,
+                                                                                       eval_mechanism_params,
+                                                                                       parallel_execution_params)
 
     def run(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
@@ -52,7 +51,7 @@ class CEP:
         """
         Returns the output stream containing the detected matches.
         """
-        return self.__evaluation_manager.pattern_matches_stream
+        return self.__evaluation_manager.get_pattern_match_stream()
 
     def get_evaluation_mechanism_structure_summary(self):
         """
