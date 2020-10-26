@@ -1,6 +1,6 @@
 from abc import ABC
 from datetime import timedelta
-from typing import List, Tuple
+from typing import List
 
 from base.Event import Event
 from base.Formula import Formula, IdentifierTerm, AtomicFormula, EquationSides
@@ -21,6 +21,10 @@ class BinaryNode(InternalNode, ABC):
         self._right_subtree = right
 
     def create_parent_to_info_dict(self):
+        """
+        Creates the dictionary that maps parent to event type, event name and index.
+        This dictionary helps to pass the parents a partial match with the right definitions.
+        """
         if self._left_subtree:
             self._left_subtree.create_parent_to_info_dict()
         if self._right_subtree:
@@ -32,6 +36,9 @@ class BinaryNode(InternalNode, ABC):
             self._add_to_parent_to_info_dict(self._parents[0], self._event_defs)
 
     def get_leaves(self):
+        """
+        Returns all leaves in this tree.
+        """
         result = []
         if self._left_subtree is not None:
             result += self._left_subtree.get_leaves()
@@ -73,13 +80,17 @@ class BinaryNode(InternalNode, ABC):
                                     self._right_subtree.get_event_definitions())
 
     def update_sliding_window(self, sliding_window: timedelta):
+        """
+        Updates the sliding window of all the nodes in the subtree of this node.
+        """
         self.set_sliding_window(sliding_window)
         self._left_subtree.update_sliding_window(sliding_window)
         self._right_subtree.update_sliding_window(sliding_window)
 
-
     def replace_subtree(self, old_node: Node, new_node: Node):
-        #gets a node and replace it's subtree
+        """
+        Gets a node and replaces it's subtree.
+        """
         left = self.get_left_subtree()
         right = self.get_right_subtree()
         if left == old_node:
@@ -106,7 +117,7 @@ class BinaryNode(InternalNode, ABC):
         partial_matches_to_compare = other_subtree.get_partial_matches(new_pm_key(new_partial_match))
         second_event_defs = other_subtree.get_event_definitions_by_parent(self)
 
-        # we don't want to erase the partial matches of a root
+        # we don't want to erase the partial matches of an output_node
         if self._parents is not None:
             self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
@@ -142,8 +153,8 @@ class BinaryNode(InternalNode, ABC):
 
     def is_structure_equal(self, other):
         """
-        Checks if the type of both of the nodes is AndNode and then checks if:
-        the left subtrees structures is equal and the right subtrees structures is equal OR
+        Checks if the type of both of the nodes is the same and then checks if:
+        the left subtrees structures are equal and the right subtrees structures are equal OR
         the left of the first is equal to the right of the second and the right of the first is equal to the left of the
         second.
         """

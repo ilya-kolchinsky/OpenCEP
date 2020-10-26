@@ -23,6 +23,9 @@ class UnaryNode(InternalNode, ABC):
         return self._child.get_leaves()
 
     def get_child(self):
+        """
+        Returns the child of this node.
+        """
         return self._child
 
     def _propagate_condition(self, condition: Formula):
@@ -36,14 +39,24 @@ class UnaryNode(InternalNode, ABC):
         self._event_defs = child.get_event_definitions()
 
     def update_sliding_window(self, sliding_window: timedelta):
+        """
+        Updates the sliding window of all the nodes in the subtree of this node.
+        """
         self.set_sliding_window(sliding_window)
         self._child.update_sliding_window(sliding_window)
 
     def replace_subtree(self, child: Node):
+        """
+        Gets a node and replaces it's subtree.
+        """
         self.set_subtree(child)
         child.add_parent(self)
 
     def create_parent_to_info_dict(self):
+        """
+        Creates the dictionary that maps parent to event type, event name and index.
+        This dictionary helps to pass the parents a partial match with the right definitions.
+        """
         if self._child:
             self._child.create_parent_to_info_dict()
         if self._parents:

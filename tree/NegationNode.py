@@ -181,6 +181,10 @@ class NegationNode(BinaryNode, ABC):
         self._right_subtree.create_storage_unit(storage_params)
 
     def is_structure_equal(self, other):
+        """
+        Checks if the type of both of the nodes is the same and then checks if the left subtrees structures are equal
+        and the right subtrees structures are equal.
+        """
         if not isinstance(other, type(self)):
             return False
         v1 = self._left_subtree.is_structure_equal(other.get_left_subtree())

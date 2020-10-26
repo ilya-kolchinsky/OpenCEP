@@ -20,6 +20,10 @@ class LeafNode(Node):
         self.__event_type = leaf_event.type
 
     def create_parent_to_info_dict(self):
+        """
+        Creates the dictionary that maps parent to event type, event name and index.
+        This dictionary helps to pass the parents a partial match with the right definitions.
+        """
         if self._parents is not None:
             # we call this method before we share nodes so each node has only one parent (or none).
             if len(self._parents) > 1:
@@ -97,12 +101,21 @@ class LeafNode(Node):
         return self.__event_name
 
     def get_condition(self):
+        """
+        Returns the condition of this node.
+        """
         return self._condition
 
     def is_structure_equal(self, other):
+        """
+        Checks if the type of both of the nodes is the same and then checks if the nodes have the same event_type.
+        """
         if not isinstance(other, type(self)):
             return False
         return self.__event_type == other.get_event_type()
 
     def update_sliding_window(self, sliding_window: timedelta):
+        """
+        Updates the sliding window of the LeafNode.
+        """
         self.set_sliding_window(sliding_window)

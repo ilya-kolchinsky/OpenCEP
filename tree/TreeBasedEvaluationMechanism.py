@@ -2,7 +2,6 @@ from base.DataFormatter import DataFormatter
 from base.Event import Event
 from stream.Stream import InputStream, OutputStream
 from misc.Utils import *
-from plan.TreePlan import TreePlan
 from tree.LeafNode import LeafNode
 from tree.PatternMatchStorage import TreeStorageParameters
 from evaluation.EvaluationMechanism import EvaluationMechanism
@@ -44,7 +43,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
-        Activates the tree evaluation mechanism on the input event stream and reports all found patter matches to the
+        Activates the tree evaluation mechanism on the input event stream and reports all found pattern matches to the
         given output stream.
         """
         self.__register_event_listeners()

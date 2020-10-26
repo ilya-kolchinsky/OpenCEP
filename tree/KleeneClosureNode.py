@@ -67,6 +67,10 @@ class KleeneClosureNode(UnaryNode):
         return "KC", self._child.get_structure_summary()
 
     def is_structure_equal(self, other):
+        """
+        Checks if the type of both of the nodes is the same and then checks if the fields min_size and max_size of the
+        two nodes are the same.
+        """
         if not isinstance(other, type(self)):
             return False
         return self.__min_size == other.__min_size and self.__max_size == other.__max_size

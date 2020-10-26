@@ -38,6 +38,9 @@ class SeqNode(BinaryNode):
                 self._right_subtree.get_structure_summary())
 
     def is_structure_equal(self, other):
+        """
+        Checks equivalence of a SeqNode and another node.
+        """
         if not super().is_structure_equal(other):
             return False
 
@@ -47,8 +50,8 @@ class SeqNode(BinaryNode):
         if len(first_event_defs) != len(second_event_defs):
             return False
 
-        #we are assuming that the event definitions in a node are ordered by index,
-        #which is a legitimate assumption due to the implementation of set_event_definitions
+        # we are assuming that the event definitions in a node are ordered by index,
+        # which is a legitimate assumption due to the implementation of set_event_definitions
         for i in range(len(first_event_defs)):
             first_event_type = first_event_defs[i].type
             second_event_type = second_event_defs[i].type

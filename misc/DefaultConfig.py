@@ -7,8 +7,6 @@ from misc.SelectionStrategies import SelectionStrategies
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-from plan.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
-
 
 # general settings
 DEFAULT_EVALUATION_MECHANISM_TYPE = EvaluationMechanismTypes.TREE_BASED

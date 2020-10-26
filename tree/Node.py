@@ -49,8 +49,8 @@ class Node(ABC):
         self._sliding_window = sliding_window
         self._partial_matches = None
         self._condition = TrueFormula()
-        # matches that were not yet reported. Will be used in case of an output node. In particular, in a case that we have a
-        # output node which is also an internal node.
+        # matches that were not yet reported. Will be used in case of an output node. In particular, in a case that we
+        # have a output node which is also an internal node.
         self._unreported_matches = Queue()
         # set of event types that will only appear in a single full match
         self._single_event_types = set()
@@ -83,6 +83,9 @@ class Node(ABC):
         return self._unreported_matches.qsize() > 0
 
     def get_last_unhandled_partial_match_by_parent(self, parent):
+        """
+        Returns the last partial match buffered at this node and not yet transferred to parent.
+        """
         return self._parent_to_unhandled_queue_dict[parent].get(block=False)
 
     def set_parent(self, parents):
@@ -95,7 +98,6 @@ class Node(ABC):
         self._parent_to_unhandled_queue_dict = {parent: Queue() for parent in parents}
         self._parent_to_info_dict = {parent: self.get_event_definitions() for parent in parents}
 
-
     def add_parent(self, parent):
         """
         Adds a parent to this node.
@@ -107,23 +109,11 @@ class Node(ABC):
         self._parent_to_unhandled_queue_dict[parent] = Queue()
         self._parent_to_info_dict[parent] = self.get_event_definitions()
 
-
     def get_parents(self):
         """
         Returns the parents of this node.
         """
         return self._parents
-
-    def get_roots(self):
-        """
-        Returns the roots of the tree.
-        """
-        if self._parents is None:
-            return [self]
-        roots = []
-        for parent in self._parents:
-            roots += parent.get_roots()
-        return roots
 
     def get_sliding_window(self):
         """
@@ -132,6 +122,9 @@ class Node(ABC):
         return self._sliding_window
 
     def get_event_definitions_by_parent(self, parent):
+        """
+        Returns the event definitions according to the parent.
+        """
         if parent not in self._parent_to_info_dict.keys():
             raise Exception("parent is not in the dictionary.")
         return self._parent_to_info_dict[parent]

@@ -1,6 +1,5 @@
 from datetime import timedelta
 from typing import List
-from queue import Queue
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, CompositeStructure, UnaryStructure, \
     KleeneClosureOperator, PrimitiveEventStructure, NegationOperator
@@ -40,7 +39,6 @@ class Tree:
         self.__root.create_storage_unit(storage_params)
         self.__root.create_parent_to_info_dict()
         self.__root.set_is_output_node(True)
-
 
     def __adjust_leaf_indices(self, pattern: Pattern):
         """
@@ -241,4 +239,7 @@ class Tree:
         return True
 
     def get_root(self):
+        """
+        Returns the root node of the tree.
+        """
         return self.__root
