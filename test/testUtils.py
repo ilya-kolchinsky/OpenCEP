@@ -13,9 +13,6 @@ from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 from plugin.stocks.Stocks import MetastockDataFormatter
 from tree.PatternMatchStorage import TreeStorageParameters
 
-from parallelism.ParallelWorkLoadFramework import ParallelWorkLoadFramework
-from parallelism.ParallelExecutionFramework import ParallelExecutionFramework
-
 currentPath = pathlib.Path(os.path.dirname(__file__))
 absolutePath = str(currentPath.parent)
 sys.path.append(absolutePath)
@@ -28,13 +25,11 @@ nasdaqEventStreamMedium = FileInputStream(os.path.join(absolutePath, "test/Event
 nasdaqEventStreamFrequencyTailored = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
 nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
 nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
-shortNasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/short_NASDAQ_LONG.txt"))
 
 nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt"))
 custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"))
 custom2 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom2.txt"))
 custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.txt"))
-halfnasdaq = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_20080201_1_sorted.txt"))
 
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
@@ -147,14 +142,11 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
 
 def runTest(testName, patterns, createTestFile = False,
             eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events = None, eventStream = nasdaqEventStream
-            , work_load_fr: ParallelWorkLoadFramework = None):
+            events = None, eventStream = nasdaqEventStream):
     if createTestFile:
         createTest(testName, patterns, events, eventStream = eventStream)
-
     if events is None:
-        if eventStream is not None:
-            events = eventStream.duplicate()
+        events = eventStream.duplicate()
     else:
         events = events.duplicate()
 
@@ -162,7 +154,6 @@ def runTest(testName, patterns, createTestFile = False,
     listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd"]
     listCustom2 = ["simpleNot"]
-    parallel_tests = ["ParallelTests"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
@@ -173,10 +164,8 @@ def runTest(testName, patterns, createTestFile = False,
         events = custom2.duplicate()
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
-    elif testName in parallel_tests:
-        events = shortNasdaqEventStream.duplicate()
 
-    cep = CEP(patterns, eval_mechanism_params, work_load_fr = work_load_fr)
+    cep = CEP(patterns, eval_mechanism_params)
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName

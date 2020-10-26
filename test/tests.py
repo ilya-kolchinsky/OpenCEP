@@ -1,6 +1,5 @@
 from plan.TreePlanBuilderFactory import IterativeImprovementTreePlanBuilderParameters
 from test.KC_tests import *
-from test.Paralleltests import *
 
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
 from misc.ConsumptionPolicy import *
@@ -928,43 +927,7 @@ def sortedStorageBenchMarkTest(createTestFile=False):
 
 runTest.over_all_time = 0
 
-# Parallel tests
-
-
-print("*** Started running all parallel tests ***")
-
-MultiStructureMultiDataOneFamily()
-MultiStructureMultiDataTwoFamily()
-MultiStructureMultiDataTwoFamily2()
-MultiStructureMultiDataTwoFamily3()
-MultiStructureMultiDataTwoFamily4()
-
-SingleStructureMultiDataDefault()
-SingleStructureMultiData1()
-SingleStructureMultiData2()
-SingleStructureMultiData3()
-SingleStructureMultiData4()
-SingleStructureMultiData5()
-SingleStructureMultiData6()
-SingleStructureMultiData7()
-
-MultipleStructuresSingleData1()
-MultipleStructuresSingleData2()
-MultipleStructuresSingleData3()
-MultipleStructuresSingleData4()
-MultipleStructuresSingleData5()
-MultipleStructuresSingleData6()
-MultipleStructuresSingleData7()
-MultipleStructuresSingleData8()
-MultipleStructuresSingleData9()
-
-Multiple17StructuresSingleData()
-Multiple13StructuresSingleData()
-Multiple4StructuresSingleData()
-
-print("*** Finished running all parallel tests, overall time: %s ***" % runTest.over_all_time)
-
-# # basic functionality tests
+# basic functionality tests
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
@@ -977,8 +940,8 @@ nonsensePatternSearchTest()
 hierarchyPatternSearchTest()
 nonFrequencyPatternSearchTest()
 arrivalRatesPatternSearchTest()
-#
-#tree plan generation algorithms
+
+# tree plan generation algorithms
 frequencyPatternSearchTest()
 nonFrequencyPatternSearch2Test()
 frequencyPatternSearch2Test()
@@ -1000,8 +963,8 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
-#
-# # tree structure tests - CEP object only created not used
+
+# tree structure tests - CEP object only created not used
 structuralTest1()
 structuralTest2()
 structuralTest3()
@@ -1026,7 +989,7 @@ oneNotAtTheEndTest()
 multipleNotAtTheEndTest()
 multipleNotBeginAndEndTest()
 testWithMultipleNotAtBeginningMiddleEnd()
-#
+
 # consumption policies tests
 singleType1PolicyPatternSearchTest()
 singleType2PolicyPatternSearchTest()
@@ -1034,7 +997,7 @@ contiguousPolicyPatternSearchTest()
 contiguousPolicy2PatternSearchTest()
 freezePolicyPatternSearchTest()
 freezePolicy2PatternSearchTest()
-#
+
 # storage tests
 sortedStorageTest()
 run_storage_tests()

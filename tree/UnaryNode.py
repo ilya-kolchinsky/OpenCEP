@@ -39,4 +39,7 @@ class UnaryNode(InternalNode, ABC):
         self._child.create_storage_unit(storage_params)
 
     def get_child(self):
+        """
+        Returns the child of this unary node.
+        """
         return self._child

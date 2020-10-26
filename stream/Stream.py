@@ -57,7 +57,7 @@ class OutputStream(Stream):
     A stream sending its items to some external sink.
     """
     def get_item(self):
-        return super().get_item()
+        raise Exception("Unsupported operation")
 
     def first(self):
         raise Exception("Unsupported operation")

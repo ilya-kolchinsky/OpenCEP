@@ -226,7 +226,7 @@ class Tree:
         return True
 
     def get_root(self):
+        """
+        Returns the root node of the tree.
+        """
         return self.__root
-
-    def set_root(self, root: Node):
-        self.__root = root

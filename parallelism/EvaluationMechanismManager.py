@@ -14,7 +14,6 @@ from stream.Stream import InputStream, OutputStream
 from base.Pattern import Pattern
 from base.DataFormatter import DataFormatter
 
-from parallelism.ParallelWorkLoadFramework import ParallelWorkLoadFramework
 from typing import List
 
 
