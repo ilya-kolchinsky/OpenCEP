@@ -4,7 +4,7 @@ from typing import List
 
 class PatternMatch:
     """
-    Represents a set of primitive events satisfying a pattern.
+    Represents a set of primitive events satisfying one or more patterns.
     An instance of this class could correspond either to a full pattern match, or to any intermediate result
     created during the evaluation process.
     """
@@ -12,10 +12,12 @@ class PatternMatch:
         self.events = events
         self.last_timestamp = max(events, key=lambda x: x.timestamp).timestamp
         self.first_timestamp = min(events, key=lambda x: x.timestamp).timestamp
+        # this field is only used for full pattern matches
         self.pattern_ids = []
 
     def __eq__(self, other):
-        return isinstance(other, PatternMatch) and set(self.events) == set(other.events) and self.pattern_ids == other.pattern_ids
+        return isinstance(other, PatternMatch) and set(self.events) == set(other.events) and \
+               self.pattern_ids == other.pattern_ids
 
     def __str__(self):
         result = ""
@@ -32,6 +34,9 @@ class PatternMatch:
                 result += "\n"
         return result
 
-    def add_pattern_id(self, idx: int):
-        self.pattern_ids.append(idx)
-
+    def add_pattern_id(self, pattern_id: int):
+        """
+        Adds a new pattern ID corresponding to this pattern,
+        """
+        if pattern_id not in self.pattern_ids:
+            self.pattern_ids.append(pattern_id)

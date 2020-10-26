@@ -6,7 +6,7 @@ from misc import DefaultConfig
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
-from plan.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
+from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 
 
 class EvaluationMechanismParameters:
@@ -27,7 +27,7 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
         super().__init__(EvaluationMechanismTypes.TREE_BASED)
         self.tree_plan_params = tree_plan_params
         self.storage_params = storage_params
-        self.multi_pattern_params = multi_pattern_eval_params
+        self.multi_pattern_eval_params = multi_pattern_eval_params
 
 
 class EvaluationMechanismFactory:
@@ -55,7 +55,7 @@ class EvaluationMechanismFactory:
 
     @staticmethod
     def __create_tree_based_eval_mechanism(eval_mechanism_params: TreeBasedEvaluationMechanismParameters,
-                                           patterns: List[Pattern]):
+                                           patterns: Pattern or List[Pattern]):
         """
         Instantiates a tree-based CEP evaluation mechanism according to the given configuration.
         """
@@ -63,7 +63,8 @@ class EvaluationMechanismFactory:
             patterns = [patterns]
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
         tree_plans = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
-        return TreeBasedEvaluationMechanism(patterns, tree_plans, eval_mechanism_params.storage_params, eval_mechanism_params.multi_pattern_params)
+        return TreeBasedEvaluationMechanism(patterns, tree_plans, eval_mechanism_params.storage_params,
+                                            eval_mechanism_params.multi_pattern_eval_params)
 
     @staticmethod
     def __create_default_eval_parameters():

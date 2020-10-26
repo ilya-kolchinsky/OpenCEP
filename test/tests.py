@@ -961,21 +961,6 @@ MinMax_1_TestKleeneClosure()
 MinMax_2_TestKleeneClosure()
 KC_AND()
 
-# multi-pattern tests
-#first approach: sharing leaves
-leafIsRoot()
-distinctPatterns()
-threePatternsTest()
-samePatternDifferentTimeStamps()
-rootAndInner()
-
-#second approach: sharing equivalent subtrees
-onePatternIncludesOther()
-samePatternSharingRoot()
-severalPatternShareSubtree()
-notInTheBeginningShare()
-multipleParentsForInternalNode()
-
 # negation tests
 simpleNotTest()
 multipleNotInTheMiddleTest()
@@ -997,6 +982,21 @@ freezePolicy2PatternSearchTest()
 # storage tests
 sortedStorageTest()
 run_storage_tests()
+
+# multi-pattern tests
+# first approach: sharing leaves
+leafIsRoot()
+distinctPatterns()
+threePatternsTest()
+samePatternDifferentTimeStamps()
+rootAndInner()
+
+# second approach: sharing equivalent subtrees
+onePatternIncludesOther()
+samePatternSharingRoot()
+severalPatternShareSubtree()
+notInTheBeginningShare()
+multipleParentsForInternalNode()
 
 # benchmarks
 if INCLUDE_BENCHMARKS:

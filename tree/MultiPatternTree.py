@@ -1,6 +1,6 @@
-from typing import List
+from typing import List, Dict
 from base.Pattern import Pattern
-from plan.MultiPatternEvaluationParameters import *
+from plan.multi.MultiPatternEvaluationParameters import *
 from tree.Tree import Tree
 from tree.Node import Node
 from tree.UnaryNode import UnaryNode
@@ -12,10 +12,10 @@ from plan.TreePlan import TreePlan
 
 class MultiPatternTree:
     """
-    Represents a multi- pattern evaluation tree. Using the single- pattern tree builder.
+    Represents a multi-pattern evaluation tree.
     """
-
-    def __init__(self, tree_plans, patterns: List[Pattern], storage_params: TreeStorageParameters,
+    def __init__(self, tree_plans: Dict[Pattern, TreePlan], patterns: List[Pattern],
+                 storage_params: TreeStorageParameters,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters):
         self.__pattern_to_output_node_dict = {}
         multi_pattern_eval_approach = multi_pattern_eval_params.approach
@@ -23,20 +23,19 @@ class MultiPatternTree:
                                                                   multi_pattern_eval_approach)
         self.__patterns = patterns
 
-        pass
-
-    def __construct_multi_pattern_tree(self, tree_plans: List[TreePlan], patterns: List[Pattern],
+    def __construct_multi_pattern_tree(self, tree_plans: Dict[Pattern, TreePlan], patterns: List[Pattern],
                                        storage_params: TreeStorageParameters,
-                                       multi_pattern_eval_approach: MultiPatternEvaluationApproach):
+                                       multi_pattern_eval_approach: MultiPatternEvaluationApproaches):
         """
-        Constructing a multi- pattern evaluation tree according to the approach.
+        Constructing a multi-pattern evaluation tree according to the approach.
         """
-        if multi_pattern_eval_approach == MultiPatternEvaluationApproach.TRIVIAL_SHARING_LEAVES:
+        if multi_pattern_eval_approach == MultiPatternEvaluationApproaches.TRIVIAL_SHARING_LEAVES:
             return self.__construct_trivial_tree(tree_plans, patterns, storage_params)
-        if multi_pattern_eval_approach == MultiPatternEvaluationApproach.SUBTREES_UNION:
+        if multi_pattern_eval_approach == MultiPatternEvaluationApproaches.SUBTREES_UNION:
             return self.__construct_subtrees_union_tree(tree_plans, patterns, storage_params)
+        raise Exception("Unknown multi-pattern evaluation approach: %s" % (multi_pattern_eval_approach,))
 
-    def __construct_trivial_tree(self, tree_plans, patterns: List[Pattern],
+    def __construct_trivial_tree(self, tree_plans: Dict[Pattern, TreePlan], patterns: List[Pattern],
                                  storage_params: TreeStorageParameters):
         """
         This method gets patterns, builds a single-pattern tree to each one of them,
@@ -79,7 +78,7 @@ class MultiPatternTree:
             leaves_to_counter_dict = {key: 0 for key in leaves_to_counter_dict}
         return self.__output_nodes
 
-    def __construct_subtrees_union_tree(self, tree_plans, patterns: List[Pattern],
+    def __construct_subtrees_union_tree(self, tree_plans: Dict[Pattern, TreePlan], patterns: List[Pattern],
                                         storage_params: TreeStorageParameters):
         """
         This method gets patterns, builds a single-pattern tree to each one of them,

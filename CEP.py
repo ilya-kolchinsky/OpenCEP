@@ -18,7 +18,7 @@ class CEP:
     A CEP object contains a workload (list of patterns to be evaluated) and an evaluation mechanism.
     The evaluation mechanism is created according to the parameters specified in the constructor.
     """
-    def __init__(self, patterns: List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None):
+    def __init__(self, patterns: Pattern or List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None):
         """
         Constructor of the class.
         """
@@ -31,7 +31,7 @@ class CEP:
                                                                                                   patterns)
         else:
             self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_params,
-                                                                                               patterns[0])
+                                                                                                   patterns[0])
         self.__pattern_matches = None
 
     def run(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
@@ -47,7 +47,6 @@ class CEP:
     def get_pattern_match(self):
         """
         Returns one match from the output stream.
-
         """
         if self.__pattern_matches is None:
             return None

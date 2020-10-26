@@ -1,12 +1,15 @@
+from typing import Dict
+
 from base.DataFormatter import DataFormatter
 from base.Event import Event
+from plan.TreePlan import TreePlan
 from stream.Stream import InputStream, OutputStream
 from misc.Utils import *
 from tree.LeafNode import LeafNode
 from tree.PatternMatchStorage import TreeStorageParameters
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
-from plan.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
+from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from tree.MultiPatternTree import MultiPatternTree
 
 from tree.Tree import Tree
@@ -16,7 +19,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
-    def __init__(self, patterns: List[Pattern], tree_plans, storage_params: TreeStorageParameters,
+    def __init__(self, patterns: List[Pattern], tree_plans: Dict[Pattern, TreePlan],
+                 storage_params: TreeStorageParameters,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
 
         if len(patterns) > 1:

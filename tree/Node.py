@@ -320,7 +320,7 @@ class Node(ABC):
         Gets two nodes and returns whether they are equal.
         Two nodes are equal if their structures are equal and their conditions are equal.
         """
-        return self.is_structure_equal(other) and self._condition.is_equal(other.get_condition())
+        return self.is_structure_equal(other) and self._condition == other.get_condition()
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,
