@@ -1,6 +1,6 @@
 from abc import ABC
 from datetime import timedelta
-from typing import List
+from typing import List, Set
 
 from base.Event import Event
 from base.Formula import Formula, IdentifierTerm, AtomicFormula, EquationSides
@@ -13,27 +13,19 @@ class BinaryNode(InternalNode, ABC):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
-    def __init__(self, sliding_window: timedelta, parents: List[Node] = None,
+    def __init__(self, sliding_window: timedelta, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None, pattern_id=0):
-        super().__init__(sliding_window, parents, event_defs, pattern_id)
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, parents, pattern_ids, event_defs)
         self._left_subtree = left
         self._right_subtree = right
 
     def create_parent_to_info_dict(self):
-        """
-        Creates the dictionary that maps parent to event type, event name and index.
-        This dictionary helps to pass the parents a partial match with the right definitions.
-        """
-        if self._left_subtree:
+        if self._left_subtree is not None:
             self._left_subtree.create_parent_to_info_dict()
-        if self._right_subtree:
+        if self._right_subtree is not None:
             self._right_subtree.create_parent_to_info_dict()
-        if self._parents:
-            # we call this method before we share nodes so each node has only one parent (or none).
-            if len(self._parents) > 1:
-                raise Exception("This method should not be called when there is more than one parent.")
-            self._add_to_parent_to_info_dict(self._parents[0], self._event_defs)
+        super().create_parent_to_info_dict()
 
     def get_leaves(self):
         """
@@ -79,17 +71,19 @@ class BinaryNode(InternalNode, ABC):
         self._set_event_definitions(self._left_subtree.get_event_definitions(),
                                     self._right_subtree.get_event_definitions())
 
-    def update_sliding_window(self, sliding_window: timedelta):
-        """
-        Updates the sliding window of all the nodes in the subtree of this node.
-        """
+    def propagate_sliding_window(self, sliding_window: timedelta):
         self.set_sliding_window(sliding_window)
-        self._left_subtree.update_sliding_window(sliding_window)
-        self._right_subtree.update_sliding_window(sliding_window)
+        self._left_subtree.propagate_sliding_window(sliding_window)
+        self._right_subtree.propagate_sliding_window(sliding_window)
+
+    def propagate_pattern_id(self, pattern_id: int):
+        self.add_pattern_ids({pattern_id})
+        self._left_subtree.propagate_pattern_id(pattern_id)
+        self._right_subtree.propagate_pattern_id(pattern_id)
 
     def replace_subtree(self, old_node: Node, new_node: Node):
         """
-        Gets a node and replaces it's subtree.
+        Replaces the child of this node provided as old_node with new_node.
         """
         left = self.get_left_subtree()
         right = self.get_right_subtree()
@@ -97,6 +91,8 @@ class BinaryNode(InternalNode, ABC):
             self.set_subtrees(new_node, right)
         elif right == old_node:
             self.set_subtrees(left, new_node)
+        else:
+            raise Exception("old_node must contain one of this node's children")
         new_node.add_parent(self)
 
     def handle_new_partial_match(self, partial_match_source: Node):
@@ -117,9 +113,7 @@ class BinaryNode(InternalNode, ABC):
         partial_matches_to_compare = other_subtree.get_partial_matches(new_pm_key(new_partial_match))
         second_event_defs = other_subtree.get_event_definitions_by_parent(self)
 
-        # we don't want to erase the partial matches of an output_node
-        if self._parents is not None:
-            self.clean_expired_partial_matches(new_partial_match.last_timestamp)
+        self.clean_expired_partial_matches(new_partial_match.last_timestamp)
 
         # given a partial match from one subtree, for each partial match
         # in the other subtree we check for new partial matches in this node.
@@ -151,21 +145,21 @@ class BinaryNode(InternalNode, ABC):
             return second_event_list + first_event_list
         raise Exception()
 
-    def is_structure_equal(self, other):
+    def is_structure_equivalent(self, other):
         """
         Checks if the type of both of the nodes is the same and then checks if:
-        the left subtrees structures are equal and the right subtrees structures are equal OR
-        the left of the first is equal to the right of the second and the right of the first is equal to the left of the
-        second.
+        the left subtrees structures are equivalent and the right subtrees structures are equivalent OR
+        the left of the first is equivalent to the right of the second and the right of the first is equivalent to
+        the left of the second.
         """
-        if not isinstance(other, type(self)):
+        if type(self) != type(other):
             return False
-        v1 = self._left_subtree.is_structure_equal(other.get_left_subtree())
-        v2 = self._right_subtree.is_structure_equal(other.get_right_subtree())
+        v1 = self._left_subtree.is_structure_equivalent(other.get_left_subtree())
+        v2 = self._right_subtree.is_structure_equivalent(other.get_right_subtree())
         if v1 and v2:
             return True
-        v3 = self._left_subtree.is_structure_equal(other.get_right_subtree())
-        v4 = self._right_subtree.is_structure_equal(other.get_left_subtree())
+        v3 = self._left_subtree.is_structure_equivalent(other.get_right_subtree())
+        v4 = self._right_subtree.is_structure_equivalent(other.get_left_subtree())
         return v3 and v4
 
     def __get_filtered_conditions(self, left_event_names: List[str], right_event_names: List[str]):

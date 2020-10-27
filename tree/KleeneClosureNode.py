@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import List
+from typing import List, Set
 
 from base.PatternMatch import PatternMatch
 from misc.Utils import recursive_powerset_generator
@@ -12,8 +12,9 @@ class KleeneClosureNode(UnaryNode):
     An internal node representing a Kleene closure operator.
     It generates and propagates sets of partial matches provided by its sole child.
     """
-    def __init__(self, sliding_window: timedelta, min_size, max_size, parent: Node = None, pattern_id=0):
-        super().__init__(sliding_window, parent, None, None, pattern_id)
+    def __init__(self, sliding_window: timedelta, min_size, max_size,
+                 parents: List[Node] = None, pattern_ids: int or Set[int] = None):
+        super().__init__(sliding_window, parents, pattern_ids)
         self.__min_size = min_size
         self.__max_size = max_size
 
@@ -66,12 +67,12 @@ class KleeneClosureNode(UnaryNode):
     def get_structure_summary(self):
         return "KC", self._child.get_structure_summary()
 
-    def is_structure_equal(self, other):
+    def is_structure_equivalent(self, other):
         """
         Checks if the type of both of the nodes is the same and then checks if the fields min_size and max_size of the
         two nodes are the same.
         """
-        if not isinstance(other, type(self)):
+        if type(other) != KleeneClosureNode:
             return False
         return self.__min_size == other.__min_size and self.__max_size == other.__max_size
 

@@ -1,11 +1,11 @@
 from abc import ABC
 from datetime import timedelta, datetime
-from typing import List
+from typing import List, Set
 
 from base.Event import Event
 from base.Formula import RelopTypes, EquationSides
 from base.PatternMatch import PatternMatch
-from base.PatternStructure import AndOperator, SeqOperator
+from base.PatternStructure import AndOperator, SeqOperator, CompositeStructure
 from misc.Utils import find_partial_match_by_timestamp, merge, is_sorted, merge_according_to
 from tree.BinaryNode import BinaryNode
 from tree.Node import Node, PrimitiveEventDefinition
@@ -18,10 +18,11 @@ class NegationNode(BinaryNode, ABC):
     This implementation heavily relies on the fact that, if any unbounded negation operators are defined in the
     pattern, they are conveniently placed at the top of the tree forming a left-deep chain of nodes.
     """
-    def __init__(self, sliding_window: timedelta, is_unbounded: bool, top_operator, parents: List[Node] = None,
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool, top_operator: CompositeStructure,
+                 parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None, pattern_id=0):
-        super().__init__(sliding_window, parents, event_defs, left, right, pattern_id)
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, parents, pattern_ids, event_defs, left, right)
 
         # aliases for the negative node subtrees to make the code more readable
         # by construction, we always have the positive subtree on the left
@@ -180,15 +181,15 @@ class NegationNode(BinaryNode, ABC):
         self._left_subtree.create_storage_unit(storage_params)
         self._right_subtree.create_storage_unit(storage_params)
 
-    def is_structure_equal(self, other):
+    def is_structure_equivalent(self, other):
         """
         Checks if the type of both of the nodes is the same and then checks if the left subtrees structures are equal
         and the right subtrees structures are equal.
         """
-        if not isinstance(other, type(self)):
+        if type(other) != type(self):
             return False
-        v1 = self._left_subtree.is_structure_equal(other.get_left_subtree())
-        v2 = self._right_subtree.is_structure_equal(other.get_right_subtree())
+        v1 = self._left_subtree.is_structure_equivalent(other.get_left_subtree())
+        v2 = self._right_subtree.is_structure_equivalent(other.get_right_subtree())
         return v1 and v2
 
 
@@ -196,10 +197,11 @@ class NegativeAndNode(NegationNode):
     """
     An internal node representing a negative conjunction operator.
     """
-    def __init__(self, sliding_window: timedelta, is_unbounded: bool, parents: List[Node] = None,
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool,
+                 parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None, pattern_id=0):
-        super().__init__(sliding_window, is_unbounded, AndOperator, parents, event_defs, left, right, pattern_id)
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, is_unbounded, AndOperator, parents, pattern_ids, event_defs, left, right)
 
     def get_structure_summary(self):
         return ("NAnd",
@@ -212,10 +214,11 @@ class NegativeSeqNode(NegationNode):
     An internal node representing a negative sequence operator.
     Unfortunately, this class contains some code duplication from SeqNode to avoid diamond inheritance.
     """
-    def __init__(self, sliding_window: timedelta, is_unbounded: bool, parents: List[Node] = None,
+    def __init__(self, sliding_window: timedelta, is_unbounded: bool,
+                 parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None, pattern_id=0):
-        super().__init__(sliding_window, is_unbounded, SeqOperator, parents, event_defs, left, right, pattern_id)
+                 left: Node = None, right: Node = None):
+        super().__init__(sliding_window, is_unbounded, SeqOperator, parents, pattern_ids, event_defs, left, right)
 
     def get_structure_summary(self):
         return ("NSeq",
