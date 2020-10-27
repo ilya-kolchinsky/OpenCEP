@@ -15,7 +15,8 @@ class EvaluationManagerFactory:
     Creates an evaluation manager given its specification.
     """
     @staticmethod
-    def create_evaluation_manager(patterns: List[Pattern], eval_mechanism_params: EvaluationMechanismParameters,
+    def create_evaluation_manager(patterns: Pattern or List[Pattern],
+                                  eval_mechanism_params: EvaluationMechanismParameters,
                                   parallel_execution_params: ParallelExecutionParameters):
         if parallel_execution_params is None:
             parallel_execution_params = ParallelExecutionParameters()

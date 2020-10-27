@@ -5,7 +5,7 @@ Each of the values below can be overridden by providing a different value in CEP
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc.SelectionStrategies import SelectionStrategies
 from parallel.ParallelExecutionModes import ParallelExecutionModes
-from parallel.ParallelExecutionPlatforms import ParallelExecutionP
+from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType
 from plan.multi.MultiPatternEvaluationApproaches import MultiPatternEvaluationApproaches
 from plan.TreeCostModels import TreeCostModels

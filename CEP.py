@@ -18,7 +18,7 @@ class CEP:
     to be evaluated) and a set of settings defining the evaluation mechanism to be used and the way the workload should
     be optimized and parallelized.
     """
-    def __init__(self, patterns: List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None,
+    def __init__(self, patterns: Pattern or List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None,
                  parallel_execution_params: ParallelExecutionParameters = None):
         """
         Constructor of the class.
