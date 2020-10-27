@@ -1,6 +1,5 @@
 from datetime import timedelta
 from typing import List
-
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, CompositeStructure, UnaryStructure, \
     KleeneClosureOperator, PrimitiveEventStructure, NegationOperator
@@ -19,8 +18,10 @@ class Tree:
     """
     Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree positive_structure"
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
+    The pattern_id parameter is used in multi-pattern mode.
     """
-    def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters):
+    def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
+                 pattern_id: int = None):
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
                                             Tree.__get_operator_arg_list(pattern.positive_structure),
                                             pattern.window, None, pattern.consumption_policy)
@@ -36,6 +37,11 @@ class Tree:
 
         self.__root.apply_formula(pattern.condition)
         self.__root.create_storage_unit(storage_params)
+        self.__root.create_parent_to_info_dict()
+        self.__root.set_is_output_node(True)
+        if pattern_id is not None:
+            pattern.id = pattern_id
+            self.__root.propagate_pattern_id(pattern_id)
 
     def __adjust_leaf_indices(self, pattern: Pattern):
         """
@@ -82,8 +88,8 @@ class Tree:
         return self.__root.get_leaves()
 
     def get_matches(self):
-        while self.__root.has_partial_matches():
-            yield self.__root.consume_first_partial_match()
+        while self.__root.has_unreported_matches():
+            yield self.__root.get_next_unreported_match()
 
     def get_structure_summary(self):
         """

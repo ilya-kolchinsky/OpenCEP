@@ -1,12 +1,16 @@
+from typing import Dict
+
 from base.DataFormatter import DataFormatter
 from base.Event import Event
+from plan.TreePlan import TreePlan
 from stream.Stream import InputStream, OutputStream
 from misc.Utils import *
-from plan.TreePlan import TreePlan
 from tree.LeafNode import LeafNode
 from tree.PatternMatchStorage import TreeStorageParameters
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
+from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
+from tree.MultiPatternTree import MultiPatternTree
 
 from tree.Tree import Tree
 
@@ -15,19 +19,31 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
-    def __init__(self, pattern: Pattern, tree_plan: TreePlan, storage_params: TreeStorageParameters):
-        self.__tree = Tree(tree_plan, pattern, storage_params)
-        self.__pattern = pattern
-        self.__freeze_map = {}
-        self.__active_freezers = []
+    def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
+                 storage_params: TreeStorageParameters,
+                 multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
+
+        is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
+        if is_multi_pattern_mode:
+            self.__tree = MultiPatternTree(pattern_to_tree_plan_map, storage_params, multi_pattern_eval_params)
+        else:
+            self.__tree = Tree(list(pattern_to_tree_plan_map.values())[0],
+                               list(pattern_to_tree_plan_map)[0], storage_params)
+
         self.__event_types_listeners = {}
 
-        if pattern.consumption_policy is not None and pattern.consumption_policy.freeze_names is not None:
+        # The remainder of the initialization process is only relevant for the freeze map feature. This feature can
+        # only be enabled in single-pattern mode.
+        self.__pattern = list(pattern_to_tree_plan_map)[0] if not is_multi_pattern_mode else None
+        self.__freeze_map = {}
+        self.__active_freezers = []
+        if not is_multi_pattern_mode and self.__pattern.consumption_policy is not None and \
+                self.__pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
-        Activates the tree evaluation mechanism on the input event stream and reports all found patter matches to the
+        Activates the tree evaluation mechanism on the input event stream and reports all found pattern matches to the
         given output stream.
         """
         self.__register_event_listeners()

@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import List
+from typing import List, Set
 
 from base.Event import Event
 from base.Formula import Formula, RelopTypes, EquationSides
@@ -12,11 +12,26 @@ class LeafNode(Node):
     """
     A leaf node is responsible for a single event type of the pattern.
     """
-    def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_event: PrimitiveEventStructure, parent: Node):
-        super().__init__(sliding_window, parent)
+    def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_event: PrimitiveEventStructure,
+                 parents: List[Node], pattern_ids: int or Set[int] = None):
+        super().__init__(sliding_window, parents, pattern_ids)
         self.__leaf_index = leaf_index
         self.__event_name = leaf_event.name
         self.__event_type = leaf_event.type
+
+    def create_parent_to_info_dict(self):
+        """
+        Creates the dictionary that maps parent to event type, event name and index.
+        This dictionary helps to pass the parents a partial match with the right definitions.
+        """
+        if len(self._parents) == 0:
+            return
+        # we call this method before we share nodes so each node has at most one parent
+        if len(self._parents) > 1:
+            raise Exception("This method should not be called when there is more than one parent.")
+        self._parent_to_info_dict[self._parents[0]] = [PrimitiveEventDefinition(self.__event_type,
+                                                                                self.__event_name,
+                                                                                self.__leaf_index)]
 
     def get_leaves(self):
         return [self]
@@ -86,3 +101,20 @@ class LeafNode(Node):
 
     def get_structure_summary(self):
         return self.__event_name
+
+    def is_structure_equivalent(self, other):
+        """
+        Checks if the type of both of the nodes is the same and then checks if the nodes have the same event_type.
+        """
+        if type(other) != LeafNode:
+            return False
+        return self.__event_type == other.get_event_type()
+
+    def propagate_sliding_window(self, sliding_window: timedelta):
+        """
+        Updates the sliding window of this leaf node.
+        """
+        self.set_sliding_window(sliding_window)
+
+    def propagate_pattern_id(self, pattern_id: int):
+        self.add_pattern_ids({pattern_id})
