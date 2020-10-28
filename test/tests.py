@@ -202,6 +202,20 @@ def hierarchyPatternSearchTest(createTestFile=False):
     runTest('hierarchy', [hierarchyPattern], createTestFile)
 
 
+def duplicateEventTypeTest(createTestFile=False):
+    """
+    PATTERN SEQ(AmazonStockPriceUpdate a, AmazonStockPriceUpdate b, AmazonStockPriceUpdate c)
+    WHERE   TRUE
+    WITHIN 10 minutes
+    """
+    pattern = Pattern(
+        SeqOperator([PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AMZN", "c")]),
+        TrueFormula(),
+        timedelta(minutes=10)
+    )
+    runTest("duplicateEventType", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
+
 def nonFrequencyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator([PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("LOCM", "c")]),
@@ -905,7 +919,7 @@ def sortedStorageBenchMarkTest(createTestFile=False):
     )
     runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], eval_mechanism_params=eval_params)
 
-	
+
 runTest.over_all_time = 0
 
 # basic functionality tests
@@ -921,6 +935,7 @@ nonsensePatternSearchTest()
 hierarchyPatternSearchTest()
 nonFrequencyPatternSearchTest()
 arrivalRatesPatternSearchTest()
+duplicateEventTypeTest()
 
 # tree plan generation algorithms
 frequencyPatternSearchTest()

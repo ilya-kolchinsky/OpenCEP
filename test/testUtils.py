@@ -174,10 +174,12 @@ def runTest(testName, patterns, createTestFile = False,
 
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
+    is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
     print("Test %s result: %s, Time Passed: %s" % (testName,
-          "Succeeded" if fileCompare(actual_matches_path, expected_matches_path) else "Failed", running_time))
+                                                   "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
-    os.remove(actual_matches_path)
+    if is_test_successful:
+        os.remove(actual_matches_path)
 
 """
 Input:

@@ -26,6 +26,9 @@ class InternalNode(Node, ABC):
         """
         if not super()._validate_new_match(events_for_new_match):
             return False
+        if len(events_for_new_match) != len(set(events_for_new_match)):
+            # the list contains duplicate events which is not allowed
+            return False
         binding = {
             self._event_defs[i].name: events_for_new_match[i].payload for i in range(len(self._event_defs))
         }
