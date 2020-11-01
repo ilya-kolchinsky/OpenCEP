@@ -188,14 +188,12 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    def apply_formula(self, formula: Formula, ignore_kc=True):
+    def apply_formula(self, formula: Formula, get_kc_methods_only=False):
         """
         Applies a given formula on all nodes in this tree - to be implemented by subclasses.
         """
         self._propagate_condition(formula)
-        self._assign_formula(formula, ignore_kc)
-        if isinstance(formula, CompositeFormula):
-            self._consume_formula(formula, ignore_kc)
+        self._assign_formula(formula, get_kc_methods_only)
 
     def _propagate_condition(self, formula: Formula):
         """
@@ -203,17 +201,17 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    def _assign_formula(self, formula: Formula, ignore_kc):
+    def _assign_formula(self, formula: Formula, get_kc_methods_only):
         """
         Formula assign method to current node. Should assign a Formula to self._condition.
         """
         raise NotImplementedError()
 
-    def _consume_formula(self, formula: Formula, ignore_kc):
+    def _consume_formula(self, formula: Formula, get_kc_methods_only):
         """
         Formula consumption method. Should consume the formulas assigned to self._condition after _assign_formulas.
         :param formula: input formula to consume formulas from.
-        :param ignore_kc: True to ignore KCFormulas, False to get them, and only them.
+        :param get_kc_methods_only: True to get KCFormulas and only them, False to get any other Formula.
         :return:
         """
         raise NotImplementedError()

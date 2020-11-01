@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import List
 
 from base.Event import Event
-from base.Formula import Formula, TrueFormula, RelopTypes, EquationSides
+from base.Formula import Formula, TrueFormula, RelopTypes, EquationSides, CompositeFormula
 from tree.Node import Node, PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters, UnsortedPatternMatchStorage, SortedPatternMatchStorage
 
@@ -36,14 +36,12 @@ class InternalNode(Node, ABC):
         """
         raise NotImplementedError()
 
-    def _assign_formula(self, formula: Formula, ignore_kc=True):
+    def _assign_formula(self, formula: Formula, get_kc_methods_only=False):
         names = {item.name for item in self._event_defs}
-        condition = formula.get_formula_of(names, ignore_kc)
+        condition = formula.get_formula_of(names, get_kc_methods_only)
         self._condition = condition if condition else TrueFormula()
-
-    def _consume_formula(self, formula: Formula, ignore_kc=True):
-        names = {item.name for item in self._event_defs}
-        formula.consume_formula_of(names, ignore_kc)
+        if isinstance(formula, CompositeFormula):
+            formula.consume_formula_of(names, get_kc_methods_only)
 
     def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                            rel_op: RelopTypes = None, equation_side: EquationSides = None,

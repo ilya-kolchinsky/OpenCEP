@@ -18,6 +18,15 @@ class KleeneClosureNode(UnaryNode):
         super().__init__(sliding_window, parent)
         self.__min_size = min_size
         self.__max_size = max_size
+        self._backup_event_defs = None
+
+    def set_subtree(self, child: Node):
+        """
+        Sets the child node of this node.
+        """
+        self._child = child
+        self._event_defs = child.get_event_definitions()
+        self._backup_event_defs = self._event_defs
 
     def handle_new_partial_match(self, partial_match_source: Node):
         """
@@ -38,7 +47,7 @@ class KleeneClosureNode(UnaryNode):
         for partial_match_set in child_matches_powerset:
             # create and propagate the new match
             # TODO: except for the time window constraint, no validation is supported as of now
-            events_for_partial_match = KleeneClosureNode.partial_match_set_to_event_list(partial_match_set)
+            events_for_partial_match = self.partial_match_set_to_event_list(partial_match_set)
             self._validate_and_propagate_partial_match(events_for_partial_match)
 
     def _validate_new_match(self, events_for_new_match: List[Event]):
@@ -71,25 +80,20 @@ class KleeneClosureNode(UnaryNode):
         result_powerset = [item for item in result_powerset if self.__min_size <= len(item)]
         return result_powerset
 
-    def apply_formula(self, formula: Formula, ignore_kc=False):
+    def apply_formula(self, formula: Formula, get_kc_methods_only=True):
         """
         Applies a given formula on all nodes in this tree - to be implemented by subclasses.
         """
-        super().apply_formula(formula, False)
+        super().apply_formula(formula, True)
 
     # override to send ignore_kc = False
-    def _assign_formula(self, formula: Formula, ignore_kc=False):
-        super()._assign_formula(formula, False)
-
-    # override to send ignore_kc = False
-    def _consume_formula(self, formula: Formula, ignore_kc=False):
-        super()._consume_formula(formula, False)
+    def _assign_formula(self, formula: Formula, get_kc_methods_only=True):
+        super()._assign_formula(formula, True)
 
     def get_structure_summary(self):
         return "KC", self._child.get_structure_summary()
 
-    @staticmethod
-    def partial_match_set_to_event_list(partial_match_set: List[PatternMatch]):
+    def partial_match_set_to_event_list(self, partial_match_set: List[PatternMatch]):
         """
         Converts a set of partial matches into a single list containing all primitive events of the partial
         matches in the set.
@@ -102,4 +106,6 @@ class KleeneClosureNode(UnaryNode):
             min_timestamp = match.first_timestamp if min_timestamp is None else min(min_timestamp, match.first_timestamp)
             max_timestamp = match.last_timestamp if max_timestamp is None else max(max_timestamp, match.last_timestamp)
             events.extend(match.events)
+
+        self._event_defs = self._backup_event_defs * len(events)
         return events

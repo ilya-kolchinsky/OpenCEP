@@ -2,7 +2,7 @@ from datetime import timedelta
 from typing import List
 
 from base.Event import Event
-from base.Formula import Formula, RelopTypes, EquationSides
+from base.Formula import Formula, RelopTypes, EquationSides, CompositeFormula
 from base.PatternStructure import PrimitiveEventStructure
 from tree.Node import Node
 from tree.Node import PrimitiveEventDefinition
@@ -68,13 +68,13 @@ class LeafNode(Node):
     def _propagate_condition(self, formula: Formula):
         return
 
-    def _assign_formula(self, formula: Formula, ignore_kc=True):
-        condition = formula.get_formula_of({self.__event_name})
+    def _assign_formula(self, formula: Formula, get_kc_methods_only=False):
+        name = {self.__event_name}
+        condition = formula.get_formula_of(name)
         if condition:
             self._condition = condition
-
-    def _consume_formula(self, formula: Formula, ignore_kc=True):
-        formula.consume_formula_of(self.__event_name, ignore_kc)
+        if isinstance(formula, CompositeFormula):
+            formula.consume_formula_of(name, get_kc_methods_only)
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,

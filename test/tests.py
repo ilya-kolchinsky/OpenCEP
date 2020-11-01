@@ -932,8 +932,22 @@ def sortedStorageBenchMarkTest(createTestFile=False):
     runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], eval_mechanism_params=eval_params)
 
 
+def my_test():
+    pattern = Pattern(
+        SeqOperator([
+            PrimitiveEventStructure("APPL", 'a'),
+            KleeneClosureOperator(PrimitiveEventStructure("AMZN", 'b'), min_size=1, max_size=5),
+            PrimitiveEventStructure("AVID", 'c')
+        ]),
+        AndFormula([NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op= lambda x: x > 0)]),
+        timedelta(minutes=5)
+    )
+    runTest("my_test", [pattern], False, eventStream=nasdaqEventStreamTiny)
+
+
 runTest.over_all_time = 0
 
+my_test()
 # basic functionality tests
 oneArgumentsearchTest()
 simplePatternSearchTest()

@@ -52,7 +52,7 @@ class Formula(ABC):
     def eval(self, binding: dict or list = None):
         raise NotImplementedError()
 
-    def get_formula_of(self, names: set, ignore_kc=True):
+    def get_formula_of(self, names: set, get_kc_methods_only=False):
         raise NotImplementedError()
 
     def extract_atomic_formulas(self):
@@ -69,13 +69,13 @@ class TrueFormula(Formula):
     def extract_atomic_formulas(self):
         return []
 
-    def get_formula_of(self, names, ignore_kc=True):
+    def get_formula_of(self, names, get_kc_methods_only=False):
         # return nothing to KC nodes
-        if ignore_kc is False:
+        if get_kc_methods_only is True:
             return None
         return self
 
-    def consume_formula_of(self, names: set, ignore_kc=True):
+    def consume_formula_of(self, names: set, get_kc_methods_only=False):
         raise NotImplementedError()
 
 
@@ -94,9 +94,9 @@ class NaryFormula(Formula):
         rel_terms = tuple(rel_terms)
         return self.relation_op(*rel_terms)
 
-    def get_formula_of(self, names: set, ignore_kc=True):
+    def get_formula_of(self, names: set, get_kc_methods_only=False):
         # return nothing to KC nodes
-        if ignore_kc is False:
+        if get_kc_methods_only is True:
             return None
         for term in self._terms:
             cur_term = term.get_term_of(names)
@@ -313,25 +313,27 @@ class CompositeFormula(Formula, ABC):
                 return self.__terminating_result
         return not self.__terminating_result
 
-    def get_formula_of(self, names: set, ignore_kc=True):
+    def get_formula_of(self, names: set, get_kc_methods_only=False):
         result_formulas = []
         for f in self.__formulas:
-            current_formula = f.get_formula_of(names, ignore_kc)
-            if current_formula and ignore_kc != isinstance(current_formula, KCFormula):
+            current_formula = f.get_formula_of(names, get_kc_methods_only)
+            # compare this to get_kc_methods flag, and if both conditions are same then the method should be added
+            is_kc_formula = isinstance(current_formula, KCFormula)
+            if current_formula and get_kc_methods_only == is_kc_formula:
                 result_formulas.extend([current_formula])
         return CompositeFormula(result_formulas, self.__terminating_result)
 
-    def consume_formula_of(self, names: set, ignore_kc=True):
+    def consume_formula_of(self, names: set, get_kc_methods_only=False):
         formulas_to_remove = []
         # find what formulas are needed to be removed from the formulas list
         for i, f in enumerate(self.__formulas):
-            current_formula = f.get_formula_of(names, ignore_kc)
+            current_formula = f.get_formula_of(names, get_kc_methods_only)
             if current_formula:
                 # consume nested formulas
                 if isinstance(f, CompositeFormula):
-                    f.consume_formula_of(names, ignore_kc)
-                # mark this formula only if it matches ignore_kc logic
-                if ignore_kc != isinstance(current_formula, KCFormula):
+                    f.consume_formula_of(names, get_kc_methods_only)
+                # mark this formula only if it matches get_kc_methods_only logic
+                if get_kc_methods_only == isinstance(current_formula, KCFormula):
                     formulas_to_remove.append(i)
         # remove the formulas that match given names
         for i in reversed(formulas_to_remove):
@@ -370,9 +372,8 @@ class AndFormula(CompositeFormula):
     def __init__(self, formula_list: List[Formula]):
         super().__init__(formula_list, False)
 
-    def get_formula_of(self, names: set, ignore_kc=True):
-        comp_formula = super().get_formula_of(names, ignore_kc)
-        # result_formulas = [formula for formula in result_formulas if CompositeFormula.filter_formula(formula, get_KC)]
+    def get_formula_of(self, names: set, get_kc_methods_only=False):
+        comp_formula = super().get_formula_of(names, get_kc_methods_only)
         # at-least 1 formula was retrieved using get_formula_of for the list of formulas
         if comp_formula:
             return AndFormula(comp_formula.get_formulas_list())
@@ -391,7 +392,7 @@ class OrFormula(CompositeFormula):
         super().__init__(formula_list, True)
         raise NotImplementedError()
 
-    def get_formula_of(self, names: set, ignore_kc=True):
+    def get_formula_of(self, names: set, get_kc_methods_only=False):
         raise NotImplementedError()
         # # an example of OR logic implementation
         # comp_formula = super().get_formula_of(names, ignore_kc)
@@ -407,30 +408,50 @@ class OrFormula(CompositeFormula):
 
 
 class KCFormula(Formula, ABC):
-    def __init__(self, names, getattr_func, relation_op):
+    """
+    This class represents the base class for KleeneClosure formulas.
+    """
+    def __init__(self, names: set, getattr_func: callable, relation_op: callable):
         self._names = names
         self._getattr_func = getattr_func
         self._relation_op = relation_op
 
-    def get_formula_of(self, names: set, ignore_kc=False):
-        if ignore_kc == isinstance(self, KCFormula):
+    def get_formula_of(self, names: set, get_kc_methods_only=True):
+        """
+
+        :param names: set of names to be contained in self._names
+        :param get_kc_methods_only: flag to indicate if we wish to ignore KC formulas and abort further testing
+        :return: formula if conditions are valid and None if not
+        """
+        # KCFormula found for non-KC node or non-KCFormula found for KC node
+        if get_kc_methods_only != isinstance(self, KCFormula):
             return None
+
         if names == self._names:
             return self
         if len(names) != len(self._names):
             return None
         for name in names:
-            if not any([name in local_name for local_name in self._names]):
+            if not any([name in n for n in self._names]):
                 return None
         return self
 
     @staticmethod
-    def validate_index(index, iterable: list):
+    def validate_index(index: int, iterable: list):
+        """
+        :param index: requested index
+        :param iterable: requested iterable
+        :return: true if the index is a valid index to query
+        """
         if index < 0 or index >= len(iterable):
             return False
         return True
 
     def eval(self, iterable: list = None):
+        """
+        :param iterable: the list of events
+        :return:
+        """
         raise NotImplementedError()
 
     def extract_atomic_formulas(self):
@@ -441,10 +462,30 @@ class KCFormula(Formula, ABC):
 
 
 class KCIndexFormula(KCFormula):
-    def __init__(self, names, getattr_func, relation_op, index_1=None, index_2=None, offset=None):
-        # enforce getting 1 of 2 options:
-        # 1) index_1 and index_2 to compare
-        # 2) offset to compare every 2 items that meet offset requirement (either positive or negative)
+    """
+    This class represents KCFormulas that perform operations between 2 indexes of the KleeneClosure events
+    It supports comparisons of 2 types:
+        - index_1 and index_2 will compare 2 specific indexes from the KC events
+        - offset will compare every 2 items in KC events that meet the offset requirement. Supports negative offsets.
+
+    If the offset is larger than the length of the list for offset mechanism,
+        or 1 of the indexes is negative or out of bounds for index mechanism,
+        the formula returns False.
+    """
+    def __init__(self, names: set, getattr_func: callable, relation_op: callable, index_1=None, index_2=None, offset=None):
+        """
+        :param names: names to match for future evaluations
+        :param getattr_func: method to extract attribute from payload
+        :param relation_op: the relation which the formula represents
+        :param index_1: first index to compare
+        :param index_2: second index to compare
+        :param offset: offset to compare. Supports negative offsets.
+
+        Enforce getting 1 of 2 activations types ONLY:
+            1) index_1 and index_2 to compare
+            2) offset to compare every 2 items that meet offset requirement (either positive or negative)
+        Further activation types may be implemented for convenience.
+        """
         if not self.__validate_params(index_1, index_2, offset):
             raise Exception("Invalid use of KCIndex formula.\nboth index and offset are not None\n refer to comment")
         super().__init__(names, getattr_func, relation_op)
@@ -453,27 +494,48 @@ class KCIndexFormula(KCFormula):
         self._offset = offset
 
     def eval(self, iterable: list or dict = None):
+        """
+        :param iterable: the list of events to compare events from
+        :return: True or False based on evaluation mechanism
+        """
+        # offset is active - choose evaluation by offset mechanism
         if self._offset is not None:
             return self.eval_by_offset(iterable)
+        # offset is not active - choose evaluation by index mechanism
         else:
             return self.eval_by_index(iterable)
 
     def eval_by_index(self, iterable: list):
+        """
+        :param iterable: the list of events to compare evnets from
+        :return: True or False based on index evaluation
+        """
+        # validate both indexes
         if not self.validate_index(self._index_1, iterable) or not self.validate_index(self._index_2, iterable):
             return False
+        # get the items
         item_1 = iterable[self._index_1]
         item_2 = iterable[self._index_2]
+        # execute the relation op on both items
         if not self._relation_op(self._getattr_func(item_1), self._getattr_func(item_2)):
             return False
         return True
 
     # very time consuming process on large power-sets
-    def eval_by_offset(self, iterable):
+    def eval_by_offset(self, iterable: list):
+        """
+        :param iterable: the list of events to compare events from
+        :return: True or False based on offset evaluation mechanism
+        """
+        # offset too large restriction
         if self._offset >= len(iterable):
             return False
+
         for i in range(len(iterable)):
+            # test if i + offset meets index requirements ( 0 <= i <= len(iterable) - 1)
             if not self.validate_index(i + self._offset, iterable):
                 continue
+            # use AND logic to return True if EVERY two items that meet offset requirement return True. (early Abort)
             if not self._relation_op(self._getattr_func(iterable[i]),
                                      self._getattr_func(iterable[i + self._offset])):
                 return False
@@ -481,6 +543,15 @@ class KCIndexFormula(KCFormula):
 
     @staticmethod
     def __validate_params(index_1, index_2, offset):
+        """
+        :param index_1: index_1 provided to constructor
+        :param index_2: index_2 provided to constructor
+        :param offset: offset privided to constructor
+        :return: True if unsupported activation patterns are inserted to constructor.
+        Current supported patterns allow (index_1 AND index_2) OR (offset) AND (NOT BOTH).
+        Disqualification semantics used to allow easier extensions in the future - simply remove the newly supported
+        patterns from the disqualified patterns.
+        """
         return not (                                                                     # idx1 idx2 offset
                 (index_1 is None and index_2 is None and offset is None) or              # 0     0     0
                 (index_1 is not None and index_2 is not None and offset is not None) or  # 1     1     1
@@ -498,19 +569,42 @@ class KCIndexFormula(KCFormula):
 
 
 class KCValueFormula(KCFormula):
-    def __init__(self, names, getattr_func, relation_op, value, index=None):
+    """
+    This class represents KCFormulas that perform operations between events from the KleeneClosure events
+    and an arbitrary value.
+    It supports comparisons of 2 types:
+        - value only comparison will compare all the items in KC events to a specific value
+        - value and index comparison will compare a specific index from KC events to a specific value
+    """
+    def __init__(self, names: set, getattr_func: callable, relation_op: callable, value, index=None):
+        """
+        :param names: names to match for future evaluations
+        :param getattr_func: method to extract attribute from payload
+        :param relation_op: the relation which the formula represents
+        :param value: the value to compare event items with
+        :param index: the index to compare the item with. default mode is value only comparison
+        """
         super().__init__(names, getattr_func, relation_op)
         self._value = value
         self._index = index
 
     def eval(self, iterable: list or dict = None):
+        """
+        :param iterable: the list of events to compare events from
+        :return: True or False based on evaluation mechanism
+        """
+        # index comparison method and invalid index - Abort.
         if self._index is not None and not self.validate_index(self._index, iterable):
             return False
+
         if self._index is None:
+            # no index used for comparison - compare all elements
             for item in iterable:
+                # use AND logic to return True if EVERY item returns True when being compared to formula's value.
                 if not self._relation_op(self._getattr_func(item), self._value):
                     return False
         else:
+            # compare 1 element from the list of events to the formula's value
             if not self._relation_op(self._getattr_func(iterable[self._index]), self._value):
                 return False
         return True

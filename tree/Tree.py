@@ -42,10 +42,14 @@ class Tree:
             self.__handle_remaining_formulas(cond_copy)
         self.__root.create_storage_unit(storage_params)
 
-    # this handler simply prints a warning when unwanted behavior occurred while applying formula.
-    # this is an extra protection layer. it can be removed, or it may throw an exception to halt the program.
     @staticmethod
     def __handle_remaining_formulas(formula_list):
+        """
+        This handler simply prints a warning when unwanted behavior occurred while applying formula.
+        This is an extra protection layer. it can be removed, or it may throw an exception to halt the program.
+        :param formula_list: the list of remaining formulas after assign_formula has finished.
+        :return TBD
+        """
         print('Warning!!!\nUnused formulas detected after apply_formulas has finished!\n{}'.format(formula_list))
 
     def __adjust_leaf_indices(self, pattern: Pattern):
