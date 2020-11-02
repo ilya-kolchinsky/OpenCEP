@@ -303,11 +303,13 @@ class CompositeFormula(Formula, ABC):
     And stops at the first FALSE from the evaluation and returns False.
     Or stops at the first TRUE from the evaluation and return true
     """
-    def __init__(self, formula_list: List[Formula], terminating_condition):
-        self.__formulas = formula_list
+    def __init__(self, terminating_condition: bool, *formula_list):
+        self.__formulas = list(formula_list)
         self.__terminating_result = terminating_condition
 
     def eval(self, binding: dict = None):
+        if self.get_num_formulas() == 0:
+            return True
         for formula in self.__formulas:
             if formula.eval(binding) == self.__terminating_result:
                 return self.__terminating_result
@@ -321,7 +323,7 @@ class CompositeFormula(Formula, ABC):
             is_kc_formula = isinstance(current_formula, KCFormula)
             if current_formula and get_kc_methods_only == is_kc_formula:
                 result_formulas.extend([current_formula])
-        return CompositeFormula(result_formulas, self.__terminating_result)
+        return CompositeFormula(self.__terminating_result, *result_formulas)
 
     def consume_formula_of(self, names: set, get_kc_methods_only=False):
         formulas_to_remove = []
@@ -358,6 +360,12 @@ class CompositeFormula(Formula, ABC):
             result.extend(f.extract_atomic_formulas())
         return result
 
+    def add_atomic_formula(self, formula: Formula):
+        """
+        Adds a new atomic formula to this composite formula.
+        """
+        self.__formulas.append(formula)
+
     def __repr__(self):
         res_list = []
         for formula in self.__formulas:
@@ -369,16 +377,15 @@ class AndFormula(CompositeFormula):
     """
     This class uses CompositeFormula with the terminating condition False, which complies with AND operator logic.
     """
-    def __init__(self, formula_list: List[Formula]):
-        super().__init__(formula_list, False)
+    def __init__(self, *formula_list):
+        super().__init__(False, *formula_list)
 
     def get_formula_of(self, names: set, get_kc_methods_only=False):
         comp_formula = super().get_formula_of(names, get_kc_methods_only)
         # at-least 1 formula was retrieved using get_formula_of for the list of formulas
         if comp_formula:
-            return AndFormula(comp_formula.get_formulas_list())
-        else:
-            return None
+            return AndFormula(*comp_formula.get_formulas_list())
+        return None
 
     def __repr__(self):
         return " AND ".join(super().__repr__())
@@ -388,23 +395,18 @@ class OrFormula(CompositeFormula):
     """
     This class uses CompositeFormula with the terminating condition True, which complies with OR operator logic.
     """
-    def __init__(self, formula_list: List[Formula]):
-        super().__init__(formula_list, True)
-        raise NotImplementedError()
+    def __init__(self, *formula_list):
+        super().__init__(True, *formula_list)
 
     def get_formula_of(self, names: set, get_kc_methods_only=False):
-        raise NotImplementedError()
-        # # an example of OR logic implementation
-        # comp_formula = super().get_formula_of(names, ignore_kc)
-        # # at-least 1 formula was retrieved using get_formula_of for the list of formulas
-        # if result_formulas:
-        #     return OrFormula(comp_formula.get_formulas_list())
-        # else:
-        #     return None
+        comp_formula = super().get_formula_of(names, get_kc_methods_only)
+        # at-least 1 formula was retrieved using get_formula_of for the list of formulas
+        if comp_formula:
+            return OrFormula(*comp_formula.get_formulas_list())
+        return None
 
     def __repr__(self):
-        raise NotImplementedError()
-        # return " OR ".join(super().__repr__())
+        return " OR ".join(super().__repr__())
 
 
 class KCFormula(Formula, ABC):

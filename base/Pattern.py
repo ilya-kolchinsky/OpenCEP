@@ -2,7 +2,7 @@ from functools import reduce
 from typing import List
 
 from base.Event import Event
-from base.Formula import Formula, EqFormula, IdentifierTerm, BinaryFormula, AndFormula, CompositeFormula
+from base.Formula import Formula, EqFormula, IdentifierTerm, BinaryFormula, AndFormula, CompositeFormula, TrueFormula
 from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
     SeqOperator, NegationOperator
 from datetime import timedelta
@@ -29,8 +29,10 @@ class Pattern:
         self.negative_structure = self.__extract_negative_structure()
 
         self.condition = pattern_matching_condition
-        if not isinstance(self.condition, CompositeFormula):
-            self.condition = AndFormula([self.condition])
+        if isinstance(self.condition, TrueFormula):
+            self.condition = AndFormula()
+        elif not isinstance(self.condition, CompositeFormula):
+            self.condition = AndFormula(self.condition)
 
         self.window = time_window
 
@@ -136,12 +138,10 @@ class Pattern:
         """
         Augment the pattern condition with a contiguity constraint between the given event names.
         """
-        self.condition = AndFormula([
-            self.condition,
-            BinaryFormula(IdentifierTerm(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
-                          IdentifierTerm(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
-                          lambda x, y: x == y - 1)
-        ])
+        contiguity_condition = BinaryFormula(IdentifierTerm(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
+                                             IdentifierTerm(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
+                                             lambda x, y: x == y - 1)
+        self.condition.add_atomic_formula(contiguity_condition)
 
     def extract_flat_sequences(self) -> List[List[str]]:
         """
