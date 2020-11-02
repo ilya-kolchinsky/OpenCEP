@@ -182,37 +182,26 @@ class Node(ABC):
         max_timestamp = max([event.timestamp for event in events_for_new_match])
         return max_timestamp - min_timestamp <= self._sliding_window
 
+    def apply_formula(self, formula: CompositeFormula):
+        """
+        Applies the given condition on all nodes in the subtree of this node.
+        The process of applying the formula is recursive and proceeds in a bottom-up manner - first the condition is
+        propagated down the subtree, then sub-conditions for this node are assigned.
+        """
+        self._propagate_condition(formula)
+        names = {event_def.name for event_def in self.get_event_definitions()}
+        self._condition = formula.get_formula_of(names, False)
+        formula.consume_formula_of(names, False)
+
     def get_leaves(self):
         """
         Returns all leaves in this tree - to be implemented by subclasses.
         """
         raise NotImplementedError()
 
-    def apply_formula(self, formula: Formula, get_kc_methods_only=False):
+    def _propagate_condition(self, formula: CompositeFormula):
         """
-        Applies a given formula on all nodes in this tree - to be implemented by subclasses.
-        """
-        self._propagate_condition(formula)
-        self._assign_formula(formula, get_kc_methods_only)
-
-    def _propagate_condition(self, formula: Formula):
-        """
-        Propagation method to successors.
-        """
-        raise NotImplementedError()
-
-    def _assign_formula(self, formula: Formula, get_kc_methods_only):
-        """
-        Formula assign method to current node. Should assign a Formula to self._condition.
-        """
-        raise NotImplementedError()
-
-    def _consume_formula(self, formula: Formula, get_kc_methods_only):
-        """
-        Formula consumption method. Should consume the formulas assigned to self._condition after _assign_formulas.
-        :param formula: input formula to consume formulas from.
-        :param get_kc_methods_only: True to get KCFormulas and only them, False to get any other Formula.
-        :return:
+        Propagates the given condition to successors - to be implemented by subclasses.
         """
         raise NotImplementedError()
 

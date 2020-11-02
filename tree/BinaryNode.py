@@ -1,9 +1,9 @@
 from abc import ABC
 from datetime import timedelta
-from typing import List, Tuple
+from typing import List, Set
 
 from base.Event import Event
-from base.Formula import Formula, IdentifierTerm, EquationSides
+from base.Formula import Formula, IdentifierTerm, EquationSides, BaseRelationFormula
 from base.PatternMatch import PatternMatch
 from tree.InternalNode import InternalNode
 from tree.Node import Node, PrimitiveEventDefinition
@@ -13,7 +13,8 @@ class BinaryNode(InternalNode, ABC):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[PrimitiveEventDefinition] = None,
+    def __init__(self, sliding_window: timedelta, parent: Node = None,
+                 event_defs: List[PrimitiveEventDefinition] = None,
                  left: Node = None, right: Node = None):
         super().__init__(sliding_window, parent, event_defs)
         self._left_subtree = left
@@ -32,7 +33,8 @@ class BinaryNode(InternalNode, ABC):
         self._right_subtree.apply_formula(condition)
 
     def _set_event_definitions(self,
-                               left_event_defs: List[PrimitiveEventDefinition], right_event_defs: List[PrimitiveEventDefinition]):
+                               left_event_defs: List[PrimitiveEventDefinition],
+                               right_event_defs: List[PrimitiveEventDefinition]):
         """
         A helper function for collecting the event definitions from subtrees.
         """
@@ -85,7 +87,8 @@ class BinaryNode(InternalNode, ABC):
         self._try_create_new_matches(new_partial_match, partial_matches_to_compare, first_event_defs, second_event_defs)
 
     def _try_create_new_matches(self, new_partial_match: PatternMatch, partial_matches_to_compare: List[PatternMatch],
-                                first_event_defs: List[PrimitiveEventDefinition], second_event_defs: List[PrimitiveEventDefinition]):
+                                first_event_defs: List[PrimitiveEventDefinition],
+                                second_event_defs: List[PrimitiveEventDefinition]):
         """
         For each candidate pair of partial matches that can be joined to create a new one, verifies all the
         necessary conditions creates new partial matches if all constraints are satisfied.
@@ -109,15 +112,17 @@ class BinaryNode(InternalNode, ABC):
             return second_event_list + first_event_list
         raise Exception()
 
-    def __get_filtered_conditions(self, left_event_names: List[str], right_event_names: List[str]):
+    def __get_filtered_conditions(self, left_event_names: Set[str], right_event_names: Set[str]):
         """
-        An auxiliary method returning the atomic conditions containing variables from the opposite subtrees of this
-        internal node.
+        An auxiliary method returning the atomic binary conditions containing variables from the opposite subtrees
+        of this node.
         """
-        # Note that as of now self._condition contains the wrong values for most nodes - to be fixed in future
         atomic_conditions = self._condition.extract_atomic_formulas()
         filtered_conditions = []
         for atomic_condition in atomic_conditions:
+            if not isinstance(atomic_condition, BaseRelationFormula):
+                # filtering by condition is only possible for basic relation conditions as of now
+                continue
             if not isinstance(atomic_condition.get_left_term(), IdentifierTerm):
                 continue
             if not isinstance(atomic_condition.get_right_term(), IdentifierTerm):
@@ -130,7 +135,7 @@ class BinaryNode(InternalNode, ABC):
                 filtered_conditions.append(atomic_condition)
         return filtered_conditions
 
-    def __get_params_for_sorting_keys(self, conditions: List[Formula], attributes_priorities: dict,
+    def __get_params_for_sorting_keys(self, conditions: List[BaseRelationFormula], attributes_priorities: dict,
                                       left_event_names: List[str], right_event_names: List[str]):
         """
         An auxiliary method returning the best assignments for the parameters of the sorting keys according to the

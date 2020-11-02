@@ -66,15 +66,7 @@ class LeafNode(Node):
         return self._condition.eval(binding)
 
     def _propagate_condition(self, formula: Formula):
-        return
-
-    def _assign_formula(self, formula: Formula, get_kc_methods_only=False):
-        name = {self.__event_name}
-        condition = formula.get_formula_of(name)
-        if condition:
-            self._condition = condition
-        if isinstance(formula, CompositeFormula):
-            formula.consume_formula_of(name, get_kc_methods_only)
+        pass
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,

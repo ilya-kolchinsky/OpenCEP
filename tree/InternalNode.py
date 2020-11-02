@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import List
 
 from base.Event import Event
-from base.Formula import Formula, TrueFormula, RelopTypes, EquationSides, CompositeFormula
+from base.Formula import RelopTypes, EquationSides
 from tree.Node import Node, PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters, UnsortedPatternMatchStorage, SortedPatternMatchStorage
 
@@ -12,7 +12,8 @@ class InternalNode(Node, ABC):
     """
     This class represents a non-leaf node of an evaluation tree.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None, event_defs: List[PrimitiveEventDefinition] = None):
+    def __init__(self, sliding_window: timedelta, parent: Node = None,
+                 event_defs: List[PrimitiveEventDefinition] = None):
         super().__init__(sliding_window, parent)
         self._event_defs = event_defs
 
@@ -29,19 +30,6 @@ class InternalNode(Node, ABC):
             self._event_defs[i].name: events_for_new_match[i].payload for i in range(len(self._event_defs))
         }
         return self._condition.eval(binding)
-
-    def _propagate_condition(self, condition: Formula):
-        """
-        Propagates the given condition to the sub tree(s).
-        """
-        raise NotImplementedError()
-
-    def _assign_formula(self, formula: Formula, get_kc_methods_only=False):
-        names = {item.name for item in self._event_defs}
-        condition = formula.get_formula_of(names, get_kc_methods_only)
-        self._condition = condition if condition else TrueFormula()
-        if isinstance(formula, CompositeFormula):
-            formula.consume_formula_of(names, get_kc_methods_only)
 
     def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                            rel_op: RelopTypes = None, equation_side: EquationSides = None,

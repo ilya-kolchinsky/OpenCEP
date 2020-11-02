@@ -1,11 +1,11 @@
 from datetime import timedelta
-from typing import List, Dict
+from typing import List
 from copy import deepcopy
 
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, CompositeStructure, UnaryStructure, \
     KleeneClosureOperator, PrimitiveEventStructure, NegationOperator
-from base.Formula import CompositeFormula
+from base.Formula import CompositeFormula, AndFormula
 from misc.ConsumptionPolicy import ConsumptionPolicy
 from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanBinaryNode, OperatorTypes
 from tree.AndNode import AndNode
@@ -36,21 +36,20 @@ class Tree:
             self.__adjust_leaf_indices(pattern)
             self.__add_negative_tree_structure(pattern)
 
-        cond_copy = deepcopy(pattern.condition)
-        self.__root.apply_formula(cond_copy)
-        if isinstance(cond_copy, CompositeFormula) and cond_copy.get_num_formulas() > 0:
-            self.__handle_remaining_formulas(cond_copy)
+        self.__apply_condition(pattern)
+
         self.__root.create_storage_unit(storage_params)
 
-    @staticmethod
-    def __handle_remaining_formulas(formula_list):
+    def __apply_condition(self, pattern: Pattern):
         """
-        This handler simply prints a warning when unwanted behavior occurred while applying formula.
-        This is an extra protection layer. it can be removed, or it may throw an exception to halt the program.
-        :param formula_list: the list of remaining formulas after assign_formula has finished.
-        :return TBD
+        Applies the condition of the given pattern on the evaluation tree.
+        The condition is copied since it is modified inside the recursive apply_formula call.
         """
-        print('Warning!!!\nUnused formulas detected after apply_formulas has finished!\n{}'.format(formula_list))
+        condition_copy = deepcopy(pattern.condition)
+        self.__root.apply_formula(condition_copy)
+        if condition_copy.get_num_formulas() > 0:
+            raise Exception("Unused conditions after condition propagation: {}".format(
+                condition_copy.get_formulas_list()))
 
     def __adjust_leaf_indices(self, pattern: Pattern):
         """

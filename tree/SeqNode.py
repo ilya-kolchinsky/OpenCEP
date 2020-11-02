@@ -15,7 +15,8 @@ class SeqNode(BinaryNode):
     of arrival of the events in the partial matches it constructs.
     """
     def _set_event_definitions(self,
-                               left_event_defs: List[PrimitiveEventDefinition], right_event_defs: List[PrimitiveEventDefinition]):
+                               left_event_defs: List[PrimitiveEventDefinition],
+                               right_event_defs: List[PrimitiveEventDefinition]):
         self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x.index)
 
     def _merge_events_for_new_match(self,

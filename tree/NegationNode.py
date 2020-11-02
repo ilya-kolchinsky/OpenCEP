@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 from typing import List
 
 from base.Event import Event
-from base.Formula import RelopTypes, EquationSides
+from base.Formula import RelopTypes, EquationSides, CompositeFormula
 from base.PatternMatch import PatternMatch
 from base.PatternStructure import AndOperator, SeqOperator
 from misc.Utils import find_partial_match_by_timestamp, merge, is_sorted, merge_according_to
@@ -82,8 +82,19 @@ class NegationNode(BinaryNode, ABC):
         """
         return self._positive_subtree.get_event_definitions()
 
+    def apply_formula(self, formula: CompositeFormula):
+        """
+        This is an ugly code duplication and a continuation of an atrocious get_event_definitions() hack.
+        To be fixed as soon as the above hack is fixed.
+        """
+        self._propagate_condition(formula)
+        names = {event_def.name for event_def in self._event_defs}
+        self._condition = formula.get_formula_of(names, False)
+        formula.consume_formula_of(names, False)
+
     def _try_create_new_matches(self, new_partial_match: PatternMatch, partial_matches_to_compare: List[PatternMatch],
-                                first_event_defs: List[PrimitiveEventDefinition], second_event_defs: List[PrimitiveEventDefinition]):
+                                first_event_defs: List[PrimitiveEventDefinition],
+                                second_event_defs: List[PrimitiveEventDefinition]):
         """
         The flow of this method is the opposite of the one its superclass implements. For each pair of a positive and a
         negative partial match, we combine the two sides to form a new partial match, validate it, and then do nothing
@@ -173,6 +184,7 @@ class NegationNode(BinaryNode, ABC):
         self._left_subtree.create_storage_unit(storage_params)
         self._right_subtree.create_storage_unit(storage_params)
 
+
 class NegativeAndNode(NegationNode):
     """
     An internal node representing a negative conjunction operator.
@@ -204,7 +216,8 @@ class NegativeSeqNode(NegationNode):
                 self._right_subtree.get_structure_summary())
 
     def _set_event_definitions(self,
-                               left_event_defs: List[PrimitiveEventDefinition], right_event_defs: List[PrimitiveEventDefinition]):
+                               left_event_defs: List[PrimitiveEventDefinition],
+                               right_event_defs: List[PrimitiveEventDefinition]):
         self._event_defs = merge(left_event_defs, right_event_defs, key=lambda x: x.index)
 
     def _validate_new_match(self, events_for_new_match: List[Event]):
@@ -219,4 +232,3 @@ class NegativeSeqNode(NegationNode):
                                     second_event_list: List[Event]):
         return merge_according_to(first_event_defs, second_event_defs,
                                   first_event_list, second_event_list, key=lambda x: x.index)
-

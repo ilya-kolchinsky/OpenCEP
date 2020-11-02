@@ -2,7 +2,7 @@ from functools import reduce
 from typing import List
 
 from base.Event import Event
-from base.Formula import Formula, EqFormula, IdentifierTerm, BinaryFormula, AndFormula
+from base.Formula import Formula, EqFormula, IdentifierTerm, BinaryFormula, AndFormula, CompositeFormula
 from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
     SeqOperator, NegationOperator
 from datetime import timedelta
@@ -29,6 +29,9 @@ class Pattern:
         self.negative_structure = self.__extract_negative_structure()
 
         self.condition = pattern_matching_condition
+        if not isinstance(self.condition, CompositeFormula):
+            self.condition = AndFormula([self.condition])
+
         self.window = time_window
 
         self.statistics_type = StatisticsTypes.NO_STATISTICS
