@@ -37,6 +37,28 @@ class SeqNode(BinaryNode):
                 self._left_subtree.get_structure_summary(),
                 self._right_subtree.get_structure_summary())
 
+    def is_structure_equivalent(self, other):
+        """
+        Checks equivalence of a SeqNode and another node.
+        """
+        if not super().is_structure_equivalent(other):
+            return False
+
+        first_event_defs = self.get_event_definitions()
+        second_event_defs = other.get_event_definitions()
+
+        if len(first_event_defs) != len(second_event_defs):
+            return False
+
+        # we are assuming that the event definitions in a node are ordered by index,
+        # which is a legitimate assumption due to the implementation of set_event_definitions
+        for i in range(len(first_event_defs)):
+            first_event_type = first_event_defs[i].type
+            second_event_type = second_event_defs[i].type
+            if first_event_type != second_event_type:
+                return False
+        return True
+
     def _get_sequence_based_sorting_keys(self):
         """
         Calculates the sorting keys according to the pattern sequence order and the user-provided priorities.

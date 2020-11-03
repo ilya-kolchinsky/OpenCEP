@@ -292,3 +292,4 @@ def get_last_index(container: Container, to_find_value: int, key: callable):
     However in case the to_find_value doesn't exist it returns the index of first value greater than it or -1.
     """
     return get_index(container, to_find_value, key, False)
+

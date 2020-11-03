@@ -1,6 +1,6 @@
 from abc import ABC
 from datetime import timedelta
-from typing import List
+from typing import List, Set
 
 from base.Event import Event
 from base.Formula import RelopTypes, EquationSides
@@ -12,9 +12,9 @@ class InternalNode(Node, ABC):
     """
     This class represents a non-leaf node of an evaluation tree.
     """
-    def __init__(self, sliding_window: timedelta, parent: Node = None,
+    def __init__(self, sliding_window: timedelta, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None):
-        super().__init__(sliding_window, parent)
+        super().__init__(sliding_window, parents, pattern_ids)
         self._event_defs = event_defs
 
     def get_event_definitions(self):
@@ -26,10 +26,25 @@ class InternalNode(Node, ABC):
         """
         if not super()._validate_new_match(events_for_new_match):
             return False
+        if len(events_for_new_match) != len(set(events_for_new_match)):
+            # the list contains duplicate events which is not allowed
+            return False
         binding = {
             self._event_defs[i].name: events_for_new_match[i].payload for i in range(len(self._event_defs))
         }
         return self._condition.eval(binding)
+
+    def create_parent_to_info_dict(self):
+        """
+        Creates the dictionary that maps parent to event type, event name and index.
+        This dictionary helps to pass the parents a partial match with the right definitions.
+        """
+        if len(self._parents) == 0:
+            return
+        # we call this method before we share nodes so each node has at most one parent
+        if len(self._parents) > 1:
+            raise Exception("This method should not be called when there is more than one parent.")
+        self._parent_to_info_dict[self._parents[0]] = self._event_defs
 
     def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                            rel_op: RelopTypes = None, equation_side: EquationSides = None,

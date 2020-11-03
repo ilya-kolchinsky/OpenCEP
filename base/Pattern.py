@@ -23,7 +23,9 @@ class Pattern:
     tree construction mechanisms - this is hopefully a temporary hack.
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Formula,
-                 time_window: timedelta, consumption_policy: ConsumptionPolicy = None):
+                 time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None):
+        self.id = pattern_id
+
         self.full_structure = pattern_structure
         self.positive_structure = pattern_structure.duplicate()
         self.negative_structure = self.__extract_negative_structure()

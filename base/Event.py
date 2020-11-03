@@ -11,7 +11,6 @@ class Event:
     # used in order to assign a serial number to each event that enters the system
     counter = 0
 
-    # this is a temporal hack to support strict contiguity
     INDEX_ATTRIBUTE_NAME = "InternalIndexAttributeName"
     HIDDEN_ATTRIBUTE_NAMES = [INDEX_ATTRIBUTE_NAME]
 
@@ -21,6 +20,12 @@ class Event:
         self.timestamp = data_formatter.get_event_timestamp(self.payload)
         self.payload[Event.INDEX_ATTRIBUTE_NAME] = Event.counter
         Event.counter += 1
+
+    def __eq__(self, other):
+        return self.payload[Event.INDEX_ATTRIBUTE_NAME] == other.payload[Event.INDEX_ATTRIBUTE_NAME]
+
+    def __hash__(self):
+        return hash(self.payload[Event.INDEX_ATTRIBUTE_NAME])
 
     def __repr__(self):
         result = ""
