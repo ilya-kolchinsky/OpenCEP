@@ -26,10 +26,10 @@ OpenCEP features a generic and intuitive API, making it easily applicable to any
     * The time window within which the atomic items in the pattern structure should appear in the stream.
 
 
-# Examples
-Defining a pattern:
+# Usage Examples
+## Defining a pattern
+This pattern is looking for a short ascend in the Google peak prices:
 ```
-# This pattern is looking for a short ascend in the Google peak prices.
 # PATTERN SEQ(GoogleStockPriceUpdate a, GoogleStockPriceUpdate b, GoogleStockPriceUpdate c)
 # WHERE a.PeakPrice < b.PeakPrice AND b.PeakPrice < c.PeakPrice
 # WITHIN 3 minutes
@@ -43,23 +43,22 @@ googleAscendPattern = Pattern(
         ),
         timedelta(minutes=3)
     )
-
-# Another way to define the above example is to use NaryFormula and a lambda function:
+```
+Another way to define the above example is to use NaryFormula and a lambda function:
+```
 googleAscendPattern = Pattern(
         SeqOperator([PrimitiveEventStructure("GOOG", "a"), 
                      PrimitiveEventStructure("GOOG", "b"), 
                      PrimitiveEventStructure("GOOG", "c")]),
-        AndFormula(
-            NaryFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), 
+        NaryFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), 
                         IdentifierTerm("b", lambda x: x["Peak Price"]),
                         IdentifierTerm("c", lambda x: x["Peak Price"]),
-                        lambda x,y,z: x < b < z)
-        ),
+                        lambda x,y,z: x < b < z),
         timedelta(minutes=3)
     )
-
-
-# This pattern is looking for low prices of Amazon and Google at the same minute.
+```
+This pattern is looking for low prices of Amazon and Google at the same minute:
+```
 # PATTERN AND(AmazonStockPriceUpdate a, GoogleStockPriceUpdate g)
 # WHERE a.PeakPrice <= 73 AND g.PeakPrice <= 525
 # WITHIN 1 minute
@@ -71,22 +70,19 @@ googleAmazonLowPattern = Pattern(
     ),
     timedelta(minutes=1)
 )
-
-# Another way to define the above example is to use the generic BinaryFormula with a lambda function
+```
+Another way to define the above pattern is to use the generic BinaryFormula with a lambda function
+```
 googleAmazonLowPattern = Pattern(
     AndOperator([PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("GOOG", "g")]),
-    AndFormula(
-        BinaryFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
-                      IdentifierTerm("g", lambda x: x["Peak Price"]),
-                      lambda x, y: x <= 73 and y <= 525)
-        SmallerThanEqFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), AtomicTerm(73)),
-        SmallerThanEqFormula(IdentifierTerm("g", lambda x: x["Peak Price"]), AtomicTerm(525))
-    ),
+    BinaryFormula(IdentifierTerm("a", lambda x: x["Peak Price"]),
+                  IdentifierTerm("g", lambda x: x["Peak Price"]),
+                  lambda x, y: x <= 73 and y <= 525),
     timedelta(minutes=1)
 )
 
 ```
-
+## Activating the CEP engine
 Creating a CEP object for monitoring the first pattern from the example above:
 ```
 cep = CEP([googleAscendPattern])
@@ -102,7 +98,8 @@ Applying an existing CEP object on an event stream created above and storing the
 cep.run(events, FileOutputStream('test/Matches', 'output.txt'), MetastockDataFormatter())
 ```
 
-## Kleene Closure Operator 
+## Advanced features and settings
+### Kleene Closure Operator 
 
 The following is the example of a pattern containing a Kleene closure operator:
 
@@ -124,7 +121,7 @@ The following example of a pattern containing a Kleene closure operator with an 
 ```
 pattern = Pattern(
     SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
-    AndFormula([
+    AndFormula(
         NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         KCValueFormula(names={'a'}, getattr_func=lambda x: x["Peak Price"],
                        relation_op=lambda x, y: x > y,
@@ -132,7 +129,7 @@ pattern = Pattern(
         KCIndexFormula(names={'a'}, getattr_func=lambda x: x["Opening Price"],
                        relation_op=lambda x, y: x+0.5 < y,
                        offset=-1)
-    ]),
+    ),
     timedelta(minutes=5)
 )
 ```
@@ -141,14 +138,17 @@ The following example of a pattern containing a Kleene closure operator with a v
 ```
 pattern = Pattern(
     SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
-    AndFormula([
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
-        KCValueFormula(names={'a'}, getattr_func=lambda x: x["Peak Price"], relation_op=lambda x, y: x > y, value=530.5)
-        ]),
+    AndFormula(
+        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 
+                    relation_op=lambda x: x > 0),
+        KCValueFormula(names={'a'}, 
+                       getattr_func=lambda x: x["Peak Price"], 
+                       relation_op=lambda x, y: x > y, value=530.5)
+        ),
     timedelta(minutes=5)
 )
 ```
-## Negation Operator 
+### Negation Operator 
 
 The following is the example of a pattern containing a negation operator:
 
@@ -166,8 +166,7 @@ pattern = Pattern(
     )
 ```
 
-# Advanced configuration settings
-## Consumption policies and selection strategies
+### Consumption policies and selection strategies
 
 OpenCEP supports a variety of consumption policies provided using the ConsumptionPolicy parameter in the pattern definition.
 
@@ -234,28 +233,15 @@ pattern = Pattern(
 )
 ```
 
-## Optimizing evaluation performance by specifying custom TreeStorageParameters
+#### Optimizing evaluation performance with custom TreeStorageParameters
 ```
 storage_params = TreeStorageParameters(sort_storage=True,
   attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
-
-""" 
-sort_storage: configures the storage to sort the PMs (sort_storage == TRUE).
-attributes_priorities: in case of a AND between two formulas we sort according to the attributes which are specified with the higher priority - wise to specify priorities according to the events frequencies and the expected percentage of the attributes which will NOT fullfil the condition for example if a is frequent and rarely his condition is met it is wise to specify a with high priority. notice that the priority is per attribute.
-clean_expired_every: a number that determines the frequency of cleaning up old partial matches from storage units.
-sort_by_condition_on_attributes: in case the pattern is a sequence(SeqOperator) but sorting by the given condition on certain attributes is more efficient then use (sort_by_condition_on_attributes=True), in case sorting keys aren't extractable from the condition then sorting will be by timestamps.
-"""
-
-
 eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params)
-
-#can be any tree based evaluation parameters, just make sure to provide storage_params
-
-
 cep = CEP(pattern, eval_mechanism_params)
 ```
 
-# Twitter API support
+## Twitter API support
 ### Authentication
 To receive a Twitter stream via Twitter API, provide your credentials in plugin/twitter/TwitterCredentials.py
 ### Creating a twitter stream

@@ -4,7 +4,7 @@ from enum import Enum
 
 class RelopTypes(Enum):
     """
-    The various RELOPs for a condition in a formula.
+    The various relation operations for a binary condition.
     """
     Equal = 0,
     NotEqual = 1,
@@ -21,13 +21,20 @@ class EquationSides(Enum):
 
 class Variable:
     """
-    A term of a formula representing a single variable (e.g., in "x*2 < y + 7" the identifier terms are x and y).
+    This class represents a variable in an event-related condition.
+    Typically, it will be of the form "x.y" where "X" corresponds to a known event name and y is an attribute available
+    for events of x's type.
     """
     def __init__(self, name: str, getattr_func: callable):
         self.name = name
+        # this callback function is used to fetch the attribute value from an event payload dict
         self.getattr_func = getattr_func
 
     def eval(self, binding: dict = None):
+        """
+        Retrieves the value corresponding to the event name / attribute combination describing this variable from
+        the given dict and returns it.
+        """
         if not type(binding) == dict or self.name not in binding:
             raise NameError("Name %s is not bound to a value" % self.name)
         return self.getattr_func(binding[self.name])
@@ -38,13 +45,19 @@ class Variable:
 
 class Formula(ABC):
     """
-    Returns whether the parameters satisfy the formula. It evaluates to True or False.
-    If there are variables (identifiers) in the formula, a name-value binding shall be inputted.
+    The base abstract class of the formula classes hierarchy.
     """
     def eval(self, binding: dict or list = None):
+        """
+        Returns True if the provided binding satisfies this condition and False otherwise.
+        Variables in the condition are bound to values according to the predefined binding scheme.
+        """
         raise NotImplementedError()
 
     def extract_atomic_formulas(self):
+        """
+        Returns all atomic conditions comprising this formula.
+        """
         raise NotImplementedError()
 
 
@@ -53,6 +66,9 @@ class AtomicFormula(Formula, ABC):
     Represents an atomic (non-composite) formula.
     """
     def is_formula_of(self, names: set):
+        """
+        Returns True if all variable names participating in this condition appear in the given set and False otherwise.
+        """
         raise NotImplementedError()
 
     def extract_atomic_formulas(self):
@@ -60,6 +76,9 @@ class AtomicFormula(Formula, ABC):
 
 
 class TrueFormula(AtomicFormula):
+    """
+    Represents a Boolean True formula.
+    """
     def eval(self, binding: dict = None):
         return True
 
@@ -75,7 +94,7 @@ class TrueFormula(AtomicFormula):
 
 class NaryFormula(AtomicFormula):
     """
-    An Nary formula containing terms and a boolean callable operator.
+    A simple formula over N operands (either variables or constants).
     """
     def __init__(self, *terms, relation_op: callable):
         self._terms = terms
@@ -85,7 +104,6 @@ class NaryFormula(AtomicFormula):
         rel_terms = []
         for term in self._terms:
             rel_terms.append(term.eval(binding) if isinstance(term, Variable) else term)
-        rel_terms = tuple(rel_terms)
         return self.relation_op(*rel_terms)
 
     def is_formula_of(self, names: set):
@@ -105,6 +123,7 @@ class NaryFormula(AtomicFormula):
 class BinaryFormula(NaryFormula):
     """
     A binary formula containing no logic operators (e.g., A < B).
+    This is a special case of an n-ary formula constrained to two operands.
     """
     def __init__(self, left_term, right_term, relation_op: callable):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
@@ -117,11 +136,17 @@ class BinaryFormula(NaryFormula):
             super().__init__(left_term, right_term, relation_op=relation_op)
 
     def get_left_term(self):
+        """
+        Returns the left term of this formula.
+        """
         if len(self._terms) < 1:
             return None
         return self._terms[0]
 
     def get_right_term(self):
+        """
+        Returns the right term of this formula.
+        """
         if len(self._terms) < 2:
             return None
         return self._terms[1]
@@ -129,8 +154,7 @@ class BinaryFormula(NaryFormula):
 
 class BaseRelationFormula(BinaryFormula, ABC):
     """
-        An abstract binary formula class which is a base for already implemented and commonly used binary relations
-        such as: >, >=, <, <=, ==, !=.
+    This class serves as a base for commonly used binary relations: >, >=, <, <=, ==, !=.
     """
     def __init__(self, left_term, right_term, relation_op: callable, relop_type):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
@@ -146,6 +170,9 @@ class BaseRelationFormula(BinaryFormula, ABC):
         self.right_term_repr = right_term
 
     def get_relop(self):
+        """
+        Returns the type of the relation operation used by this condition.
+        """
         return self.relop_type
 
     def __repr__(self):
@@ -154,11 +181,11 @@ class BaseRelationFormula(BinaryFormula, ABC):
 
 class EqFormula(BaseRelationFormula):
     """
-        Binary Equal Formula; ==
-        This class can be called either with terms or a number:
-        Examples:
-            EqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
-            EqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
+    Binary Equal Formula; ==
+    This class can be called either with terms or a number:
+    Examples:
+        EqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
+        EqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
@@ -176,10 +203,10 @@ class EqFormula(BaseRelationFormula):
 
 class NotEqFormula(BaseRelationFormula):
     """
-        Binary Not Equal Formula; !=
-        Examples:
-            NotEqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
-            NotEqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
+    Binary Not Equal Formula; !=
+    Examples:
+        NotEqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
+        NotEqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
@@ -197,10 +224,10 @@ class NotEqFormula(BaseRelationFormula):
 
 class GreaterThanFormula(BaseRelationFormula):
     """
-        Binary greater than formula; >
-        Examples:
-            GreaterThanFormula(Variable("a", lambda x: x["Opening Price"]), 135)
-            GreaterThanFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
+    Binary greater than formula; >
+    Examples:
+        GreaterThanFormula(Variable("a", lambda x: x["Opening Price"]), 135)
+        GreaterThanFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
@@ -218,10 +245,10 @@ class GreaterThanFormula(BaseRelationFormula):
 
 class SmallerThanFormula(BaseRelationFormula):
     """
-        Binary smaller than formula; <
-        Examples:
-            SmallerThanFormula(Variable("a", lambda x: x["Opening Price"]), 135)
-            SmallerThanFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
+    Binary smaller than formula; <
+    Examples:
+        SmallerThanFormula(Variable("a", lambda x: x["Opening Price"]), 135)
+        SmallerThanFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
@@ -239,10 +266,10 @@ class SmallerThanFormula(BaseRelationFormula):
 
 class GreaterThanEqFormula(BaseRelationFormula):
     """
-        Binary greater and equal than formula; >=
-        Examples:
-            GreaterThanEqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
-            GreaterThanEqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
+    Binary greater and equal than formula; >=
+    Examples:
+        GreaterThanEqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
+        GreaterThanEqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
@@ -260,10 +287,10 @@ class GreaterThanEqFormula(BaseRelationFormula):
 
 class SmallerThanEqFormula(BaseRelationFormula):
     """
-        Binary smaller and equal than formula; <=
-        Examples:
-            SmallerThanEqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
-            SmallerThanEqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
+    Binary smaller and equal than formula; <=
+    Examples:
+        SmallerThanEqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
+        SmallerThanEqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
@@ -281,11 +308,8 @@ class SmallerThanEqFormula(BaseRelationFormula):
 
 class CompositeFormula(Formula, ABC):
     """
-    This class represents BinaryLogicOp formulas that support a list of formulas within them.
-    This is used to support different syntax for the formula creating, instead of using a full tree of formulas
-    it will enable passing a list of formulas (Atomic or Non-Atomic) and apply the encapsulating operator on all of them
-    And stops at the first FALSE from the evaluation and returns False.
-    Or stops at the first TRUE from the evaluation and return true
+    This class represents a composite condition consisting of a number of simple (atomic) conditions combined using
+    logic operators such as conjunction and disjunction.
     """
     def __init__(self, terminating_condition: bool, *formula_list):
         self.__formulas = list(formula_list)
@@ -300,6 +324,11 @@ class CompositeFormula(Formula, ABC):
         return not self.__terminating_result
 
     def get_formula_of(self, names: set, get_kc_formulas_only=False, consume_returned_formulas=False):
+        """
+        Returns a new composite formula which only contains those conditions from this composite formula operating
+        exclusively on the names from the given list.
+        Optionally removes the returned sub-conditions from this composite formula.
+        """
         result_formulas = []
         formulas_to_remove = []
         for index, current_formula in enumerate(self.__formulas):
@@ -330,9 +359,15 @@ class CompositeFormula(Formula, ABC):
         return CompositeFormula(self.__terminating_result, *result_formulas)
 
     def get_num_formulas(self):
+        """
+        Returns the number of conditions encapsulated by this composite condition.
+        """
         return len(self.__formulas)
 
     def get_formulas_list(self):
+        """
+        Returns the list of conditions encapsulated by this composite condition.
+        """
         return self.__formulas
 
     def extract_atomic_formulas(self):
@@ -357,6 +392,7 @@ class CompositeFormula(Formula, ABC):
 class AndFormula(CompositeFormula):
     """
     This class uses CompositeFormula with the terminating condition False, which complies with AND operator logic.
+    And stops at the first FALSE from the evaluation and returns False.
     """
     def __init__(self, *formula_list):
         super().__init__(False, *formula_list)
@@ -375,6 +411,7 @@ class AndFormula(CompositeFormula):
 class OrFormula(CompositeFormula):
     """
     This class uses CompositeFormula with the terminating condition True, which complies with OR operator logic.
+    Or stops at the first TRUE from the evaluation and return True.
     """
     def __init__(self, *formula_list):
         super().__init__(True, *formula_list)
@@ -392,7 +429,7 @@ class OrFormula(CompositeFormula):
 
 class KCFormula(AtomicFormula, ABC):
     """
-    This class represents the base class for KleeneClosure formulas.
+    The base class for formulas operating on Kleene closure matches.
     """
     def __init__(self, names: set, getattr_func: callable, relation_op: callable):
         self._names = names
@@ -410,13 +447,11 @@ class KCFormula(AtomicFormula, ABC):
         return True
 
     @staticmethod
-    def _validate_index(index: int, iterable: list):
+    def _validate_index(index: int, l: list):
         """
-        :param index: requested index
-        :param iterable: requested event_list
-        :return: true if the index is a valid index to query
+        Validates that the given index is within the bounds of the given list.
         """
-        return 0 <= index < len(iterable)
+        return 0 <= index < len(l)
 
     def __repr__(self):
         return "KC [" + ", ".join(self._names) + "]"
@@ -424,7 +459,7 @@ class KCFormula(AtomicFormula, ABC):
 
 class KCIndexFormula(KCFormula):
     """
-    This class represents KCFormulas that perform operations between 2 indexes of the KleeneClosure events
+    This class represents KCFormulas that perform operations between 2 indexes of the KleeneClosure events.
     It supports comparisons of 2 types:
         - first_index and second_index will compare 2 specific indexes from the KC events
         - offset will compare every 2 items in KC events that meet the offset requirement. Supports negative offsets.
@@ -436,15 +471,8 @@ class KCIndexFormula(KCFormula):
     def __init__(self, names: set, getattr_func: callable, relation_op: callable,
                  first_index=None, second_index=None, offset=None):
         """
-        :param names: names to match for future evaluations
-        :param getattr_func: method to extract attribute from payload
-        :param relation_op: the relation which the formula represents
-        :param first_index: first index to compare
-        :param second_index: second index to compare
-        :param offset: offset to compare. Supports negative offsets.
-
         Enforce getting 1 of 2 activations types ONLY:
-            1) first_index and index_2 to compare
+            1) first_index and second_index to compare
             2) offset to compare every 2 items that meet offset requirement (either positive or negative)
         Further activation types may be implemented for convenience.
         """
@@ -456,10 +484,6 @@ class KCIndexFormula(KCFormula):
         self.__offset = offset
 
     def eval(self, event_list: list = None):
-        """
-        :param event_list: the list of events to compare events from
-        :return: True or False based on evaluation mechanism
-        """
         # offset is active - choose evaluation by offset mechanism
         if self.__offset is not None:
             return self.__eval_by_offset(event_list)
@@ -468,8 +492,7 @@ class KCIndexFormula(KCFormula):
 
     def __eval_by_index(self, event_list: list):
         """
-        :param event_list: the list of events to compare evnets from
-        :return: True or False based on index evaluation
+        Handles the evaluation of an index-based condition.
         """
         # validate both indexes
         if not self._validate_index(self.__first_index, event_list) or \
@@ -483,11 +506,10 @@ class KCIndexFormula(KCFormula):
             return False
         return True
 
-    # very time consuming process on large power-sets
     def __eval_by_offset(self, event_list: list):
         """
-        :param event_list: the list of events to compare events from
-        :return: True or False based on offset evaluation mechanism
+        Handles the evaluation of an offset-based condition.
+        This can be a very time-consuming process for large power-sets.
         """
         # offset too large restriction
         if self.__offset >= len(event_list):
@@ -504,23 +526,19 @@ class KCIndexFormula(KCFormula):
         return True
 
     @staticmethod
-    def __validate_params(index_1, index_2, offset):
+    def __validate_params(first_index, second_index, offset):
         """
-        :param index_1: first_index provided to constructor
-        :param index_2: second_index provided to constructor
-        :param offset: offset privided to constructor
-        :return: True if unsupported activation patterns are inserted to constructor.
         Current supported patterns allow (first_index AND second_index) OR (offset) AND (NOT BOTH).
         Disqualification semantics used to allow easier extensions in the future - simply remove the newly supported
         patterns from the disqualified patterns.
         """
-        return not (                                                                     # idx1 idx2 offset
-                (index_1 is None and index_2 is None and offset is None) or              # 0     0     0
-                (index_1 is not None and index_2 is not None and offset is not None) or  # 1     1     1
-                (index_1 is not None and offset is not None) or                          # 1     0     1
-                (index_2 is not None and offset is not None) or                          # 0     1     1
-                (index_1 is None and index_2 is not None) or                             # 1     0     0
-                (index_1 is not None and index_2 is None)                                # 0     1     0
+        return not (                                                                              # idx1 idx2 offset
+                (first_index is None and second_index is None and offset is None) or              # 0     0     0
+                (first_index is not None and second_index is not None and offset is not None) or  # 1     1     1
+                (first_index is not None and offset is not None) or                               # 1     0     1
+                (second_index is not None and offset is not None) or                              # 0     1     1
+                (first_index is None and second_index is not None) or                             # 1     0     0
+                (first_index is not None and second_index is None)                                # 0     1     0
         )
 
     def __repr__(self):
@@ -540,22 +558,11 @@ class KCValueFormula(KCFormula):
         - value and index comparison will compare a specific index from KC events to a specific value
     """
     def __init__(self, names: set, getattr_func: callable, relation_op: callable, value, index: int = None):
-        """
-        :param names: names to match for future evaluations
-        :param getattr_func: method to extract attribute from payload
-        :param relation_op: the relation which the formula represents
-        :param value: the value to compare event items with
-        :param index: the index to compare the item with. default mode is value only comparison
-        """
         super().__init__(names, getattr_func, relation_op)
         self.__value = value
         self.__index = index
 
     def eval(self, event_list: list = None):
-        """
-        :param event_list: the list of events to compare events from
-        :return: True or False based on evaluation mechanism
-        """
         # index comparison method and invalid index - Abort.
         if self.__index is not None and not self._validate_index(self.__index, event_list):
             return False
