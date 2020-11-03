@@ -13,6 +13,21 @@ class RelopTypes(Enum):
     Smaller = 4,
     SmallerEqual = 5
 
+    @staticmethod
+    def get_opposite_relop_type(relop_type):
+        """
+        Returns the relation operation type which is antisymmetric to the given one.
+        """
+        if relop_type == RelopTypes.Greater:
+            return RelopTypes.Smaller
+        if relop_type == RelopTypes.Smaller:
+            return RelopTypes.Greater
+        if relop_type == RelopTypes.GreaterEqual:
+            return RelopTypes.SmallerEqual
+        if relop_type == RelopTypes.SmallerEqual:
+            return RelopTypes.GreaterEqual
+        return None
+
 
 class EquationSides(Enum):
     left = 0,
@@ -41,6 +56,9 @@ class Variable:
 
     def __repr__(self):
         return self.name
+
+    def __eq__(self, other):
+        return type(other) == Variable and self.name == other.name and self.getattr_func == other.getattr_func
 
 
 class Formula(ABC):
@@ -91,33 +109,39 @@ class TrueFormula(AtomicFormula):
     def is_formula_of(self, names: set):
         return False
 
+    def __eq__(self, other):
+        return type(other) == TrueFormula
+
 
 class NaryFormula(AtomicFormula):
     """
     A simple formula over N operands (either variables or constants).
     """
     def __init__(self, *terms, relation_op: callable):
-        self._terms = terms
+        self.terms = terms
         self.relation_op = relation_op
 
     def eval(self, binding: dict = None):
         rel_terms = []
-        for term in self._terms:
+        for term in self.terms:
             rel_terms.append(term.eval(binding) if isinstance(term, Variable) else term)
         return self.relation_op(*rel_terms)
 
     def is_formula_of(self, names: set):
-        for term in self._terms:
+        for term in self.terms:
             if term.name not in names:
                 return False
         return True
 
     def __repr__(self):
         term_list = []
-        for term in self._terms:
+        for term in self.terms:
             term_list.append(term.__repr__())
         separator = ', '
         return "[" + separator.join(term_list) + "]"
+
+    def __eq__(self, other):
+        return type(self) == type(other) and self.terms == other.terms and self.relation_op == other.relation_op
 
 
 class BinaryFormula(NaryFormula):
@@ -139,17 +163,17 @@ class BinaryFormula(NaryFormula):
         """
         Returns the left term of this formula.
         """
-        if len(self._terms) < 1:
+        if len(self.terms) < 1:
             return None
-        return self._terms[0]
+        return self.terms[0]
 
     def get_right_term(self):
         """
         Returns the right term of this formula.
         """
-        if len(self._terms) < 2:
+        if len(self.terms) < 2:
             return None
-        return self._terms[1]
+        return self.terms[1]
 
 
 class BaseRelationFormula(BinaryFormula, ABC):
@@ -169,14 +193,31 @@ class BaseRelationFormula(BinaryFormula, ABC):
         self.left_term_repr = left_term
         self.right_term_repr = right_term
 
-    def get_relop(self):
-        """
-        Returns the type of the relation operation used by this condition.
-        """
-        return self.relop_type
-
     def __repr__(self):
         raise NotImplementedError()
+
+    def __eq_same_type(self, other):
+        """
+        Returns True if self and other are of the same basic relation types and represent the same condition.
+        """
+        return isinstance(other, BaseRelationFormula) and self.relop_type == other.relop_type \
+               and self.left_term_repr == other.left_term_repr and self.right_term_repr == other.right_term_repr
+
+    def __eq_opposite_type(self, other):
+        """
+        Returns True if self and other are of the oppositve basic relation types and represent the same condition
+        (e.g., a < b and b > a).
+        """
+        if not isinstance(other, BaseRelationFormula):
+            return False
+        opposite_type = RelopTypes.get_opposite_relop_type(self.relop_type)
+        if opposite_type is None:
+            return False
+        return other.relop_type == opposite_type and \
+               self.left_term_repr == other.right_term_repr and self.right_term_repr == other.left_term_repr
+
+    def __eq__(self, other):
+        return self.__eq_same_type(other) or self.__eq_opposite_type(other)
 
 
 class EqFormula(BaseRelationFormula):
@@ -388,6 +429,16 @@ class CompositeFormula(Formula, ABC):
             res_list.append(formula.__repr__())
         return res_list
 
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        if len(self.__formulas) != other.get_num_formulas():
+            return False
+        for formula in self.__formulas:
+            if formula not in other.get_formulas_list():
+                return False
+        return True
+
 
 class AndFormula(CompositeFormula):
     """
@@ -453,8 +504,18 @@ class KCFormula(AtomicFormula, ABC):
         """
         return 0 <= index < len(l)
 
+    def get_names(self):
+        """
+        Returns the event names associated with this condition.
+        """
+        return self._names
+
     def __repr__(self):
         return "KC [" + ", ".join(self._names) + "]"
+
+    def __eq__(self, other):
+        return type(self) == type(other) and self._names == other._names and \
+               self._getattr_func == other._getattr_func and self._relation_op == other._relation_op
 
 
 class KCIndexFormula(KCFormula):
@@ -541,12 +602,25 @@ class KCIndexFormula(KCFormula):
                 (first_index is not None and second_index is None)                                # 0     1     0
         )
 
+    def get_first_index(self):
+        return self.__first_index
+
+    def get_second_index(self):
+        return self.__second_index
+
+    def get_offset(self):
+        return self.__offset
+
     def __repr__(self):
         if self.__first_index is not None:
             return "KCIndex first_index={}, second_index={} [".format(self.__first_index, self.__second_index) + \
                    ", ".join(self._names) + "]"
         else:
             return "KCIndex offset={} [".format(self.__offset) + ", ".join(self._names) + "]"
+
+    def __eq__(self, other):
+        return super().__eq__(other) and self.__first_index == other.get_first_index() and \
+               self.__second_index == other.get_second_index() and self.__offset == other.get_offset()
 
 
 class KCValueFormula(KCFormula):
@@ -579,5 +653,14 @@ class KCValueFormula(KCFormula):
                 return False
         return True
 
+    def get_value(self):
+        return self.__value
+
+    def get_index(self):
+        return self.__index
+
     def __repr__(self):
         return "KCValue, index={}, value={} [".format(self.__index, self.__value) + ", ".join(self._names) + "]"
+
+    def __eq__(self, other):
+        return super().__eq__(other) and self.__value == other.get_value() and self.__index == other.get_index()

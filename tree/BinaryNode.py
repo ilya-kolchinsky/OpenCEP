@@ -198,20 +198,20 @@ class BinaryNode(InternalNode, ABC):
                 if left_term is None or attributes_priorities[condition.get_left_term().name] > \
                         attributes_priorities[left_term.name]:
                     left_term, left_rel_op, left_equation_size = \
-                        condition.get_left_term(), condition.get_relop(), EquationSides.left
+                        condition.get_left_term(), condition.relop_type, EquationSides.left
                 if right_term is None or attributes_priorities[condition.get_right_term().name] > \
                         attributes_priorities[right_term.name]:
                     right_term, right_rel_op, right_equation_size = \
-                        condition.get_right_term(), condition.get_relop(), EquationSides.right
+                        condition.get_right_term(), condition.relop_type, EquationSides.right
             elif condition.get_left_term().name in right_event_names:
                 if left_term is None or attributes_priorities[condition.get_right_term().name] > \
                         attributes_priorities[left_term.name]:
                     left_term, left_rel_op, left_equation_size = \
-                        condition.get_right_term(), condition.get_relop(), EquationSides.right
+                        condition.get_right_term(), condition.relop_type, EquationSides.right
                 if right_term is None or attributes_priorities[condition.get_left_term().name] > \
                         attributes_priorities[right_term.name]:
                     right_term, right_rel_op, right_equation_size = \
-                        condition.get_left_term(), condition.get_relop(), EquationSides.left
+                        condition.get_left_term(), condition.relop_type, EquationSides.left
             else:
                 raise Exception("Internal error")
         return left_term, left_rel_op, left_equation_size, right_term, right_rel_op, right_equation_size
