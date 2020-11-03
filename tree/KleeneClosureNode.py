@@ -1,6 +1,8 @@
 from datetime import timedelta
 from typing import List, Set
 
+from base.Event import Event
+from base.Formula import CompositeFormula
 from base.PatternMatch import PatternMatch
 from misc.Utils import recursive_powerset_generator
 from tree.Node import Node
@@ -36,9 +38,14 @@ class KleeneClosureNode(UnaryNode):
 
         for partial_match_set in child_matches_powerset:
             # create and propagate the new match
-            # TODO: except for the time window constraint, no validation is supported as of now
-            events_for_partial_match = KleeneClosureNode.partial_match_set_to_event_list(partial_match_set)
+            events_for_partial_match = KleeneClosureNode.__partial_match_set_to_event_list(partial_match_set)
             self._validate_and_propagate_partial_match(events_for_partial_match)
+
+    def _validate_new_match(self, events_for_new_match: List[Event]):
+        """
+        Validates the condition stored in this node on the given set of events.
+        """
+        return self._condition.eval([e.payload for e in events_for_new_match])
 
     def __create_child_matches_powerset(self):
         """
@@ -64,6 +71,14 @@ class KleeneClosureNode(UnaryNode):
         result_powerset = [item for item in result_powerset if self.__min_size <= len(item)]
         return result_powerset
 
+    def apply_formula(self, formula: CompositeFormula):
+        """
+        The default implementation is overridden to extract KC conditions from the given composite condition.
+        """
+        self._propagate_condition(formula)
+        names = {event_def.name for event_def in self.get_event_definitions()}
+        self._condition = formula.get_formula_of(names, get_kc_formulas_only=True, consume_returned_formulas=True)
+
     def get_structure_summary(self):
         return "KC", self._child.get_structure_summary()
 
@@ -77,7 +92,7 @@ class KleeneClosureNode(UnaryNode):
         return self.__min_size == other.__min_size and self.__max_size == other.__max_size
 
     @staticmethod
-    def partial_match_set_to_event_list(partial_match_set: List[PatternMatch]):
+    def __partial_match_set_to_event_list(partial_match_set: List[PatternMatch]):
         """
         Converts a set of partial matches into a single list containing all primitive events of the partial
         matches in the set.
@@ -90,4 +105,5 @@ class KleeneClosureNode(UnaryNode):
             min_timestamp = match.first_timestamp if min_timestamp is None else min(min_timestamp, match.first_timestamp)
             max_timestamp = match.last_timestamp if max_timestamp is None else max(max_timestamp, match.last_timestamp)
             events.extend(match.events)
+
         return events

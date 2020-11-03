@@ -2,9 +2,10 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.Formula import Formula, RelopTypes, EquationSides
+from base.Formula import Formula, RelopTypes, EquationSides, CompositeFormula
 from base.PatternStructure import PrimitiveEventStructure
-from tree.Node import Node, PrimitiveEventDefinition
+from tree.Node import Node
+from tree.Node import PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters, SortedPatternMatchStorage
 
 
@@ -35,11 +36,6 @@ class LeafNode(Node):
 
     def get_leaves(self):
         return [self]
-
-    def apply_formula(self, formula: Formula):
-        condition = formula.get_formula_of(self.__event_name)
-        if condition is not None:
-            self._condition = condition
 
     def get_event_definitions(self):
         return [PrimitiveEventDefinition(self.__event_type, self.__event_name, self.__leaf_index)]
@@ -83,6 +79,9 @@ class LeafNode(Node):
             return False
         binding = {self.__event_name: events_for_new_match[0].payload}
         return self._condition.eval(binding)
+
+    def _propagate_condition(self, formula: Formula):
+        pass
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,

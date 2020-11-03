@@ -285,7 +285,8 @@ def runMultiTest(testName, patterns, createTestFile = False,
     print("Test %s result: %s, Time Passed: %s" % (testName,
           "Succeeded" if res else "Failed", running_time))
     runTest.over_all_time += running_time
-    os.remove(actual_matches_path)
+    if res:
+        os.remove(actual_matches_path)
 
 
 class DummyOutputStream(OutputStream):

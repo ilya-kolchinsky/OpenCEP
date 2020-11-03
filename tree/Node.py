@@ -4,7 +4,7 @@ from queue import Queue
 from typing import List, Set
 
 from base.Event import Event
-from base.Formula import TrueFormula, Formula, RelopTypes, EquationSides
+from base.Formula import TrueFormula, Formula, RelopTypes, EquationSides, CompositeFormula, AndFormula
 from base.PatternMatch import PatternMatch
 from tree.PatternMatchStorage import TreeStorageParameters
 
@@ -46,7 +46,7 @@ class Node(ABC):
         self._parents = []
         self._sliding_window = sliding_window
         self._partial_matches = None
-        self._condition = TrueFormula()
+        self._condition = AndFormula()
 
         # Full pattern matches that were not yet reported. Only relevant for an output node, that is, for a node
         # corresponding to a full pattern definition.
@@ -277,6 +277,16 @@ class Node(ABC):
         max_timestamp = max([event.timestamp for event in events_for_new_match])
         return max_timestamp - min_timestamp <= self._sliding_window
 
+    def apply_formula(self, formula: CompositeFormula):
+        """
+        Applies the given condition on all nodes in the subtree of this node.
+        The process of applying the formula is recursive and proceeds in a bottom-up manner - first the condition is
+        propagated down the subtree, then sub-conditions for this node are assigned.
+        """
+        self._propagate_condition(formula)
+        names = {event_def.name for event_def in self.get_event_definitions()}
+        self._condition = formula.get_formula_of(names, get_kc_formulas_only=False, consume_returned_formulas=True)
+
     def is_equivalent(self, other):
         """
         Returns True if the given node is equivalent to this one and False otherwise.
@@ -311,9 +321,9 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    def apply_formula(self, formula: Formula):
+    def _propagate_condition(self, formula: CompositeFormula):
         """
-        Applies a given formula on all nodes in this tree - to be implemented by subclasses.
+        Propagates the given condition to successors - to be implemented by subclasses.
         """
         raise NotImplementedError()
 

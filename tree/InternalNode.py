@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.Formula import Formula, TrueFormula, RelopTypes, EquationSides
+from base.Formula import RelopTypes, EquationSides
 from tree.Node import Node, PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters, UnsortedPatternMatchStorage, SortedPatternMatchStorage
 
@@ -34,12 +34,6 @@ class InternalNode(Node, ABC):
         }
         return self._condition.eval(binding)
 
-    def apply_formula(self, formula: Formula):
-        names = {definition.name for definition in self._event_defs}
-        condition = formula.get_formula_of(names)
-        self._condition = condition if condition else TrueFormula()
-        self._propagate_condition(formula)
-
     def create_parent_to_info_dict(self):
         """
         Creates the dictionary that maps parent to event type, event name and index.
@@ -65,15 +59,8 @@ class InternalNode(Node, ABC):
             self._partial_matches = SortedPatternMatchStorage(sorting_key, rel_op, equation_side,
                                                               storage_params.clean_up_interval, sort_by_first_timestamp)
 
-    def _propagate_condition(self, condition: Formula):
-        """
-        Propagates the given condition to the child tree(s).
-        """
-        raise NotImplementedError()
-
     def handle_new_partial_match(self, partial_match_source: Node):
         """
         A handler for a notification regarding a new partial match generated at one of this node's children.
         """
         raise NotImplementedError()
-

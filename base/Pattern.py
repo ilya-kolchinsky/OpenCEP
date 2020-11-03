@@ -2,9 +2,9 @@ from functools import reduce
 from typing import List
 
 from base.Event import Event
-from base.Formula import Formula, EqFormula, IdentifierTerm, MinusTerm, AtomicTerm, AndFormula
-from base.PatternStructure import PatternStructure, CompositeStructure, SeqOperator, \
-    PrimitiveEventStructure, NegationOperator
+from base.Formula import Formula, Variable, BinaryFormula, AndFormula, CompositeFormula, TrueFormula
+from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
+    SeqOperator, NegationOperator
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
 from misc.ConsumptionPolicy import ConsumptionPolicy
@@ -31,6 +31,11 @@ class Pattern:
         self.negative_structure = self.__extract_negative_structure()
 
         self.condition = pattern_matching_condition
+        if isinstance(self.condition, TrueFormula):
+            self.condition = AndFormula()
+        elif not isinstance(self.condition, CompositeFormula):
+            self.condition = AndFormula(self.condition)
+
         self.window = time_window
 
         self.statistics_type = StatisticsTypes.NO_STATISTICS
@@ -135,13 +140,10 @@ class Pattern:
         """
         Augment the pattern condition with a contiguity constraint between the given event names.
         """
-        self.condition = AndFormula(
-            self.condition,
-            EqFormula(
-                IdentifierTerm(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
-                MinusTerm(IdentifierTerm(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]), AtomicTerm(1))
-            )
-        )
+        contiguity_condition = BinaryFormula(Variable(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
+                                             Variable(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
+                                             lambda x, y: x == y - 1)
+        self.condition.add_atomic_formula(contiguity_condition)
 
     def extract_flat_sequences(self) -> List[List[str]]:
         """
