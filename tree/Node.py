@@ -4,7 +4,7 @@ from queue import Queue
 from typing import List
 
 from base.Event import Event
-from base.Formula import TrueFormula, Formula, RelopTypes, EquationSides, CompositeFormula
+from base.Formula import TrueFormula, Formula, RelopTypes, EquationSides, CompositeFormula, AndFormula
 from base.PatternMatch import PatternMatch
 from tree.PatternMatchStorage import TreeStorageParameters
 
@@ -46,7 +46,7 @@ class Node(ABC):
         self._parent = parent
         self._sliding_window = sliding_window
         self._partial_matches = None
-        self._condition = TrueFormula()
+        self._condition = AndFormula()
         # matches that were not yet pushed to the parent for further processing
         self._unhandled_partial_matches = Queue()
         # set of event types that will only appear in a single full match
@@ -190,8 +190,7 @@ class Node(ABC):
         """
         self._propagate_condition(formula)
         names = {event_def.name for event_def in self.get_event_definitions()}
-        self._condition = formula.get_formula_of(names, False)
-        formula.consume_formula_of(names, False)
+        self._condition = formula.get_formula_of(names, get_kc_formulas_only=False, consume_returned_formulas=True)
 
     def get_leaves(self):
         """

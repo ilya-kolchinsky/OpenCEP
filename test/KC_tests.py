@@ -1,6 +1,6 @@
 from test.testUtils import *
 from datetime import timedelta
-from base.Formula import SmallerThanFormula, IdentifierTerm, AndFormula, \
+from base.Formula import SmallerThanFormula, Variable, AndFormula, \
     NaryFormula, KCIndexFormula, KCValueFormula
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, KleeneClosureOperator
 from base.Pattern import Pattern
@@ -22,8 +22,8 @@ def structuralTest1():
                          min_size=1, max_size=5,
                      )]),
         AndFormula(
-            NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
-            NaryFormula(IdentifierTerm("b", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135)
+            NaryFormula(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
+            NaryFormula(Variable("b", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135)
         ),
         timedelta(minutes=3)
     )
@@ -38,7 +38,7 @@ def structuralTest2():
     """
     structural_test_pattern = Pattern(
         KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a")),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
+        NaryFormula(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
         timedelta(minutes=3)
     )
     expected_result = ('KC', 'a')
@@ -53,7 +53,7 @@ def structuralTest3():
         SeqOperator([
             PrimitiveEventStructure("GOOG", "a"), KleeneClosureOperator(PrimitiveEventStructure("GOOG", "b"))
         ]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
+        NaryFormula(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
         timedelta(minutes=3)
     )
     expected_result = ('Seq', 'a', ('KC', 'b'))
@@ -68,7 +68,7 @@ def structuralTest4():
         AndOperator([
             KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a")), PrimitiveEventStructure("GOOG", "b")
         ]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
+        NaryFormula(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
         timedelta(minutes=3)
     )
     expected_result = ('And', ('KC', 'a'), 'b')
@@ -86,7 +86,7 @@ def structuralTest5():
                 KleeneClosureOperator(PrimitiveEventStructure("GOOG", "b"))
             ]), min_size=1, max_size=3
         ),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
+        NaryFormula(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
         timedelta(minutes=3)
     )
     expected_result = ('KC', ('Seq', ('KC', 'a'), ('KC', 'b')))
@@ -109,7 +109,7 @@ def structuralTest6():
                 PrimitiveEventStructure("GOOG", "e")
             ]),
         ]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
+        NaryFormula(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
         timedelta(minutes=3)
     )
     expected_result = ('Seq', 'a', ('Seq', ('Seq', 'b', ('And', 'c', 'd')), 'e'))
@@ -148,7 +148,7 @@ def structuralTest7():
             ]),
             PrimitiveEventStructure("GOOG", "k"), PrimitiveEventStructure("GOOG", "l")
         ]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
+        NaryFormula(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
         timedelta(minutes=3)
     )
     expected_result = ('And', ('And', ('And', ('And', ('And', 'a', 'b'), 'c'),
@@ -163,7 +163,7 @@ identical to the first test in the file, with 1 exception - the PrimitiveEventSt
 def oneArgumentsearchTestKleeneClosure(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("AAPL", "a"), min_size=1, max_size=5)]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
+        NaryFormula(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
         timedelta(minutes=5)
     )
     runTest("oneArgumentKC", [pattern], createTestFile)
@@ -172,7 +172,7 @@ def oneArgumentsearchTestKleeneClosure(createTestFile=False):
 def MinMax_0_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=1, max_size=2)]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
+        NaryFormula(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         timedelta(minutes=5)
     )
     runTest("MinMax_0_", [pattern], createTestFile, events=nasdaqEventStreamKC)
@@ -180,7 +180,7 @@ def MinMax_0_TestKleeneClosure(createTestFile=False):
 def MinMax_1_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
+        NaryFormula(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         timedelta(minutes=5)
     )
     runTest("MinMax_1_", [pattern], createTestFile, events=nasdaqEventStreamKC)
@@ -188,7 +188,7 @@ def MinMax_1_TestKleeneClosure(createTestFile=False):
 def MinMax_2_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=4, max_size=5)]),
-        NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
+        NaryFormula(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         timedelta(minutes=5)
     )
     runTest("MinMax_2_", [pattern], createTestFile, events=nasdaqEventStreamKC)
@@ -207,8 +207,8 @@ def KC_AND(createTestFile=False):
             ]), min_size=1, max_size=3
         ),
         AndFormula(
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
-            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])),
+            SmallerThanFormula(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
+            SmallerThanFormula(Variable("b", lambda x: x["Peak Price"]), Variable("c", lambda x: x["Peak Price"])),
         ),
         timedelta(minutes=3)
     )
@@ -227,9 +227,9 @@ def KC_AND_IndexFormula_01(createTestFile=False):
             ]), min_size=1, max_size=3
         ),
         AndFormula(
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
+            SmallerThanFormula(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
             KCIndexFormula(names={'a', 'b'}, getattr_func=lambda x: x["Peak Price"], relation_op=lambda x, y: x < y,
-                           index_1=0, index_2=2),
+                           first_index=0, second_index=2),
         ),
         timedelta(minutes=3)
     )
@@ -249,7 +249,7 @@ def KC_AND_IndexFormula_02(createTestFile=False):
             ]), min_size=1, max_size=3
         ),
         AndFormula(
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
+            SmallerThanFormula(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
             KCIndexFormula(names={'a', 'b'}, getattr_func=lambda x: x["Peak Price"], relation_op=lambda x, y: x < y,
                            offset=2),
         ),
@@ -271,8 +271,8 @@ def KC_AND_NegOffSet_01(createTestFile=False):
             ]), min_size=1, max_size=3
         ),
         AndFormula(
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
-            SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])),
+            SmallerThanFormula(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
+            SmallerThanFormula(Variable("b", lambda x: x["Peak Price"]), Variable("c", lambda x: x["Peak Price"])),
             KCIndexFormula(names={'a', 'b', 'c'}, getattr_func=lambda x: x["Peak Price"], relation_op=lambda x, y: x < 1 + y,
             offset=-1)
         ),
@@ -285,7 +285,7 @@ def KC_AllValues(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
         AndFormula(
-            NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
+            NaryFormula(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
             KCValueFormula(names={'a'}, getattr_func=lambda x: x["Peak Price"], relation_op=lambda x, y: x > y, value=530.5)
             ),
         timedelta(minutes=5)
@@ -297,7 +297,7 @@ def KC_Specific_Value(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
         AndFormula(
-            NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
+            NaryFormula(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
             KCValueFormula(names={'a'}, getattr_func=lambda x: x["Peak Price"], relation_op=lambda x, y: x > y, index=2, value=530.5)
             ),
         timedelta(minutes=5)
@@ -308,7 +308,7 @@ def KC_Mixed(createTestFile=False):
     pattern = Pattern(
         SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
         AndFormula(
-            NaryFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
+            NaryFormula(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
             KCValueFormula(names={'a'}, getattr_func=lambda x: x["Peak Price"],
                            relation_op=lambda x, y: x > y,
                            value=530.5),
@@ -335,11 +335,11 @@ def KC_Formula_Failure_01(createTestFile=False):
                 ]), min_size=1, max_size=3
             ),
             AndFormula(
-                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
-                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])),
+                SmallerThanFormula(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
+                SmallerThanFormula(Variable("b", lambda x: x["Peak Price"]), Variable("c", lambda x: x["Peak Price"])),
                 KCIndexFormula(names={'a', 'b', 'c'}, getattr_func=lambda x: x["Peak Price"],
                                relation_op=lambda x, y: x < 1 + y,
-                               offset=-1, index_1=1, index_2=2)
+                               offset=-1, first_index=1, second_index=2)
             ),
             timedelta(minutes=3)
         )
@@ -363,11 +363,11 @@ def KC_Formula_Failure_02(createTestFile=False):
                 ]), min_size=1, max_size=3
             ),
             AndFormula(
-                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
-                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])),
+                SmallerThanFormula(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
+                SmallerThanFormula(Variable("b", lambda x: x["Peak Price"]), Variable("c", lambda x: x["Peak Price"])),
                 KCIndexFormula(names={'a', 'b', 'c'}, getattr_func=lambda x: x["Peak Price"],
                                relation_op=lambda x, y: x < 1 + y,
-                               offset=-1, index_2=2)
+                               offset=-1, second_index=2)
             ),
             timedelta(minutes=3)
         )
@@ -391,11 +391,11 @@ def KC_Formula_Failure_03(createTestFile=False):
                 ]), min_size=1, max_size=3
             ),
             AndFormula(
-                SmallerThanFormula(IdentifierTerm("a", lambda x: x["Peak Price"]), IdentifierTerm("b", lambda x: x["Peak Price"])),
-                SmallerThanFormula(IdentifierTerm("b", lambda x: x["Peak Price"]), IdentifierTerm("c", lambda x: x["Peak Price"])),
+                SmallerThanFormula(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
+                SmallerThanFormula(Variable("b", lambda x: x["Peak Price"]), Variable("c", lambda x: x["Peak Price"])),
                 KCIndexFormula(names={'a', 'b', 'c'}, getattr_func=lambda x: x["Peak Price"],
                                relation_op=lambda x, y: x < 1 + y,
-                               offset=-1, index_1=2)
+                               offset=-1, first_index=2)
             ),
             timedelta(minutes=3)
         )

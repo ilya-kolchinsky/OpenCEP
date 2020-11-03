@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.Formula import Formula, IdentifierTerm, EquationSides, BaseRelationFormula
+from base.Formula import Formula, Variable, EquationSides, BaseRelationFormula
 from base.PatternMatch import PatternMatch
 from tree.InternalNode import InternalNode
 from tree.Node import Node, PrimitiveEventDefinition
@@ -123,9 +123,9 @@ class BinaryNode(InternalNode, ABC):
             if not isinstance(atomic_condition, BaseRelationFormula):
                 # filtering by condition is only possible for basic relation conditions as of now
                 continue
-            if not isinstance(atomic_condition.get_left_term(), IdentifierTerm):
+            if not isinstance(atomic_condition.get_left_term(), Variable):
                 continue
-            if not isinstance(atomic_condition.get_right_term(), IdentifierTerm):
+            if not isinstance(atomic_condition.get_right_term(), Variable):
                 continue
             if atomic_condition.get_left_term().name in left_event_names and \
                     atomic_condition.get_right_term().name in right_event_names:

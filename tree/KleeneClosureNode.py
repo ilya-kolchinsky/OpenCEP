@@ -76,8 +76,7 @@ class KleeneClosureNode(UnaryNode):
         """
         self._propagate_condition(formula)
         names = {event_def.name for event_def in self.get_event_definitions()}
-        self._condition = formula.get_formula_of(names, True)
-        formula.consume_formula_of(names, True)
+        self._condition = formula.get_formula_of(names, get_kc_formulas_only=True, consume_returned_formulas=True)
 
     def get_structure_summary(self):
         return "KC", self._child.get_structure_summary()

@@ -5,7 +5,7 @@ from stream.FileStream import FileOutputStream
 from plugin.twitter.TwitterDataFormatter import DummyTwitterEventTypeClassifier, TweetDataFormatter
 from plugin.twitter.TwitterInputStream import TwitterInputStream
 from datetime import timedelta
-from base.Formula import EqFormula, IdentifierTerm, AndFormula, NotEqFormula, NaryFormula
+from base.Formula import EqFormula, Variable, AndFormula, NotEqFormula, NaryFormula
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
 
@@ -21,10 +21,10 @@ def run_twitter_sanity_check():
     pattern_retweet = Pattern(
         SeqOperator([PrimitiveEventStructure(DummyTwitterEventTypeClassifier.TWEET_TYPE, "a"),
                      PrimitiveEventStructure(DummyTwitterEventTypeClassifier.TWEET_TYPE, "b")]),
-        AndFormula(NotEqFormula(IdentifierTerm("a", lambda x: x["id"]), IdentifierTerm("b", lambda x: x["id"])),
-                   NaryFormula(IdentifierTerm("a", get_retweeted_status_function), relation_op=lambda x: x is not None),
-                   EqFormula(IdentifierTerm("a", get_retweeted_status_function),
-                             IdentifierTerm("b", get_retweeted_status_function))),
+        AndFormula(NotEqFormula(Variable("a", lambda x: x["id"]), Variable("b", lambda x: x["id"])),
+                   NaryFormula(Variable("a", get_retweeted_status_function), relation_op=lambda x: x is not None),
+                   EqFormula(Variable("a", get_retweeted_status_function),
+                             Variable("b", get_retweeted_status_function))),
         timedelta(minutes=30)
     )
 

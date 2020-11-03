@@ -1,8 +1,5 @@
-from abc import ABC  # Abstract Base Class
-import copy
+from abc import ABC
 from enum import Enum
-from typing import List
-import traceback
 
 
 class RelopTypes(Enum):
@@ -22,7 +19,7 @@ class EquationSides(Enum):
     right = 1
 
 
-class IdentifierTerm:
+class Variable:
     """
     A term of a formula representing a single variable (e.g., in "x*2 < y + 7" the identifier terms are x and y).
     """
@@ -34,11 +31,6 @@ class IdentifierTerm:
         if not type(binding) == dict or self.name not in binding:
             raise NameError("Name %s is not bound to a value" % self.name)
         return self.getattr_func(binding[self.name])
-
-    def get_term_of(self, names: set):
-        if self.name in names:
-            return self
-        return None
 
     def __repr__(self):
         return self.name
@@ -52,14 +44,22 @@ class Formula(ABC):
     def eval(self, binding: dict or list = None):
         raise NotImplementedError()
 
-    def get_formula_of(self, names: set, get_kc_methods_only=False):
-        raise NotImplementedError()
-
     def extract_atomic_formulas(self):
         raise NotImplementedError()
 
 
-class TrueFormula(Formula):
+class AtomicFormula(Formula, ABC):
+    """
+    Represents an atomic (non-composite) formula.
+    """
+    def is_formula_of(self, names: set):
+        raise NotImplementedError()
+
+    def extract_atomic_formulas(self):
+        return [self]
+
+
+class TrueFormula(AtomicFormula):
     def eval(self, binding: dict = None):
         return True
 
@@ -69,17 +69,11 @@ class TrueFormula(Formula):
     def extract_atomic_formulas(self):
         return []
 
-    def get_formula_of(self, names, get_kc_methods_only=False):
-        # return nothing to KC nodes
-        if get_kc_methods_only is True:
-            return None
-        return self
-
-    def consume_formula_of(self, names: set, get_kc_methods_only=False):
-        raise NotImplementedError()
+    def is_formula_of(self, names: set):
+        return False
 
 
-class NaryFormula(Formula):
+class NaryFormula(AtomicFormula):
     """
     An Nary formula containing terms and a boolean callable operator.
     """
@@ -90,22 +84,15 @@ class NaryFormula(Formula):
     def eval(self, binding: dict = None):
         rel_terms = []
         for term in self._terms:
-            rel_terms.append(term.eval(binding))
+            rel_terms.append(term.eval(binding) if isinstance(term, Variable) else term)
         rel_terms = tuple(rel_terms)
         return self.relation_op(*rel_terms)
 
-    def get_formula_of(self, names: set, get_kc_methods_only=False):
-        # return nothing to KC nodes
-        if get_kc_methods_only is True:
-            return None
+    def is_formula_of(self, names: set):
         for term in self._terms:
-            cur_term = term.get_term_of(names)
-            if cur_term is None:
-                return None
-        return self
-
-    def extract_atomic_formulas(self):
-        return [self]
+            if term.name not in names:
+                return False
+        return True
 
     def __repr__(self):
         term_list = []
@@ -120,11 +107,11 @@ class BinaryFormula(NaryFormula):
     A binary formula containing no logic operators (e.g., A < B).
     """
     def __init__(self, left_term, right_term, relation_op: callable):
-        if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
+        if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of BinaryFormula!")
-        elif not isinstance(left_term, IdentifierTerm):
+        elif not isinstance(left_term, Variable):
             super().__init__(right_term, relation_op=relation_op)
-        elif not isinstance(right_term, IdentifierTerm):
+        elif not isinstance(right_term, Variable):
             super().__init__(left_term, relation_op=relation_op)
         else:
             super().__init__(left_term, right_term, relation_op=relation_op)
@@ -139,9 +126,6 @@ class BinaryFormula(NaryFormula):
             return None
         return self._terms[1]
 
-    def extract_atomic_formulas(self):
-        return [self]
-
 
 class BaseRelationFormula(BinaryFormula, ABC):
     """
@@ -149,11 +133,11 @@ class BaseRelationFormula(BinaryFormula, ABC):
         such as: >, >=, <, <=, ==, !=.
     """
     def __init__(self, left_term, right_term, relation_op: callable, relop_type):
-        if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
+        if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of BaseRelationFormula!")
-        elif not isinstance(left_term, IdentifierTerm):
+        elif not isinstance(left_term, Variable):
             super().__init__(left_term, right_term, relation_op=relation_op(left_term))
-        elif not isinstance(right_term, IdentifierTerm):
+        elif not isinstance(right_term, Variable):
             super().__init__(left_term, right_term, relation_op=relation_op(right_term))
         else:
             super().__init__(left_term, right_term, relation_op)
@@ -173,15 +157,15 @@ class EqFormula(BaseRelationFormula):
         Binary Equal Formula; ==
         This class can be called either with terms or a number:
         Examples:
-            EqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 135)
-            EqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"]))
+            EqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
+            EqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
-        if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
+        if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of EqFormula!")
-        elif not isinstance(left_term, IdentifierTerm):
+        elif not isinstance(left_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: x == y, RelopTypes.Equal)
-        elif not isinstance(right_term, IdentifierTerm):
+        elif not isinstance(right_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: y == x, RelopTypes.Equal)
         else:
             super().__init__(left_term, right_term, lambda x, y: x == y, RelopTypes.Equal)
@@ -194,15 +178,15 @@ class NotEqFormula(BaseRelationFormula):
     """
         Binary Not Equal Formula; !=
         Examples:
-            NotEqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 135)
-            NotEqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"]))
+            NotEqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
+            NotEqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
-        if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
+        if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of NotEqFormula!")
-        elif not isinstance(left_term, IdentifierTerm):
+        elif not isinstance(left_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: x != y, RelopTypes.NotEqual)
-        elif not isinstance(right_term, IdentifierTerm):
+        elif not isinstance(right_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: y != x, RelopTypes.NotEqual)
         else:
             super().__init__(left_term, right_term, lambda x, y: x != y, RelopTypes.NotEqual)
@@ -215,15 +199,15 @@ class GreaterThanFormula(BaseRelationFormula):
     """
         Binary greater than formula; >
         Examples:
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 135)
-            GreaterThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"]))
+            GreaterThanFormula(Variable("a", lambda x: x["Opening Price"]), 135)
+            GreaterThanFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
-        if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
+        if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of GreaterThanFormula!")
-        elif not isinstance(left_term, IdentifierTerm):
+        elif not isinstance(left_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: x > y, RelopTypes.Greater)
-        elif not isinstance(right_term, IdentifierTerm):
+        elif not isinstance(right_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: y > x, RelopTypes.Greater)
         else:
             super().__init__(left_term, right_term, lambda x, y: x > y, RelopTypes.Greater)
@@ -236,15 +220,15 @@ class SmallerThanFormula(BaseRelationFormula):
     """
         Binary smaller than formula; <
         Examples:
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 135)
-            SmallerThanFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"]))
+            SmallerThanFormula(Variable("a", lambda x: x["Opening Price"]), 135)
+            SmallerThanFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
-        if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
+        if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of SmallerThanFormula!")
-        elif not isinstance(left_term, IdentifierTerm):
+        elif not isinstance(left_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: x < y, RelopTypes.Smaller)
-        elif not isinstance(right_term, IdentifierTerm):
+        elif not isinstance(right_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: y < x, RelopTypes.Smaller)
         else:
             super().__init__(left_term, right_term, lambda x, y: x < y, RelopTypes.Smaller)
@@ -257,15 +241,15 @@ class GreaterThanEqFormula(BaseRelationFormula):
     """
         Binary greater and equal than formula; >=
         Examples:
-            GreaterThanEqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 135)
-            GreaterThanEqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"]))
+            GreaterThanEqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
+            GreaterThanEqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
-        if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
+        if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of GreaterThanEqFormula!")
-        elif not isinstance(left_term, IdentifierTerm):
+        elif not isinstance(left_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: x >= y, RelopTypes.GreaterEqual)
-        elif not isinstance(right_term, IdentifierTerm):
+        elif not isinstance(right_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: y >= x, RelopTypes.GreaterEqual)
         else:
             super().__init__(left_term, right_term, lambda x, y: x >= y, RelopTypes.GreaterEqual)
@@ -278,15 +262,15 @@ class SmallerThanEqFormula(BaseRelationFormula):
     """
         Binary smaller and equal than formula; <=
         Examples:
-            SmallerThanEqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), 135)
-            SmallerThanEqFormula(IdentifierTerm("a", lambda x: x["Opening Price"]), IdentifierTerm("b", lambda x: x["Opening Price"]))
+            SmallerThanEqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
+            SmallerThanEqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
-        if not isinstance(left_term, IdentifierTerm) and not isinstance(right_term, IdentifierTerm):
+        if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of SmallerThanEqFormula!")
-        elif not isinstance(left_term, IdentifierTerm):
+        elif not isinstance(left_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: x <= y, RelopTypes.SmallerEqual)
-        elif not isinstance(right_term, IdentifierTerm):
+        elif not isinstance(right_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: y <= x, RelopTypes.SmallerEqual)
         else:
             super().__init__(left_term, right_term, lambda x, y: x <= y, RelopTypes.SmallerEqual)
@@ -315,38 +299,35 @@ class CompositeFormula(Formula, ABC):
                 return self.__terminating_result
         return not self.__terminating_result
 
-    def get_formula_of(self, names: set, get_kc_methods_only=False):
+    def get_formula_of(self, names: set, get_kc_formulas_only=False, consume_returned_formulas=False):
         result_formulas = []
-        for f in self.__formulas:
-            current_formula = f.get_formula_of(names, get_kc_methods_only)
-            # compare this to get_kc_methods flag, and if both conditions are same then the method should be added
-            is_kc_formula = isinstance(current_formula, KCFormula)
-            if current_formula and get_kc_methods_only == is_kc_formula:
-                result_formulas.extend([current_formula])
-        return CompositeFormula(self.__terminating_result, *result_formulas)
-
-    def consume_formula_of(self, names: set, get_kc_methods_only=False):
         formulas_to_remove = []
-        # find what formulas are needed to be removed from the formulas list
-        for i, f in enumerate(self.__formulas):
-            current_formula = f.get_formula_of(names, get_kc_methods_only)
-            if current_formula:
-                # consume nested formulas
-                if isinstance(f, CompositeFormula):
-                    f.consume_formula_of(names, get_kc_methods_only)
-                # mark this formula only if it matches get_kc_methods_only logic
-                if get_kc_methods_only == isinstance(current_formula, KCFormula):
-                    formulas_to_remove.append(i)
-        # remove the formulas that match given names
-        for i in reversed(formulas_to_remove):
-            # regular (Nary/Binary/KC/etc...) formula found
-            if not isinstance(self.__formulas[i], CompositeFormula):
-                self.__formulas.pop(i)
-            else:
-                # CompositeFormula found
-                nested_formula = self.__formulas[i]
-                if nested_formula.get_num_formulas() == 0:
-                    self.__formulas.pop(i)
+        for index, current_formula in enumerate(self.__formulas):
+            if isinstance(current_formula, CompositeFormula):
+                inner_formula = current_formula.get_formula_of(names, get_kc_formulas_only, consume_returned_formulas)
+                if inner_formula.get_num_formulas() > 0:
+                    # non-empty nested condition was returned
+                    result_formulas.append(inner_formula)
+                if consume_returned_formulas and current_formula.get_num_formulas() == 0:
+                    # all previously existing nested conditions were probably consumed - consume this empty condition
+                    formulas_to_remove.append(index)
+                continue
+            # this is a simple condition
+            if not current_formula.is_formula_of(names):
+                continue
+            if get_kc_formulas_only != isinstance(current_formula, KCFormula):
+                # either this is a KC condition and we asked for non-KC conditions,
+                # or this is a non-KC condition and we asked for KC conditions
+                continue
+            result_formulas.append(current_formula)
+            if consume_returned_formulas:
+                formulas_to_remove.append(index)
+
+        # remove the conditions at previously saved indices
+        for index in reversed(formulas_to_remove):
+            self.__formulas.pop(index)
+
+        return CompositeFormula(self.__terminating_result, *result_formulas)
 
     def get_num_formulas(self):
         return len(self.__formulas)
@@ -380,8 +361,8 @@ class AndFormula(CompositeFormula):
     def __init__(self, *formula_list):
         super().__init__(False, *formula_list)
 
-    def get_formula_of(self, names: set, get_kc_methods_only=False):
-        comp_formula = super().get_formula_of(names, get_kc_methods_only)
+    def get_formula_of(self, names: set, get_kc_formulas_only=False, consume_returned_formulas=False):
+        comp_formula = super().get_formula_of(names, get_kc_formulas_only, consume_returned_formulas)
         # at-least 1 formula was retrieved using get_formula_of for the list of formulas
         if comp_formula:
             return AndFormula(*comp_formula.get_formulas_list())
@@ -398,8 +379,8 @@ class OrFormula(CompositeFormula):
     def __init__(self, *formula_list):
         super().__init__(True, *formula_list)
 
-    def get_formula_of(self, names: set, get_kc_methods_only=False):
-        comp_formula = super().get_formula_of(names, get_kc_methods_only)
+    def get_formula_of(self, names: set, get_kc_formulas_only=False, consume_returned_formulas=False):
+        comp_formula = super().get_formula_of(names, get_kc_formulas_only, consume_returned_formulas)
         # at-least 1 formula was retrieved using get_formula_of for the list of formulas
         if comp_formula:
             return OrFormula(*comp_formula.get_formulas_list())
@@ -409,7 +390,7 @@ class OrFormula(CompositeFormula):
         return " OR ".join(super().__repr__())
 
 
-class KCFormula(Formula, ABC):
+class KCFormula(AtomicFormula, ABC):
     """
     This class represents the base class for KleeneClosure formulas.
     """
@@ -418,46 +399,24 @@ class KCFormula(Formula, ABC):
         self._getattr_func = getattr_func
         self._relation_op = relation_op
 
-    def get_formula_of(self, names: set, get_kc_methods_only=True):
-        """
-
-        :param names: set of names to be contained in self._names
-        :param get_kc_methods_only: flag to indicate if we wish to ignore KC formulas and abort further testing
-        :return: formula if conditions are valid and None if not
-        """
-        # KCFormula found for non-KC node or non-KCFormula found for KC node
-        if get_kc_methods_only != isinstance(self, KCFormula):
-            return None
-
+    def is_formula_of(self, names: set):
         if names == self._names:
-            return self
+            return True
         if len(names) != len(self._names):
-            return None
+            return False
         for name in names:
             if not any([name in n for n in self._names]):
-                return None
-        return self
-
-    @staticmethod
-    def validate_index(index: int, iterable: list):
-        """
-        :param index: requested index
-        :param iterable: requested iterable
-        :return: true if the index is a valid index to query
-        """
-        if index < 0 or index >= len(iterable):
-            return False
+                return False
         return True
 
-    def eval(self, iterable: list = None):
+    @staticmethod
+    def _validate_index(index: int, iterable: list):
         """
-        :param iterable: the list of events
-        :return:
+        :param index: requested index
+        :param iterable: requested event_list
+        :return: true if the index is a valid index to query
         """
-        raise NotImplementedError()
-
-    def extract_atomic_formulas(self):
-        return [self]
+        return 0 <= index < len(iterable)
 
     def __repr__(self):
         return "KC [" + ", ".join(self._names) + "]"
@@ -467,90 +426,91 @@ class KCIndexFormula(KCFormula):
     """
     This class represents KCFormulas that perform operations between 2 indexes of the KleeneClosure events
     It supports comparisons of 2 types:
-        - index_1 and index_2 will compare 2 specific indexes from the KC events
+        - first_index and second_index will compare 2 specific indexes from the KC events
         - offset will compare every 2 items in KC events that meet the offset requirement. Supports negative offsets.
 
     If the offset is larger than the length of the list for offset mechanism,
         or 1 of the indexes is negative or out of bounds for index mechanism,
         the formula returns False.
     """
-    def __init__(self, names: set, getattr_func: callable, relation_op: callable, index_1=None, index_2=None, offset=None):
+    def __init__(self, names: set, getattr_func: callable, relation_op: callable,
+                 first_index=None, second_index=None, offset=None):
         """
         :param names: names to match for future evaluations
         :param getattr_func: method to extract attribute from payload
         :param relation_op: the relation which the formula represents
-        :param index_1: first index to compare
-        :param index_2: second index to compare
+        :param first_index: first index to compare
+        :param second_index: second index to compare
         :param offset: offset to compare. Supports negative offsets.
 
         Enforce getting 1 of 2 activations types ONLY:
-            1) index_1 and index_2 to compare
+            1) first_index and index_2 to compare
             2) offset to compare every 2 items that meet offset requirement (either positive or negative)
         Further activation types may be implemented for convenience.
         """
-        if not self.__validate_params(index_1, index_2, offset):
+        if not self.__validate_params(first_index, second_index, offset):
             raise Exception("Invalid use of KCIndex formula.\nboth index and offset are not None\n refer to comment")
         super().__init__(names, getattr_func, relation_op)
-        self._index_1 = index_1
-        self._index_2 = index_2
-        self._offset = offset
+        self.__first_index = first_index
+        self.__second_index = second_index
+        self.__offset = offset
 
-    def eval(self, iterable: list or dict = None):
+    def eval(self, event_list: list = None):
         """
-        :param iterable: the list of events to compare events from
+        :param event_list: the list of events to compare events from
         :return: True or False based on evaluation mechanism
         """
         # offset is active - choose evaluation by offset mechanism
-        if self._offset is not None:
-            return self.eval_by_offset(iterable)
+        if self.__offset is not None:
+            return self.__eval_by_offset(event_list)
         # offset is not active - choose evaluation by index mechanism
-        else:
-            return self.eval_by_index(iterable)
+        return self.__eval_by_index(event_list)
 
-    def eval_by_index(self, iterable: list):
+    def __eval_by_index(self, event_list: list):
         """
-        :param iterable: the list of events to compare evnets from
+        :param event_list: the list of events to compare evnets from
         :return: True or False based on index evaluation
         """
         # validate both indexes
-        if not self.validate_index(self._index_1, iterable) or not self.validate_index(self._index_2, iterable):
+        if not self._validate_index(self.__first_index, event_list) or \
+                not self._validate_index(self.__second_index, event_list):
             return False
         # get the items
-        item_1 = iterable[self._index_1]
-        item_2 = iterable[self._index_2]
+        item_1 = event_list[self.__first_index]
+        item_2 = event_list[self.__second_index]
         # execute the relation op on both items
         if not self._relation_op(self._getattr_func(item_1), self._getattr_func(item_2)):
             return False
         return True
 
     # very time consuming process on large power-sets
-    def eval_by_offset(self, iterable: list):
+    def __eval_by_offset(self, event_list: list):
         """
-        :param iterable: the list of events to compare events from
+        :param event_list: the list of events to compare events from
         :return: True or False based on offset evaluation mechanism
         """
         # offset too large restriction
-        if self._offset >= len(iterable):
+        if self.__offset >= len(event_list):
             return False
 
-        for i in range(len(iterable)):
-            # test if i + offset meets index requirements ( 0 <= i <= len(iterable) - 1)
-            if not self.validate_index(i + self._offset, iterable):
+        for i in range(len(event_list)):
+            # test if i + offset meets index requirements ( 0 <= i <= len(event_list) - 1)
+            if not self._validate_index(i + self.__offset, event_list):
                 continue
             # use AND logic to return True if EVERY two items that meet offset requirement return True. (early Abort)
-            if not self._relation_op(self._getattr_func(iterable[i]),
-                                     self._getattr_func(iterable[i + self._offset])):
+            if not self._relation_op(self._getattr_func(event_list[i]),
+                                     self._getattr_func(event_list[i + self.__offset])):
                 return False
         return True
 
     @staticmethod
     def __validate_params(index_1, index_2, offset):
         """
-        :param index_1: index_1 provided to constructor
-        :param index_2: index_2 provided to constructor
+        :param index_1: first_index provided to constructor
+        :param index_2: second_index provided to constructor
         :param offset: offset privided to constructor
         :return: True if unsupported activation patterns are inserted to constructor.
-        Current supported patterns allow (index_1 AND index_2) OR (offset) AND (NOT BOTH).
+        Current supported patterns allow (first_index AND second_index) OR (offset) AND (NOT BOTH).
         Disqualification semantics used to allow easier extensions in the future - simply remove the newly supported
         patterns from the disqualified patterns.
         """
@@ -564,10 +524,11 @@ class KCIndexFormula(KCFormula):
         )
 
     def __repr__(self):
-        if self._index_1 is not None:
-            return "KCIndex index_1={}, index_2={} [".format(self._index_1, self._index_2) + ", ".join(self._names) + "]"
+        if self.__first_index is not None:
+            return "KCIndex first_index={}, second_index={} [".format(self.__first_index, self.__second_index) + \
+                   ", ".join(self._names) + "]"
         else:
-            return "KCIndex offset={} [".format(self._offset) + ", ".join(self._names) + "]"
+            return "KCIndex offset={} [".format(self.__offset) + ", ".join(self._names) + "]"
 
 
 class KCValueFormula(KCFormula):
@@ -578,7 +539,7 @@ class KCValueFormula(KCFormula):
         - value only comparison will compare all the items in KC events to a specific value
         - value and index comparison will compare a specific index from KC events to a specific value
     """
-    def __init__(self, names: set, getattr_func: callable, relation_op: callable, value, index=None):
+    def __init__(self, names: set, getattr_func: callable, relation_op: callable, value, index: int = None):
         """
         :param names: names to match for future evaluations
         :param getattr_func: method to extract attribute from payload
@@ -587,29 +548,29 @@ class KCValueFormula(KCFormula):
         :param index: the index to compare the item with. default mode is value only comparison
         """
         super().__init__(names, getattr_func, relation_op)
-        self._value = value
-        self._index = index
+        self.__value = value
+        self.__index = index
 
-    def eval(self, iterable: list or dict = None):
+    def eval(self, event_list: list = None):
         """
-        :param iterable: the list of events to compare events from
+        :param event_list: the list of events to compare events from
         :return: True or False based on evaluation mechanism
         """
         # index comparison method and invalid index - Abort.
-        if self._index is not None and not self.validate_index(self._index, iterable):
+        if self.__index is not None and not self._validate_index(self.__index, event_list):
             return False
 
-        if self._index is None:
+        if self.__index is None:
             # no index used for comparison - compare all elements
-            for item in iterable:
+            for item in event_list:
                 # use AND logic to return True if EVERY item returns True when being compared to formula's value.
-                if not self._relation_op(self._getattr_func(item), self._value):
+                if not self._relation_op(self._getattr_func(item), self.__value):
                     return False
         else:
             # compare 1 element from the list of events to the formula's value
-            if not self._relation_op(self._getattr_func(iterable[self._index]), self._value):
+            if not self._relation_op(self._getattr_func(event_list[self.__index]), self.__value):
                 return False
         return True
 
     def __repr__(self):
-        return "KCValue, index={}, value={} [".format(self._index, self._value) + ", ".join(self._names) + "]"
+        return "KCValue, index={}, value={} [".format(self.__index, self.__value) + ", ".join(self._names) + "]"

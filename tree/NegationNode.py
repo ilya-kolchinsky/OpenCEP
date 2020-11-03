@@ -89,8 +89,7 @@ class NegationNode(BinaryNode, ABC):
         """
         self._propagate_condition(formula)
         names = {event_def.name for event_def in self._event_defs}
-        self._condition = formula.get_formula_of(names, False)
-        formula.consume_formula_of(names, False)
+        self._condition = formula.get_formula_of(names, get_kc_formulas_only=False, consume_returned_formulas=True)
 
     def _try_create_new_matches(self, new_partial_match: PatternMatch, partial_matches_to_compare: List[PatternMatch],
                                 first_event_defs: List[PrimitiveEventDefinition],

@@ -2,7 +2,7 @@ from functools import reduce
 from typing import List
 
 from base.Event import Event
-from base.Formula import Formula, EqFormula, IdentifierTerm, BinaryFormula, AndFormula, CompositeFormula, TrueFormula
+from base.Formula import Formula, Variable, BinaryFormula, AndFormula, CompositeFormula, TrueFormula
 from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
     SeqOperator, NegationOperator
 from datetime import timedelta
@@ -138,8 +138,8 @@ class Pattern:
         """
         Augment the pattern condition with a contiguity constraint between the given event names.
         """
-        contiguity_condition = BinaryFormula(IdentifierTerm(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
-                                             IdentifierTerm(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
+        contiguity_condition = BinaryFormula(Variable(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
+                                             Variable(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
                                              lambda x, y: x == y - 1)
         self.condition.add_atomic_formula(contiguity_condition)
 
