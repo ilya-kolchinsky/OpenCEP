@@ -2,10 +2,10 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.Formula import Formula, RelopTypes, EquationSides, CompositeFormula
+from base.Formula import Formula, RelopTypes, EquationSides
 from base.PatternStructure import PrimitiveEventStructure
-from tree.Node import Node
-from tree.Node import PrimitiveEventDefinition
+from tree.nodes.Node import Node
+from tree.nodes.Node import PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters, SortedPatternMatchStorage
 
 

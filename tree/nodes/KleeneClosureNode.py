@@ -5,8 +5,8 @@ from base.Event import Event
 from base.Formula import CompositeFormula
 from base.PatternMatch import PatternMatch
 from misc.Utils import recursive_powerset_generator
-from tree.Node import Node
-from tree.UnaryNode import UnaryNode
+from tree.nodes.Node import Node
+from tree.nodes.UnaryNode import UnaryNode
 
 
 class KleeneClosureNode(UnaryNode):

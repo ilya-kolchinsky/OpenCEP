@@ -7,8 +7,8 @@ from base.Formula import RelopTypes, EquationSides, CompositeFormula
 from base.PatternMatch import PatternMatch
 from base.PatternStructure import AndOperator, SeqOperator, CompositeStructure
 from misc.Utils import find_partial_match_by_timestamp, merge, is_sorted, merge_according_to
-from tree.BinaryNode import BinaryNode
-from tree.Node import Node, PrimitiveEventDefinition
+from tree.nodes.BinaryNode import BinaryNode
+from tree.nodes.Node import Node, PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters
 
 

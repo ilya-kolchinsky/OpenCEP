@@ -5,16 +5,15 @@ from copy import deepcopy
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, CompositeStructure, UnaryStructure, \
     KleeneClosureOperator, PrimitiveEventStructure, NegationOperator
-from base.Formula import CompositeFormula, AndFormula
 from misc.ConsumptionPolicy import ConsumptionPolicy
 from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanBinaryNode, OperatorTypes
-from tree.AndNode import AndNode
-from tree.KleeneClosureNode import KleeneClosureNode
-from tree.LeafNode import LeafNode
-from tree.NegationNode import NegativeSeqNode, NegativeAndNode, NegationNode
-from tree.Node import Node
+from tree.nodes.AndNode import AndNode
+from tree.nodes.KleeneClosureNode import KleeneClosureNode
+from tree.nodes.LeafNode import LeafNode
+from tree.nodes.NegationNode import NegativeSeqNode, NegativeAndNode, NegationNode
+from tree.nodes.Node import Node
 from tree.PatternMatchStorage import TreeStorageParameters
-from tree.SeqNode import SeqNode
+from tree.nodes.SeqNode import SeqNode
 
 
 class Tree:

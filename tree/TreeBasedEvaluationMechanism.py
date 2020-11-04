@@ -5,7 +5,7 @@ from base.Event import Event
 from plan.TreePlan import TreePlan
 from stream.Stream import InputStream, OutputStream
 from misc.Utils import *
-from tree.LeafNode import LeafNode
+from tree.nodes.LeafNode import LeafNode
 from tree.PatternMatchStorage import TreeStorageParameters
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *

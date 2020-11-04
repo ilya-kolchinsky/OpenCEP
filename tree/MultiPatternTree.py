@@ -1,11 +1,11 @@
-from typing import List, Dict
+from typing import Dict
 from base.Pattern import Pattern
 from plan.multi.MultiPatternEvaluationParameters import *
 from tree.Tree import Tree
-from tree.Node import Node
-from tree.UnaryNode import UnaryNode
-from tree.BinaryNode import BinaryNode
-from tree.NegationNode import NegationNode
+from tree.nodes.Node import Node
+from tree.nodes.UnaryNode import UnaryNode
+from tree.nodes.BinaryNode import BinaryNode
+from tree.nodes.NegationNode import NegationNode
 from tree.PatternMatchStorage import TreeStorageParameters
 from plan.TreePlan import TreePlan
 

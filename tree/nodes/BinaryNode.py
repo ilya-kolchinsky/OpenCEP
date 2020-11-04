@@ -5,8 +5,8 @@ from typing import List, Set
 from base.Event import Event
 from base.Formula import Formula, Variable, EquationSides, BaseRelationFormula
 from base.PatternMatch import PatternMatch
-from tree.InternalNode import InternalNode
-from tree.Node import Node, PrimitiveEventDefinition
+from tree.nodes.InternalNode import InternalNode
+from tree.nodes.Node import Node, PrimitiveEventDefinition
 
 
 class BinaryNode(InternalNode, ABC):

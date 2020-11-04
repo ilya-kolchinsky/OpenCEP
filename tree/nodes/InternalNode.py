@@ -4,7 +4,7 @@ from typing import List, Set
 
 from base.Event import Event
 from base.Formula import RelopTypes, EquationSides
-from tree.Node import Node, PrimitiveEventDefinition
+from tree.nodes.Node import Node, PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters, UnsortedPatternMatchStorage, SortedPatternMatchStorage
 
 

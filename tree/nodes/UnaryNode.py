@@ -3,8 +3,8 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Formula import Formula, RelopTypes, EquationSides
-from tree.InternalNode import InternalNode
-from tree.Node import Node, PrimitiveEventDefinition
+from tree.nodes.InternalNode import InternalNode
+from tree.nodes.Node import Node, PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters
 
 
