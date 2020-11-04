@@ -2,7 +2,8 @@ from functools import reduce
 from typing import List
 
 from base.Event import Event
-from base.Formula import Formula, Variable, BinaryFormula, AndFormula, CompositeFormula, TrueFormula
+from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
+from condition.CompositeCondition import CompositeCondition, AndCondition
 from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
     SeqOperator, NegationOperator
 from datetime import timedelta
@@ -22,7 +23,7 @@ class Pattern:
     A pattern can also carry statistics with it, in order to enable advanced
     tree construction mechanisms - this is hopefully a temporary hack.
     """
-    def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Formula,
+    def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Condition,
                  time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None):
         self.id = pattern_id
 
@@ -31,10 +32,10 @@ class Pattern:
         self.negative_structure = self.__extract_negative_structure()
 
         self.condition = pattern_matching_condition
-        if isinstance(self.condition, TrueFormula):
-            self.condition = AndFormula()
-        elif not isinstance(self.condition, CompositeFormula):
-            self.condition = AndFormula(self.condition)
+        if isinstance(self.condition, TrueCondition):
+            self.condition = AndCondition()
+        elif not isinstance(self.condition, CompositeCondition):
+            self.condition = AndCondition(self.condition)
 
         self.window = time_window
 
@@ -47,7 +48,7 @@ class Pattern:
                 # must be initialized to contain all event types in the pattern
                 consumption_policy.single_types = self.get_all_event_types()
             if consumption_policy.contiguous_names is not None:
-                self.__init_strict_formulas(pattern_structure)
+                self.__init_strict_conditions(pattern_structure)
 
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         """
@@ -112,7 +113,7 @@ class Pattern:
             return [structure.type]
         return reduce(lambda x, y: x+y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
 
-    def __init_strict_formulas(self, pattern_structure: PatternStructure):
+    def __init_strict_conditions(self, pattern_structure: PatternStructure):
         """
         Augment the pattern with the contiguity constraints specified as a part of the consumption policy.
         """
@@ -120,7 +121,7 @@ class Pattern:
             return
         args = pattern_structure.args
         for i in range(len(args)):
-            self.__init_strict_formulas(args[i])
+            self.__init_strict_conditions(args[i])
         if pattern_structure.get_top_operator() != SeqOperator:
             return
         for contiguous_sequence in self.consumption_policy.contiguous_names:
@@ -140,10 +141,10 @@ class Pattern:
         """
         Augment the pattern condition with a contiguity constraint between the given event names.
         """
-        contiguity_condition = BinaryFormula(Variable(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
-                                             Variable(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
-                                             lambda x, y: x == y - 1)
-        self.condition.add_atomic_formula(contiguity_condition)
+        contiguity_condition = BinaryCondition(Variable(first_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
+                                               Variable(second_name, lambda x: x[Event.INDEX_ATTRIBUTE_NAME]),
+                                               lambda x, y: x == y - 1)
+        self.condition.add_atomic_condition(contiguity_condition)
 
     def extract_flat_sequences(self) -> List[List[str]]:
         """

@@ -5,16 +5,15 @@ from copy import deepcopy
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, CompositeStructure, UnaryStructure, \
     KleeneClosureOperator, PrimitiveEventStructure, NegationOperator
-from base.Formula import CompositeFormula, AndFormula
 from misc.ConsumptionPolicy import ConsumptionPolicy
 from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanBinaryNode, OperatorTypes
-from tree.AndNode import AndNode
-from tree.KleeneClosureNode import KleeneClosureNode
-from tree.LeafNode import LeafNode
-from tree.NegationNode import NegativeSeqNode, NegativeAndNode, NegationNode
-from tree.Node import Node
+from tree.nodes.AndNode import AndNode
+from tree.nodes.KleeneClosureNode import KleeneClosureNode
+from tree.nodes.LeafNode import LeafNode
+from tree.nodes.NegationNode import NegativeSeqNode, NegativeAndNode, NegationNode
+from tree.nodes.Node import Node
 from tree.PatternMatchStorage import TreeStorageParameters
-from tree.SeqNode import SeqNode
+from tree.nodes.SeqNode import SeqNode
 
 
 class Tree:
@@ -51,13 +50,13 @@ class Tree:
     def __apply_condition(self, pattern: Pattern):
         """
         Applies the condition of the given pattern on the evaluation tree.
-        The condition is copied since it is modified inside the recursive apply_formula call.
+        The condition is copied since it is modified inside the recursive apply_condition call.
         """
         condition_copy = deepcopy(pattern.condition)
-        self.__root.apply_formula(condition_copy)
-        if condition_copy.get_num_formulas() > 0:
+        self.__root.apply_condition(condition_copy)
+        if condition_copy.get_num_conditions() > 0:
             raise Exception("Unused conditions after condition propagation: {}".format(
-                condition_copy.get_formulas_list()))
+                condition_copy.get_conditions_list()))
 
     def __adjust_leaf_indices(self, pattern: Pattern):
         """

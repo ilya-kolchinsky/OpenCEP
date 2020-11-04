@@ -2,11 +2,11 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.Formula import CompositeFormula
+from condition.CompositeCondition import CompositeCondition
 from base.PatternMatch import PatternMatch
 from misc.Utils import recursive_powerset_generator
-from tree.Node import Node
-from tree.UnaryNode import UnaryNode
+from tree.nodes.Node import Node
+from tree.nodes.UnaryNode import UnaryNode
 
 
 class KleeneClosureNode(UnaryNode):
@@ -71,23 +71,23 @@ class KleeneClosureNode(UnaryNode):
         result_powerset = [item for item in result_powerset if self.__min_size <= len(item)]
         return result_powerset
 
-    def apply_formula(self, formula: CompositeFormula):
+    def apply_condition(self, condition: CompositeCondition):
         """
         The default implementation is overridden to extract KC conditions from the given composite condition.
         """
-        self._propagate_condition(formula)
+        self._propagate_condition(condition)
         names = {event_def.name for event_def in self.get_event_definitions()}
-        self._condition = formula.get_formula_of(names, get_kc_formulas_only=True, consume_returned_formulas=True)
+        self._condition = condition.get_condition_of(names, get_kleene_closure_conditions=True,
+                                                     consume_returned_conditions=True)
 
     def get_structure_summary(self):
         return "KC", self._child.get_structure_summary()
 
-    def is_structure_equivalent(self, other):
+    def is_equivalent(self, other):
         """
-        Checks if the type of both of the nodes is the same and then checks if the fields min_size and max_size of the
-        two nodes are the same.
+        In addition to the checks performed by the base class, compares the min_size and max_size fields.
         """
-        if type(other) != KleeneClosureNode:
+        if not super().is_equivalent(other):
             return False
         return self.__min_size == other.__min_size and self.__max_size == other.__max_size
 

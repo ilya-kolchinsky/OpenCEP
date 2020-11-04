@@ -3,8 +3,8 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.Formula import RelopTypes, EquationSides
-from tree.Node import Node, PrimitiveEventDefinition
+from condition.Condition import RelopTypes, EquationSides
+from tree.nodes.Node import Node, PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters, UnsortedPatternMatchStorage, SortedPatternMatchStorage
 
 
@@ -44,7 +44,7 @@ class InternalNode(Node, ABC):
         # we call this method before we share nodes so each node has at most one parent
         if len(self._parents) > 1:
             raise Exception("This method should not be called when there is more than one parent.")
-        self._parent_to_info_dict[self._parents[0]] = self._event_defs
+        self._parent_to_info_dict[self._parents[0]] = self.get_positive_event_definitions()
 
     def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                            rel_op: RelopTypes = None, equation_side: EquationSides = None,

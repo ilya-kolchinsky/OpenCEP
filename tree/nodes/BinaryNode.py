@@ -3,10 +3,11 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.Formula import Formula, Variable, EquationSides, BaseRelationFormula
+from condition.Condition import Condition, Variable, EquationSides
+from condition.BaseRelationCondition import BaseRelationCondition
 from base.PatternMatch import PatternMatch
-from tree.InternalNode import InternalNode
-from tree.Node import Node, PrimitiveEventDefinition
+from tree.nodes.InternalNode import InternalNode
+from tree.nodes.Node import Node, PrimitiveEventDefinition
 
 
 class BinaryNode(InternalNode, ABC):
@@ -38,9 +39,9 @@ class BinaryNode(InternalNode, ABC):
             result += self._right_subtree.get_leaves()
         return result
 
-    def _propagate_condition(self, condition: Formula):
-        self._left_subtree.apply_formula(condition)
-        self._right_subtree.apply_formula(condition)
+    def _propagate_condition(self, condition: Condition):
+        self._left_subtree.apply_condition(condition)
+        self._right_subtree.apply_condition(condition)
 
     def _set_event_definitions(self,
                                left_event_defs: List[PrimitiveEventDefinition],
@@ -68,8 +69,9 @@ class BinaryNode(InternalNode, ABC):
         """
         self._left_subtree = left
         self._right_subtree = right
-        self._set_event_definitions(self._left_subtree.get_event_definitions(),
-                                    self._right_subtree.get_event_definitions())
+        # only the positive children definitions should be applied on this node
+        self._set_event_definitions(self._left_subtree.get_positive_event_definitions(),
+                                    self._right_subtree.get_positive_event_definitions())
 
     def propagate_sliding_window(self, sliding_window: timedelta):
         self.set_sliding_window(sliding_window)
@@ -145,21 +147,21 @@ class BinaryNode(InternalNode, ABC):
             return second_event_list + first_event_list
         raise Exception()
 
-    def is_structure_equivalent(self, other):
+    def is_equivalent(self, other):
         """
-        Checks if the type of both of the nodes is the same and then checks if:
+        In addition to the checks performed by the base class, checks if:
         the left subtrees structures are equivalent and the right subtrees structures are equivalent OR
         the left of the first is equivalent to the right of the second and the right of the first is equivalent to
         the left of the second.
         """
-        if type(self) != type(other):
+        if not super().is_equivalent(other):
             return False
-        v1 = self._left_subtree.is_structure_equivalent(other.get_left_subtree())
-        v2 = self._right_subtree.is_structure_equivalent(other.get_right_subtree())
+        v1 = self._left_subtree.is_equivalent(other.get_left_subtree())
+        v2 = self._right_subtree.is_equivalent(other.get_right_subtree())
         if v1 and v2:
             return True
-        v3 = self._left_subtree.is_structure_equivalent(other.get_right_subtree())
-        v4 = self._right_subtree.is_structure_equivalent(other.get_left_subtree())
+        v3 = self._left_subtree.is_equivalent(other.get_right_subtree())
+        v4 = self._right_subtree.is_equivalent(other.get_left_subtree())
         return v3 and v4
 
     def __get_filtered_conditions(self, left_event_names: Set[str], right_event_names: Set[str]):
@@ -167,10 +169,10 @@ class BinaryNode(InternalNode, ABC):
         An auxiliary method returning the atomic binary conditions containing variables from the opposite subtrees
         of this node.
         """
-        atomic_conditions = self._condition.extract_atomic_formulas()
+        atomic_conditions = self._condition.extract_atomic_conditions()
         filtered_conditions = []
         for atomic_condition in atomic_conditions:
-            if not isinstance(atomic_condition, BaseRelationFormula):
+            if not isinstance(atomic_condition, BaseRelationCondition):
                 # filtering by condition is only possible for basic relation conditions as of now
                 continue
             if not isinstance(atomic_condition.get_left_term(), Variable):
@@ -185,7 +187,7 @@ class BinaryNode(InternalNode, ABC):
                 filtered_conditions.append(atomic_condition)
         return filtered_conditions
 
-    def __get_params_for_sorting_keys(self, conditions: List[BaseRelationFormula], attributes_priorities: dict,
+    def __get_params_for_sorting_keys(self, conditions: List[BaseRelationCondition], attributes_priorities: dict,
                                       left_event_names: List[str], right_event_names: List[str]):
         """
         An auxiliary method returning the best assignments for the parameters of the sorting keys according to the

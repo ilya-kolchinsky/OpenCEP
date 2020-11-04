@@ -18,6 +18,7 @@ absolutePath = str(currentPath.parent)
 sys.path.append(absolutePath)
 
 INCLUDE_BENCHMARKS = False
+INCLUDE_TWITTER = False
 
 nasdaqEventStreamTiny = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_TINY.txt"))
 nasdaqEventStreamShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_SHORT.txt"))

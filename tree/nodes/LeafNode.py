@@ -2,10 +2,10 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.Formula import Formula, RelopTypes, EquationSides, CompositeFormula
+from condition.Condition import Condition, RelopTypes, EquationSides
 from base.PatternStructure import PrimitiveEventStructure
-from tree.Node import Node
-from tree.Node import PrimitiveEventDefinition
+from tree.nodes.Node import Node
+from tree.nodes.Node import PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters, SortedPatternMatchStorage
 
 
@@ -80,7 +80,7 @@ class LeafNode(Node):
         binding = {self.__event_name: events_for_new_match[0].payload}
         return self._condition.eval(binding)
 
-    def _propagate_condition(self, formula: Formula):
+    def _propagate_condition(self, condition: Condition):
         pass
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
@@ -101,13 +101,11 @@ class LeafNode(Node):
     def get_structure_summary(self):
         return self.__event_name
 
-    def is_structure_equivalent(self, other):
+    def is_equivalent(self, other):
         """
-        Checks if the type of both of the nodes is the same and then checks if the nodes have the same event_type.
+        Checks if the two nodes accept the same event type.
         """
-        if type(other) != LeafNode:
-            return False
-        return self.__event_type == other.get_event_type()
+        return super().is_equivalent(other) and self.__event_type == other.get_event_type()
 
     def propagate_sliding_window(self, sliding_window: timedelta):
         """

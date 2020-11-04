@@ -2,9 +2,9 @@ from abc import ABC
 from datetime import timedelta
 from typing import List, Set
 
-from base.Formula import Formula, RelopTypes, EquationSides
-from tree.InternalNode import InternalNode
-from tree.Node import Node, PrimitiveEventDefinition
+from condition.Condition import Condition, RelopTypes, EquationSides
+from tree.nodes.InternalNode import InternalNode
+from tree.nodes.Node import Node, PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters
 
 
@@ -22,15 +22,16 @@ class UnaryNode(InternalNode, ABC):
             raise Exception("Unary Node with no child")
         return self._child.get_leaves()
 
-    def _propagate_condition(self, condition: Formula):
-        self._child.apply_formula(condition)
+    def _propagate_condition(self, condition: Condition):
+        self._child.apply_condition(condition)
 
     def set_subtree(self, child: Node):
         """
         Sets the child node of this node.
         """
         self._child = child
-        self._event_defs = child.get_event_definitions()
+        # only the positive child definitions should be applied on this node
+        self._event_defs = child.get_positive_event_definitions()
 
     def propagate_sliding_window(self, sliding_window: timedelta):
         self.set_sliding_window(sliding_window)
@@ -63,3 +64,9 @@ class UnaryNode(InternalNode, ABC):
         Returns the child of this unary node.
         """
         return self._child
+
+    def is_equivalent(self, other):
+        """
+        In addition to the checks performed by the base class, verifies the equivalence of the child nodes.
+        """
+        return super().is_equivalent(other) and self._child.is_equivalent(other.get_child())

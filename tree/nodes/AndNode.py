@@ -1,5 +1,5 @@
-from base.Formula import RelopTypes, EquationSides
-from tree.BinaryNode import BinaryNode
+from condition.Condition import RelopTypes, EquationSides
+from tree.nodes.BinaryNode import BinaryNode
 from tree.PatternMatchStorage import TreeStorageParameters
 
 

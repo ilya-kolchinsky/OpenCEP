@@ -1,15 +1,15 @@
-from base.Formula import Formula
+from condition.Condition import Condition
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from stream.Stream import Stream
 
 
-def get_condition_selectivity(arg1: PrimitiveEventStructure, arg2: PrimitiveEventStructure, formula: Formula,
+def get_condition_selectivity(arg1: PrimitiveEventStructure, arg2: PrimitiveEventStructure, condition: Condition,
                               stream: Stream, is_sequence: bool):
     """
     Calculates the selectivity of a given condition between two event types by evaluating it on a given stream.
     """
-    if formula is None:
+    if condition is None:
         return 1.0
 
     count = 0
@@ -19,7 +19,7 @@ def get_condition_selectivity(arg1: PrimitiveEventStructure, arg2: PrimitiveEven
         for event in stream:
             if event.eventType == arg1.type:
                 count += 1
-                if formula.eval({arg1.name: event.event}):
+                if condition.eval({arg1.name: event.event}):
                     match_count += 1
     else:
         events1 = []
@@ -33,7 +33,7 @@ def get_condition_selectivity(arg1: PrimitiveEventStructure, arg2: PrimitiveEven
             for event2 in events2:
                 if (not is_sequence) or event1.date < event2.date:
                     count += 1
-                    if formula.eval({arg1.name: event1.event, arg2.name: event2.event}):
+                    if condition.eval({arg1.name: event1.event, arg2.name: event2.event}):
                         match_count += 1
     return match_count / count
 
@@ -65,7 +65,7 @@ def calculate_selectivity_matrix(pattern: Pattern, stream: Stream):
     for i in range(args_num):
         for j in range(i + 1):
             new_sel = get_condition_selectivity(args[i], args[j],
-                                                pattern.condition.get_formula_of({args[i].name, args[j].name}),
+                                                pattern.condition.get_condition_of({args[i].name, args[j].name}),
                                                 stream.duplicate(), pattern.positive_structure.get_top_operator() == SeqOperator)
             selectivity_matrix[i][j] = selectivity_matrix[j][i] = new_sel
 

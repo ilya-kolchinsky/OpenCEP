@@ -1,7 +1,7 @@
 from base.PatternMatch import PatternMatch
 from tree.PatternMatchStorage import SortedPatternMatchStorage, UnsortedPatternMatchStorage, EquationSides
 from datetime import datetime, timedelta
-from base.Formula import RelopTypes
+from condition.Condition import RelopTypes
 
 
 """
