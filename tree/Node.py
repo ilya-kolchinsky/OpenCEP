@@ -4,7 +4,7 @@ from queue import Queue
 from typing import List, Set
 
 from base.Event import Event
-from base.Formula import TrueFormula, Formula, RelopTypes, EquationSides, CompositeFormula, AndFormula
+from base.Formula import RelopTypes, EquationSides, CompositeFormula, AndFormula
 from base.PatternMatch import PatternMatch
 from tree.PatternMatchStorage import TreeStorageParameters
 
@@ -28,6 +28,7 @@ class Node(ABC):
     # In several very special cases, it is required to switch off this functionality.
     __enable_partial_match_expiration = True
 
+    ###################################### Static methods
     @staticmethod
     def _toggle_enable_partial_match_expiration(enable):
         """
@@ -42,6 +43,8 @@ class Node(ABC):
         """
         return Node.__enable_partial_match_expiration
 
+
+    ###################################### Initialization
     def __init__(self, sliding_window: timedelta, parents, pattern_ids: int or Set[int] = None):
         self._parents = []
         self._sliding_window = sliding_window
@@ -73,6 +76,8 @@ class Node(ABC):
 
         self.set_parents(parents, on_init=True)
 
+
+    ###################################### Matching-related methods
     def get_next_unreported_match(self):
         """
         Removes and returns an unreported match buffered at this node.
@@ -87,102 +92,6 @@ class Node(ABC):
         """
         return self._unreported_matches.qsize() > 0
 
-    def get_last_unhandled_partial_match_by_parent(self, parent):
-        """
-        Returns the last partial match buffered at this node and not yet transferred to parent.
-        """
-        return self._parent_to_unhandled_queue_dict[parent].get(block=False)
-
-    def set_parents(self, parents, on_init: bool = False):
-        """
-        Sets the parents of this node to the given list of nodes. Providing None as the parameter will render
-        this node parentless.
-        """
-        if parents is None:
-            parents = []
-        elif isinstance(parents, Node):
-            # a single parent was specified
-            parents = [parents]
-        self._parents = []
-        self._parent_to_unhandled_queue_dict = {}
-        self._parent_to_info_dict = {}
-        for parent in parents:
-            self.add_parent(parent, on_init)
-
-    def set_parent(self, parent):
-        """
-        A more intuitive API for setting the parent list of a node to a single parent.
-        Simply invokes set_parents as the latter already supports the case of a single node instead of a list.
-        """
-        self.set_parents(parent)
-
-    def add_parent(self, parent, on_init: bool = False):
-        """
-        Adds a parent to this node.
-        """
-        if parent in self._parents:
-            return
-        self._parents.append(parent)
-        self._parent_to_unhandled_queue_dict[parent] = Queue()
-        if not on_init:
-            self._parent_to_info_dict[parent] = self.get_event_definitions()
-
-    def get_parents(self):
-        """
-        Returns the parents of this node.
-        """
-        return self._parents
-
-    def get_event_definitions_by_parent(self, parent):
-        """
-        Returns the event definitions according to the parent.
-        """
-        if parent not in self._parent_to_info_dict.keys():
-            raise Exception("parent is not in the dictionary.")
-        return self._parent_to_info_dict[parent]
-
-    def get_sliding_window(self):
-        """
-        Returns the sliding window of this node.
-        """
-        return self._sliding_window
-
-    def set_sliding_window(self, new_sliding_window: timedelta):
-        """
-        Sets the sliding window of this node.
-        """
-        self._sliding_window = new_sliding_window
-
-    def get_pattern_ids(self):
-        """
-        Returns the pattern ids of this node.
-        """
-        return self._pattern_ids
-
-    def get_condition(self):
-        """
-        Returns the condition of this node.
-        """
-        return self._condition
-
-    def add_pattern_ids(self, ids: Set[int]):
-        """
-        Adds a set of Ds of patterns with which this node is associated.
-        """
-        self._pattern_ids |= ids
-
-    def set_is_output_node(self, is_output_node: bool):
-        """
-        Sets this node to be defined as an output node according to the given parameter.
-        """
-        self._is_output_node = is_output_node
-
-    def is_output_node(self):
-        """
-        Returns whether this node is an output node.
-        """
-        return self._is_output_node
-
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
         Removes partial matches whose earliest timestamp violates the time window constraint.
@@ -196,15 +105,6 @@ class Node(ABC):
             return
         self._filtered_events = set([event for event in self._filtered_events
                                     if event.timestamp >= last_timestamp - self._sliding_window])
-
-    def register_single_event_type(self, event_type: str):
-        """
-        Add the event type to the internal set of event types for which "single" consumption policy is enabled.
-        Recursively updates the ancestors of the node.
-        """
-        self._single_event_types.add(event_type)
-        for parent in self._parents:
-            parent.register_single_event_type(event_type)
 
     def _add_partial_match(self, pm: PatternMatch):
         """
@@ -263,12 +163,6 @@ class Node(ABC):
         return self._partial_matches.get(filter_value) if filter_value is not None \
             else self._partial_matches.get_internal_buffer()
 
-    def get_storage_unit(self):
-        """
-        Returns the internal partial match storage of this node.
-        """
-        return self._partial_matches
-
     def _validate_new_match(self, events_for_new_match: List[Event]):
         """
         Validates the condition stored in this node on the given set of events.
@@ -276,6 +170,123 @@ class Node(ABC):
         min_timestamp = min([event.timestamp for event in events_for_new_match])
         max_timestamp = max([event.timestamp for event in events_for_new_match])
         return max_timestamp - min_timestamp <= self._sliding_window
+
+
+    ###################################### Parent- and topology-related methods
+    def get_last_unhandled_partial_match_by_parent(self, parent):
+        """
+        Returns the last partial match buffered at this node and not yet transferred to parent.
+        """
+        return self._parent_to_unhandled_queue_dict[parent].get(block=False)
+
+    def set_parents(self, parents, on_init: bool = False):
+        """
+        Sets the parents of this node to the given list of nodes. Providing None as the parameter will render
+        this node parentless.
+        """
+        if parents is None:
+            parents = []
+        elif isinstance(parents, Node):
+            # a single parent was specified
+            parents = [parents]
+        self._parents = []
+        self._parent_to_unhandled_queue_dict = {}
+        self._parent_to_info_dict = {}
+        for parent in parents:
+            self.add_parent(parent, on_init)
+
+    def set_parent(self, parent):
+        """
+        A more intuitive API for setting the parent list of a node to a single parent.
+        Simply invokes set_parents as the latter already supports the case of a single node instead of a list.
+        """
+        self.set_parents(parent)
+
+    def add_parent(self, parent, on_init: bool = False):
+        """
+        Adds a parent to this node.
+        """
+        if parent in self._parents:
+            return
+        self._parents.append(parent)
+        self._parent_to_unhandled_queue_dict[parent] = Queue()
+        if not on_init:
+            self._parent_to_info_dict[parent] = self.get_event_definitions()
+
+    def get_parents(self):
+        """
+        Returns the parents of this node.
+        """
+        return self._parents
+
+    def get_event_definitions_by_parent(self, parent):
+        """
+        Returns the event definitions according to the parent.
+        """
+        if parent not in self._parent_to_info_dict.keys():
+            raise Exception("parent is not in the dictionary.")
+        return self._parent_to_info_dict[parent]
+
+
+    ###################################### Various setters and getters
+    def get_sliding_window(self):
+        """
+        Returns the sliding window of this node.
+        """
+        return self._sliding_window
+
+    def set_sliding_window(self, new_sliding_window: timedelta):
+        """
+        Sets the sliding window of this node.
+        """
+        self._sliding_window = new_sliding_window
+
+    def get_pattern_ids(self):
+        """
+        Returns the pattern ids of this node.
+        """
+        return self._pattern_ids
+
+    def get_condition(self):
+        """
+        Returns the condition of this node.
+        """
+        return self._condition
+
+    def add_pattern_ids(self, ids: Set[int]):
+        """
+        Adds a set of Ds of patterns with which this node is associated.
+        """
+        self._pattern_ids |= ids
+
+    def set_is_output_node(self, is_output_node: bool):
+        """
+        Sets this node to be defined as an output node according to the given parameter.
+        """
+        self._is_output_node = is_output_node
+
+    def is_output_node(self):
+        """
+        Returns whether this node is an output node.
+        """
+        return self._is_output_node
+
+    def get_storage_unit(self):
+        """
+        Returns the internal partial match storage of this node.
+        """
+        return self._partial_matches
+
+
+    ###################################### Miscellaneous
+    def register_single_event_type(self, event_type: str):
+        """
+        Add the event type to the internal set of event types for which "single" consumption policy is enabled.
+        Recursively updates the ancestors of the node.
+        """
+        self._single_event_types.add(event_type)
+        for parent in self._parents:
+            parent.register_single_event_type(event_type)
 
     def apply_formula(self, formula: CompositeFormula):
         """
@@ -295,6 +306,8 @@ class Node(ABC):
         # TODO: after the conditions branch is merged, the condition equivalence will no longer work and will need to be fixed ASAP
         return self.is_structure_equivalent(other) and self._condition == other.get_condition()
 
+
+    ###################################### To be implemented by subclasses
     def propagate_sliding_window(self, sliding_window: timedelta):
         """
         Propagates the given sliding window down the subtree of this node.
