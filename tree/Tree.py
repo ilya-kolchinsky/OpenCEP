@@ -50,13 +50,13 @@ class Tree:
     def __apply_condition(self, pattern: Pattern):
         """
         Applies the condition of the given pattern on the evaluation tree.
-        The condition is copied since it is modified inside the recursive apply_formula call.
+        The condition is copied since it is modified inside the recursive apply_condition call.
         """
         condition_copy = deepcopy(pattern.condition)
-        self.__root.apply_formula(condition_copy)
-        if condition_copy.get_num_formulas() > 0:
+        self.__root.apply_condition(condition_copy)
+        if condition_copy.get_num_conditions() > 0:
             raise Exception("Unused conditions after condition propagation: {}".format(
-                condition_copy.get_formulas_list()))
+                condition_copy.get_conditions_list()))
 
     def __adjust_leaf_indices(self, pattern: Pattern):
         """

@@ -1,9 +1,7 @@
 """
-These classes are used to represent a "parameter" to the PATTERN clause.
-These classes represent a SEQ/AND/OR/KL operator and the atomic argument PrimitiveEventStructure.
-The classes support nesting. Every operator class has its list of arguments.
-The PrimitiveEventStructure class has an event type and its name. The name is referred to in
-a pattern matching condition, represented as formula.
+The pattern structure consists of an arbitrarily nested expression over the set of the supported operators.
+As of now, OpenCEP supports three n-ary operators (SEQ, AND, OR) and two unary operators (NOT, KL). More operators
+could be added in the future.
 """
 from abc import ABC
 from typing import List

@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 from typing import List, Set
 
 from base.Event import Event
-from base.Formula import RelopTypes, EquationSides, CompositeFormula
+from base.Condition import RelopTypes, EquationSides, CompositeCondition
 from base.PatternMatch import PatternMatch
 from base.PatternStructure import AndOperator, SeqOperator, CompositeStructure
 from misc.Utils import find_partial_match_by_timestamp, merge, is_sorted, merge_according_to
@@ -83,14 +83,15 @@ class NegationNode(BinaryNode, ABC):
         """
         return self._positive_subtree.get_event_definitions()
 
-    def apply_formula(self, formula: CompositeFormula):
+    def apply_condition(self, condition: CompositeCondition):
         """
         This is an ugly code duplication and a continuation of an atrocious get_event_definitions() hack.
         To be fixed as soon as the above hack is fixed.
         """
-        self._propagate_condition(formula)
+        self._propagate_condition(condition)
         names = {event_def.name for event_def in self._event_defs}
-        self._condition = formula.get_formula_of(names, get_kc_formulas_only=False, consume_returned_formulas=True)
+        self._condition = condition.get_condition_of(names, get_kleene_closure_conditions=False,
+                                                     consume_returned_conditions=True)
 
     def get_event_definitions_by_parent(self, parent):
         """

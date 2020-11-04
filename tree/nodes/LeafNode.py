@@ -2,7 +2,7 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.Formula import Formula, RelopTypes, EquationSides
+from base.Condition import Condition, RelopTypes, EquationSides
 from base.PatternStructure import PrimitiveEventStructure
 from tree.nodes.Node import Node
 from tree.nodes.Node import PrimitiveEventDefinition
@@ -80,7 +80,7 @@ class LeafNode(Node):
         binding = {self.__event_name: events_for_new_match[0].payload}
         return self._condition.eval(binding)
 
-    def _propagate_condition(self, formula: Formula):
+    def _propagate_condition(self, condition: Condition):
         pass
 
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,

@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.Formula import Formula, Variable, EquationSides, BaseRelationFormula
+from base.Condition import Condition, Variable, EquationSides, BaseRelationCondition
 from base.PatternMatch import PatternMatch
 from tree.nodes.InternalNode import InternalNode
 from tree.nodes.Node import Node, PrimitiveEventDefinition
@@ -38,9 +38,9 @@ class BinaryNode(InternalNode, ABC):
             result += self._right_subtree.get_leaves()
         return result
 
-    def _propagate_condition(self, condition: Formula):
-        self._left_subtree.apply_formula(condition)
-        self._right_subtree.apply_formula(condition)
+    def _propagate_condition(self, condition: Condition):
+        self._left_subtree.apply_condition(condition)
+        self._right_subtree.apply_condition(condition)
 
     def _set_event_definitions(self,
                                left_event_defs: List[PrimitiveEventDefinition],
@@ -167,10 +167,10 @@ class BinaryNode(InternalNode, ABC):
         An auxiliary method returning the atomic binary conditions containing variables from the opposite subtrees
         of this node.
         """
-        atomic_conditions = self._condition.extract_atomic_formulas()
+        atomic_conditions = self._condition.extract_atomic_conditions()
         filtered_conditions = []
         for atomic_condition in atomic_conditions:
-            if not isinstance(atomic_condition, BaseRelationFormula):
+            if not isinstance(atomic_condition, BaseRelationCondition):
                 # filtering by condition is only possible for basic relation conditions as of now
                 continue
             if not isinstance(atomic_condition.get_left_term(), Variable):
@@ -185,7 +185,7 @@ class BinaryNode(InternalNode, ABC):
                 filtered_conditions.append(atomic_condition)
         return filtered_conditions
 
-    def __get_params_for_sorting_keys(self, conditions: List[BaseRelationFormula], attributes_priorities: dict,
+    def __get_params_for_sorting_keys(self, conditions: List[BaseRelationCondition], attributes_priorities: dict,
                                       left_event_names: List[str], right_event_names: List[str]):
         """
         An auxiliary method returning the best assignments for the parameters of the sorting keys according to the

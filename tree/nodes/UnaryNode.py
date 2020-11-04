@@ -2,7 +2,7 @@ from abc import ABC
 from datetime import timedelta
 from typing import List, Set
 
-from base.Formula import Formula, RelopTypes, EquationSides
+from base.Condition import Condition, RelopTypes, EquationSides
 from tree.nodes.InternalNode import InternalNode
 from tree.nodes.Node import Node, PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters
@@ -22,8 +22,8 @@ class UnaryNode(InternalNode, ABC):
             raise Exception("Unary Node with no child")
         return self._child.get_leaves()
 
-    def _propagate_condition(self, condition: Formula):
-        self._child.apply_formula(condition)
+    def _propagate_condition(self, condition: Condition):
+        self._child.apply_condition(condition)
 
     def set_subtree(self, child: Node):
         """

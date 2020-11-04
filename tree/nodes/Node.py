@@ -4,7 +4,7 @@ from queue import Queue
 from typing import List, Set
 
 from base.Event import Event
-from base.Formula import RelopTypes, EquationSides, CompositeFormula, AndFormula
+from base.Condition import RelopTypes, EquationSides, CompositeCondition, AndCondition
 from base.PatternMatch import PatternMatch
 from tree.PatternMatchStorage import TreeStorageParameters
 
@@ -49,7 +49,7 @@ class Node(ABC):
         self._parents = []
         self._sliding_window = sliding_window
         self._partial_matches = None
-        self._condition = AndFormula()
+        self._condition = AndCondition()
 
         # Full pattern matches that were not yet reported. Only relevant for an output node, that is, for a node
         # corresponding to a full pattern definition.
@@ -288,15 +288,16 @@ class Node(ABC):
         for parent in self._parents:
             parent.register_single_event_type(event_type)
 
-    def apply_formula(self, formula: CompositeFormula):
+    def apply_condition(self, condition: CompositeCondition):
         """
         Applies the given condition on all nodes in the subtree of this node.
-        The process of applying the formula is recursive and proceeds in a bottom-up manner - first the condition is
+        The process of applying the condition is recursive and proceeds in a bottom-up manner - first the condition is
         propagated down the subtree, then sub-conditions for this node are assigned.
         """
-        self._propagate_condition(formula)
+        self._propagate_condition(condition)
         names = {event_def.name for event_def in self.get_event_definitions()}
-        self._condition = formula.get_formula_of(names, get_kc_formulas_only=False, consume_returned_formulas=True)
+        self._condition = condition.get_condition_of(names, get_kleene_closure_conditions=False,
+                                                     consume_returned_conditions=True)
 
     def is_equivalent(self, other):
         """
@@ -334,7 +335,7 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    def _propagate_condition(self, formula: CompositeFormula):
+    def _propagate_condition(self, condition: CompositeCondition):
         """
         Propagates the given condition to successors - to be implemented by subclasses.
         """

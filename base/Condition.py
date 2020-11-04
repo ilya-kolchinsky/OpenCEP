@@ -61,9 +61,9 @@ class Variable:
         return type(other) == Variable and self.name == other.name and self.getattr_func == other.getattr_func
 
 
-class Formula(ABC):
+class Condition(ABC):
     """
-    The base abstract class of the formula classes hierarchy.
+    The base abstract class of the condition classes hierarchy.
     """
     def eval(self, binding: dict or list = None):
         """
@@ -72,50 +72,50 @@ class Formula(ABC):
         """
         raise NotImplementedError()
 
-    def extract_atomic_formulas(self):
+    def extract_atomic_conditions(self):
         """
-        Returns all atomic conditions comprising this formula.
+        Returns all atomic conditions comprising this condition.
         """
         raise NotImplementedError()
 
 
-class AtomicFormula(Formula, ABC):
+class AtomicCondition(Condition, ABC):
     """
-    Represents an atomic (non-composite) formula.
+    Represents an atomic (non-composite) condition.
     """
-    def is_formula_of(self, names: set):
+    def is_condition_of(self, names: set):
         """
         Returns True if all variable names participating in this condition appear in the given set and False otherwise.
         """
         raise NotImplementedError()
 
-    def extract_atomic_formulas(self):
+    def extract_atomic_conditions(self):
         return [self]
 
 
-class TrueFormula(AtomicFormula):
+class TrueCondition(AtomicCondition):
     """
-    Represents a Boolean True formula.
+    Represents a Boolean True condition.
     """
     def eval(self, binding: dict = None):
         return True
 
     def __repr__(self):
-        return "True Formula"
+        return "True Condition"
 
-    def extract_atomic_formulas(self):
+    def extract_atomic_conditions(self):
         return []
 
-    def is_formula_of(self, names: set):
+    def is_condition_of(self, names: set):
         return False
 
     def __eq__(self, other):
-        return type(other) == TrueFormula
+        return type(other) == TrueCondition
 
 
-class NaryFormula(AtomicFormula):
+class SimpleCondition(AtomicCondition):
     """
-    A simple formula over N operands (either variables or constants).
+    A simple (non-composite) condition over N operands (either variables or constants).
     """
     def __init__(self, *terms, relation_op: callable):
         self.terms = terms
@@ -127,7 +127,7 @@ class NaryFormula(AtomicFormula):
             rel_terms.append(term.eval(binding) if isinstance(term, Variable) else term)
         return self.relation_op(*rel_terms)
 
-    def is_formula_of(self, names: set):
+    def is_condition_of(self, names: set):
         for term in self.terms:
             if term.name not in names:
                 return False
@@ -144,14 +144,14 @@ class NaryFormula(AtomicFormula):
         return type(self) == type(other) and self.terms == other.terms and self.relation_op == other.relation_op
 
 
-class BinaryFormula(NaryFormula):
+class BinaryCondition(SimpleCondition):
     """
-    A binary formula containing no logic operators (e.g., A < B).
-    This is a special case of an n-ary formula constrained to two operands.
+    A binary condition containing no logic operators (e.g., A < B).
+    This is a special case of a simple n-ary condition constrained to two operands.
     """
     def __init__(self, left_term, right_term, relation_op: callable):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
-            raise Exception("Invalid use of BinaryFormula!")
+            raise Exception("Invalid use of BinaryCondition!")
         elif not isinstance(left_term, Variable):
             super().__init__(right_term, relation_op=relation_op)
         elif not isinstance(right_term, Variable):
@@ -161,7 +161,7 @@ class BinaryFormula(NaryFormula):
 
     def get_left_term(self):
         """
-        Returns the left term of this formula.
+        Returns the left term of this condition.
         """
         if len(self.terms) < 1:
             return None
@@ -169,20 +169,20 @@ class BinaryFormula(NaryFormula):
 
     def get_right_term(self):
         """
-        Returns the right term of this formula.
+        Returns the right term of this condition.
         """
         if len(self.terms) < 2:
             return None
         return self.terms[1]
 
 
-class BaseRelationFormula(BinaryFormula, ABC):
+class BaseRelationCondition(BinaryCondition, ABC):
     """
     This class serves as a base for commonly used binary relations: >, >=, <, <=, ==, !=.
     """
     def __init__(self, left_term, right_term, relation_op: callable, relop_type):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
-            raise Exception("Invalid use of BaseRelationFormula!")
+            raise Exception("Invalid use of BaseRelationCondition!")
         elif not isinstance(left_term, Variable):
             super().__init__(left_term, right_term, relation_op=relation_op(left_term))
         elif not isinstance(right_term, Variable):
@@ -200,15 +200,15 @@ class BaseRelationFormula(BinaryFormula, ABC):
         """
         Returns True if self and other are of the same basic relation types and represent the same condition.
         """
-        return isinstance(other, BaseRelationFormula) and self.relop_type == other.relop_type \
+        return isinstance(other, BaseRelationCondition) and self.relop_type == other.relop_type \
                and self.left_term_repr == other.left_term_repr and self.right_term_repr == other.right_term_repr
 
     def __eq_opposite_type(self, other):
         """
-        Returns True if self and other are of the oppositve basic relation types and represent the same condition
+        Returns True if self and other are of the opposite basic relation types and represent the same condition
         (e.g., a < b and b > a).
         """
-        if not isinstance(other, BaseRelationFormula):
+        if not isinstance(other, BaseRelationCondition):
             return False
         opposite_type = RelopTypes.get_opposite_relop_type(self.relop_type)
         if opposite_type is None:
@@ -220,17 +220,17 @@ class BaseRelationFormula(BinaryFormula, ABC):
         return self.__eq_same_type(other) or self.__eq_opposite_type(other)
 
 
-class EqFormula(BaseRelationFormula):
+class EqCondition(BaseRelationCondition):
     """
-    Binary Equal Formula; ==
+    Binary Equal Condition; ==
     This class can be called either with terms or a number:
     Examples:
-        EqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
-        EqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
+        EqCondition(Variable("a", lambda x: x["Opening Price"]), 135)
+        EqCondition(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
-            raise Exception("Invalid use of EqFormula!")
+            raise Exception("Invalid use of EqCondition!")
         elif not isinstance(left_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: x == y, RelopTypes.Equal)
         elif not isinstance(right_term, Variable):
@@ -242,16 +242,16 @@ class EqFormula(BaseRelationFormula):
         return "{} == {}".format(self.left_term_repr, self.right_term_repr)
 
 
-class NotEqFormula(BaseRelationFormula):
+class NotEqCondition(BaseRelationCondition):
     """
-    Binary Not Equal Formula; !=
+    Binary Not Equal Condition; !=
     Examples:
-        NotEqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
-        NotEqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
+        NotEqCondition(Variable("a", lambda x: x["Opening Price"]), 135)
+        NotEqCondition(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
-            raise Exception("Invalid use of NotEqFormula!")
+            raise Exception("Invalid use of NotEqCondition!")
         elif not isinstance(left_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: x != y, RelopTypes.NotEqual)
         elif not isinstance(right_term, Variable):
@@ -263,16 +263,16 @@ class NotEqFormula(BaseRelationFormula):
         return "{} != {}".format(self.left_term_repr, self.right_term_repr)
 
 
-class GreaterThanFormula(BaseRelationFormula):
+class GreaterThanCondition(BaseRelationCondition):
     """
-    Binary greater than formula; >
+    Binary greater than condition; >
     Examples:
-        GreaterThanFormula(Variable("a", lambda x: x["Opening Price"]), 135)
-        GreaterThanFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
+        GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), 135)
+        GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
-            raise Exception("Invalid use of GreaterThanFormula!")
+            raise Exception("Invalid use of GreaterThanCondition!")
         elif not isinstance(left_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: x > y, RelopTypes.Greater)
         elif not isinstance(right_term, Variable):
@@ -284,16 +284,16 @@ class GreaterThanFormula(BaseRelationFormula):
         return "{} > {}".format(self.left_term_repr, self.right_term_repr)
 
 
-class SmallerThanFormula(BaseRelationFormula):
+class SmallerThanCondition(BaseRelationCondition):
     """
-    Binary smaller than formula; <
+    Binary smaller than condition; <
     Examples:
-        SmallerThanFormula(Variable("a", lambda x: x["Opening Price"]), 135)
-        SmallerThanFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
+        SmallerThanCondition(Variable("a", lambda x: x["Opening Price"]), 135)
+        SmallerThanCondition(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
-            raise Exception("Invalid use of SmallerThanFormula!")
+            raise Exception("Invalid use of SmallerThanCondition!")
         elif not isinstance(left_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: x < y, RelopTypes.Smaller)
         elif not isinstance(right_term, Variable):
@@ -305,16 +305,16 @@ class SmallerThanFormula(BaseRelationFormula):
         return "{} < {}".format(self.left_term_repr, self.right_term_repr)
 
 
-class GreaterThanEqFormula(BaseRelationFormula):
+class GreaterThanEqCondition(BaseRelationCondition):
     """
-    Binary greater and equal than formula; >=
+    Binary greater and equal than condition; >=
     Examples:
-        GreaterThanEqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
-        GreaterThanEqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
+        GreaterThanEqCondition(Variable("a", lambda x: x["Opening Price"]), 135)
+        GreaterThanEqCondition(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
-            raise Exception("Invalid use of GreaterThanEqFormula!")
+            raise Exception("Invalid use of GreaterThanEqCondition!")
         elif not isinstance(left_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: x >= y, RelopTypes.GreaterEqual)
         elif not isinstance(right_term, Variable):
@@ -326,16 +326,16 @@ class GreaterThanEqFormula(BaseRelationFormula):
         return "{} >= {}".format(self.left_term_repr, self.right_term_repr)
 
 
-class SmallerThanEqFormula(BaseRelationFormula):
+class SmallerThanEqCondition(BaseRelationCondition):
     """
-    Binary smaller and equal than formula; <=
+    Binary smaller and equal than condition; <=
     Examples:
-        SmallerThanEqFormula(Variable("a", lambda x: x["Opening Price"]), 135)
-        SmallerThanEqFormula(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
+        SmallerThanEqCondition(Variable("a", lambda x: x["Opening Price"]), 135)
+        SmallerThanEqCondition(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
-            raise Exception("Invalid use of SmallerThanEqFormula!")
+            raise Exception("Invalid use of SmallerThanEqCondition!")
         elif not isinstance(left_term, Variable):
             super().__init__(left_term, right_term, lambda x: lambda y: x <= y, RelopTypes.SmallerEqual)
         elif not isinstance(right_term, Variable):
@@ -347,147 +347,148 @@ class SmallerThanEqFormula(BaseRelationFormula):
         return "{} <= {}".format(self.left_term_repr, self.right_term_repr)
 
 
-class CompositeFormula(Formula, ABC):
+class CompositeCondition(Condition, ABC):
     """
     This class represents a composite condition consisting of a number of simple (atomic) conditions combined using
     logic operators such as conjunction and disjunction.
     """
-    def __init__(self, terminating_condition: bool, *formula_list):
-        self.__formulas = list(formula_list)
-        self.__terminating_result = terminating_condition
+    def __init__(self, terminating_result: bool, *condition_list):
+        self.__conditions = list(condition_list)
+        self.__terminating_result = terminating_result
 
     def eval(self, binding: dict = None):
-        if self.get_num_formulas() == 0:
+        if self.get_num_conditions() == 0:
             return True
-        for formula in self.__formulas:
-            if formula.eval(binding) == self.__terminating_result:
+        for condition in self.__conditions:
+            if condition.eval(binding) == self.__terminating_result:
                 return self.__terminating_result
         return not self.__terminating_result
 
-    def get_formula_of(self, names: set, get_kc_formulas_only=False, consume_returned_formulas=False):
+    def get_condition_of(self, names: set, get_kleene_closure_conditions=False, consume_returned_conditions=False):
         """
-        Returns a new composite formula which only contains those conditions from this composite formula operating
+        Returns a new composite condition which only contains those conditions from this composite condition operating
         exclusively on the names from the given list.
-        Optionally removes the returned sub-conditions from this composite formula.
+        Optionally removes the returned sub-conditions from this composite condition.
         """
-        result_formulas = []
-        formulas_to_remove = []
-        for index, current_formula in enumerate(self.__formulas):
-            if isinstance(current_formula, CompositeFormula):
-                inner_formula = current_formula.get_formula_of(names, get_kc_formulas_only, consume_returned_formulas)
-                if inner_formula.get_num_formulas() > 0:
+        result_conditions = []
+        conditions_to_remove = []
+        for index, current_condition in enumerate(self.__conditions):
+            if isinstance(current_condition, CompositeCondition):
+                inner_condition = current_condition.get_condition_of(names, get_kleene_closure_conditions,
+                                                                     consume_returned_conditions)
+                if inner_condition.get_num_conditions() > 0:
                     # non-empty nested condition was returned
-                    result_formulas.append(inner_formula)
-                if consume_returned_formulas and current_formula.get_num_formulas() == 0:
+                    result_conditions.append(inner_condition)
+                if consume_returned_conditions and current_condition.get_num_conditions() == 0:
                     # all previously existing nested conditions were probably consumed - consume this empty condition
-                    formulas_to_remove.append(index)
+                    conditions_to_remove.append(index)
                 continue
             # this is a simple condition
-            if not current_formula.is_formula_of(names):
+            if not current_condition.is_condition_of(names):
                 continue
-            if get_kc_formulas_only != isinstance(current_formula, KCFormula):
+            if get_kleene_closure_conditions != isinstance(current_condition, KCCondition):
                 # either this is a KC condition and we asked for non-KC conditions,
                 # or this is a non-KC condition and we asked for KC conditions
                 continue
-            result_formulas.append(current_formula)
-            if consume_returned_formulas:
-                formulas_to_remove.append(index)
+            result_conditions.append(current_condition)
+            if consume_returned_conditions:
+                conditions_to_remove.append(index)
 
         # remove the conditions at previously saved indices
-        for index in reversed(formulas_to_remove):
-            self.__formulas.pop(index)
+        for index in reversed(conditions_to_remove):
+            self.__conditions.pop(index)
 
-        return CompositeFormula(self.__terminating_result, *result_formulas)
+        return CompositeCondition(self.__terminating_result, *result_conditions)
 
-    def get_num_formulas(self):
+    def get_num_conditions(self):
         """
         Returns the number of conditions encapsulated by this composite condition.
         """
-        return len(self.__formulas)
+        return len(self.__conditions)
 
-    def get_formulas_list(self):
+    def get_conditions_list(self):
         """
         Returns the list of conditions encapsulated by this composite condition.
         """
-        return self.__formulas
+        return self.__conditions
 
-    def extract_atomic_formulas(self):
+    def extract_atomic_conditions(self):
         result = []
-        for f in self.__formulas:
-            result.extend(f.extract_atomic_formulas())
+        for f in self.__conditions:
+            result.extend(f.extract_atomic_conditions())
         return result
 
-    def add_atomic_formula(self, formula: Formula):
+    def add_atomic_condition(self, condition: Condition):
         """
-        Adds a new atomic formula to this composite formula.
+        Adds a new atomic condition to this composite condition.
         """
-        self.__formulas.append(formula)
+        self.__conditions.append(condition)
 
     def __repr__(self):
         res_list = []
-        for formula in self.__formulas:
-            res_list.append(formula.__repr__())
+        for condition in self.__conditions:
+            res_list.append(condition.__repr__())
         return res_list
 
     def __eq__(self, other):
         if type(self) != type(other):
             return False
-        if len(self.__formulas) != other.get_num_formulas():
+        if len(self.__conditions) != other.get_num_conditions():
             return False
-        for formula in self.__formulas:
-            if formula not in other.get_formulas_list():
+        for condition in self.__conditions:
+            if condition not in other.get_conditions_list():
                 return False
         return True
 
 
-class AndFormula(CompositeFormula):
+class AndCondition(CompositeCondition):
     """
-    This class uses CompositeFormula with the terminating condition False, which complies with AND operator logic.
-    And stops at the first FALSE from the evaluation and returns False.
+    This class uses CompositeCondition with False as the terminating result, which complies with AND operator logic.
+    AND stops at the first FALSE from the evaluation and returns False.
     """
-    def __init__(self, *formula_list):
-        super().__init__(False, *formula_list)
+    def __init__(self, *condition_list):
+        super().__init__(False, *condition_list)
 
-    def get_formula_of(self, names: set, get_kc_formulas_only=False, consume_returned_formulas=False):
-        comp_formula = super().get_formula_of(names, get_kc_formulas_only, consume_returned_formulas)
-        # at-least 1 formula was retrieved using get_formula_of for the list of formulas
-        if comp_formula:
-            return AndFormula(*comp_formula.get_formulas_list())
+    def get_condition_of(self, names: set, get_kleene_closure_conditions=False, consume_returned_conditions=False):
+        composite_condition = super().get_condition_of(names, get_kleene_closure_conditions, consume_returned_conditions)
+        # at-least 1 condition was retrieved using get_condition_of for the list of conditions
+        if composite_condition:
+            return AndCondition(*composite_condition.get_conditions_list())
         return None
 
     def __repr__(self):
         return " AND ".join(super().__repr__())
 
 
-class OrFormula(CompositeFormula):
+class OrCondition(CompositeCondition):
     """
-    This class uses CompositeFormula with the terminating condition True, which complies with OR operator logic.
-    Or stops at the first TRUE from the evaluation and return True.
+    This class uses CompositeCondition with True as the terminating result, which complies with OR operator logic.
+    OR stops at the first TRUE from the evaluation and return True.
     """
-    def __init__(self, *formula_list):
-        super().__init__(True, *formula_list)
+    def __init__(self, *condition_list):
+        super().__init__(True, *condition_list)
 
-    def get_formula_of(self, names: set, get_kc_formulas_only=False, consume_returned_formulas=False):
-        comp_formula = super().get_formula_of(names, get_kc_formulas_only, consume_returned_formulas)
-        # at-least 1 formula was retrieved using get_formula_of for the list of formulas
-        if comp_formula:
-            return OrFormula(*comp_formula.get_formulas_list())
+    def get_condition_of(self, names: set, get_kleene_closure_conditions=False, consume_returned_conditions=False):
+        composite_condition = super().get_condition_of(names, get_kleene_closure_conditions, consume_returned_conditions)
+        # at-least 1 condition was retrieved using get_condition_of for the list of conditions
+        if composite_condition:
+            return OrCondition(*composite_condition.get_conditions_list())
         return None
 
     def __repr__(self):
         return " OR ".join(super().__repr__())
 
 
-class KCFormula(AtomicFormula, ABC):
+class KCCondition(AtomicCondition, ABC):
     """
-    The base class for formulas operating on Kleene closure matches.
+    The base class for conditions operating on Kleene closure matches.
     """
     def __init__(self, names: set, getattr_func: callable, relation_op: callable):
         self._names = names
         self._getattr_func = getattr_func
         self._relation_op = relation_op
 
-    def is_formula_of(self, names: set):
+    def is_condition_of(self, names: set):
         if names == self._names:
             return True
         if len(names) != len(self._names):
@@ -518,16 +519,16 @@ class KCFormula(AtomicFormula, ABC):
                self._getattr_func == other._getattr_func and self._relation_op == other._relation_op
 
 
-class KCIndexFormula(KCFormula):
+class KCIndexCondition(KCCondition):
     """
-    This class represents KCFormulas that perform operations between 2 indexes of the KleeneClosure events.
+    This class represents KCConditions that perform operations between 2 indexes of the KleeneClosure events.
     It supports comparisons of 2 types:
         - first_index and second_index will compare 2 specific indexes from the KC events
         - offset will compare every 2 items in KC events that meet the offset requirement. Supports negative offsets.
 
     If the offset is larger than the length of the list for offset mechanism,
         or 1 of the indexes is negative or out of bounds for index mechanism,
-        the formula returns False.
+        the condition returns False.
     """
     def __init__(self, names: set, getattr_func: callable, relation_op: callable,
                  first_index=None, second_index=None, offset=None):
@@ -538,7 +539,7 @@ class KCIndexFormula(KCFormula):
         Further activation types may be implemented for convenience.
         """
         if not self.__validate_params(first_index, second_index, offset):
-            raise Exception("Invalid use of KCIndex formula.\nboth index and offset are not None\n refer to comment")
+            raise Exception("Invalid use of KCIndex condition.\nboth index and offset are not None\n refer to comment")
         super().__init__(names, getattr_func, relation_op)
         self.__first_index = first_index
         self.__second_index = second_index
@@ -623,9 +624,9 @@ class KCIndexFormula(KCFormula):
                self.__second_index == other.get_second_index() and self.__offset == other.get_offset()
 
 
-class KCValueFormula(KCFormula):
+class KCValueCondition(KCCondition):
     """
-    This class represents KCFormulas that perform operations between events from the KleeneClosure events
+    This class represents KCConditions that perform operations between events from the KleeneClosure events
     and an arbitrary value.
     It supports comparisons of 2 types:
         - value only comparison will compare all the items in KC events to a specific value
@@ -644,11 +645,11 @@ class KCValueFormula(KCFormula):
         if self.__index is None:
             # no index used for comparison - compare all elements
             for item in event_list:
-                # use AND logic to return True if EVERY item returns True when being compared to formula's value.
+                # use AND logic to return True if EVERY item returns True when being compared to condition's value.
                 if not self._relation_op(self._getattr_func(item), self.__value):
                     return False
         else:
-            # compare 1 element from the list of events to the formula's value
+            # compare 1 element from the list of events to the condition's value
             if not self._relation_op(self._getattr_func(event_list[self.__index]), self.__value):
                 return False
         return True
