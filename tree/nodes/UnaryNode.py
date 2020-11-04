@@ -30,7 +30,8 @@ class UnaryNode(InternalNode, ABC):
         Sets the child node of this node.
         """
         self._child = child
-        self._event_defs = child.get_event_definitions()
+        # only the positive child definitions should be applied on this node
+        self._event_defs = child.get_positive_event_definitions()
 
     def propagate_sliding_window(self, sliding_window: timedelta):
         self.set_sliding_window(sliding_window)

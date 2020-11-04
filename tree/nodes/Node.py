@@ -212,7 +212,7 @@ class Node(ABC):
         self._parents.append(parent)
         self._parent_to_unhandled_queue_dict[parent] = Queue()
         if not on_init:
-            self._parent_to_info_dict[parent] = self.get_event_definitions()
+            self._parent_to_info_dict[parent] = self.get_positive_event_definitions()
 
     def get_parents(self):
         """
@@ -278,6 +278,13 @@ class Node(ABC):
         """
         return self._partial_matches
 
+    def get_positive_event_definitions(self) -> List[PrimitiveEventDefinition]:
+        """
+        Returns the specifications of all positive events collected by this tree.
+        For non-negative nodes, this method is identical to get_event_definitions()
+        """
+        return self.get_event_definitions()
+
 
     ###################################### Miscellaneous
     def register_single_event_type(self, event_type: str):
@@ -300,6 +307,15 @@ class Node(ABC):
         self._condition = condition.get_condition_of(names, get_kleene_closure_conditions=False,
                                                      consume_returned_conditions=True)
 
+    def get_first_unbounded_negative_node(self):
+        """
+        Returns the deepest unbounded node in the subtree of this node.
+        It only makes sense to invoke this method from another unbounded negative node because this specific node type
+        is always located higher in the tree than any non-negative node. If this call has occurred nevertheless, this is
+        an indication of a bug and should thus be treated accordingly.
+        """
+        raise Exception("get_first_unbounded_negative_node invoked on a non-negative node")
+
     def is_equivalent(self, other):
         """
         Returns True if this node and the given node are equivalent and False otherwise.
@@ -309,7 +325,6 @@ class Node(ABC):
         test must be implemented by the subclasses
         """
         return type(self) == type(other) and self._condition == other.get_condition()
-
 
     ###################################### To be implemented by subclasses
     def propagate_sliding_window(self, sliding_window: timedelta):
