@@ -13,16 +13,16 @@ def structuralTest1():
     Seq([a, KC(And([KC(d), KC(Seq([e, f]))]))])
     """
     structural_test_pattern = Pattern(
-        SeqOperator([PrimitiveEventStructure("GOOG", "a"),
-                     KleeneClosureOperator(
-                         AndOperator([PrimitiveEventStructure("GOOG", "b"),
-                                      KleeneClosureOperator(PrimitiveEventStructure("GOOG", "c"),
+        SeqOperator(PrimitiveEventStructure("GOOG", "a"),
+                    KleeneClosureOperator(
+                         AndOperator(PrimitiveEventStructure("GOOG", "b"),
+                                     KleeneClosureOperator(PrimitiveEventStructure("GOOG", "c"),
                                                             min_size=1, max_size=5),
-                                      KleeneClosureOperator(SeqOperator([PrimitiveEventStructure("GOOG", "d"), PrimitiveEventStructure("GOOG", "e")]),
-                                                            min_size=1, max_size=5)]
+                                     KleeneClosureOperator(SeqOperator(PrimitiveEventStructure("GOOG", "d"), PrimitiveEventStructure("GOOG", "e")),
+                                                            min_size=1, max_size=5)
                                      ),
                          min_size=1, max_size=5,
-                     )]),
+                     )),
         AndCondition(
             SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
             SimpleCondition(Variable("b", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135)
@@ -52,9 +52,9 @@ def structuralTest3():
     Seq([a, KC(b)])
     """
     structural_test_pattern = Pattern(
-        SeqOperator([
+        SeqOperator(
             PrimitiveEventStructure("GOOG", "a"), KleeneClosureOperator(PrimitiveEventStructure("GOOG", "b"))
-        ]),
+        ),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
         timedelta(minutes=3)
     )
@@ -67,9 +67,9 @@ def structuralTest4():
     And([KC(a), b])
     """
     structural_test_pattern = Pattern(
-        AndOperator([
+        AndOperator(
             KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a")), PrimitiveEventStructure("GOOG", "b")
-        ]),
+        ),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
         timedelta(minutes=3)
     )
@@ -83,10 +83,10 @@ def structuralTest5():
     """
     structural_test_pattern = Pattern(
         KleeneClosureOperator(
-            SeqOperator([
+            SeqOperator(
                 KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=3, max_size=5),
                 KleeneClosureOperator(PrimitiveEventStructure("GOOG", "b"))
-            ]), min_size=1, max_size=3
+            ), min_size=1, max_size=3
         ),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
         timedelta(minutes=3)
@@ -100,17 +100,17 @@ def structuralTest6():
     Seq([a, Seq([ b, And([c, d]), e])])
     """
     structural_test_pattern = Pattern(
-        SeqOperator([
+        SeqOperator(
             PrimitiveEventStructure("GOOG", "a"),
-            SeqOperator([
+            SeqOperator(
                 PrimitiveEventStructure("GOOG", "b"),
-                AndOperator([
+                AndOperator(
                     PrimitiveEventStructure("GOOG", "c"),
                     PrimitiveEventStructure("GOOG", "d")
-                ]),
+                ),
                 PrimitiveEventStructure("GOOG", "e")
-            ]),
-        ]),
+            ),
+        ),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
         timedelta(minutes=3)
     )
@@ -131,25 +131,25 @@ def structuralTest7():
     ])
     """
     structural_test_pattern = Pattern(
-        AndOperator([
+        AndOperator(
             PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"), PrimitiveEventStructure("GOOG", "c"),
-            SeqOperator([
+            SeqOperator(
                 PrimitiveEventStructure("GOOG", "d"),
                 KleeneClosureOperator(
-                    AndOperator([
+                    AndOperator(
                         PrimitiveEventStructure("GOOG", "e"), KleeneClosureOperator(PrimitiveEventStructure("GOOG", "f")), PrimitiveEventStructure("GOOG", "g")
-                    ])
-                ), AndOperator([
+                    )
+                ), AndOperator(
                     KleeneClosureOperator(PrimitiveEventStructure("GOOG", "h")),
                     KleeneClosureOperator(
-                        SeqOperator([
+                        SeqOperator(
                             PrimitiveEventStructure("GOOG", "i"), PrimitiveEventStructure("GOOG", "j")
-                        ]),
+                        ),
                     ),
-                ]),
-            ]),
+                ),
+            ),
             PrimitiveEventStructure("GOOG", "k"), PrimitiveEventStructure("GOOG", "l")
-        ]),
+        ),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
         timedelta(minutes=3)
     )
@@ -164,7 +164,7 @@ identical to the first test in the file, with 1 exception - the PrimitiveEventSt
 """
 def oneArgumentsearchTestKleeneClosure(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("AAPL", "a"), min_size=1, max_size=5)]),
+        SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("AAPL", "a"), min_size=1, max_size=5)),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
         timedelta(minutes=5)
     )
@@ -173,7 +173,7 @@ def oneArgumentsearchTestKleeneClosure(createTestFile=False):
 
 def MinMax_0_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=1, max_size=2)]),
+        SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=1, max_size=2)),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         timedelta(minutes=5)
     )
@@ -181,7 +181,7 @@ def MinMax_0_TestKleeneClosure(createTestFile=False):
 
 def MinMax_1_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
+        SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         timedelta(minutes=5)
     )
@@ -189,7 +189,7 @@ def MinMax_1_TestKleeneClosure(createTestFile=False):
 
 def MinMax_2_TestKleeneClosure(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=4, max_size=5)]),
+        SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=4, max_size=5)),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         timedelta(minutes=5)
     )
@@ -202,11 +202,11 @@ def KC_AND(createTestFile=False):
     """
     pattern = Pattern(
         KleeneClosureOperator(
-            AndOperator([
+            AndOperator(
                 PrimitiveEventStructure("GOOG", "a"),
                 PrimitiveEventStructure("GOOG", "b"),
                 PrimitiveEventStructure("GOOG", "c")
-            ]), min_size=1, max_size=3
+            ), min_size=1, max_size=3
         ),
         AndCondition(
             SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
@@ -223,10 +223,10 @@ def KC_AND_IndexCondition_01(createTestFile=False):
     """
     pattern = Pattern(
         KleeneClosureOperator(
-            AndOperator([
+            AndOperator(
                 PrimitiveEventStructure("GOOG", "a"),
                 PrimitiveEventStructure("GOOG", "b")
-            ]), min_size=1, max_size=3
+            ), min_size=1, max_size=3
         ),
         AndCondition(
             SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
@@ -245,10 +245,10 @@ def KC_AND_IndexCondition_02(createTestFile=False):
     """
     pattern = Pattern(
         KleeneClosureOperator(
-            AndOperator([
+            AndOperator(
                 PrimitiveEventStructure("GOOG", "a"),
                 PrimitiveEventStructure("GOOG", "b")
-            ]), min_size=1, max_size=3
+            ), min_size=1, max_size=3
         ),
         AndCondition(
             SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
@@ -266,11 +266,11 @@ def KC_AND_NegOffSet_01(createTestFile=False):
     """
     pattern = Pattern(
         KleeneClosureOperator(
-            AndOperator([
+            AndOperator(
                 PrimitiveEventStructure("GOOG", "a"),
                 PrimitiveEventStructure("GOOG", "b"),
                 PrimitiveEventStructure("GOOG", "c")
-            ]), min_size=1, max_size=3
+            ), min_size=1, max_size=3
         ),
         AndCondition(
             SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
@@ -285,7 +285,7 @@ def KC_AND_NegOffSet_01(createTestFile=False):
 
 def KC_AllValues(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
+        SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))),
         AndCondition(
             SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
             KCValueCondition(names={'a'}, getattr_func=lambda x: x["Peak Price"], relation_op=lambda x, y: x > y, value=530.5)
@@ -297,7 +297,7 @@ def KC_AllValues(createTestFile=False):
 
 def KC_Specific_Value(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
+        SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))),
         AndCondition(
             SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
             KCValueCondition(names={'a'}, getattr_func=lambda x: x["Peak Price"], relation_op=lambda x, y: x > y, index=2, value=530.5)
@@ -308,7 +308,7 @@ def KC_Specific_Value(createTestFile=False):
 
 def KC_Mixed(createTestFile=False):
     pattern = Pattern(
-        SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
+        SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))),
         AndCondition(
             SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
             KCValueCondition(names={'a'}, getattr_func=lambda x: x["Peak Price"],
@@ -330,11 +330,11 @@ def KC_Condition_Failure_01(createTestFile=False):
     try:
         pattern = Pattern(
             KleeneClosureOperator(
-                AndOperator([
+                AndOperator(
                     PrimitiveEventStructure("GOOG", "a"),
                     PrimitiveEventStructure("GOOG", "b"),
                     PrimitiveEventStructure("GOOG", "c")
-                ]), min_size=1, max_size=3
+                ), min_size=1, max_size=3
             ),
             AndCondition(
                 SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
@@ -358,11 +358,11 @@ def KC_Condition_Failure_02(createTestFile=False):
     try:
         pattern = Pattern(
             KleeneClosureOperator(
-                AndOperator([
+                AndOperator(
                     PrimitiveEventStructure("GOOG", "a"),
                     PrimitiveEventStructure("GOOG", "b"),
                     PrimitiveEventStructure("GOOG", "c")
-                ]), min_size=1, max_size=3
+                ), min_size=1, max_size=3
             ),
             AndCondition(
                 SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
@@ -386,11 +386,11 @@ def KC_Condition_Failure_03(createTestFile=False):
     try:
         pattern = Pattern(
             KleeneClosureOperator(
-                AndOperator([
+                AndOperator(
                     PrimitiveEventStructure("GOOG", "a"),
                     PrimitiveEventStructure("GOOG", "b"),
                     PrimitiveEventStructure("GOOG", "c")
-                ]), min_size=1, max_size=3
+                ), min_size=1, max_size=3
             ),
             AndCondition(
                 SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),

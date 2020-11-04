@@ -73,8 +73,8 @@ class CompositeStructure(PatternStructure, ABC):
     """
     Represents a pattern structure with a multinary operator at the top level.
     """
-    def __init__(self, args: List[PatternStructure]):
-        self.args = args
+    def __init__(self, *args):
+        self.args = list(args)
 
     def get_args(self):
         return self.args
@@ -104,7 +104,7 @@ class CompositeStructure(PatternStructure, ABC):
 
 class AndOperator(CompositeStructure):
     def duplicate_top_operator(self):
-        return AndOperator([])
+        return AndOperator()
 
     def __repr__(self):
         return "AND(%s)" % (self.args,)
@@ -112,7 +112,7 @@ class AndOperator(CompositeStructure):
 
 class OrOperator(CompositeStructure):
     def duplicate_top_operator(self):
-        return OrOperator([])
+        return OrOperator()
 
     def __repr__(self):
         return "OR(%s)" % (self.args,)
@@ -120,7 +120,7 @@ class OrOperator(CompositeStructure):
 
 class SeqOperator(CompositeStructure):
     def duplicate_top_operator(self):
-        return SeqOperator([])
+        return SeqOperator()
 
     def __repr__(self):
         return "SEQ(%s)" % (self.args,)

@@ -21,8 +21,8 @@ def run_twitter_sanity_check():
     """
     get_retweeted_status_function = lambda x: x["retweeted_status"] if "retweeted_status" in x else None
     pattern_retweet = Pattern(
-        SeqOperator([PrimitiveEventStructure(DummyTwitterEventTypeClassifier.TWEET_TYPE, "a"),
-                     PrimitiveEventStructure(DummyTwitterEventTypeClassifier.TWEET_TYPE, "b")]),
+        SeqOperator(PrimitiveEventStructure(DummyTwitterEventTypeClassifier.TWEET_TYPE, "a"),
+                    PrimitiveEventStructure(DummyTwitterEventTypeClassifier.TWEET_TYPE, "b")),
         AndCondition(NotEqCondition(Variable("a", lambda x: x["id"]), Variable("b", lambda x: x["id"])),
                      SimpleCondition(Variable("a", get_retweeted_status_function), relation_op=lambda x: x is not None),
                      EqCondition(Variable("a", get_retweeted_status_function),

@@ -34,9 +34,9 @@ This pattern is looking for a short ascend in the Google peak prices:
 # WHERE a.PeakPrice < b.PeakPrice AND b.PeakPrice < c.PeakPrice
 # WITHIN 3 minutes
 googleAscendPattern = Pattern(
-        SeqOperator([PrimitiveEventStructure("GOOG", "a"), 
-                     PrimitiveEventStructure("GOOG", "b"), 
-                     PrimitiveEventStructure("GOOG", "c")]),
+        SeqOperator(PrimitiveEventStructure("GOOG", "a"), 
+                    PrimitiveEventStructure("GOOG", "b"), 
+                    PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
             SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]), 
                                  Variable("b", lambda x: x["Peak Price"])),
@@ -49,9 +49,9 @@ googleAscendPattern = Pattern(
 Another way to define the above example is to use SimpleCondition and a lambda function:
 ```
 googleAscendPattern = Pattern(
-        SeqOperator([PrimitiveEventStructure("GOOG", "a"), 
-                     PrimitiveEventStructure("GOOG", "b"), 
-                     PrimitiveEventStructure("GOOG", "c")]),
+        SeqOperator(PrimitiveEventStructure("GOOG", "a"), 
+                    PrimitiveEventStructure("GOOG", "b"), 
+                    PrimitiveEventStructure("GOOG", "c")),
         SimpleCondition(Variable("a", lambda x: x["Peak Price"]), 
                         Variable("b", lambda x: x["Peak Price"]),
                         Variable("c", lambda x: x["Peak Price"]),
@@ -65,8 +65,7 @@ This pattern is looking for low prices of Amazon and Google at the same minute:
 # WHERE a.PeakPrice <= 73 AND g.PeakPrice <= 525
 # WITHIN 1 minute
 googleAmazonLowPattern = Pattern(
-    AndOperator([PrimitiveEventStructure("AMZN", "a"), 
-                 PrimitiveEventStructure("GOOG", "g")]),
+    AndOperator(PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("GOOG", "g")),
     AndCondition(
         SmallerThanEqCondition(Variable("a", lambda x: x["Peak Price"]), 73),
         SmallerThanEqCondition(Variable("g", lambda x: x["Peak Price"]), 525)
@@ -77,8 +76,7 @@ googleAmazonLowPattern = Pattern(
 Another way to define the above pattern is to use the generic BinaryCondition with a lambda function
 ```
 googleAmazonLowPattern = Pattern(
-    AndOperator([PrimitiveEventStructure("AMZN", "a"), 
-                 PrimitiveEventStructure("GOOG", "g")]),
+    AndOperator(PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("GOOG", "g")),
     BinaryCondition(Variable("a", lambda x: x["Peak Price"]),
                     Variable("g", lambda x: x["Peak Price"]),
                     lambda x, y: x <= 73 and y <= 525),
@@ -109,10 +107,10 @@ The following is the example of a pattern containing a Kleene closure operator:
 
 ```
 pattern = Pattern(
-        SeqOperator([
+        SeqOperator(
             PrimitiveEventStructure("GOOG", "a"), 
             KleeneClosureOperator(PrimitiveEventStructure("GOOG", "b"))
-        ]),
+        ),
         AndCondition(
             SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
             SmallerThanCondition(Variable("b", lambda x: x["Peak Price"]), Variable("c", lambda x: x["Peak Price"]))
@@ -124,7 +122,7 @@ pattern = Pattern(
 The following example of a pattern containing a Kleene closure operator with an offset condition:
 ```
 pattern = Pattern(
-    SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
+    SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))),
     AndCondition(
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         KCValueCondition(names={'a'}, getattr_func=lambda x: x["Peak Price"],
@@ -141,7 +139,7 @@ pattern = Pattern(
 The following example of a pattern containing a Kleene closure operator with a value condition:
 ```
 pattern = Pattern(
-    SeqOperator([KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))]),
+    SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))),
     AndCondition(
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), 
                         relation_op=lambda x: x > 0),
@@ -158,9 +156,9 @@ The following is the example of a pattern containing a negation operator:
 
 ```
 pattern = Pattern(
-        SeqOperator([PrimitiveEventStructure("AAPL", "a"), 
-                     NegationOperator(PrimitiveEventStructure("AMZN", "b")), 
-                     PrimitiveEventStructure("GOOG", "c")]),
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), 
+                    NegationOperator(PrimitiveEventStructure("AMZN", "b")), 
+                    PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
             GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
                                  Variable("b", lambda x: x["Opening Price"])),
@@ -177,9 +175,9 @@ OpenCEP supports a variety of consumption policies provided using the Consumptio
 The following pattern definition limiting all primitive events to only appear in a single full match.
 ```
 pattern = Pattern(
-    SeqOperator([PrimitiveEventStructure("AAPL", "a"), 
-                 PrimitiveEventStructure("AMZN", "b"), 
-                 PrimitiveEventStructure("AVID", "c")]), 
+    SeqOperator(PrimitiveEventStructure("AAPL", "a"), 
+                PrimitiveEventStructure("AMZN", "b"), 
+                PrimitiveEventStructure("AVID", "c")), 
     TrueCondition(),
     timedelta(minutes=5),
     ConsumptionPolicy(primary_selection_strategy = SelectionStrategies.MATCH_SINGLE)
@@ -188,9 +186,9 @@ pattern = Pattern(
 This selection strategy further limits the pattern detection process, only allowing to match produce a single intermediate partial match containing an event. 
 ```
 pattern = Pattern(
-    SeqOperator([PrimitiveEventStructure("AAPL", "a"), 
-                 PrimitiveEventStructure("AMZN", "b"), 
-                 PrimitiveEventStructure("AVID", "c")]), 
+    SeqOperator(PrimitiveEventStructure("AAPL", "a"), 
+                PrimitiveEventStructure("AMZN", "b"), 
+                PrimitiveEventStructure("AVID", "c")), 
     TrueCondition(),
     timedelta(minutes=5),
     ConsumptionPolicy(primary_selection_strategy = SelectionStrategies.MATCH_NEXT)
@@ -199,9 +197,9 @@ pattern = Pattern(
 It is also possible to enforce either MATCH_NEXT or MATCH_SINGLE on a subset of event types. 
 ```
 pattern = Pattern(
-    SeqOperator([PrimitiveEventStructure("AAPL", "a"), 
-                 PrimitiveEventStructure("AMZN", "b"), 
-                 PrimitiveEventStructure("AVID", "c")]), 
+    SeqOperator(PrimitiveEventStructure("AAPL", "a"), 
+                PrimitiveEventStructure("AMZN", "b"), 
+                PrimitiveEventStructure("AVID", "c")), 
     TrueCondition(),
     timedelta(minutes=5),
     ConsumptionPolicy(single=["AMZN", "AVID"], 
@@ -212,9 +210,9 @@ This consumption policy specifies a list of events that must be contiguous in th
 no other unrelated event is allowed to appear in between.
 ```
 pattern = Pattern(
-    SeqOperator([PrimitiveEventStructure("AAPL", "a"), 
-                 PrimitiveEventStructure("AMZN", "b"), 
-                 PrimitiveEventStructure("AVID", "c")]), 
+    SeqOperator(PrimitiveEventStructure("AAPL", "a"), 
+                PrimitiveEventStructure("AMZN", "b"), 
+                PrimitiveEventStructure("AVID", "c")), 
     TrueCondition(),
     timedelta(minutes=5),
     ConsumptionPolicy(contiguous=["a", "b", "c"])
@@ -226,9 +224,9 @@ from the point a new "b" event is accepted and until it is either matched or exp
 ```
 # Enforce mechanism from the first event in the sequence
 pattern = Pattern(
-    SeqOperator([PrimitiveEventStructure("AAPL", "a"), 
-                 PrimitiveEventStructure("AMZN", "b"), 
-                 PrimitiveEventStructure("AVID", "c")]), 
+    SeqOperator(PrimitiveEventStructure("AAPL", "a"), 
+                PrimitiveEventStructure("AMZN", "b"), 
+                PrimitiveEventStructure("AVID", "c")), 
     AndCondition(
         GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), 
                              Variable("b", lambda x: x["Opening Price"])), 
