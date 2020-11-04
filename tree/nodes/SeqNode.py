@@ -37,11 +37,12 @@ class SeqNode(BinaryNode):
                 self._left_subtree.get_structure_summary(),
                 self._right_subtree.get_structure_summary())
 
-    def is_structure_equivalent(self, other):
+    def is_equivalent(self, other):
         """
-        Checks equivalence of a SeqNode and another node.
+        In addition to the checks performed by the base class, validates that the two nodes enforce the same sequence
+        order.
         """
-        if not super().is_structure_equivalent(other):
+        if not super().is_equivalent(other):
             return False
 
         first_event_defs = self.get_event_definitions()

@@ -146,21 +146,21 @@ class BinaryNode(InternalNode, ABC):
             return second_event_list + first_event_list
         raise Exception()
 
-    def is_structure_equivalent(self, other):
+    def is_equivalent(self, other):
         """
-        Checks if the type of both of the nodes is the same and then checks if:
+        In addition to the checks performed by the base class, checks if:
         the left subtrees structures are equivalent and the right subtrees structures are equivalent OR
         the left of the first is equivalent to the right of the second and the right of the first is equivalent to
         the left of the second.
         """
-        if type(self) != type(other):
+        if not super().is_equivalent(other):
             return False
-        v1 = self._left_subtree.is_structure_equivalent(other.get_left_subtree())
-        v2 = self._right_subtree.is_structure_equivalent(other.get_right_subtree())
+        v1 = self._left_subtree.is_equivalent(other.get_left_subtree())
+        v2 = self._right_subtree.is_equivalent(other.get_right_subtree())
         if v1 and v2:
             return True
-        v3 = self._left_subtree.is_structure_equivalent(other.get_right_subtree())
-        v4 = self._right_subtree.is_structure_equivalent(other.get_left_subtree())
+        v3 = self._left_subtree.is_equivalent(other.get_right_subtree())
+        v4 = self._right_subtree.is_equivalent(other.get_left_subtree())
         return v3 and v4
 
     def __get_filtered_conditions(self, left_event_names: Set[str], right_event_names: Set[str]):

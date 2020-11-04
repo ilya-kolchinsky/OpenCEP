@@ -189,18 +189,18 @@ class NegationNode(BinaryNode, ABC):
         For now, only the most trivial storage settings will be supported by negative nodes.
         """
         self._init_storage_unit(storage_params, sorting_key, rel_op, equation_side)
-        self._left_subtree.create_storage_unit(storage_params)
-        self._right_subtree.create_storage_unit(storage_params)
+        self._positive_subtree.create_storage_unit(storage_params)
+        self._negative_subtree.create_storage_unit(storage_params)
 
-    def is_structure_equivalent(self, other):
+    def is_equivalent(self, other):
         """
-        Checks if the type of both of the nodes is the same and then checks if the left subtrees structures are equal
-        and the right subtrees structures are equal.
+        In addition to the checks performed by the base class, separately verifies the equivalence of the positive and
+        the negative subtrees.
         """
-        if type(other) != type(self):
+        if not super().is_equivalent(other):
             return False
-        v1 = self._left_subtree.is_structure_equivalent(other.get_left_subtree())
-        v2 = self._right_subtree.is_structure_equivalent(other.get_right_subtree())
+        v1 = self._positive_subtree.is_equivalent(other.get_left_subtree())
+        v2 = self._negative_subtree.is_equivalent(other.get_right_subtree())
         return v1 and v2
 
 
@@ -216,8 +216,8 @@ class NegativeAndNode(NegationNode):
 
     def get_structure_summary(self):
         return ("NAnd",
-                self._left_subtree.get_structure_summary(),
-                self._right_subtree.get_structure_summary())
+                self._positive_subtree.get_structure_summary(),
+                self._negative_subtree.get_structure_summary())
 
 
 class NegativeSeqNode(NegationNode):
@@ -233,8 +233,8 @@ class NegativeSeqNode(NegationNode):
 
     def get_structure_summary(self):
         return ("NSeq",
-                self._left_subtree.get_structure_summary(),
-                self._right_subtree.get_structure_summary())
+                self._positive_subtree.get_structure_summary(),
+                self._negative_subtree.get_structure_summary())
 
     def _set_event_definitions(self,
                                left_event_defs: List[PrimitiveEventDefinition],

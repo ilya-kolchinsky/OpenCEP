@@ -63,3 +63,9 @@ class UnaryNode(InternalNode, ABC):
         Returns the child of this unary node.
         """
         return self._child
+
+    def is_equivalent(self, other):
+        """
+        In addition to the checks performed by the base class, verifies the equivalence of the child nodes.
+        """
+        return super().is_equivalent(other) and self._child.is_equivalent(other.get_child())

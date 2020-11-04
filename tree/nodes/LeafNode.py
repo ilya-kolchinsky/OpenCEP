@@ -101,13 +101,11 @@ class LeafNode(Node):
     def get_structure_summary(self):
         return self.__event_name
 
-    def is_structure_equivalent(self, other):
+    def is_equivalent(self, other):
         """
-        Checks if the type of both of the nodes is the same and then checks if the nodes have the same event_type.
+        Checks if the two nodes accept the same event type.
         """
-        if type(other) != LeafNode:
-            return False
-        return self.__event_type == other.get_event_type()
+        return super().is_equivalent(other) and self.__event_type == other.get_event_type()
 
     def propagate_sliding_window(self, sliding_window: timedelta):
         """

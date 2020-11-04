@@ -302,11 +302,13 @@ class Node(ABC):
 
     def is_equivalent(self, other):
         """
-        Returns True if the given node is equivalent to this one and False otherwise.
-        Two nodes are considered equivalent if they possess equivalent structures and verify equivalent conditions.
+        Returns True if this node and the given node are equivalent and False otherwise.
+        Two nodes are considered equivalent if they possess equivalent structures and the nodes of these structures
+        contain equivalent conditions.
+        This default implementation only compares the types and conditions of the nodes. The structure equivalence
+        test must be implemented by the subclasses
         """
-        # TODO: after the conditions branch is merged, the condition equivalence will no longer work and will need to be fixed ASAP
-        return self.is_structure_equivalent(other) and self._condition == other.get_condition()
+        return type(self) == type(other) and self._condition == other.get_condition()
 
 
     ###################################### To be implemented by subclasses
@@ -351,14 +353,6 @@ class Node(ABC):
     def get_structure_summary(self):
         """
         Returns the summary of the subtree rooted at this node - to be implemented by subclasses.
-        """
-        raise NotImplementedError()
-
-    def is_structure_equivalent(self, other):
-        """
-        Returns True if the structure of the subtree of this node is equivalent to the one of the given node and
-        False otherwise.
-        To be implemented by subclasses.
         """
         raise NotImplementedError()
 
