@@ -2,7 +2,7 @@ from abc import ABC
 from datetime import timedelta
 from typing import List, Set
 
-from base.Condition import Condition, RelopTypes, EquationSides
+from condition.Condition import Condition, RelopTypes, EquationSides
 from tree.nodes.InternalNode import InternalNode
 from tree.nodes.Node import Node, PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters

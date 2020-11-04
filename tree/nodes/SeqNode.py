@@ -1,7 +1,7 @@
 from typing import List
 
 from base.Event import Event
-from base.Condition import RelopTypes, EquationSides
+from condition.Condition import RelopTypes, EquationSides
 from misc.Utils import merge, merge_according_to, is_sorted
 from tree.nodes.BinaryNode import BinaryNode
 from tree.nodes.Node import PrimitiveEventDefinition

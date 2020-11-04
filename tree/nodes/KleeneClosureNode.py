@@ -2,7 +2,7 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.Condition import CompositeCondition
+from condition.CompositeCondition import CompositeCondition
 from base.PatternMatch import PatternMatch
 from misc.Utils import recursive_powerset_generator
 from tree.nodes.Node import Node

@@ -1,6 +1,9 @@
 from test.testUtils import *
 from datetime import timedelta
-from base.Condition import GreaterThanEqCondition, SmallerThanEqCondition, GreaterThanCondition, SmallerThanCondition, Variable, AndCondition
+from condition.Condition import Variable
+from condition.CompositeCondition import AndCondition
+from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCondition, GreaterThanEqCondition, \
+    SmallerThanEqCondition
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, NegationOperator
 from base.Pattern import Pattern
 from plan.multi.MultiPatternEvaluationParameters import *

@@ -5,7 +5,9 @@ from stream.FileStream import FileOutputStream
 from plugin.twitter.TwitterDataFormatter import DummyTwitterEventTypeClassifier, TweetDataFormatter
 from plugin.twitter.TwitterInputStream import TwitterInputStream
 from datetime import timedelta
-from base.Condition import EqCondition, Variable, AndCondition, NotEqCondition, SimpleCondition
+from condition.Condition import Variable, SimpleCondition
+from condition.CompositeCondition import AndCondition
+from condition.BaseRelationCondition import EqCondition, NotEqCondition
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
 

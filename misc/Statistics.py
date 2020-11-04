@@ -1,4 +1,4 @@
-from base.Condition import Condition
+from condition.Condition import Condition
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from stream.Stream import Stream

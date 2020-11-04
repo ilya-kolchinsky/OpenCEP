@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.Condition import RelopTypes, EquationSides
+from condition.Condition import RelopTypes, EquationSides
 from tree.nodes.Node import Node, PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters, UnsortedPatternMatchStorage, SortedPatternMatchStorage
 

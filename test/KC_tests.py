@@ -1,7 +1,9 @@
 from test.testUtils import *
 from datetime import timedelta
-from base.Condition import SmallerThanCondition, Variable, AndCondition, \
-    SimpleCondition, KCIndexCondition, KCValueCondition
+from condition.Condition import Variable, SimpleCondition
+from condition.KCCondition import KCIndexCondition, KCValueCondition
+from condition.CompositeCondition import AndCondition
+from condition.BaseRelationCondition import SmallerThanCondition
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, KleeneClosureOperator
 from base.Pattern import Pattern
 

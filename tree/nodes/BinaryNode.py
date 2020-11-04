@@ -3,7 +3,8 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.Condition import Condition, Variable, EquationSides, BaseRelationCondition
+from condition.Condition import Condition, Variable, EquationSides
+from condition.BaseRelationCondition import BaseRelationCondition
 from base.PatternMatch import PatternMatch
 from tree.nodes.InternalNode import InternalNode
 from tree.nodes.Node import Node, PrimitiveEventDefinition

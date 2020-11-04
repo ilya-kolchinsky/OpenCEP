@@ -2,7 +2,8 @@ from functools import reduce
 from typing import List
 
 from base.Event import Event
-from base.Condition import Condition, Variable, BinaryCondition, AndCondition, CompositeCondition, TrueCondition
+from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
+from condition.CompositeCondition import CompositeCondition, AndCondition
 from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
     SeqOperator, NegationOperator
 from datetime import timedelta

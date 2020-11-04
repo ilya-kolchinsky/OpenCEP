@@ -4,7 +4,8 @@ from queue import Queue
 from typing import List, Set
 
 from base.Event import Event
-from base.Condition import RelopTypes, EquationSides, CompositeCondition, AndCondition
+from condition.Condition import RelopTypes, EquationSides
+from condition.CompositeCondition import CompositeCondition, AndCondition
 from base.PatternMatch import PatternMatch
 from tree.PatternMatchStorage import TreeStorageParameters
 

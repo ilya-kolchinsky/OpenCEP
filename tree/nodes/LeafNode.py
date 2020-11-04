@@ -2,7 +2,7 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.Condition import Condition, RelopTypes, EquationSides
+from condition.Condition import Condition, RelopTypes, EquationSides
 from base.PatternStructure import PrimitiveEventStructure
 from tree.nodes.Node import Node
 from tree.nodes.Node import PrimitiveEventDefinition

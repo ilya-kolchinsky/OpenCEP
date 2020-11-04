@@ -6,8 +6,10 @@ from misc.ConsumptionPolicy import *
 from plan.LeftDeepTreeBuilders import *
 from plan.BushyTreeBuilders import *
 from datetime import timedelta
-from base.Condition import GreaterThanCondition, SmallerThanCondition, SmallerThanEqCondition, GreaterThanEqCondition, \
-    EqCondition, Variable, AndCondition, TrueCondition, BinaryCondition
+from condition.Condition import Variable, TrueCondition, BinaryCondition
+from condition.CompositeCondition import AndCondition
+from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, SmallerThanCondition, \
+    GreaterThanEqCondition, SmallerThanEqCondition
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, NegationOperator
 from base.Pattern import Pattern
 from tree.PatternMatchStorage import TreeStorageParameters

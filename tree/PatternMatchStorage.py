@@ -3,7 +3,7 @@ from misc import DefaultConfig
 from misc.Utils import get_first_index, get_last_index
 from datetime import datetime
 from misc.Utils import find_partial_match_by_timestamp
-from base.Condition import RelopTypes, EquationSides
+from condition.Condition import RelopTypes, EquationSides
 
 
 class PatternMatchStorage:
