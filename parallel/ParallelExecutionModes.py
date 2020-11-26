@@ -12,3 +12,10 @@ class ParallelExecutionModes(Enum):
     STRUCTURE_PARALLELISM = 2
     TASK_PARALLELISM = 3
     HYBRID_PARALLELISM = 4
+
+
+class DataParallelExecutionModes(Enum):
+
+    ALGORITHM1 = 1
+    ALGORITHM2 = 2
+    ALGORITHM3 = 3

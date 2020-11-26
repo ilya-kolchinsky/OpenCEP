@@ -4,7 +4,7 @@ by invoking the rest of the system components.
 """
 from base.DataFormatter import DataFormatter
 from parallel.EvaluationManagerFactory import EvaluationManagerFactory
-from parallel.ParallelExecutionParameters import ParallelExecutionParameters
+from parallel.ParallelExecutionParameters import *
 from stream.Stream import InputStream, OutputStream
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
@@ -19,15 +19,16 @@ class CEP:
     be optimized and parallelized.
     """
     def __init__(self, patterns: Pattern or List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None,
-                 parallel_execution_params: ParallelExecutionParameters = None):
+                 parallel_execution_params: ParallelExecutionParameters = None, data_parallel_params: DataParallelExecutionParameters = None):
         """
         Constructor of the class.
         """
         if patterns is None or len(patterns) == 0:
             raise Exception("No patterns are provided")
-        self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(patterns,
+        self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(patterns, DataParallelExecutionParameters,
                                                                                        eval_mechanism_params,
-                                                                                       parallel_execution_params)
+                                                                                       parallel_execution_params,
+                                                                                       data_parallel_params)
 
     def run(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
