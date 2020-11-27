@@ -58,3 +58,4 @@ class CEP:
         Returns an object summarizing the structure of the underlying evaluation mechanism.
         """
         return self.__evaluation_manager.get_structure_summary()
+# test
