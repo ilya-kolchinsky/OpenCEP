@@ -9,10 +9,14 @@ from statistics_collector.SelectivityMatrixAndArrivalRates import SelectivityMat
 
 class StatisticsCollector:
 
-    def __init__(self, optimizer: Optimizer, statistic_type: StatisticsTypes):
+    def __init__(self, optimizer: Optimizer, statistic_types: StatisticsTypes):
+        # self.statistics_factory = StatisticsFactory()
         self.__optimizer = optimizer
-        self.__statistic_type = statistic_type
-        self.__calculator = self.register_statistics_type()  # functions or objects????
+        self.__statistic_types = statistic_types
+        
+        self.currStatistics = StatisticsFactory(statistic_types)  # functions or objects????
+
+        #self.__calculator = self.statistics_factory.register_statistics_type(statistic_type)
 
     def handle_event(self, event: Event):
         type = event.type
@@ -28,11 +32,14 @@ class StatisticsCollector:
             return self.__selectivity_matrix_and_arrival_rates
 
 
-class CurrStatistics:
+class StatisticsFactory:
 
     def __init__(self, statistic_type):
         self.register_statistics_type(statistic_type)
         self.stats = []
+
+    # def __init__(self):
+    #     self.stats = []
 
     def register_statistics_type(self, statistic_type):
         for stat_type in statistic_type:
@@ -44,9 +51,13 @@ class CurrStatistics:
                 self.stats.append(FrequencyDict())
                 # self.statistics.append(self.__frequency_dict)
 
+
             elif stat_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
                 self.stats.append(SelectivityMatrixAndArrivedRates())
                 # self.statistics.append(self.__selectivity_matrix_and_arrival_rates)
+
+        return self.stats
+
 
 # class ArrivalRates():
 #     def __init__(self):
