@@ -11,7 +11,7 @@ from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from tree.MultiPatternTree import MultiPatternTree
-
+from statistics_collector import StatisticsCollector
 from tree.Tree import Tree
 
 
@@ -20,8 +20,11 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     An implementation of the tree-based evaluation mechanism.
     """
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
-                 storage_params: TreeStorageParameters,
+                 storage_params: TreeStorageParameters, statistics_collector: StatisticsCollector,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
+
+        # new
+        self.__statistics_collector = statistics_collector
 
         is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
         if is_multi_pattern_mode:
@@ -53,6 +56,11 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             if event.type not in self.__event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
+
+
+            self.__statistics_collector.handle_event(event)
+
+
             for leaf in self.__event_types_listeners[event.type]:
                 if self.__should_ignore_events_on_leaf(leaf):
                     continue
@@ -134,6 +142,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         """
         Removes the freezers that have been expired.
         """
+
         if len(self.__freeze_map) == 0:
             # freeze option disabled
             return False
