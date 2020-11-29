@@ -30,8 +30,6 @@ class Pattern:
         self.full_structure = pattern_structure
         self.positive_structure = pattern_structure.duplicate()
         self.negative_structure = self.__extract_negative_structure()
-        # Pattern structure with args list: positive arg list + negative arg list.
-        self.combined_pos_neg_structure = self.__create_combined_structure()
         self.negation_algorithm = None
         self.condition = pattern_matching_condition
         if isinstance(self.condition, TrueCondition):
@@ -56,7 +54,7 @@ class Pattern:
         """
         Sets the negation algorithm that was chosen by the user
         """
-        if self.combined_pos_neg_structure is not None:
+        if self.negative_structure is not None:
             self.negation_algorithm = neg_alg if neg_alg is not None\
                 else NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM
 
@@ -95,17 +93,6 @@ class Pattern:
         for arg in negative_structure.get_args():
             self.positive_structure.get_args().remove(arg)
         return negative_structure
-
-    def __create_combined_structure(self):
-        """
-        This method creates a new pattern_structure.
-        It's top operator determined by the full_structure top operator.
-        It's args list is a concatenation of positive_structure arg list + negative_structure arg list.
-        """
-        combined_structure = self.positive_structure.duplicate()
-        if self.negative_structure is not None:
-            combined_structure.args.extend(self.negative_structure.get_args())
-        return combined_structure
 
     def get_index_by_event_name(self, event_name: str):
         """

@@ -1,7 +1,7 @@
 from abc import ABC
 
 from base.Pattern import Pattern
-from base.PatternStructure import AndOperator, SeqOperator, NegationOperator
+from base.PatternStructure import AndOperator, SeqOperator
 from plan.TreeCostModel import TreeCostModelFactory
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode, TreePlanLeafNode
@@ -40,7 +40,8 @@ class TreePlanBuilder(ABC):
         """
         tree_topology = positive_subtree
         if pattern.negative_structure is not None:
-            for i in range(len(pattern.positive_structure.get_args()), len(pattern.combined_pos_neg_structure.get_args())):
+            for i in range(len(pattern.positive_structure.get_args()), len(pattern.full_structure.get_args())):
+                # TODO - when implementing 2 other neg algs - create "order[]" and pass order[i] instead of i
                 tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(i))
         return tree_topology
 
@@ -57,7 +58,7 @@ class TreePlanBuilder(ABC):
         else:
             raise Exception("Unsupported binary operator")
         if pattern.negative_structure is not None:
-            if type(pattern.combined_pos_neg_structure.args[right_subtree.event_index]) == NegationOperator:
+            if right_subtree.event_index >= len(pattern.positive_structure.get_args()):
                 if isinstance(pattern_structure, AndOperator):
                     operator_type = OperatorTypes.NAND
                 else:
