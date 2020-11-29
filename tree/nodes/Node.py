@@ -19,6 +19,8 @@ class PrimitiveEventDefinition:
         self.name = event_name
         self.index = event_index
 
+    def get_event_index(self):
+        return self.index
 
 class Node(ABC):
     """

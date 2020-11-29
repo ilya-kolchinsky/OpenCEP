@@ -11,6 +11,7 @@ from plan.IterativeImprovement import IterativeImprovementType, IterativeImprove
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlanLeafNode
 from plan.TreePlanBuilder import TreePlanBuilder
+from plan.NegationAlgorithmTypes import NegationAlgorithmTypes
 from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
@@ -26,8 +27,10 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
         Invokes an algorithm (to be implemented by subclasses) that builds an evaluation order of the operands, and
         converts it into a left-deep tree topology.
         """
-        order = self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure, CompositeStructure) else [0]
-        return LeftDeepTreeBuilder._order_to_tree_topology(order, pattern)
+        order = self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure, CompositeStructure)\
+            else [0]
+        tree_topology = LeftDeepTreeBuilder._order_to_tree_topology(order, pattern)
+        return self._add_negative_part(tree_topology, pattern)
 
     @staticmethod
     def _order_to_tree_topology(order: List[int], pattern: Pattern):

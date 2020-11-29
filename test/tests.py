@@ -13,7 +13,9 @@ runTest.over_all_time = 0
 # basic functionality tests
 oneArgumentsearchTest()
 simplePatternSearchTest()
+
 googleAscendPatternSearchTest()
+
 amazonInstablePatternSearchTest()
 msftDrivRacePatternSearchTest()
 googleIncreasePatternSearchTest()
@@ -41,10 +43,12 @@ iiRandomPatternSearchTest()
 iiRandom2PatternSearchTest()
 iiGreedyPatternSearchTest()
 iiGreedy2PatternSearchTest()
+
 zStreamOrdPatternSearchTest()
 zStreamPatternSearchTest()
 dpBPatternSearchTest()
 dpLdPatternSearchTest()
+
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
 

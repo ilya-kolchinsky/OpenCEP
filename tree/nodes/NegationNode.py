@@ -32,7 +32,7 @@ class NegationNode(BinaryNode, ABC):
 
         # contains the event definitions of the positive subtree
         self._positive_event_defs = None
-
+        self._negative_event_defs = None
         # negation operators that can appear in the end of the match have this flag on
         self.__is_unbounded = is_unbounded
 
@@ -42,11 +42,14 @@ class NegationNode(BinaryNode, ABC):
         # a list of partial matches that can be invalidated by a negative event that will only arrive in future
         self.__pending_partial_matches = []
 
+    def get_negative_event_defs(self):
+        return self._negative_event_defs
+
     def set_subtrees(self, left: Node, right: Node):
         """
         Updates the aliases following the changes in the subtrees.
         """
-        super().set_subtrees(left, right)
+        self._negative_event_defs = super().set_subtrees(left, right)
         self._positive_subtree = self._left_subtree
         self._negative_subtree = self._right_subtree
 
@@ -58,6 +61,9 @@ class NegationNode(BinaryNode, ABC):
         """
         super()._set_event_definitions(positive_event_defs, negative_event_defs)
         self._positive_event_defs = positive_event_defs
+
+    def set_is_unbounded(self, is_unbounded: bool):
+        self.__is_unbounded = is_unbounded
 
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """

@@ -11,7 +11,7 @@ from tree.nodes.AndNode import AndNode
 from tree.nodes.KleeneClosureNode import KleeneClosureNode
 from tree.nodes.LeafNode import LeafNode
 from tree.nodes.NegationNode import NegativeSeqNode, NegativeAndNode, NegationNode
-from tree.nodes.Node import Node
+from tree.nodes.Node import Node, PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.nodes.SeqNode import SeqNode
 
@@ -25,7 +25,7 @@ class Tree:
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
                  pattern_id: int = None):
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
-                                            Tree.__get_operator_arg_list(pattern.positive_structure),
+                                            Tree.__get_operator_arg_list(pattern.combined_pos_neg_structure),
                                             pattern.window, None, pattern.consumption_policy)
 
         if pattern.consumption_policy is not None and \
@@ -35,10 +35,9 @@ class Tree:
 
         if pattern.negative_structure is not None:
             self.__adjust_leaf_indices(pattern)
-            self.__add_negative_tree_structure(pattern)
+            self.__update_bounded_neg_seq_nodes(pattern)
 
         self.__apply_condition(pattern)
-
         self.__root.create_storage_unit(storage_params)
 
         self.__root.create_parent_to_info_dict()
@@ -71,33 +70,23 @@ class Tree:
             leaf_mapping[current_index] = correct_index
         # update the event definitions in the internal nodes
         # note that it is enough to only update the root since it contains all the event definition objects
-        for event_def in self.__root.get_event_definitions():
+        for event_def in self.__root.get_positive_event_definitions():
             event_def.index = leaf_mapping[event_def.index]
+        current = self.__root
+        while isinstance(current, NegationNode):
+            current.get_negative_event_defs()[0].index = leaf_mapping[current.get_negative_event_defs()[0].index]
+            current.get_event_definitions().sort(key=PrimitiveEventDefinition.get_event_index)
+            current = current.get_left_subtree()
 
-    def __add_negative_tree_structure(self, pattern: Pattern):
-        """
-        Adds the negative nodes at the root of the tree.
-        """
-        top_operator = pattern.full_structure.get_top_operator()
-        negative_event_list = pattern.negative_structure.get_args()
-        current_root = self.__root
-        for negation_operator in negative_event_list:
-            if top_operator == SeqOperator:
-                new_root = NegativeSeqNode(pattern.window,
-                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
-            elif top_operator == AndOperator:
-                new_root = NegativeAndNode(pattern.window,
-                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
-            else:
-                raise Exception("Unsupported operator for negation: %s" % (top_operator,))
-            negative_event = negation_operator.arg
-            leaf_index = pattern.get_index_by_event_name(negative_event.name)
-            negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root)
-            new_root.set_subtrees(current_root, negative_leaf)
-            negative_leaf.set_parent(new_root)
-            current_root.set_parent(new_root)
-            current_root = new_root
-        self.__root = current_root
+    def __update_bounded_neg_seq_nodes(self, pattern: Pattern):
+        # When top operator is And, negations are unbounded anyway
+        if pattern.full_structure.get_top_operator() == AndOperator:
+            return
+        current_node = self.__root
+        while isinstance(current_node, NegativeSeqNode):
+            current_node.set_is_unbounded(Tree.__is_unbounded_negative_event(pattern, current_node.get_right_subtree().
+                                                                             get_leaves()[0].get_leaf_index()))
+            current_node = current_node.get_left_subtree()
 
     def get_leaves(self):
         return self.__root.get_leaves()
@@ -125,16 +114,22 @@ class Tree:
         return [operator]
 
     @staticmethod
-    def __create_internal_node_by_operator(operator: PatternStructure, sliding_window: timedelta, parent: Node = None):
+    def __create_internal_node_by_operator(operator: PatternStructure, sliding_window: timedelta,
+                                           parent: Node = None, flag: bool = False):
         """
         Creates an internal node representing a given operator.
-        Note that negation node types are intentionally not supported here since the negative part of a pattern is
-        added in a separate construction stage.
+        In case of negation node, the flag parameter would be "True", and according to the operator parameter,
+        the function would set the internal node to be NegativeSeqNode or NegativeAndNode.
+        The is_undounded parameter passed to the Negative nodes set to true (and will be updated afterwards).
         """
         operator_type = operator.get_top_operator()
         if operator_type == SeqOperator:
+            if flag:
+                return NegativeSeqNode(sliding_window, flag, parent)
             return SeqNode(sliding_window, parent)
         if operator_type == AndOperator:
+            if flag:
+                return NegativeAndNode(sliding_window, flag, parent)
             return AndNode(sliding_window, parent)
         if operator_type == KleeneClosureOperator:
             return KleeneClosureNode(sliding_window, operator.min_size, operator.max_size, parent)
@@ -147,6 +142,8 @@ class Tree:
         """
         Constructs a single leaf node or a subtree with nested structure according to the input parameters.
         """
+        if isinstance(current_operator, NegationOperator):
+            current_operator = current_operator.arg
         if isinstance(current_operator, PrimitiveEventStructure):
             # the current operator is a primitive event - we should simply create a leaf
             event = current_operator
@@ -186,9 +183,12 @@ class Tree:
             # with leaves hiding nested structure
             return self.__handle_primitive_event_or_nested_structure(tree_plan, args[tree_plan.event_index],
                                                                      sliding_window, parent, consumption_policy)
-
+        # In case of negation operator the flag parameter is set to true
+        flag = False
+        if (tree_plan.operator.name == 'NSEQ') or (tree_plan.operator.name == 'NAND'):
+            flag = True
         # an internal node
-        current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
+        current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent, flag)
         left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
                                              sliding_window, current, consumption_policy)
         right_subtree = self.__construct_tree(root_operator, tree_plan.right_child, args,
@@ -230,7 +230,7 @@ class Tree:
         return ret
 
     @staticmethod
-    def __is_unbounded_negative_event(pattern: Pattern, negation_operator: NegationOperator):
+    def __is_unbounded_negative_event(pattern: Pattern, negation_operator_index: int):
         """
         Returns True if the negative event represented by the given operator is unbounded (i.e., can appear after the
         entire match is ready and invalidate it) and False otherwise.
@@ -240,8 +240,7 @@ class Tree:
         # for a sequence pattern, a negative event is unbounded if no positive events follow it
         # the implementation below assumes a flat sequence
         sequence_elements = pattern.full_structure.get_args()
-        operator_index = sequence_elements.index(negation_operator)
-        for i in range(operator_index + 1, len(sequence_elements)):
+        for i in range(negation_operator_index + 1, len(sequence_elements)):
             if isinstance(sequence_elements[i], PrimitiveEventStructure):
                 return False
         return True

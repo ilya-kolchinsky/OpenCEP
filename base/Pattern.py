@@ -9,6 +9,7 @@ from base.PatternStructure import PatternStructure, CompositeStructure, Primitiv
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
 from misc.ConsumptionPolicy import ConsumptionPolicy
+from plan.NegationAlgorithmTypes import NegationAlgorithmTypes
 
 
 class Pattern:
@@ -26,11 +27,12 @@ class Pattern:
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Condition,
                  time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None):
         self.id = pattern_id
-
         self.full_structure = pattern_structure
         self.positive_structure = pattern_structure.duplicate()
         self.negative_structure = self.__extract_negative_structure()
-
+        # Pattern structure with args list: positive arg list + negative arg list.
+        self.combined_pos_neg_structure = self.__create_combined_structure()
+        self.negation_algorithm = None
         self.condition = pattern_matching_condition
         if isinstance(self.condition, TrueCondition):
             self.condition = AndCondition()
@@ -49,6 +51,14 @@ class Pattern:
                 consumption_policy.single_types = self.get_all_event_types()
             if consumption_policy.contiguous_names is not None:
                 self.__init_strict_conditions(pattern_structure)
+
+    def set_negation_algorithm(self, neg_alg: NegationAlgorithmTypes):
+        """
+        Sets the negation algorithm that was chosen by the user
+        """
+        if self.combined_pos_neg_structure is not None:
+            self.negation_algorithm = neg_alg if neg_alg is not None\
+                else NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM
 
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         """
@@ -85,6 +95,17 @@ class Pattern:
         for arg in negative_structure.get_args():
             self.positive_structure.get_args().remove(arg)
         return negative_structure
+
+    def __create_combined_structure(self):
+        """
+        This method creates a new pattern_structure.
+        It's top operator determined by the full_structure top operator.
+        It's args list is a concatenation of positive_structure arg list + negative_structure arg list.
+        """
+        combined_structure = self.positive_structure.duplicate()
+        if self.negative_structure is not None:
+            combined_structure.args.extend(self.negative_structure.get_args())
+        return combined_structure
 
     def get_index_by_event_name(self, event_name: str):
         """

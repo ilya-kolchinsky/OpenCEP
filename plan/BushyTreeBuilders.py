@@ -57,7 +57,8 @@ class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
                     # if new subset's topology is better, then update to it.
                     if new_cost < cost:
                         sub_trees[subset] = new_tree, new_cost, left
-        return sub_trees[items][0]  # return the best topology (index 0 at tuple) for items - the set of all arguments.
+        # the best topology (index 0 at tuple) for items - the set of all arguments
+        return self._add_negative_part(sub_trees[items][0], pattern)
 
 
 class ZStreamTreeBuilder(TreePlanBuilder):
@@ -102,7 +103,7 @@ class ZStreamTreeBuilder(TreePlanBuilder):
                     new_cost = self._get_plan_cost(pattern, new_tree)
                     if new_cost < prev_cost:
                         suborders[suborder] = new_tree, new_cost
-        return suborders[items][0]  # return the topology (index 0 at tuple) of the entire order, indexed to 'items'.
+        return self._add_negative_part(suborders[items][0], pattern)
 
     @staticmethod
     def _get_initial_order(selectivity_matrix: List[List[float]], arrival_rates: List[int]):
