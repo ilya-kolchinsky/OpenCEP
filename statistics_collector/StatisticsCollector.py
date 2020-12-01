@@ -13,7 +13,7 @@ class StatisticsCollector:
         # self.statistics_factory = StatisticsFactory()
         self.__optimizer = optimizer
         self.__statistic_types = statistic_types
-        
+
         self.currStatistics = StatisticsFactory(statistic_types)  # functions or objects????
 
         #self.__calculator = self.statistics_factory.register_statistics_type(statistic_type)
