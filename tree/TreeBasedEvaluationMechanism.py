@@ -56,8 +56,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             if event.type not in self.__event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
-            #self.__statistics_collector.handle_event(event)
-
+            # self.statistics_collector.handle_event(event)
 
             for leaf in self.__event_types_listeners[event.type]:
                 if self.__should_ignore_events_on_leaf(leaf):
