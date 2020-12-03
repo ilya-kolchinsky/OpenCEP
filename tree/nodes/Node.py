@@ -1,7 +1,7 @@
 from abc import ABC
 from datetime import timedelta, datetime
 from queue import Queue
-from typing import List, Set
+from typing import List, Set, Optional
 
 from base.Event import Event
 from condition.Condition import RelopTypes, EquationSides
@@ -141,19 +141,20 @@ class Node(ABC):
         self._filtered_events |= new_filtered_events
         return True
 
-    def _validate_and_propagate_partial_match(self, events: List[Event]):
+    def _validate_and_propagate_partial_match(self, events: List[Event], probability: Optional[float] = None):
         """
         Creates a new partial match from the list of events, validates it, and propagates it up the tree.
         """
         if not self._validate_new_match(events):
             return
-        self._propagate_partial_match(events)
+        self._propagate_partial_match(events, probability)
 
-    def _propagate_partial_match(self, events: List[Event]):
+    def _propagate_partial_match(self, events: List[Event], probability: Optional[float] = None):
         """
         Receives an already verified list of events for new partial match and propagates it up the tree.
         """
         new_partial_match = PatternMatch(events)
+        new_partial_match.probability = probability
         if self.__can_add_partial_match(new_partial_match):
             self._add_partial_match(new_partial_match)
 

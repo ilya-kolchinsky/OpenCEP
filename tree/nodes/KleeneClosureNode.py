@@ -1,5 +1,6 @@
 from datetime import timedelta
 from typing import List, Set
+from functools import reduce
 
 from base.Event import Event
 from condition.CompositeCondition import CompositeCondition
@@ -39,7 +40,16 @@ class KleeneClosureNode(UnaryNode):
         for partial_match_set in child_matches_powerset:
             # create and propagate the new match
             events_for_partial_match = KleeneClosureNode.__partial_match_set_to_event_list(partial_match_set)
-            self._validate_and_propagate_partial_match(events_for_partial_match)
+            probability = reduce(
+                lambda acc, pm: (
+                    pm.probability * (acc if acc is not None else 1)
+                    if pm.probability is not None
+                    else acc
+                ),
+                partial_match_set,
+                None
+            )
+            self._validate_and_propagate_partial_match(events_for_partial_match, probability)
 
     def _validate_new_match(self, events_for_new_match: List[Event]):
         """

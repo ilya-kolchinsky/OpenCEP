@@ -114,7 +114,7 @@ class NegationNode(BinaryNode, ABC):
                 # TODO: the rejected positive partial match should be explicitly removed to save space
                 return
         # no negative match invalidated the positive one - we can go on
-        self._propagate_partial_match(positive_events)
+        self._propagate_partial_match(positive_events, new_partial_match.probability)
 
     def _add_partial_match(self, pm: PatternMatch):
         """

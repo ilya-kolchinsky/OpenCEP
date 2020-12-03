@@ -6,6 +6,7 @@ from condition.Condition import Condition, RelopTypes, EquationSides
 from base.PatternStructure import PrimitiveEventStructure
 from tree.nodes.Node import Node
 from tree.nodes.Node import PrimitiveEventDefinition
+from base.PatternMatch import PatternMatch
 from tree.PatternMatchStorage import TreeStorageParameters, SortedPatternMatchStorage
 
 
@@ -69,7 +70,7 @@ class LeafNode(Node):
         Inserts the given event to this leaf.
         """
         self.clean_expired_partial_matches(event.timestamp)
-        self._validate_and_propagate_partial_match([event])
+        self._validate_and_propagate_partial_match([event], event.probability)
 
     def _validate_new_match(self, events_for_new_match: List[Event]):
         """

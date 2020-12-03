@@ -1,5 +1,5 @@
 from base.Event import Event
-from typing import List
+from typing import List, Optional
 
 
 class PatternMatch:
@@ -14,6 +14,7 @@ class PatternMatch:
         self.first_timestamp = min(events, key=lambda x: x.timestamp).timestamp
         # this field is only used for full pattern matches
         self.pattern_ids = []
+        self.probability: Optional[float] = None
 
     def __eq__(self, other):
         return isinstance(other, PatternMatch) and set(self.events) == set(other.events) and \
