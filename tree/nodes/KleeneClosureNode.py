@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import List, Set
+from typing import List, Set, Optional
 from functools import reduce
 
 from base.Event import Event
@@ -16,8 +16,8 @@ class KleeneClosureNode(UnaryNode):
     It generates and propagates sets of partial matches provided by its sole child.
     """
     def __init__(self, sliding_window: timedelta, min_size, max_size,
-                 parents: List[Node] = None, pattern_ids: int or Set[int] = None):
-        super().__init__(sliding_window, parents, pattern_ids)
+                 parents: List[Node] = None, pattern_ids: int or Set[int] = None, confidence: Optional[float] = None):
+        super().__init__(sliding_window, parents, pattern_ids, confidence=confidence)
         self.__min_size = min_size
         self.__max_size = max_size
 

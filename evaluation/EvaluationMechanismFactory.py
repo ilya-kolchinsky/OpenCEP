@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
@@ -13,8 +13,10 @@ class EvaluationMechanismParameters:
     """
     Parameters required for evaluation mechanism creation.
     """
-    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes = DefaultConfig.DEFAULT_EVALUATION_MECHANISM_TYPE):
+    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes = DefaultConfig.DEFAULT_EVALUATION_MECHANISM_TYPE, confidence: Optional[float] = None):
+        assert confidence is None or 0 <= confidence <= 1
         self.type = eval_mechanism_type
+        self.confidence = confidence
 
 
 class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
@@ -23,8 +25,9 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
     """
     def __init__(self, tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
                  storage_params: TreeStorageParameters = TreeStorageParameters(),
-                 multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
-        super().__init__(EvaluationMechanismTypes.TREE_BASED)
+                 multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters(),
+                 confidence: Optional[float] = None):
+        super().__init__(EvaluationMechanismTypes.TREE_BASED, confidence=confidence)
         self.tree_plan_params = tree_plan_params
         self.storage_params = storage_params
         self.multi_pattern_eval_params = multi_pattern_eval_params

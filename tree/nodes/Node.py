@@ -46,12 +46,14 @@ class Node(ABC):
 
 
     ###################################### Initialization
-    def __init__(self, sliding_window: timedelta, parents, pattern_ids: int or Set[int] = None):
+    def __init__(self, sliding_window: timedelta, parents, pattern_ids: int or Set[int] = None, confidence: Optional[float] = None):
         self._parents = []
         self._sliding_window = sliding_window
         self._partial_matches = None
         self._condition = AndCondition()
 
+        assert confidence is None or 0 <= confidence <= 1
+        self._confidence = confidence
         # Full pattern matches that were not yet reported. Only relevant for an output node, that is, for a node
         # corresponding to a full pattern definition.
         self._unreported_matches = Queue()
@@ -113,6 +115,8 @@ class Node(ABC):
         In case of SortedPatternMatchStorage the insertion is by timestamp or condition, O(log n).
         In case of UnsortedPatternMatchStorage the insertion is directly at the end, O(1).
         """
+        if self._confidence is not None and pm.probability is not None and pm.probability < self._confidence:
+            return
         self._partial_matches.add(pm)
         for parent in self._parents:
             self._parent_to_unhandled_queue_dict[parent].put(pm)

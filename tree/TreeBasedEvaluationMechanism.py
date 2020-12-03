@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from base.DataFormatter import DataFormatter
 from base.Event import Event
@@ -21,14 +21,15 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                  storage_params: TreeStorageParameters,
-                 multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
+                 multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters(),
+                 confidence: Optional[float] = None):
 
         is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
         if is_multi_pattern_mode:
             self.__tree = MultiPatternTree(pattern_to_tree_plan_map, storage_params, multi_pattern_eval_params)
         else:
             self.__tree = Tree(list(pattern_to_tree_plan_map.values())[0],
-                               list(pattern_to_tree_plan_map)[0], storage_params)
+                               list(pattern_to_tree_plan_map)[0], storage_params, confidence=confidence)
 
         self.__event_types_listeners = {}
 

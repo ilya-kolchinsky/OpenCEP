@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import List
+from typing import List, Optional
 from copy import deepcopy
 
 from base.Pattern import Pattern
@@ -23,11 +23,12 @@ class Tree:
     The pattern_id parameter is used in multi-pattern mode.
     """
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
-                 pattern_id: int = None):
+                 pattern_id: int = None, confidence: Optional[float] = None):
+        self.__confidence = confidence
+
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
                                             Tree.__get_operator_arg_list(pattern.positive_structure),
                                             pattern.window, None, pattern.consumption_policy)
-
         if pattern.consumption_policy is not None and \
                 pattern.consumption_policy.should_register_event_type_as_single(True):
             for event_type in pattern.consumption_policy.single_types:
@@ -84,15 +85,15 @@ class Tree:
         for negation_operator in negative_event_list:
             if top_operator == SeqOperator:
                 new_root = NegativeSeqNode(pattern.window,
-                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
+                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator), confidence=self.__confidence)
             elif top_operator == AndOperator:
                 new_root = NegativeAndNode(pattern.window,
-                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
+                                           is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator), confidence=self.__confidence)
             else:
                 raise Exception("Unsupported operator for negation: %s" % (top_operator,))
             negative_event = negation_operator.arg
             leaf_index = pattern.get_index_by_event_name(negative_event.name)
-            negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root)
+            negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root, confidence=self.__confidence)
             new_root.set_subtrees(current_root, negative_leaf)
             negative_leaf.set_parent(new_root)
             current_root.set_parent(new_root)
@@ -125,7 +126,7 @@ class Tree:
         return [operator]
 
     @staticmethod
-    def __create_internal_node_by_operator(operator: PatternStructure, sliding_window: timedelta, parent: Node = None):
+    def __create_internal_node_by_operator(operator: PatternStructure, sliding_window: timedelta, parent: Node = None, confidence: Optional[float] = None):
         """
         Creates an internal node representing a given operator.
         Note that negation node types are intentionally not supported here since the negative part of a pattern is
@@ -133,11 +134,11 @@ class Tree:
         """
         operator_type = operator.get_top_operator()
         if operator_type == SeqOperator:
-            return SeqNode(sliding_window, parent)
+            return SeqNode(sliding_window, parent, confidence=confidence)
         if operator_type == AndOperator:
-            return AndNode(sliding_window, parent)
+            return AndNode(sliding_window, parent, confidence=confidence)
         if operator_type == KleeneClosureOperator:
-            return KleeneClosureNode(sliding_window, operator.min_size, operator.max_size, parent)
+            return KleeneClosureNode(sliding_window, operator.min_size, operator.max_size, parent, confidence=confidence)
         raise Exception("Unknown or unsupported operator %s" % (operator_type,))
 
     def __handle_primitive_event_or_nested_structure(self, tree_plan_leaf: TreePlanLeafNode,
@@ -157,7 +158,7 @@ class Tree:
 
         if isinstance(current_operator, UnaryStructure):
             # the current operator is a unary operator hiding a nested pattern structure
-            unary_node = self.__create_internal_node_by_operator(current_operator, sliding_window, parent)
+            unary_node = self.__create_internal_node_by_operator(current_operator, sliding_window, parent, confidence=self.__confidence)
             nested_operator = current_operator.arg
             child = self.__construct_tree(nested_operator, Tree.__create_nested_structure(nested_operator),
                                           Tree.__get_operator_arg_list(nested_operator), sliding_window, unary_node,
@@ -188,7 +189,7 @@ class Tree:
                                                                      sliding_window, parent, consumption_policy)
 
         # an internal node
-        current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
+        current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent, confidence=self.__confidence)
         left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
                                              sliding_window, current, consumption_policy)
         right_subtree = self.__construct_tree(root_operator, tree_plan.right_child, args,

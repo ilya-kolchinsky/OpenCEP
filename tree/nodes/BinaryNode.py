@@ -16,8 +16,8 @@ class BinaryNode(InternalNode, ABC):
     """
     def __init__(self, sliding_window: timedelta, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None):
-        super().__init__(sliding_window, parents, pattern_ids, event_defs)
+                 left: Node = None, right: Node = None, confidence: Optional[float] = None):
+        super().__init__(sliding_window, parents, pattern_ids, event_defs, confidence=confidence)
         self._left_subtree = left
         self._right_subtree = right
 

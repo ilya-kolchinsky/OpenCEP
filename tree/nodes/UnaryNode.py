@@ -1,6 +1,6 @@
 from abc import ABC
 from datetime import timedelta
-from typing import List, Set
+from typing import List, Set, Optional
 
 from condition.Condition import Condition, RelopTypes, EquationSides
 from tree.nodes.InternalNode import InternalNode
@@ -13,8 +13,8 @@ class UnaryNode(InternalNode, ABC):
     Represents an internal tree node with a single child.
     """
     def __init__(self, sliding_window: timedelta, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
-                 event_defs: List[PrimitiveEventDefinition] = None, child: Node = None):
-        super().__init__(sliding_window, parents, pattern_ids, event_defs)
+                 event_defs: List[PrimitiveEventDefinition] = None, child: Node = None, confidence: Optional[float] = None):
+        super().__init__(sliding_window, parents, pattern_ids, event_defs, confidence=confidence)
         self._child = child
 
     def get_leaves(self):

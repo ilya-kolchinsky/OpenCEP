@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import List, Set
+from typing import List, Set, Optional
 
 from base.Event import Event
 from condition.Condition import Condition, RelopTypes, EquationSides
@@ -15,8 +15,8 @@ class LeafNode(Node):
     A leaf node is responsible for a single event type of the pattern.
     """
     def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_event: PrimitiveEventStructure,
-                 parents: List[Node], pattern_ids: int or Set[int] = None):
-        super().__init__(sliding_window, parents, pattern_ids)
+                 parents: List[Node], pattern_ids: int or Set[int] = None, confidence: Optional[float] = None):
+        super().__init__(sliding_window, parents, pattern_ids, confidence=confidence)
         self.__leaf_index = leaf_index
         self.__event_name = leaf_event.name
         self.__event_type = leaf_event.type

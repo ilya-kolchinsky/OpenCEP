@@ -1,6 +1,6 @@
 from abc import ABC
 from datetime import timedelta, datetime
-from typing import List, Set, Type
+from typing import List, Set, Type, Optional
 
 from base.Event import Event
 from condition.Condition import RelopTypes, EquationSides
@@ -22,8 +22,8 @@ class NegationNode(BinaryNode, ABC):
     def __init__(self, sliding_window: timedelta, is_unbounded: bool, top_operator: Type,
                  parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None):
-        super().__init__(sliding_window, parents, pattern_ids, event_defs, left, right)
+                 left: Node = None, right: Node = None, confidence: Optional[float] = None):
+        super().__init__(sliding_window, parents, pattern_ids, event_defs, left, right, confidence=confidence)
 
         # aliases for the negative node subtrees to make the code more readable
         # by construction, we always have the positive subtree on the left
@@ -206,8 +206,8 @@ class NegativeAndNode(NegationNode):
     def __init__(self, sliding_window: timedelta, is_unbounded: bool,
                  parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None):
-        super().__init__(sliding_window, is_unbounded, AndOperator, parents, pattern_ids, event_defs, left, right)
+                 left: Node = None, right: Node = None, confidence: Optional[float] = None):
+        super().__init__(sliding_window, is_unbounded, AndOperator, parents, pattern_ids, event_defs, left, right, confidence=confidence)
 
     def get_structure_summary(self):
         return ("NAnd",
@@ -223,8 +223,8 @@ class NegativeSeqNode(NegationNode):
     def __init__(self, sliding_window: timedelta, is_unbounded: bool,
                  parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None):
-        super().__init__(sliding_window, is_unbounded, SeqOperator, parents, pattern_ids, event_defs, left, right)
+                 left: Node = None, right: Node = None, confidence: Optional[float] = None):
+        super().__init__(sliding_window, is_unbounded, SeqOperator, parents, pattern_ids, event_defs, left, right, confidence=confidence)
 
     def get_structure_summary(self):
         return ("NSeq",
