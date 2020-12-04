@@ -11,7 +11,7 @@ from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from tree.MultiPatternTree import MultiPatternTree
-
+from tree.TreeVisualizationUtility import GraphVisualization
 from tree.Tree import Tree
 
 
@@ -19,11 +19,13 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
-    def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
+    def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
                  storage_params: TreeStorageParameters,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
 
         is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
+        # if isinstance(pattern_to_tree_plan_map, TreePlan):
+        #     self.__tree = MultiPatternTree2(pattern_to_tree_plan_map, storage_params, multi_pattern_eval_params)
         if is_multi_pattern_mode:
             self.__tree = MultiPatternTree(pattern_to_tree_plan_map, storage_params, multi_pattern_eval_params)
         else:
@@ -145,3 +147,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
     def __repr__(self):
         return self.get_structure_summary()
+
+    def visualize(self,title=None):
+        G = GraphVisualization(title)
+        G.build_from_leaves(self.__tree.get_leaves())
+        G.visualize()

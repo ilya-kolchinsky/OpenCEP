@@ -12,6 +12,13 @@ class AndNode(BinaryNode):
                 self._left_subtree.get_structure_summary(),
                 self._right_subtree.get_structure_summary())
 
+    def __str__(self) -> str:
+        """
+        “informal” or nicely printable string representation of an object
+        """
+        _prefix = 'And'
+        return f'{_prefix} {str(self._left_subtree).replace(_prefix,"")}  {str(self._right_subtree).replace(_prefix,"")}'
+
     def create_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                             rel_op: RelopTypes = None, equation_side: EquationSides = None,
                             sort_by_first_timestamp: bool = False):

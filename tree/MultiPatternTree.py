@@ -64,6 +64,7 @@ class MultiPatternTree:
         leaves_dict = {}
 
         for tree in trees:
+            tree.visualize(title="Before")
             curr_leaves = tree.get_leaves()
             curr_root = tree.get_root()
             pattern_id = list(curr_leaves[0].get_pattern_ids())[0]

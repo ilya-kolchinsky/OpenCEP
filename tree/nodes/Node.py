@@ -378,3 +378,16 @@ class Node(ABC):
         An abstract method for recursive partial match storage initialization.
         """
         raise NotImplementedError()
+
+    def __str__(self) -> str:
+        """
+        “informal” or nicely printable string representation of an object
+        """
+        raise NotImplementedError()
+
+    def __repr__(self) -> str:
+        """
+        “official” string representation of an object.
+        """
+        raise NotImplementedError()
+

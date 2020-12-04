@@ -22,8 +22,8 @@ googleAmazonLowPatternSearchTest()
 nonsensePatternSearchTest()
 hierarchyPatternSearchTest()
 duplicateEventTypeTest()
-
-# tree plan generation algorithms
+#
+# # tree plan generation algorithms
 arrivalRatesPatternSearchTest()
 nonFrequencyPatternSearchTest()
 frequencyPatternSearchTest()
@@ -47,70 +47,70 @@ dpBPatternSearchTest()
 dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
-
-# tree structure tests - CEP object only created not used
-structuralTest1()
-structuralTest2()
-structuralTest3()
-structuralTest4()
-structuralTest5()
-structuralTest6()
-structuralTest7()
-
-# Kleene closure tests
-oneArgumentsearchTestKleeneClosure()
-MinMax_0_TestKleeneClosure()
-MinMax_1_TestKleeneClosure()
-MinMax_2_TestKleeneClosure()
-KC_AND()
-
-# Kleene Condition tests
-KC_AND_IndexCondition_01()
-KC_AND_IndexCondition_02()
-KC_AND_NegOffSet_01()
-KC_AllValues()
-KC_Specific_Value()
-KC_Mixed()
-KC_Condition_Failure_01()
-KC_Condition_Failure_02()
-KC_Condition_Failure_03()
-
-# negation tests
-simpleNotTest()
-multipleNotInTheMiddleTest()
-oneNotAtTheBeginningTest()
-multipleNotAtTheBeginningTest()
-oneNotAtTheEndTest()
-multipleNotAtTheEndTest()
-multipleNotBeginAndEndTest()
-testWithMultipleNotAtBeginningMiddleEnd()
-
-# consumption policies tests
-singleType1PolicyPatternSearchTest()
-singleType2PolicyPatternSearchTest()
-contiguousPolicyPatternSearchTest()
-contiguousPolicy2PatternSearchTest()
-freezePolicyPatternSearchTest()
-freezePolicy2PatternSearchTest()
-
-# storage tests
-sortedStorageTest()
-run_storage_tests()
+#
+# # tree structure tests - CEP object only created not used
+# structuralTest1()
+# structuralTest2()
+# structuralTest3()
+# structuralTest4()
+# structuralTest5()
+# structuralTest6()
+# structuralTest7()
+#
+# # Kleene closure tests
+# oneArgumentsearchTestKleeneClosure()
+# MinMax_0_TestKleeneClosure()
+# MinMax_1_TestKleeneClosure()
+# MinMax_2_TestKleeneClosure()
+# KC_AND()
+#
+# # Kleene Condition tests
+# KC_AND_IndexCondition_01()
+# KC_AND_IndexCondition_02()
+# KC_AND_NegOffSet_01()
+# KC_AllValues()
+# KC_Specific_Value()
+# KC_Mixed()
+# KC_Condition_Failure_01()
+# KC_Condition_Failure_02()
+# KC_Condition_Failure_03()
+#
+# # negation tests
+# simpleNotTest()
+# multipleNotInTheMiddleTest()
+# oneNotAtTheBeginningTest()
+# multipleNotAtTheBeginningTest()
+# oneNotAtTheEndTest()
+# multipleNotAtTheEndTest()
+# multipleNotBeginAndEndTest()
+# testWithMultipleNotAtBeginningMiddleEnd()
+#
+# # consumption policies tests
+# singleType1PolicyPatternSearchTest()
+# singleType2PolicyPatternSearchTest()
+# contiguousPolicyPatternSearchTest()
+# contiguousPolicy2PatternSearchTest()
+# freezePolicyPatternSearchTest()
+# freezePolicy2PatternSearchTest()
+#
+# # storage tests
+# sortedStorageTest()
+# run_storage_tests()
 
 # multi-pattern tests
 # first approach: sharing leaves
 leafIsRoot()
-distinctPatterns()
-threePatternsTest()
-samePatternDifferentTimeStamps()
-rootAndInner()
-
-# second approach: sharing equivalent subtrees
-onePatternIncludesOther()
-samePatternSharingRoot()
-severalPatternShareSubtree()
-notInTheBeginningShare()
-multipleParentsForInternalNode()
+# distinctPatterns()
+# threePatternsTest()
+# samePatternDifferentTimeStamps()
+# rootAndInner()
+#
+# # second approach: sharing equivalent subtrees
+# onePatternIncludesOther()
+# samePatternSharingRoot()
+# severalPatternShareSubtree()
+# notInTheBeginningShare()
+# multipleParentsForInternalNode()
 
 # benchmarks
 if INCLUDE_BENCHMARKS:

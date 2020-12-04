@@ -7,6 +7,7 @@ from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, Co
     KleeneClosureOperator, PrimitiveEventStructure, NegationOperator
 from misc.ConsumptionPolicy import ConsumptionPolicy
 from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanBinaryNode, OperatorTypes
+from tree.TreeVisualizationUtility import GraphVisualization
 from tree.nodes.AndNode import AndNode
 from tree.nodes.KleeneClosureNode import KleeneClosureNode
 from tree.nodes.LeafNode import LeafNode
@@ -22,6 +23,7 @@ class Tree:
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     The pattern_id parameter is used in multi-pattern mode.
     """
+
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
                  pattern_id: int = None):
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
@@ -251,3 +253,8 @@ class Tree:
         Returns the root node of the tree.
         """
         return self.__root
+
+    def visualize(self, title):
+        G = GraphVisualization(title)
+        G.build_from_leaves(self.get_leaves())
+        G.visualize()

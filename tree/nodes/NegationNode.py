@@ -214,6 +214,12 @@ class NegativeAndNode(NegationNode):
                 self._positive_subtree.get_structure_summary(),
                 self._negative_subtree.get_structure_summary())
 
+    def __str__(self) -> str:
+        """
+        “informal” or nicely printable string representation of an object
+        """
+        _prefix = 'NAnd'
+        return f'{_prefix} {str(self._left_subtree).replace(_prefix, "")}  {str(self._right_subtree).replace(_prefix, "")}'
 
 class NegativeSeqNode(NegationNode):
     """
@@ -230,6 +236,13 @@ class NegativeSeqNode(NegationNode):
         return ("NSeq",
                 self._positive_subtree.get_structure_summary(),
                 self._negative_subtree.get_structure_summary())
+
+    def __str__(self) -> str:
+        """
+        “informal” or nicely printable string representation of an object
+        """
+        _prefix = 'NSeq'
+        return f'{_prefix} {str(self._left_subtree).replace(_prefix, "")}  {str(self._right_subtree).replace(_prefix, "")}'
 
     def _set_event_definitions(self,
                                positive_event_defs: List[PrimitiveEventDefinition],

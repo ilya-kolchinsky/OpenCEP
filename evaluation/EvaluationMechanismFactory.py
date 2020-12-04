@@ -63,6 +63,15 @@ class EvaluationMechanismFactory:
             patterns = [patterns]
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
         pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
+
+        # unioned_tree_map = UNION(pattern_to_tree_plan_map, algoNumber)
+        # return TreeBasedEvaluationMechanism(unioned_tree_map, eval_mechanism_params.storage_params,
+        #                                     eval_mechanism_params.multi_pattern_eval_params)
+
+
+        tree___ = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
+                                               eval_mechanism_params.multi_pattern_eval_params)
+        tree___.visualize()
         return TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
                                             eval_mechanism_params.multi_pattern_eval_params)
 

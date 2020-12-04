@@ -83,6 +83,13 @@ class KleeneClosureNode(UnaryNode):
     def get_structure_summary(self):
         return "KC", self._child.get_structure_summary()
 
+    def __str__(self) -> str:
+        """
+        “informal” or nicely printable string representation of an object
+        """
+        _prefix = 'KC'
+        return f'{_prefix} {str(self._child).replace(_prefix, "")}'
+
     def is_equivalent(self, other):
         """
         In addition to the checks performed by the base class, compares the min_size and max_size fields.

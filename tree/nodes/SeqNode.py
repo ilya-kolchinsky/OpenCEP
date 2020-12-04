@@ -37,6 +37,13 @@ class SeqNode(BinaryNode):
                 self._left_subtree.get_structure_summary(),
                 self._right_subtree.get_structure_summary())
 
+    def __str__(self) -> str:
+        """
+        “informal” or nicely printable string representation of an object
+        """
+        _prefix = 'Seq'
+        return f'{_prefix} {str(self._left_subtree).replace(_prefix, "")} ->  {str(self._right_subtree).replace(_prefix, "")}'
+
     def is_equivalent(self, other):
         """
         In addition to the checks performed by the base class, validates that the two nodes enforce the same sequence

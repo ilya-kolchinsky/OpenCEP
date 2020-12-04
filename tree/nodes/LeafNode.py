@@ -101,6 +101,12 @@ class LeafNode(Node):
     def get_structure_summary(self):
         return self.__event_name
 
+    def __str__(self) -> str:
+        """
+        “informal” or nicely printable string representation of an object
+        """
+        return self.__event_name
+
     def is_equivalent(self, other):
         """
         Checks if the two nodes accept the same event type.
