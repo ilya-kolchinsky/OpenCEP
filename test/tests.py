@@ -5,6 +5,7 @@ from test.NegationTests import *
 from test.PolicyTests import *
 from test.MultiPattern_tests import *
 from test.StorageTests import *
+import test.EventProbabilityTests
 from test.UnitTests.test_storage import run_storage_tests
 
 
@@ -111,6 +112,8 @@ samePatternSharingRoot()
 severalPatternShareSubtree()
 notInTheBeginningShare()
 multipleParentsForInternalNode()
+
+test.EventProbabilityTests.oneArgumentsearchTest()
 
 # benchmarks
 if INCLUDE_BENCHMARKS:
