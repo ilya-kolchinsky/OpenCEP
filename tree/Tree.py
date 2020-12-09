@@ -154,7 +154,7 @@ class Tree:
             if consumption_policy is not None and \
                     consumption_policy.should_register_event_type_as_single(False, event.type):
                 parent.register_single_event_type(event.type)
-            return LeafNode(sliding_window, tree_plan_leaf.event_index, event, parent)
+            return LeafNode(sliding_window, tree_plan_leaf.event_index, event, parent, confidence=self.__confidence)
 
         if isinstance(current_operator, UnaryStructure):
             # the current operator is a unary operator hiding a nested pattern structure
