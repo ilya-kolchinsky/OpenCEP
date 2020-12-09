@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Dict, Union
 
 from base.DataFormatter import DataFormatter, EventTypeClassifier
 from misc.Utils import str_to_number
@@ -10,7 +11,8 @@ METASTOCK_7_COLUMN_KEYS = [
     "Peak Price",
     "Lowest Price",
     "Close Price",
-    "Volume"]
+    "Volume",
+    "Probability", ]
 
 METASTOCK_STOCK_TICKER_KEY = "Stock Ticker"
 METASTOCK_EVENT_TIMESTAMP_KEY = "Date"
@@ -32,7 +34,7 @@ class MetastockDataFormatter(DataFormatter):
     A data formatter implementation for a stock event stream, where each event is given as a string in metastock 7
     format.
     """
-    def __init__(self, event_type_classifier: EventTypeClassifier = MetastockByTickerEventTypeClassifier()):
+    def __init__(self, event_type_classifier: EventTypeClassifier = MetastockByTickerEventTypeClassifier()) -> Dict[str, Union[int, float, str]]:
         super().__init__(event_type_classifier)
 
     def parse_event(self, raw_data: str):
@@ -40,9 +42,10 @@ class MetastockDataFormatter(DataFormatter):
         Parses a metastock 7 formatted string into an event.
         """
         event_attributes = raw_data.replace("\n", "").split(",")
-        for j in range(len(event_attributes)):
-            event_attributes[j] = str_to_number(event_attributes[j])
-        return dict(zip(METASTOCK_7_COLUMN_KEYS, event_attributes))
+        return dict(zip(
+            METASTOCK_7_COLUMN_KEYS,
+            map(str_to_number, event_attributes)
+        ))
 
     def get_event_timestamp(self, event_payload: dict):
         """
