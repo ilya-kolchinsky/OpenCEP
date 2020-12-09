@@ -23,8 +23,8 @@ class Tree:
     The pattern_id parameter is used in multi-pattern mode.
     """
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
-                 pattern_id: int = None, confidence: Optional[float] = None):
-        self.__confidence = confidence
+                 pattern_id: int = None):
+        self.__confidence = pattern.confidence
 
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
                                             Tree.__get_operator_arg_list(pattern.positive_structure),

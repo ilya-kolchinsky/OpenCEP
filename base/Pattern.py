@@ -1,5 +1,5 @@
 from functools import reduce
-from typing import List
+from typing import List, Optional
 
 from base.Event import Event
 from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
@@ -24,7 +24,9 @@ class Pattern:
     tree construction mechanisms - this is hopefully a temporary hack.
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Condition,
-                 time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None):
+                 time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None, confidence: Optional[float] = None):
+        assert confidence is None or 0 <= confidence <= 1
+        self.confidence = confidence
         self.id = pattern_id
 
         self.full_structure = pattern_structure
