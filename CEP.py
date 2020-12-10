@@ -25,7 +25,7 @@ class CEP:
         """
         if patterns is None or len(patterns) == 0:
             raise Exception("No patterns are provided")
-        self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(patterns, DataParallelExecutionParameters,
+        self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(patterns,
                                                                                        eval_mechanism_params,
                                                                                        parallel_execution_params,
                                                                                        data_parallel_params)

@@ -13,6 +13,8 @@ from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 from plugin.stocks.Stocks import MetastockDataFormatter
 from tree.PatternMatchStorage import TreeStorageParameters
 
+from parallel.ParallelExecutionParameters import *
+
 currentPath = pathlib.Path(os.path.dirname(__file__))
 absolutePath = str(currentPath.parent)
 sys.path.append(absolutePath)
@@ -143,7 +145,10 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
 
 def runTest(testName, patterns, createTestFile = False,
             eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events = None, eventStream = nasdaqEventStream):
+            events = None, eventStream = nasdaqEventStream,
+            parallel_execution_params: ParallelExecutionParameters = None,
+            data_parallel_params: DataParallelExecutionParameters = None
+            ):
     if createTestFile:
         createTest(testName, patterns, events, eventStream = eventStream)
     if events is None:
@@ -166,7 +171,7 @@ def runTest(testName, patterns, createTestFile = False,
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
 
-    cep = CEP(patterns, eval_mechanism_params)
+    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, data_parallel_params)
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
@@ -281,7 +286,6 @@ def runMultiTest(testName, patterns, createTestFile = False,
     for match in exp_match_list:
         if match:
             exp_set[int(match.partition(':')[0]) - 1].add(match.strip()[match.index(' ') + 1:])
-
     res = (exp_set == match_set)
     print("Test %s result: %s, Time Passed: %s" % (testName,
           "Succeeded" if res else "Failed", running_time))
