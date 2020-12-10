@@ -9,7 +9,7 @@ from test.UnitTests.test_storage import run_storage_tests
 
 
 runTest.over_all_time = 0
-
+""" 
 # basic functionality tests
 oneArgumentsearchTest()
 simplePatternSearchTest()
@@ -125,5 +125,7 @@ if INCLUDE_TWITTER:
     except ImportError:  # tweepy might not be installed
         pass
 
+"""
+oneArgumentsearchTestParallel()
 
 print("Finished running all tests, overall time: %s" % runTest.over_all_time)

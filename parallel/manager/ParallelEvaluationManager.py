@@ -10,6 +10,9 @@ from typing import List
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters, EvaluationMechanismFactory
 
+from stream.Stream import InputStream, OutputStream
+from base.DataFormatter import DataFormatter
+
 class ParallelEvaluationManager(EvaluationManager, ABC):
     """
     An abstract base class for all parallel evaluation managers.
@@ -20,19 +23,6 @@ class ParallelEvaluationManager(EvaluationManager, ABC):
 
 class DataParallelEvaluationManager(ParallelEvaluationManager):
 
-    class ParallelTree:
-
-        def __init__(self, patterns: Pattern or List[Pattern], eval_mechanism_params: EvaluationMechanismParameters):
-            if isinstance(patterns, Pattern):
-                patterns = [patterns]
-            if len(patterns) > 1:
-                self.__eval_mechanism = EvaluationMechanismFactory.build_multi_pattern_eval_mechanism(eval_mechanism_params,
-                                                                                                      patterns)
-            else:
-                self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_params,
-                                                                                                       patterns[0])
-            self.__pattern_matches = None
-
     def __init__(self, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters,
                  parallel_execution_params: ParallelExecutionParameters,
@@ -41,11 +31,34 @@ class DataParallelEvaluationManager(ParallelEvaluationManager):
         super().__init__(parallel_execution_params)
         self.mode = data_parallel_params.algorithm
         self.numThreads = data_parallel_params.numThreads
-        self.patteren_match
-        trees = []
-
-
+        #self.patteren_matcht
+        self.trees = []
         for i in range(0, self.numThreads):
-           trees.append(self.ParallelTree(patterns, eval_mechanism_params))
+            if isinstance(patterns, Pattern):
+                patterns = [patterns]
+            if len(patterns) > 1:
+                self.trees.append(EvaluationMechanismFactory.build_multi_pattern_eval_mechanism(
+                    eval_mechanism_params,
+                    patterns))
+            else:
+                self.trees.append(EvaluationMechanismFactory.build_single_pattern_eval_mechanism(
+                    eval_mechanism_params,
+                    patterns[0]))
+            self.__pattern_matches = None
+
+    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+
+        for tree in self.trees:
+            tree.eval(events, matches, data_formatter)
+
+        # remove duplicated
+
+
+
+
+
+
+
+
 
 
