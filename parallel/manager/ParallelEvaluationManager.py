@@ -5,7 +5,7 @@ from parallel.PlatformFactory import PlatformFactory
 from parallel.manager.EvaluationManager import EvaluationManager
 
 from parallel.ParallelExecutionModes import DataParallelExecutionModes
-from misc.DefaultConfig import DEFAULT_DATA_PARALLEL_ALGORITHEM
+from misc.DefaultConfig import DEFAULT_DATA_PARALLEL_ALGORITHM
 from typing import List
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters, EvaluationMechanismFactory
