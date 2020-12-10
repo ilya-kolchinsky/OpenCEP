@@ -5,6 +5,8 @@ from base.PatternStructure import AndOperator, SeqOperator
 from plan.TreeCostModel import TreeCostModelFactory
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode, TreePlanLeafNode
+from plan.NegationAlgorithmTypes import NegationAlgorithmTypes
+from misc.StatisticsTypes import StatisticsTypes
 
 
 class TreePlanBuilder(ABC):
@@ -40,9 +42,29 @@ class TreePlanBuilder(ABC):
         """
         tree_topology = positive_subtree
         if pattern.negative_structure is not None:
-            for i in range(len(pattern.positive_structure.get_args()), len(pattern.full_structure.get_args())):
-                # TODO - when implementing 2 other neg algs - create "order[]" and pass order[i] instead of i
-                tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(i))
+            negative_events_num = len(pattern.negative_structure.get_args())
+            order = [*range(len(pattern.positive_structure.get_args()), len(pattern.full_structure.get_args()))]
+            if pattern.negation_algorithm == NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM \
+                    and pattern.full_statistics is not None:
+                # list of tuples, each tuple saves a pair of negative event and its arrival statistic
+                idx_statistics_list = []
+                for i in range(0, negative_events_num):
+                    # find the arrival rate of the specific negative event
+                    if pattern.statistics_type is StatisticsTypes.ARRIVAL_RATES:
+                        i_neg_event_statistic = pattern.full_statistics[pattern.negative_structure.args[i].orig_idx]
+                    if pattern.statistics_type is StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+                        i_neg_event_statistic = pattern.full_statistics[1][pattern.negative_structure.args[i].orig_idx]
+                    idx_statistics_list.append((order[i], i_neg_event_statistic))
+                # sorting the negative events according to the arrival rates statistic
+                idx_statistics_list.sort(key=lambda x: x[1], reverse=True)
+                # rearrange "order" negative events by the desired order (according to the statistics)
+                for i in range(0, negative_events_num):
+                    order[i] = idx_statistics_list[i][0]
+            if pattern.negation_algorithm == NegationAlgorithmTypes.LOWEST_POSITION_NEGATION_ALGORITHM:
+                # TODO
+                pass
+            for i in range(0, negative_events_num):
+                tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(order[i]))
         return tree_topology
 
     @staticmethod

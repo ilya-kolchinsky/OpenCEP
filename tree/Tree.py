@@ -25,7 +25,7 @@ class Tree:
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
                  pattern_id: int = None):
         args = pattern.positive_structure.get_args() if isinstance(pattern.positive_structure, CompositeStructure)\
-            else [pattern.positive_structure.get_arg()]  # TODO check if there's get arg func, and run tests
+            else [pattern.positive_structure.get_arg()]
         if pattern.negative_structure is not None:
             args.extend(pattern.negative_structure.get_args())
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root, args,

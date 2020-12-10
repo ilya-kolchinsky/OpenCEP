@@ -40,6 +40,8 @@ class Pattern:
         self.window = time_window
 
         self.statistics_type = StatisticsTypes.NO_STATISTICS
+        self.full_statistics = None
+        # "statistics" includes only the statistics of the positive events
         self.statistics = None
         self.consumption_policy = consumption_policy
 
@@ -63,7 +65,21 @@ class Pattern:
         Sets the statistical properties related to the events and conditions of this pattern.
         """
         self.statistics_type = statistics_type
-        self.statistics = statistics
+        self.full_statistics = statistics
+        if statistics_type not in [StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES]:
+            self.statistics = statistics
+            return
+        positive_selectivity = []
+        positive_arrival = []
+        for i in range(0, len(self.full_structure.args)):
+            if type(self.full_structure.args[i]) is not NegationOperator:
+                if statistics_type is StatisticsTypes.ARRIVAL_RATES:
+                    positive_arrival.append(statistics[i])
+                else:
+                    positive_selectivity.append(statistics[0][i])
+                    positive_arrival.append(statistics[1][i])
+        self.statistics = positive_arrival if statistics_type is StatisticsTypes.ARRIVAL_RATES else\
+            (positive_selectivity, positive_arrival)
 
     def __extract_negative_structure(self):
         """
@@ -76,10 +92,12 @@ class Pattern:
             # cannot contain a negative part
             return None
         negative_structure = self.positive_structure.duplicate_top_operator()
-        for arg in self.positive_structure.get_args():
+        for idx, arg in enumerate(self.positive_structure.get_args()):
             if type(arg) == NegationOperator:
                 # a negative event was found and needs to be extracted
+                arg.set_orig_idx(idx)
                 negative_structure.args.append(arg)
+
             elif type(arg) != PrimitiveEventStructure:
                 # TODO: nested operator support should be provided here
                 pass

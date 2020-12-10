@@ -10,8 +10,10 @@ from misc.Utils import generate_matches
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
+from plan.NegationAlgorithmTypes import NegationAlgorithmTypes
 from plugin.stocks.Stocks import MetastockDataFormatter
 from tree.PatternMatchStorage import TreeStorageParameters
+
 
 currentPath = pathlib.Path(os.path.dirname(__file__))
 absolutePath = str(currentPath.parent)
@@ -143,7 +145,7 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
 
 def runTest(testName, patterns, createTestFile = False,
             eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events = None, eventStream = nasdaqEventStream):
+            events = None, eventStream = nasdaqEventStream, negation_algorithm: NegationAlgorithmTypes = None):
     if createTestFile:
         createTest(testName, patterns, events, eventStream = eventStream)
     if events is None:
@@ -166,7 +168,7 @@ def runTest(testName, patterns, createTestFile = False,
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
 
-    cep = CEP(patterns, eval_mechanism_params)
+    cep = CEP(patterns, eval_mechanism_params, negation_algorithm=negation_algorithm)
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
