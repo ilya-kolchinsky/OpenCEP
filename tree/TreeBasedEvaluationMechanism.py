@@ -24,8 +24,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
 
         is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
-        # if isinstance(pattern_to_tree_plan_map, TreePlan):
-        #     self.__tree = MultiPatternTree2(pattern_to_tree_plan_map, storage_params, multi_pattern_eval_params)
         if is_multi_pattern_mode:
             self.__tree = MultiPatternTree(pattern_to_tree_plan_map, storage_params, multi_pattern_eval_params)
         else:

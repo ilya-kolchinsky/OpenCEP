@@ -65,16 +65,20 @@ class EvaluationMechanismFactory:
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
         pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
 
-        unified_tree_map = TreePlanBuilder._union_tree_plans(pattern_to_tree_plan_map, MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+        unified_tree_map = TreePlanBuilder._union_tree_plans(pattern_to_tree_plan_map.copy(), MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
 
         # unioned_tree_map = UNION(pattern_to_tree_plan_map, algoNumber)
         # return TreeBasedEvaluationMechanism(unioned_tree_map, eval_mechanism_params.storage_params,
         #                                     eval_mechanism_params.multi_pattern_eval_params)
 
 
-        tree___ = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
+        tree1 = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
                                                eval_mechanism_params.multi_pattern_eval_params)
-        tree___.visualize()
+        tree1.visualize(title="tree1")
+        tree2 = TreeBasedEvaluationMechanism(unified_tree_map, eval_mechanism_params.storage_params,
+                                               eval_mechanism_params.multi_pattern_eval_params)
+        tree2.visualize(title="tree2")
+
         return TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
                                             eval_mechanism_params.multi_pattern_eval_params)
 

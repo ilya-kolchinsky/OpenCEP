@@ -14,6 +14,7 @@ class MultiPatternTree:
     """
     Represents a multi-pattern evaluation tree.
     """
+
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                  storage_params: TreeStorageParameters,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters):
@@ -41,8 +42,23 @@ class MultiPatternTree:
         """
         i = 1  # pattern IDs starts from 1
         trees = []
+
+        plan_nodes_to_nodes_map = {}
         for pattern, plan in pattern_to_tree_plan_map.items():
-            trees.append(Tree(plan, pattern, storage_params, i))
+            trees.append(Tree(plan, pattern, storage_params, i, plan_nodes_to_nodes_map))
+            i += 1
+        return trees
+
+    def construct_unified_trees(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
+                                storage_params: TreeStorageParameters):
+        """
+        Creates a list of tree objects corresponding to the specified tree plans.
+        """
+        i = 1  # pattern IDs starts from 1
+        trees = []
+        plan_nodes_to_nodes_map = {}
+        for pattern, plan in pattern_to_tree_plan_map.items():
+            trees.append(Tree(plan, pattern, storage_params, i, plan_nodes_to_nodes_map))
             i += 1
         return trees
 
@@ -106,7 +122,7 @@ class MultiPatternTree:
         self.__output_nodes = []
         for i in range(len(pattern_to_tree_plan_map)):
             node = trees[i].get_root()
-            pattern_id = i+1
+            pattern_id = i + 1
             self.__output_nodes.append(node)
             self.__pattern_to_output_node_dict[pattern_id] = node
             for output_node in self.__output_nodes:

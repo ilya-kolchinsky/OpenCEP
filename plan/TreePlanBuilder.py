@@ -104,10 +104,7 @@ class TreePlanBuilder(ABC):
         # for pattern, cur_leaves in enumerate(leaves_dict, 1):
         #     tree_plan = pattern_to_tree_plan_map[pattern]
 
-        output_tree_plan_nodes = {}
-        key_1 = list(leaves_dict[first_pattern].keys())[0]
-        tree_plan_node = leaves_dict[first_pattern][key_1]
-        pass
+        return unified_tree_plan
 
     @staticmethod
     def __get_operator_arg_list(operator: PatternStructure):
@@ -144,11 +141,11 @@ class TreePlanBuilder(ABC):
         return leaves_nodes
 
     @staticmethod
-    def _tree_plans_update_leaves(pattern_to_tree_plan_map, shared_leaves_dict):
+    def _tree_plans_update_leaves(pattern_to_tree_plan_map : Dict[Pattern, TreePlan], shared_leaves_dict):
 
         for pattern, tree_plan in pattern_to_tree_plan_map.items():
-            updated_tree_plan = TreePlanBuilder._single_tree_plan_update_leaves(tree_plan.root, shared_leaves_dict)
-            pattern_to_tree_plan_map[pattern] = updated_tree_plan
+            updated_tree_plan_root = TreePlanBuilder._single_tree_plan_update_leaves(tree_plan.root, shared_leaves_dict)
+            pattern_to_tree_plan_map[pattern].root = updated_tree_plan_root
 
         return pattern_to_tree_plan_map
 
