@@ -177,7 +177,7 @@ def onePatternIncludesOther(createTestFile = False):
                                                                    TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
-                                                                   MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.SUBTREES_UNION))
+                                                                   MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.TRIVIAL_SHARING_LEAVES))
     runMultiTest("onePatternIncludesOther", [pattern1, pattern2], createTestFile, eval_mechanism_params)
 
 """

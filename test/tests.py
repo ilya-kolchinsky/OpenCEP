@@ -100,17 +100,17 @@ runTest.over_all_time = 0
 # multi-pattern tests
 # first approach: sharing leaves
 # leafIsRoot()
-distinctPatterns()
-threePatternsTest()
-samePatternDifferentTimeStamps()
-rootAndInner()
+# distinctPatterns()
+# threePatternsTest()
+# samePatternDifferentTimeStamps()
+# rootAndInner()
 
 # second approach: sharing equivalent subtrees
 onePatternIncludesOther()
-samePatternSharingRoot()
-severalPatternShareSubtree()
-notInTheBeginningShare()
-multipleParentsForInternalNode()
+# samePatternSharingRoot()
+# severalPatternShareSubtree()
+# notInTheBeginningShare()
+# multipleParentsForInternalNode()
 
 # benchmarks
 if INCLUDE_BENCHMARKS:

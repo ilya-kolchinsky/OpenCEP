@@ -210,14 +210,14 @@ class Tree:
                                                                      sliding_window, parent, consumption_policy)
 
         # an internal node
-        left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
-                                             sliding_window, None, consumption_policy)
-        right_subtree = self.__construct_tree(root_operator, tree_plan.right_child, args,
-                                              sliding_window, None, consumption_policy)
-
         current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
-        left_subtree.set_parent(current)
-        right_subtree.set_parent(current)
+        left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
+                                             sliding_window, current, consumption_policy)
+        right_subtree = self.__construct_tree(root_operator, tree_plan.right_child, args,
+                                              sliding_window, current, consumption_policy)
+
+        # left_subtree.set_parent(current)
+        # right_subtree.set_parent(current)
 
         current.set_subtrees(left_subtree, right_subtree)
 

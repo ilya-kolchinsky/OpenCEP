@@ -65,7 +65,6 @@ class MultiPatternTree:
         leaves_dict = {}
 
         for tree in trees:
-            tree.visualize(title="Before")
             curr_leaves = tree.get_leaves()
             curr_root = tree.get_root()
             pattern_id = list(curr_leaves[0].get_pattern_ids())[0]
@@ -89,6 +88,10 @@ class MultiPatternTree:
                         leaves_dict[leaf] = [leaf]
 
             leaves_to_counter_dict = {key: 0 for key in leaves_to_counter_dict}
+
+        for tree in trees:
+            tree.visualize(title=str(tree.get_root()))
+
         return self.__output_nodes
 
     def __construct_subtrees_union_tree(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],

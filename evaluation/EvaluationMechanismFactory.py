@@ -72,9 +72,9 @@ class EvaluationMechanismFactory:
         #                                     eval_mechanism_params.multi_pattern_eval_params)
 
 
-        # tree___ = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
-        #                                        eval_mechanism_params.multi_pattern_eval_params)
-        # tree___.visualize()
+        tree___ = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
+                                               eval_mechanism_params.multi_pattern_eval_params)
+        tree___.visualize()
         return TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
                                             eval_mechanism_params.multi_pattern_eval_params)
 
