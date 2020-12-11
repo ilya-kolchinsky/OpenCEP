@@ -14,12 +14,15 @@ class UnaryNode(InternalNode, ABC):
     """
     def __init__(self, sliding_window: timedelta, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None, child: Node = None):
-        super().__init__(sliding_window, parents, pattern_ids, event_defs)
+        height = 0 if child is None else child.height
+        super().__init__(sliding_window, parents, pattern_ids, event_defs, height=height)
         self._child = child
 
     def get_leaves(self):
         if self._child is None:
             raise Exception("Unary Node with no child")
+        for leaf in self._child.get_leaves():
+            assert leaf.height == 0
         return self._child.get_leaves()
 
     def _propagate_condition(self, condition: Condition):
@@ -30,6 +33,7 @@ class UnaryNode(InternalNode, ABC):
         Sets the child node of this node.
         """
         self._child = child
+        self.height = child.height + 1
         # only the positive child definitions should be applied on this node
         self._event_defs = child.get_positive_event_definitions()
 

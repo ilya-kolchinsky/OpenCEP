@@ -46,7 +46,8 @@ class Node(ABC):
 
 
     ###################################### Initialization
-    def __init__(self, sliding_window: timedelta, parents, pattern_ids: int or Set[int] = None):
+    def __init__(self, sliding_window: timedelta, parents, pattern_ids: int or Set[int] = None, height: int = 0):
+        self.height = height
         self._parents = []
         self._sliding_window = sliding_window
         self._partial_matches = None

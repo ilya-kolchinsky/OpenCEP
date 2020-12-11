@@ -3,7 +3,8 @@ from typing import List
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc import DefaultConfig
-from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
+from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory, TreePlanBuilder
+from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
@@ -64,14 +65,16 @@ class EvaluationMechanismFactory:
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
         pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
 
+        unified_tree_map = TreePlanBuilder._union_tree_plans(pattern_to_tree_plan_map, MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+
         # unioned_tree_map = UNION(pattern_to_tree_plan_map, algoNumber)
         # return TreeBasedEvaluationMechanism(unioned_tree_map, eval_mechanism_params.storage_params,
         #                                     eval_mechanism_params.multi_pattern_eval_params)
 
 
-        tree___ = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
-                                               eval_mechanism_params.multi_pattern_eval_params)
-        tree___.visualize()
+        # tree___ = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
+        #                                        eval_mechanism_params.multi_pattern_eval_params)
+        # tree___.visualize()
         return TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
                                             eval_mechanism_params.multi_pattern_eval_params)
 

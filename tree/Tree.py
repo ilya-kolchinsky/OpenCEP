@@ -1,3 +1,4 @@
+import itertools
 from datetime import timedelta
 from typing import List
 from copy import deepcopy
@@ -30,6 +31,21 @@ class Tree:
                                             Tree.__get_operator_arg_list(pattern.positive_structure),
                                             pattern.window, None, pattern.consumption_policy)
 
+        self.leaves2 = self.tree_get_leaves(pattern.positive_structure, tree_plan.root,
+                                            Tree.__get_operator_arg_list(pattern.positive_structure),
+                                            pattern.window, None, pattern.consumption_policy)
+
+
+        #
+        # leaves1 = list(self.__root.get_leaves())
+        # leaves2 = list(self.leaves2)
+        # leaves3 = list(self.tree_get_leaves2(pattern.positive_structure, tree_plan.root,
+        #                                      Tree.__get_operator_arg_list(pattern.positive_structure),
+        #                                      pattern.window, None, pattern.consumption_policy))
+
+        print("SALEH AND TONY")
+
+        # print(f'current height = {tree_plan.height}')
         if pattern.consumption_policy is not None and \
                 pattern.consumption_policy.should_register_event_type_as_single(True):
             for event_type in pattern.consumption_policy.single_types:
@@ -48,6 +64,10 @@ class Tree:
         if pattern_id is not None:
             pattern.id = pattern_id
             self.__root.propagate_pattern_id(pattern_id)
+
+    @staticmethod
+    def dummy_tree():
+        return
 
     def __apply_condition(self, pattern: Pattern):
         """
@@ -190,13 +210,74 @@ class Tree:
                                                                      sliding_window, parent, consumption_policy)
 
         # an internal node
-        current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
         left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
-                                             sliding_window, current, consumption_policy)
+                                             sliding_window, None, consumption_policy)
         right_subtree = self.__construct_tree(root_operator, tree_plan.right_child, args,
-                                              sliding_window, current, consumption_policy)
+                                              sliding_window, None, consumption_policy)
+
+        current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
+        left_subtree.set_parent(current)
+        right_subtree.set_parent(current)
+
         current.set_subtrees(left_subtree, right_subtree)
+
         return current
+
+    def tree_get_leaves(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
+                        args: List[PatternStructure], sliding_window: timedelta, parent: Node, consumption_policy: ConsumptionPolicy):
+
+        leaves_nodes = []
+        if tree_plan is None:
+            return []
+
+        if isinstance(root_operator, UnaryStructure) and parent is None:
+            # a special case where the top operator of the entire pattern is an unary operator
+            constructed_node = self.__handle_primitive_event_or_nested_structure(tree_plan, root_operator, sliding_window, parent, consumption_policy)
+            return [constructed_node]
+
+        if type(tree_plan) == TreePlanLeafNode:
+            constructed_node = self.__handle_primitive_event_or_nested_structure(tree_plan, args[tree_plan.event_index], sliding_window, parent, consumption_policy)
+            return [constructed_node]
+
+        leaves_nodes.extend(self.tree_get_leaves(root_operator, tree_plan.left_child, args, sliding_window, None, consumption_policy))
+        leaves_nodes.extend(self.tree_get_leaves(root_operator, tree_plan.right_child, args, sliding_window, None, consumption_policy))
+
+        return leaves_nodes
+
+    def tree_get_leaves2(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
+                        args: List[PatternStructure], sliding_window: timedelta, parent: Node, consumption_policy: ConsumptionPolicy):
+
+        leaves_nodes1 = self.tree_get_layer_at_level(root_operator, tree_plan,args, sliding_window, parent, consumption_policy, 0)
+        layer_nodes1 = self.tree_get_layer_at_level(root_operator, tree_plan,args, sliding_window, parent, consumption_policy, 1)
+        layer_nodes2 = self.tree_get_layer_at_level(root_operator, tree_plan,args, sliding_window, parent, consumption_policy, 2)
+        leaves_nodes2 = self.tree_get_leaves(root_operator, tree_plan,args, sliding_window, parent, consumption_policy)
+        print("SALEH AND TONY")
+
+
+    def tree_get_layer_at_level(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
+                        args: List[PatternStructure], sliding_window: timedelta, parent: Node, consumption_policy: ConsumptionPolicy, height: int):
+
+        output_nodes = []
+        if tree_plan is None or height < 0 or tree_plan.height < height:
+            return []
+
+        if tree_plan.height == height:
+            if isinstance(root_operator, UnaryStructure):
+                constructed_node = self.__handle_primitive_event_or_nested_structure(tree_plan, root_operator, sliding_window, parent, consumption_policy)
+                return [constructed_node]
+
+            if isinstance(root_operator, CompositeStructure):
+                constructed_node = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
+                return [constructed_node]
+
+            if type(tree_plan) == TreePlanLeafNode:
+                constructed_node = self.__handle_primitive_event_or_nested_structure(tree_plan, args[tree_plan.event_index], sliding_window, parent, consumption_policy)
+                return [constructed_node]
+
+        output_nodes.extend(self.tree_get_layer_at_level(root_operator, tree_plan.left_child, args, sliding_window, None, consumption_policy, height))
+        output_nodes.extend(self.tree_get_layer_at_level(root_operator, tree_plan.right_child, args, sliding_window, None, consumption_policy, height))
+
+        return output_nodes
 
     def get_last_matches(self):
         """

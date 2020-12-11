@@ -55,6 +55,7 @@ class MultiPatternTree:
         We are assuming that each pattern appears only once in patterns (which is a legitimate assumption).
         """
         trees = self.__construct_trees_for_patterns(pattern_to_tree_plan_map, storage_params)
+        # leaves = self.__construct_leaves_for_patterns(pattern_to_tree_plan_map, storage_params)
         self.__output_nodes = []
         # a map between a leaf and the number of equal leaves that were
         # shared to this leaf in the current iteration

@@ -13,8 +13,8 @@ class InternalNode(Node, ABC):
     This class represents a non-leaf node of an evaluation tree.
     """
     def __init__(self, sliding_window: timedelta, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
-                 event_defs: List[PrimitiveEventDefinition] = None):
-        super().__init__(sliding_window, parents, pattern_ids)
+                 event_defs: List[PrimitiveEventDefinition] = None, height: int = 0):
+        super().__init__(sliding_window, parents, pattern_ids, height)
         self._event_defs = event_defs
 
     def get_event_definitions(self):
