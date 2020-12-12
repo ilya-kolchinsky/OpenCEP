@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 
 
-class DecisionMakerAlgorithm(ABC):
+class DecisionMakingAlgorithm(ABC):
 
-    @abstractmethod
     def run(self, curr_plan):
         pass
 
@@ -11,7 +10,7 @@ class DecisionMakerAlgorithm(ABC):
 ##################################################
 # algorithm1 - inherit from DecisionMakerAlgorithm
 ##################################################
-class DecisionMakerAlgorithm1(DecisionMakerAlgorithm):
+class DecisionMakingAlgorithm1(DecisionMakingAlgorithms):
 
     def run(self, curr_plan):
         pass
@@ -20,7 +19,7 @@ class DecisionMakerAlgorithm1(DecisionMakerAlgorithm):
 ##################################################
 # algorithm2 - inherit from DecisionMakerAlgorithm
 ##################################################
-class DecisionMakerAlgorithm2(DecisionMakerAlgorithm):
+class DecisionMakingAlgorithm2(DecisionMakingAlgorithms):
 
     def run(self, curr_plan):
         pass
@@ -29,7 +28,7 @@ class DecisionMakerAlgorithm2(DecisionMakerAlgorithm):
 ##################################################
 # algorithm3 - inherit from DecisionMakerAlgorithm
 ##################################################
-class DecisionMakerAlgorithm3(DecisionMakerAlgorithm):
+class DecisionMakingAlgorithm3(DecisionMakingAlgorithms):
 
     def run(self, curr_plan):
         pass

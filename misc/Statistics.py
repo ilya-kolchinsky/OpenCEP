@@ -4,7 +4,7 @@ from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from stream.Stream import Stream
 
 
-def get_condition_selectivity(arg1: PrimitiveEventStructure, arg2: PrimitiveEventStructure, condition: Condition,
+def calculate_selectivity_matrix(arg1: PrimitiveEventStructure, arg2: PrimitiveEventStructure, condition: Condition,
                               stream: Stream, is_sequence: bool):
     """
     Calculates the selectivity of a given condition between two event types by evaluating it on a given stream.

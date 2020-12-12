@@ -1,5 +1,4 @@
 from typing import Dict
-
 from base.DataFormatter import DataFormatter
 from base.Event import Event
 from plan.TreePlan import TreePlan
@@ -20,11 +19,10 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     An implementation of the tree-based evaluation mechanism.
     """
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
-                 storage_params: TreeStorageParameters, #statistics_collector: StatisticsCollector,
+                 storage_params: TreeStorageParameters,
+                 statistics_collector,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
 
-        # new
-        #self.__statistics_collector = statistics_collector
 
         is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
         if is_multi_pattern_mode:
@@ -32,6 +30,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         else:
             self.__tree = Tree(list(pattern_to_tree_plan_map.values())[0],
                                list(pattern_to_tree_plan_map)[0], storage_params)
+            self.__statistics_collector = statistics_collector
 
         self.__event_types_listeners = {}
 
@@ -43,6 +42,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         if not is_multi_pattern_mode and self.__pattern.consumption_policy is not None and \
                 self.__pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
+
+        self.__statistics_collector = statistics_collector
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
@@ -56,8 +57,9 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             if event.type not in self.__event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
-            #self.__statistics_collector.handle_event(event)
 
+            self.__statistics_collector.event_handler(event)
+            # self.__optimizer.optimize()
 
             for leaf in self.__event_types_listeners[event.type]:
                 if self.__should_ignore_events_on_leaf(leaf):
