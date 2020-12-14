@@ -23,14 +23,14 @@ class SequentialEvaluationManager(EvaluationManager):
     Initializes a single evaluation mechanism and delegates to it the entire workload.
     """
     def __init__(self, patterns: Pattern or List[Pattern], eval_mechanism_params: EvaluationMechanismParameters,
-                 statistics_collector_params: StatisticsCollectorParameters = None):
+                 statistics_collector_params: StatisticsCollectorParameters):
         if isinstance(patterns, Pattern):
             patterns = [patterns]
-        statistics_collector = StatisticsFactory.build_statistics_collector(statistics_collector_params)
         if len(patterns) > 1:
             self.__eval_mechanism = EvaluationMechanismFactory.build_multi_pattern_eval_mechanism(eval_mechanism_params,
                                                                                                   patterns)
         else:
+            statistics_collector = StatisticsFactory.build_statistics_collector(statistics_collector_params, patterns[0])
             self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_params,
                                                                                                    patterns[0],
                                                                                                    statistics_collector)

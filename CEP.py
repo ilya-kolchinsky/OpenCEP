@@ -19,7 +19,8 @@ class CEP:
     be optimized and parallelized.
     """
     def __init__(self, patterns: Pattern or List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None,
-                 parallel_execution_params: ParallelExecutionParameters = None, statistics_collector_params = None):
+                 parallel_execution_params: ParallelExecutionParameters = None,
+                 statistics_collector_params: StatisticsCollectorParameters = None):
         """
         Constructor of the class.
         """

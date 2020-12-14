@@ -8,6 +8,7 @@ from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from parallel.ParallelExecutionModes import ParallelExecutionModes
 from parallel.ParallelExecutionParameters import ParallelExecutionParameters
 from parallel.manager.SequentialEvaluationManager import SequentialEvaluationManager
+from statistics_collector.StatisticsCollectorParameters import StatisticsCollectorParameters
 
 
 class EvaluationManagerFactory:
@@ -19,7 +20,7 @@ class EvaluationManagerFactory:
     def create_evaluation_manager(patterns: Pattern or List[Pattern],
                                   eval_mechanism_params: EvaluationMechanismParameters,
                                   parallel_execution_params: ParallelExecutionParameters,
-                                  statistics_collector_params: StatisticsCollectorParameters = None):
+                                  statistics_collector_params: StatisticsCollectorParameters):
 
         if parallel_execution_params is None:
             parallel_execution_params = ParallelExecutionParameters()

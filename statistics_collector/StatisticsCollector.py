@@ -2,7 +2,6 @@ from base.Event import Event
 from misc.StatisticsTypes import StatisticsTypes
 from optimizer import Optimizer
 from statistics_collector.ArrivalRates import ArrivalRates
-from statistics_collector.Frequency import Frequency
 from statistics_collector.SelectivityMatrixAndArrivalRates import SelectivityMatrixAndArrivedRates
 from base import Pattern
 

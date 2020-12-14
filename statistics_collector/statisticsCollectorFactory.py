@@ -1,18 +1,9 @@
 from misc.StatisticsTypes import StatisticsTypes
 from statistics_collector.StatisticsCollector import StatisticsCollector
+from statistics_collector.StatisticsCollectorParameters import StatisticsCollectorParameters
+from statistics_collector.ArrivalRates import ArrivalRates
 from misc import DefaultConfig
-
-
-class StatisticsCollectorParameters:
-    """
-    Parameters required for statistics collector creation.
-    """
-
-    def __init__(self, stats_collector_types: StatisticsTypes or List[
-        StatisticsTypes] = DefaultConfig.DEFAULT_STATISTICS_COLLECTOR_TYPE):
-        if isinstance(stats_collector_types, StatisticsTypes):
-            stats_collector_types = [stats_collector_types]
-        self.types = stats_collector_types
+from base.Pattern import Pattern
 
 
 class StatisticsFactory:
@@ -21,7 +12,8 @@ class StatisticsFactory:
     """
 
     @staticmethod
-    def build_statistics_collector(statistics_collector_params: StatisticsCollectorParameters = None):
+    def build_statistics_collector(statistics_collector_params: StatisticsCollectorParameters,
+                                   patterns: Pattern):
 
         if statistics_collector_params is None:
             statistics_collector_params = StatisticsFactory.__create_default_statistics_collector_parameters()
@@ -29,10 +21,11 @@ class StatisticsFactory:
         statistics = []
         for param in statistics_collector_params.types:
             if param == StatisticsTypes.ARRIVAL_RATES:
-                statistics.append(ArrivalRates)
+                statistics.append(ArrivalRates(patterns))
             elif param == StatisticsTypes.SELECTIVITY_MATRIX:
-                statistics.append(SelectivityMatrix)
-            raise Exception("Unknown statistics collector type: %s" % (param,))
+                statistics.append(SelectivityMatrix(patterns))
+            else:
+                raise Exception("Unknown statistics collector type: %s" % (param,))
         return StatisticsCollector(statistics)
 
     @staticmethod
@@ -43,8 +36,8 @@ class StatisticsFactory:
         if DefaultConfig.DEFAULT_STATISTICS_COLLECTOR_TYPE == StatisticsTypes.NO_STATISTICS:
             return None
         if DefaultConfig.DEFAULT_STATISTICS_COLLECTOR_TYPE == StatisticsTypes.ARRIVAL_RATES:
-            pass  # TODO
+            return StatisticsCollectorParameters(StatisticsTypes.ARRIVAL_RATES)
         elif DefaultConfig.DEFAULT_STATISTICS_COLLECTOR_TYPE == StatisticsTypes.SELECTIVITY_MATRIX:
-            pass  # TODO
+            return StatisticsCollectorParameters(StatisticsTypes.SELECTIVITY_MATRIX)
         raise Exception(
             "Unknown statistics collector type: %s" % (DefaultConfig.DEFAULT_STATISTICS_COLLECTOR_TYPE,))
