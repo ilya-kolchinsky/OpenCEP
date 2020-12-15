@@ -27,7 +27,7 @@ class Tree:
         args = pattern.positive_structure.get_args() if isinstance(pattern.positive_structure, CompositeStructure)\
             else [pattern.positive_structure.get_arg()]
         if pattern.negative_structure is not None:
-            args.extend(pattern.negative_structure.get_args())
+            args = pattern.positive_structure.get_args() + pattern.negative_structure.get_args()
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root, args,
                                             pattern.window, None, pattern.consumption_policy)
 

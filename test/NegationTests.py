@@ -5,6 +5,38 @@ from condition.CompositeCondition import AndCondition
 from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCondition
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure, NegationOperator
 from base.Pattern import Pattern
+from misc.StatisticsTypes import StatisticsTypes
+import copy
+from numpy import arange, random
+
+
+
+def runAllTrees(pattern, expectedFileName, createTestFile):
+    eventsNum = len(pattern.full_structure.get_args())
+    # Trivial tree
+    origPatt = copy.deepcopy(pattern)
+    runTest(expectedFileName, [origPatt], createTestFile, testName="NaiveTrivial")
+
+    # SORT_BY_FREQUENCY_LEFT_DEEP_TREE
+    origPatt = copy.deepcopy(pattern)
+    origPatt.set_statistics(StatisticsTypes.ARRIVAL_RATES, [*random.rand(eventsNum)])
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest(expectedFileName, [origPatt], createTestFile, eval_params, testName="NaiveSort")
+
+    # GREEDY_LEFT_DEEP_TREE
+    origPatt = copy.deepcopy(pattern)
+    selectivityMatrix = (random.rand(eventsNum, eventsNum)).tolist()
+    arrivalRates = [*random.rand(eventsNum)]
+    origPatt.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest(expectedFileName, [origPatt], createTestFile, eval_params, nasdaqEventStream, testName="NaiveGreedy")
+
 
 # ON CUSTOM
 def multipleNotBeginAndEndTest(createTestFile=False):
@@ -26,7 +58,8 @@ def multipleNotBeginAndEndTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runTest("MultipleNotBeginAndEnd", [pattern], createTestFile)
+    runAllTrees(pattern, "MultipleNotBeginAndEnd", createTestFile)
+    # runTest("MultipleNotBeginAndEnd", [pattern], createTestFile)
 
 # ON custom2
 def simpleNotTest(createTestFile=False):
@@ -40,8 +73,7 @@ def simpleNotTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-
-    runTest("simpleNot", [pattern], createTestFile)
+    runAllTrees(pattern, "simpleNot", createTestFile)
 
 
 # ON NASDAQ SHORT
@@ -61,7 +93,8 @@ def multipleNotInTheMiddleTest(createTestFile=False):
             ),
         timedelta(minutes=4)
     )
-    runTest("MultipleNotMiddle", [pattern], createTestFile)
+    # runTest("MultipleNotMiddle", [pattern], createTestFile)
+    runAllTrees(pattern, "MultipleNotMiddle", createTestFile)
 
 
 # ON NASDAQ SHORT
@@ -76,7 +109,8 @@ def oneNotAtTheBeginningTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runTest("OneNotBegin", [pattern], createTestFile)
+    # runTest("OneNotBegin", [pattern], createTestFile)
+    runAllTrees(pattern, "OneNotBegin", createTestFile)
 
 # ON NASDAQ SHORT
 def multipleNotAtTheBeginningTest(createTestFile=False):
@@ -92,7 +126,8 @@ def multipleNotAtTheBeginningTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runTest("MultipleNotBegin", [pattern], createTestFile)
+    # runTest("MultipleNotBegin", [pattern], createTestFile)
+    runAllTrees(pattern, "MultipleNotBegin", createTestFile)
 
 
 # ON NASDAQ *HALF* SHORT
@@ -107,7 +142,8 @@ def oneNotAtTheEndTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runTest("OneNotEnd", [pattern], createTestFile)
+    # runTest("OneNotEnd", [pattern], createTestFile)
+    runAllTrees(pattern, "OneNotEnd", createTestFile)
 
 
 # ON NASDAQ *HALF* SHORT
@@ -123,7 +159,8 @@ def multipleNotAtTheEndTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runTest("MultipleNotEnd", [pattern], createTestFile)
+    # runTest("MultipleNotEnd", [pattern], createTestFile)
+    runAllTrees(pattern, "MultipleNotEnd", createTestFile)
 
 # ON CUSTOM3
 def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
@@ -138,4 +175,5 @@ def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runTest("NotEverywhere", [pattern], createTestFile)
+    # runTest("NotEverywhere", [pattern], createTestFile)
+    runAllTrees(pattern, "NotEverywhere", createTestFile)

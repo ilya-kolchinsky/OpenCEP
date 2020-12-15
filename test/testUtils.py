@@ -44,19 +44,36 @@ DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
                                                                  prioritize_sorting_by_timestamp=True))
 DEFAULT_TESTING_DATA_FORMATTER = MetastockDataFormatter()
 
+# this class helps tracking failed tests (if there are any)
+class FailedCounter:
+    counter = 0
+    failedTests = []
+    def increase_counter(self):
+        self.counter = self.counter + 1
+
+    def print_counter(self):
+        print(self.counter, "tests Failed")
+
+
+numFailedTests = FailedCounter()
+
+
 def numOfLinesInPattern(file):
     """
     get num of lines in file until first blank line == num of lines in pattern
     :param file: file
     :return: int
-    """
+"""
     counter = 0
     for line in file:
         if line == '\n':
             break
         counter = counter + 1
     return counter
-
+"""
+    nonempty_lines = [line.strip("\n") for line in file if line != "\n"]
+    return len(nonempty_lines)
+"""
 
 def closeFiles(file1, file2):
     file1.close()
@@ -92,6 +109,7 @@ def fileCompare(pathA, pathB):
 
     fillSet(file1, set1, counter1)
     fillSet(file2, set2, counter2)
+
     closeFiles(file1, file2)
 
     return set1 == set2
@@ -143,9 +161,9 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
     print("Finished creating test %s" % testName)
 
 
-def runTest(testName, patterns, createTestFile = False,
-            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events = None, eventStream = nasdaqEventStream, negation_algorithm: NegationAlgorithmTypes = None):
+def runTest(expectedFileName, patterns, createTestFile = False,
+            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS, events = None,
+            eventStream = nasdaqEventStream, negation_algorithm: NegationAlgorithmTypes = None, testName=None):
     if createTestFile:
         createTest(testName, patterns, events, eventStream = eventStream)
     if events is None:
@@ -157,32 +175,40 @@ def runTest(testName, patterns, createTestFile = False,
     listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd"]
     listCustom2 = ["simpleNot"]
-    if testName in listShort:
+    if expectedFileName in listShort:
         events = nasdaqEventStreamShort.duplicate()
-    elif testName in listHalfShort:
+    elif expectedFileName in listHalfShort:
         events = nasdaqEventStreamHalfShort.duplicate()
-    elif testName in listCustom:
+    elif expectedFileName in listCustom:
         events = custom.duplicate()
-    elif testName in listCustom2:
+    elif expectedFileName in listCustom2:
         events = custom2.duplicate()
-    elif testName == "NotEverywhere":
+    elif expectedFileName == "NotEverywhere":
         events = custom3.duplicate()
 
     cep = CEP(patterns, eval_mechanism_params, negation_algorithm=negation_algorithm)
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
-    output_file_name = "%sMatches.txt" % testName
+    output_file_name = "%sMatches.txt" % expectedFileName
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
 
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
     is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
+    if testName is None:
+        testName = expectedFileName
+    else:
+        testName = expectedFileName+testName
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
     if is_test_successful:
         os.remove(actual_matches_path)
+    else:
+        numFailedTests.increase_counter()
+        numFailedTests.failedTests.append(testName)
+
 
 """
 Input:
@@ -191,6 +217,8 @@ patterns- list of patterns
 Output:
 expected output file for the test.
 """
+
+
 def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                          events=None, eventStream=nasdaqEventStream):
     curr_events = events
