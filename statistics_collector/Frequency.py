@@ -1,11 +1,12 @@
 from collections import Counter, deque
 
 from base import Event
+from base.PatternStructure import PatternStructure
 
 
 class Frequency:
 
-    def __init__(self, event_types: Pattern.types):  ## Pattern.Types - represent the types in the current pattern
+    def __init__(self, event_types: set):  ## Pattern.Types - represent the types in the current pattern
         self.event_types_counter = dict.fromkeys(event_types, 0)
         self.my_Events = []
         # self.statistics = Counter(event_types)
