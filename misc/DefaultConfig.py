@@ -4,6 +4,7 @@ Each of the values below can be overridden by providing a different value in CEP
 """
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc.SelectionStrategies import SelectionStrategies
+from misc.StatisticsTypes import StatisticsTypes
 from parallel.ParallelExecutionModes import ParallelExecutionModes
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType
@@ -38,3 +39,6 @@ MULTI_PATTERN_APPROACH = MultiPatternEvaluationApproaches.TRIVIAL_SHARING_LEAVES
 # parallel execution settings
 DEFAULT_PARALLEL_EXECUTION_MODE = ParallelExecutionModes.SEQUENTIAL
 DEFAULT_PARALLEL_EXECUTION_PLATFORM = ParallelExecutionPlatforms.THREADING
+
+# statistics collection settings
+DEFAULT_STATISTICS_COLLECTOR_TYPE = StatisticsTypes.ARRIVAL_RATES
