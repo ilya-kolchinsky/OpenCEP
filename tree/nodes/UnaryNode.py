@@ -41,12 +41,12 @@ class UnaryNode(InternalNode, ABC):
         self.add_pattern_ids({pattern_id})
         self._child.propagate_pattern_id(pattern_id)
 
-    def replace_subtree(self, child: Node):
+    def replace_subtree(self, old_node: Node, new_node: Node) -> None:
         """
         Replaces the child of this node with the given node.
         """
-        self.set_subtree(child)
-        child.add_parent(self)
+        self.set_subtree(new_node)
+        new_node.add_parent(self)
 
     def create_parent_to_info_dict(self):
         if self._child is not None:

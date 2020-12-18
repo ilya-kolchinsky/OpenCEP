@@ -331,6 +331,25 @@ class Node(ABC):
         """
         return type(self) == type(other) and self._condition == other.get_condition()
 
+    def merge_with(self, other: "Node") -> None:
+        """
+            Merge two nodes, and update all the required information
+        """
+        # merges `other` into `self`
+        if self.get_sliding_window() < other.get_sliding_window():
+            self.propagate_sliding_window(other.get_sliding_window())
+        self.add_pattern_ids(other.get_pattern_ids())
+        for parent in other.get_parents():
+            parent.replace_subtree(other, self)
+        
+        # the confidence of `self` is set to the least restrictive one (i.e. the higher confidence)
+        # the more restrictive bounds are left for the parents to validate
+        if other._confidence is not None:
+            if self._confidence is not None:
+                self._confidence = max(self._confidence, other._confidence)
+        else:
+            self._confidence = None
+
     ###################################### To be implemented by subclasses
     def propagate_sliding_window(self, sliding_window: timedelta):
         """
@@ -381,5 +400,12 @@ class Node(ABC):
                             sort_by_first_timestamp: bool = False):
         """
         An abstract method for recursive partial match storage initialization.
+        """
+        raise NotImplementedError()
+
+    def replace_subtree(self, old_node: "Node", new_node: "Node") -> None:
+        """
+        An abstract method.
+        replaces the current subtree `old_node` with `new_node` and sets `new_node`'s parent
         """
         raise NotImplementedError()

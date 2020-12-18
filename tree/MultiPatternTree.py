@@ -146,23 +146,13 @@ class MultiPatternTree:
         """
         Merge two nodes, and update all the required information
         """
-        # merges other into node
-        if node.get_sliding_window() < other.get_sliding_window():
-            node.propagate_sliding_window(other.get_sliding_window())
-        node.add_pattern_ids(other.get_pattern_ids())
-        other_parents = other.get_parents()
-        if other_parents is not None:
-            for parent in other_parents:
-                if isinstance(parent, UnaryNode):
-                    parent.replace_subtree(node)
-                elif isinstance(parent, BinaryNode):
-                    parent.replace_subtree(other, node)
-        else:
+        node.merge_with(other)
+        if other.get_parents() is None:
             # other is an output node in it's tree. the new output node of the old_tree is node
             if not node.is_output_node():
                 node.set_is_output_node(True)
                 self.__output_nodes.append(node)
-                # other is already in self.__output_nodes, therefore we need to remove it
+            # other is already in self.__output_nodes, therefore we need to remove it
             self.__output_nodes.remove(other)
             other_id = list(other.get_pattern_ids())[0]
             self.__pattern_to_output_node_dict[other_id] = node
