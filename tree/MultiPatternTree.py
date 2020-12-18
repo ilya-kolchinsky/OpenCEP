@@ -147,7 +147,7 @@ class MultiPatternTree:
         Merge two nodes, and update all the required information
         """
         node.merge_with(other)
-        if other.get_parents() is None:
+        if not other.get_parents():
             # other is an output node in it's tree. the new output node of the old_tree is node
             if not node.is_output_node():
                 node.set_is_output_node(True)

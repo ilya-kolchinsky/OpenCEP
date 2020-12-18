@@ -47,7 +47,7 @@ class Node(ABC):
 
     ###################################### Initialization
     def __init__(self, sliding_window: timedelta, parents, pattern_ids: int or Set[int] = None, confidence: Optional[float] = None):
-        self._parents = []
+        self._parents: List[Node] = []
         self._sliding_window = sliding_window
         self._partial_matches = None
         self._condition = AndCondition()
@@ -219,7 +219,7 @@ class Node(ABC):
         if not on_init:
             self._parent_to_info_dict[parent] = self.get_positive_event_definitions()
 
-    def get_parents(self):
+    def get_parents(self) -> List["Node"]:
         """
         Returns the parents of this node.
         """
