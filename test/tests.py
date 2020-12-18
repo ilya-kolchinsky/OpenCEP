@@ -73,7 +73,7 @@ KC_Mixed()
 KC_Condition_Failure_01()
 KC_Condition_Failure_02()
 KC_Condition_Failure_03()
-#
+# #
 # # negation tests
 simpleNotTest()
 multipleNotInTheMiddleTest()
@@ -83,7 +83,7 @@ oneNotAtTheEndTest()
 multipleNotAtTheEndTest()
 multipleNotBeginAndEndTest()
 testWithMultipleNotAtBeginningMiddleEnd()
-#
+# #
 # # consumption policies tests
 singleType1PolicyPatternSearchTest()
 singleType2PolicyPatternSearchTest()
@@ -98,7 +98,7 @@ run_storage_tests()
 
 # multi-pattern tests
 # first approach: sharing leaves
-leafIsRoot()
+# leafIsRoot()
 distinctPatterns()
 threePatternsTest()
 samePatternDifferentTimeStamps()

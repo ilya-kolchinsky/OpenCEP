@@ -26,7 +26,7 @@ class Tree:
     """
 
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
-                 pattern_id: int = None, plan_nodes_to_nodes_map: Dict[Pattern, TreePlan] = None):
+                 pattern_id: int = None, plan_nodes_to_nodes_map: Dict[TreePlanNode, Node] = None):
 
         if plan_nodes_to_nodes_map is None:
             self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
