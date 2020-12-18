@@ -52,7 +52,7 @@ class UnaryNode(InternalNode, ABC):
         self.set_subtree(child)
         child.add_parent(self)
 
-    def create_parent_to_info_dict(self):
+    def create_parent_to_info_dict(self, is_shared=False):
         if self._child is not None:
             self._child.create_parent_to_info_dict()
         super().create_parent_to_info_dict()

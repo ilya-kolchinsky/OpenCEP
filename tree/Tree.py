@@ -26,14 +26,19 @@ class Tree:
     """
 
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
-                 pattern_id: int = None, plan_nodes_to_nodes_map: Dict[Pattern, TreePlan] = {}):
-        self.__root = self.__construct_tree2(pattern.positive_structure, tree_plan.root,
-                                            Tree.__get_operator_arg_list(pattern.positive_structure),
-                                            pattern.window, None, pattern.consumption_policy , plan_nodes_to_nodes_map)
+                 pattern_id: int = None, plan_nodes_to_nodes_map: Dict[Pattern, TreePlan] = None):
 
-        # self.__root2 = self.__construct_tree2(pattern.positive_structure, tree_plan.root,
-        #                                     Tree.__get_operator_arg_list(pattern.positive_structure),
-        #                                     pattern.window, None, pattern.consumption_policy, plan_nodes_to_nodes_map)
+        if plan_nodes_to_nodes_map is None:
+            self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
+                                                Tree.__get_operator_arg_list(pattern.positive_structure),
+                                                pattern.window, None, pattern.consumption_policy)
+
+        else:  # new approach
+            self.__root = self.__construct_tree_unified_with_others(pattern.positive_structure, tree_plan.root,
+                                                                    Tree.__get_operator_arg_list(
+                                                                        pattern.positive_structure),
+                                                                    pattern.window, None, pattern.consumption_policy,
+                                                                    plan_nodes_to_nodes_map)
         if pattern.consumption_policy is not None and \
                 pattern.consumption_policy.should_register_event_type_as_single(True):
             for event_type in pattern.consumption_policy.single_types:
@@ -47,7 +52,12 @@ class Tree:
 
         self.__root.create_storage_unit(storage_params)
 
-        self.__root.create_parent_to_info_dict()
+        if plan_nodes_to_nodes_map is None:
+            self.__root.create_parent_to_info_dict()
+
+        else:
+            self.__root.create_parent_to_info_dict(is_shared=True)
+
         self.__root.set_is_output_node(True)
         if pattern_id is not None:
             pattern.id = pattern_id
@@ -149,7 +159,8 @@ class Tree:
     def __handle_primitive_event_or_nested_structure(self, tree_plan_leaf: TreePlanLeafNode,
                                                      current_operator: PatternStructure,
                                                      sliding_window: timedelta, parent: Node,
-                                                     consumption_policy: ConsumptionPolicy):
+                                                     consumption_policy: ConsumptionPolicy,
+                                                     plan_nodes_to_nodes_map: Dict[TreePlanNode, Node] = None):
         """
         Constructs a single leaf node or a subtree with nested structure according to the input parameters.
         """
@@ -165,15 +176,19 @@ class Tree:
             # the current operator is a unary operator hiding a nested pattern structure
             unary_node = self.__create_internal_node_by_operator(current_operator, sliding_window, parent)
             nested_operator = current_operator.arg
-            child = self.__construct_tree(nested_operator, Tree.__create_nested_structure(nested_operator),
-                                          Tree.__get_operator_arg_list(nested_operator), sliding_window, unary_node,
-                                          consumption_policy)
+            child = self.__construct_tree_unified_with_others(nested_operator,
+                                                              Tree.__create_nested_structure(nested_operator),
+                                                              Tree.__get_operator_arg_list(nested_operator),
+                                                              sliding_window, unary_node,
+                                                              consumption_policy, plan_nodes_to_nodes_map)
             unary_node.set_subtree(child)
             return unary_node
 
         # the current operator is a nested binary operator
-        return self.__construct_tree(current_operator, Tree.__create_nested_structure(current_operator),
-                                     current_operator.args, sliding_window, parent, consumption_policy)
+        return self.__construct_tree_unified_with_others(current_operator,
+                                                         Tree.__create_nested_structure(current_operator),
+                                                         current_operator.args, sliding_window, parent,
+                                                         consumption_policy, plan_nodes_to_nodes_map)
 
     def __construct_tree(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
                          args: List[PatternStructure], sliding_window: timedelta, parent: Node,
@@ -204,66 +219,73 @@ class Tree:
 
         return current
 
-    def __construct_tree2(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
-                         args: List[PatternStructure], sliding_window: timedelta, parent: Node,
-                         consumption_policy: ConsumptionPolicy, plan_nodes_to_nodes_map: Dict[Pattern, TreePlan]):
+    def __construct_tree_unified_with_others(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
+                                             args: List[PatternStructure], sliding_window: timedelta, parent: Node,
+                                             consumption_policy: ConsumptionPolicy,
+                                             plan_nodes_to_nodes_map: Dict[TreePlanNode, Node]):
         """
         Recursively builds an evaluation tree according to the specified structure.
         """
+        # the base case in which we check if our current node already built in the dict ,
+        # that says we need to add another parent to this node (the given parent)
+        # with the max sliding window between the given one and the existing one
+        current = plan_nodes_to_nodes_map.get(tree_plan) if plan_nodes_to_nodes_map is not None else None
+        if current is not None:
+            current.propagate_sliding_window(max(current.get_sliding_window(), sliding_window))
+            current.add_parent(parent)
+            return current
+        # a special case where the top operator of the entire pattern is an unary operator
         if isinstance(root_operator, UnaryStructure) and parent is None:
-            # a special case where the top operator of the entire pattern is an unary operator
-            return self.__handle_primitive_event_or_nested_structure(tree_plan, root_operator,
-                                                                     sliding_window, parent, consumption_policy)
+            node = self.__handle_primitive_event_or_nested_structure(tree_plan, root_operator,
+                                                                     sliding_window, parent, consumption_policy,
+                                                                     plan_nodes_to_nodes_map)
+            if plan_nodes_to_nodes_map:
+                plan_nodes_to_nodes_map[tree_plan] = node
+            return node
 
         if type(tree_plan) == TreePlanLeafNode:
             # either a leaf node or an unary operator encapsulating a nested structure
             # TODO: must implement a mechanism for actually creating nested tree plans instead of a flat plan
             # with leaves hiding nested structure
-            return self.__handle_primitive_event_or_nested_structure(tree_plan, args[tree_plan.event_index],
-                                                                     sliding_window, parent, consumption_policy)
-
-        # an internal node
+            node = self.__handle_primitive_event_or_nested_structure(tree_plan, args[tree_plan.event_index],
+                                                                     sliding_window, parent, consumption_policy,
+                                                                     plan_nodes_to_nodes_map)
+            if plan_nodes_to_nodes_map:
+                plan_nodes_to_nodes_map[tree_plan] = node
+            return node
         current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
-        left_subtree = plan_nodes_to_nodes_map.get(tree_plan.left_child)
-        right_subtree = plan_nodes_to_nodes_map.get(tree_plan.right_child)
-        if left_subtree is None:
-            left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
-                                                 sliding_window, current, consumption_policy)
-        if right_subtree is None:
-            right_subtree = self.__construct_tree(root_operator, tree_plan.right_child, args,
-                                                  sliding_window, current, consumption_policy)
+        if plan_nodes_to_nodes_map:
+            plan_nodes_to_nodes_map[tree_plan] = current
+        left_subtree = self.__construct_tree_unified_with_others(root_operator, tree_plan.left_child, args,
+                                                                 sliding_window, current, consumption_policy,
+                                                                 plan_nodes_to_nodes_map)
+        right_subtree = self.__construct_tree_unified_with_others(root_operator, tree_plan.right_child, args,
+                                                                  sliding_window, current, consumption_policy,
+                                                                  plan_nodes_to_nodes_map)
         current.set_subtrees(left_subtree, right_subtree)
-        plan_nodes_to_nodes_map[tree_plan] = current
-
         return current
-
 
     def tree_get_leaves(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
                         args: List[PatternStructure], sliding_window: timedelta, parent: Node,
                         consumption_policy: ConsumptionPolicy):
-
         leaves_nodes = []
         if tree_plan is None:
             return []
-
         if isinstance(root_operator, UnaryStructure) and parent is None:
             # a special case where the top operator of the entire pattern is an unary operator
             constructed_node = self.__handle_primitive_event_or_nested_structure(tree_plan, root_operator,
                                                                                  sliding_window, parent,
                                                                                  consumption_policy)
             return [constructed_node]
-
         if type(tree_plan) == TreePlanLeafNode:
             constructed_node = self.__handle_primitive_event_or_nested_structure(tree_plan, args[tree_plan.event_index],
                                                                                  sliding_window, parent,
                                                                                  consumption_policy)
             return [constructed_node]
-
         leaves_nodes.extend(
             self.tree_get_leaves(root_operator, tree_plan.left_child, args, sliding_window, None, consumption_policy))
         leaves_nodes.extend(
             self.tree_get_leaves(root_operator, tree_plan.right_child, args, sliding_window, None, consumption_policy))
-
         return leaves_nodes
 
     def tree_get_leaves2(self, root_operator: PatternStructure, tree_plan: TreePlanNode,

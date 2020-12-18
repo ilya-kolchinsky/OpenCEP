@@ -33,6 +33,8 @@ class MultiPatternTree:
             return self.__construct_trivial_tree(pattern_to_tree_plan_map, storage_params)
         if multi_pattern_eval_approach == MultiPatternEvaluationApproaches.SUBTREES_UNION:
             return self.__construct_subtrees_union_tree(pattern_to_tree_plan_map, storage_params)
+        if multi_pattern_eval_approach == MultiPatternEvaluationApproaches.TREE_PLAN_UNIFIED_TREE:
+            return self.__construct_tree_unified_tree_plan(pattern_to_tree_plan_map, storage_params)
         raise Exception("Unknown multi-pattern evaluation approach: %s" % (multi_pattern_eval_approach,))
 
     def __construct_trees_for_patterns(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
@@ -42,25 +44,44 @@ class MultiPatternTree:
         """
         i = 1  # pattern IDs starts from 1
         trees = []
-
-        plan_nodes_to_nodes_map = {}
         for pattern, plan in pattern_to_tree_plan_map.items():
-            trees.append(Tree(plan, pattern, storage_params, i, plan_nodes_to_nodes_map))
+            trees.append(Tree(plan, pattern, storage_params, i))
             i += 1
         return trees
 
-    def construct_unified_trees(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
-                                storage_params: TreeStorageParameters):
+    def __construct_unified_trees(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
+                                  storage_params: TreeStorageParameters):
         """
-        Creates a list of tree objects corresponding to the specified tree plans.
+        Creates unified treePlan corresponding to the specified tree plans.
         """
         i = 1  # pattern IDs starts from 1
         trees = []
         plan_nodes_to_nodes_map = {}
         for pattern, plan in pattern_to_tree_plan_map.items():
+            # passing another parameter (dict )  to the tree constructor
+            # means we need to merge trees with the given dict and not just creating a tree
             trees.append(Tree(plan, pattern, storage_params, i, plan_nodes_to_nodes_map))
             i += 1
         return trees
+
+    def __construct_tree_unified_tree_plan(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
+                                           storage_params: TreeStorageParameters):
+        """
+        This method gets patterns, builds a single-pattern tree to each one of them,
+        and merges equivalent leaves from different trees.
+        We are not sharing leaves from the same tree.
+        We are assuming that each pattern appears only once in patterns (which is a legitimate assumption).
+        """
+        trees = self.__construct_unified_trees(pattern_to_tree_plan_map, storage_params)
+        self.__output_nodes = []
+        # a map between a leaf and the number of equal leaves that were
+        # shared to this leaf in the current iteration
+        for i, tree in enumerate(trees):
+            curr_root = tree.get_root()
+            pattern_id = i + 1
+            self.__pattern_to_output_node_dict[pattern_id] = curr_root
+            self.__output_nodes.append(curr_root)
+        return self.__output_nodes
 
     def __construct_trivial_tree(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                                  storage_params: TreeStorageParameters):
@@ -71,15 +92,12 @@ class MultiPatternTree:
         We are assuming that each pattern appears only once in patterns (which is a legitimate assumption).
         """
         trees = self.__construct_trees_for_patterns(pattern_to_tree_plan_map, storage_params)
-        # leaves = self.__construct_leaves_for_patterns(pattern_to_tree_plan_map, storage_params)
         self.__output_nodes = []
         # a map between a leaf and the number of equal leaves that were
         # shared to this leaf in the current iteration
         leaves_to_counter_dict = {}
-
         # a map between a leaf and a list of its equivalent leaves
         leaves_dict = {}
-
         for tree in trees:
             curr_leaves = tree.get_leaves()
             curr_root = tree.get_root()
@@ -98,16 +116,12 @@ class MultiPatternTree:
                             leaf_to_merge_into = leaves_dict[dict_leaf][index]
                             self.__merge_nodes(leaf_to_merge_into, leaf)
                         leaves_to_counter_dict[dict_leaf] += 1
-
                     else:
                         leaves_to_counter_dict[leaf] = 1
                         leaves_dict[leaf] = [leaf]
-
             leaves_to_counter_dict = {key: 0 for key in leaves_to_counter_dict}
-
         for tree in trees:
             tree.visualize(title=str(tree.get_root()))
-
         return self.__output_nodes
 
     def __construct_subtrees_union_tree(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],

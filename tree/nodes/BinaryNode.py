@@ -14,6 +14,7 @@ class BinaryNode(InternalNode, ABC):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
+
     def __init__(self, sliding_window: timedelta, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
                  left: Node = None, right: Node = None):
@@ -22,12 +23,14 @@ class BinaryNode(InternalNode, ABC):
         self._left_subtree = left
         self._right_subtree = right
 
-    def create_parent_to_info_dict(self):
+    def create_parent_to_info_dict(self, is_shared=False):
+        # we pass the is is_shared argument in create_parent_to_info_dict in order to pass the assert that check
+        # if every node got only one parent in case we are in shared approach
         if self._left_subtree is not None:
-            self._left_subtree.create_parent_to_info_dict()
+            self._left_subtree.create_parent_to_info_dict(is_shared)
         if self._right_subtree is not None:
-            self._right_subtree.create_parent_to_info_dict()
-        super().create_parent_to_info_dict()
+            self._right_subtree.create_parent_to_info_dict(is_shared)
+        super().create_parent_to_info_dict(is_shared)
 
     def get_leaves(self):
         """

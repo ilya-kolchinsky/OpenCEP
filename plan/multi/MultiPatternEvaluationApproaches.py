@@ -10,4 +10,5 @@ class MultiPatternEvaluationApproaches(Enum):
     patterns.
     """
     TRIVIAL_SHARING_LEAVES = 0,
-    SUBTREES_UNION = 1
+    SUBTREES_UNION = 1,
+    TREE_PLAN_UNIFIED_TREE = 2

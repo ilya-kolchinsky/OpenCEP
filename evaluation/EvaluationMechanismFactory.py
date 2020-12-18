@@ -14,6 +14,7 @@ class EvaluationMechanismParameters:
     """
     Parameters required for evaluation mechanism creation.
     """
+
     def __init__(self, eval_mechanism_type: EvaluationMechanismTypes = DefaultConfig.DEFAULT_EVALUATION_MECHANISM_TYPE):
         self.type = eval_mechanism_type
 
@@ -22,6 +23,7 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
     """
     Parameters for the creation of a tree-based evaluation mechanism.
     """
+
     def __init__(self, tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
                  storage_params: TreeStorageParameters = TreeStorageParameters(),
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
@@ -59,28 +61,20 @@ class EvaluationMechanismFactory:
                                            patterns: Pattern or List[Pattern]):
         """
         Instantiates a tree-based CEP evaluation mechanism according to the given configuration.
+        in this function we fix the given implementation by merging treePattern and not trees , then we create
+        TreeBasedEvaluationMechanism from the merged treePlans
+        TODO:need to clean the previous implementation in this function once we are sure of our implementation
         """
         if isinstance(patterns, Pattern):
             patterns = [patterns]
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
         pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
-
-        unified_tree_map = TreePlanBuilder._union_tree_plans(pattern_to_tree_plan_map.copy(), MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
-
-        # unioned_tree_map = UNION(pattern_to_tree_plan_map, algoNumber)
-        # return TreeBasedEvaluationMechanism(unioned_tree_map, eval_mechanism_params.storage_params,
-        #                                     eval_mechanism_params.multi_pattern_eval_params)
-
-
-        tree1 = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
-                                               eval_mechanism_params.multi_pattern_eval_params)
-        tree1.visualize(title="tree1")
-        tree2 = TreeBasedEvaluationMechanism(unified_tree_map, eval_mechanism_params.storage_params,
-                                               eval_mechanism_params.multi_pattern_eval_params)
-        tree2.visualize(title="tree2")
-
-        return TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
-                                            eval_mechanism_params.multi_pattern_eval_params)
+        unified_tree_map = TreePlanBuilder._union_tree_plans(pattern_to_tree_plan_map.copy(),
+                                                             MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+        unified_tree = TreeBasedEvaluationMechanism(unified_tree_map, eval_mechanism_params.storage_params,
+                                             eval_mechanism_params.multi_pattern_eval_params)
+        unified_tree.visualize(title="tree2")  # TODO need to delete this line
+        return unified_tree
 
     @staticmethod
     def __create_default_eval_parameters():
