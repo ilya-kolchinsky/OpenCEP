@@ -4,6 +4,7 @@ This file contains various useful functions utilized by different project module
 
 from datetime import datetime
 from typing import List, Container
+import re
 
 from base.Pattern import Pattern
 from base.PatternStructure import PrimitiveEventStructure
@@ -55,14 +56,10 @@ def is_float(x: str):
         return True
 
 
-def is_int(x: str):
-    try:
-        a = float(x)
-        b = int(a)
-    except ValueError:
-        return False
-    else:
-        return a == b
+INT_REGEX = re.compile(r"^\s*[\+\-]?\d(_?\d)*\s*$")
+
+def is_int(x: str) -> bool:
+    return INT_REGEX.fullmatch(x) is not None
 
 
 def str_to_number(x: str):
