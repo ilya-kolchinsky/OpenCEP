@@ -71,13 +71,16 @@ class Pattern:
             return
         positive_selectivity = []
         positive_arrival = []
+        positive_indices = []
         for i in range(0, len(self.full_structure.args)):
             if type(self.full_structure.args[i]) is not NegationOperator:
-                if statistics_type is StatisticsTypes.ARRIVAL_RATES:
-                    positive_arrival.append(statistics[i])
-                else:
-                    positive_selectivity.append(statistics[0][i])
-                    positive_arrival.append(statistics[1][i])
+                positive_indices.append(i)
+        for i in positive_indices:
+            if statistics_type is StatisticsTypes.ARRIVAL_RATES:
+                positive_arrival.append(statistics[i])
+            else:
+                positive_selectivity.append([(statistics[0][i])[j] for j in positive_indices])
+                positive_arrival.append(statistics[1][i])
         self.statistics = positive_arrival if statistics_type is StatisticsTypes.ARRIVAL_RATES else\
             (positive_selectivity, positive_arrival)
 

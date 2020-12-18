@@ -80,9 +80,10 @@ class TreePlanBuilder(ABC):
         else:
             raise Exception("Unsupported binary operator")
         if pattern.negative_structure is not None:
-            if right_subtree.event_index >= len(pattern.positive_structure.get_args()):
-                if isinstance(pattern_structure, AndOperator):
-                    operator_type = OperatorTypes.NAND
-                else:
-                    operator_type = OperatorTypes.NSEQ
+            if type(right_subtree) is TreePlanLeafNode:
+                if right_subtree.event_index >= len(pattern.positive_structure.get_args()):
+                    if isinstance(pattern_structure, AndOperator):
+                        operator_type = OperatorTypes.NAND
+                    else:
+                        operator_type = OperatorTypes.NSEQ
         return TreePlanBinaryNode(operator_type, left_subtree, right_subtree)

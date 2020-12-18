@@ -188,18 +188,26 @@ def runTest(expectedFileName, patterns, createTestFile = False,
 
     cep = CEP(patterns, eval_mechanism_params, negation_algorithm=negation_algorithm)
 
-    base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
-    output_file_name = "%sMatches.txt" % expectedFileName
-    matches_stream = FileOutputStream(base_matches_directory, output_file_name)
-    running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
-
-    expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
-    actual_matches_path = os.path.join(base_matches_directory, output_file_name)
-    is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
     if testName is None:
         testName = expectedFileName
     else:
-        testName = expectedFileName+testName
+        if negation_algorithm is NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM:
+            negAlg = "naive"
+        elif negation_algorithm is NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM:
+            negAlg = "statistic"
+        else:  # TODO when implementing 3rd neg alg
+            pass
+        testName = expectedFileName+negAlg+testName
+
+    base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
+    output_file_name = "%sMatches.txt" % testName
+    matches_stream = FileOutputStream(base_matches_directory, output_file_name)
+    running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
+    ExpectedOutputFileName = "%sMatches.txt" % expectedFileName
+    expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', ExpectedOutputFileName)
+    actual_matches_path = os.path.join(base_matches_directory, output_file_name)
+    is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
+
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time

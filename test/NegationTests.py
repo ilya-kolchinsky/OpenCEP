@@ -7,35 +7,89 @@ from base.PatternStructure import SeqOperator, PrimitiveEventStructure, Negation
 from base.Pattern import Pattern
 from misc.StatisticsTypes import StatisticsTypes
 import copy
-from numpy import arange, random
+from numpy import random, fill_diagonal
 
 
-
-def runAllTrees(pattern, expectedFileName, createTestFile):
+def runAllTrees(pattern, expectedFileName, createTestFile, negationAlgo=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM):
     eventsNum = len(pattern.full_structure.get_args())
+    arrivalRates = [*random.rand(eventsNum)]
+    selectivityMatrixA = random.rand(eventsNum, eventsNum)
+    selectivityMatrix = selectivityMatrixA.T * selectivityMatrixA
+    fill_diagonal(selectivityMatrix, 1.0)
+    selectivityMatrix = selectivityMatrix.tolist()
+
+    print("arrival rates are: ")
+    print(*arrivalRates, sep=", ")
+    # print("selectivity matrix is: ")
+    # for s in selectivityMatrix:
+      #  print(*s)
+
     # Trivial tree
     origPatt = copy.deepcopy(pattern)
-    runTest(expectedFileName, [origPatt], createTestFile, testName="NaiveTrivial")
+    origPatt.set_statistics(StatisticsTypes.ARRIVAL_RATES, arrivalRates)
+    runTest(expectedFileName, [origPatt], createTestFile, negation_algorithm=negationAlgo, testName="Trivial")
 
     # SORT_BY_FREQUENCY_LEFT_DEEP_TREE
     origPatt = copy.deepcopy(pattern)
-    origPatt.set_statistics(StatisticsTypes.ARRIVAL_RATES, [*random.rand(eventsNum)])
+    origPatt.set_statistics(StatisticsTypes.ARRIVAL_RATES, arrivalRates)
     eval_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    runTest(expectedFileName, [origPatt], createTestFile, eval_params, testName="NaiveSort")
+    runTest(expectedFileName, [origPatt], createTestFile, eval_params, negation_algorithm=negationAlgo, testName="Sort")
 
     # GREEDY_LEFT_DEEP_TREE
     origPatt = copy.deepcopy(pattern)
-    selectivityMatrix = (random.rand(eventsNum, eventsNum)).tolist()
-    arrivalRates = [*random.rand(eventsNum)]
     origPatt.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     eval_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE),
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    runTest(expectedFileName, [origPatt], createTestFile, eval_params, nasdaqEventStream, testName="NaiveGreedy")
+    runTest(expectedFileName, [origPatt], createTestFile, eval_params, nasdaqEventStream,
+            negation_algorithm=negationAlgo, testName="Greedy")
+
+    # LOCAL_SEARCH_LEFT_DEEP_TREE
+    # this tree was not checked yet (at all)
+
+    # DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE
+    origPatt = copy.deepcopy(pattern)
+    origPatt.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest(expectedFileName, [origPatt], createTestFile, eval_params, nasdaqEventStream,
+            negation_algorithm=negationAlgo, testName="DP")
+
+    # DYNAMIC_PROGRAMMING_BUSHY_TREE
+    origPatt = copy.deepcopy(pattern)
+    origPatt.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest(expectedFileName, [origPatt], createTestFile, eval_params, nasdaqEventStream,
+            negation_algorithm=negationAlgo, testName="DPBushy")
+
+    # ZSTREAM_BUSHY_TREE
+    origPatt = copy.deepcopy(pattern)
+    origPatt.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest(expectedFileName, [origPatt], createTestFile, eval_params, nasdaqEventStream,
+            negation_algorithm=negationAlgo, testName="ZSBushy")
+
+    # ORDERED_ZSTREAM_BUSHY_TREE
+    origPatt = copy.deepcopy(pattern)
+    origPatt.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest(expectedFileName, [origPatt], createTestFile, eval_params, nasdaqEventStream,
+            negation_algorithm=negationAlgo, testName="OrderedZSBushy")
 
 
 # ON CUSTOM
@@ -58,7 +112,8 @@ def multipleNotBeginAndEndTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runAllTrees(pattern, "MultipleNotBeginAndEnd", createTestFile)
+    # runAllTrees(pattern, "MultipleNotBeginAndEnd", createTestFile)
+    runAllTrees(pattern, "MultipleNotBeginAndEnd", createTestFile, NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)
     # runTest("MultipleNotBeginAndEnd", [pattern], createTestFile)
 
 # ON custom2
@@ -74,6 +129,7 @@ def simpleNotTest(createTestFile=False):
         timedelta(minutes=5)
     )
     runAllTrees(pattern, "simpleNot", createTestFile)
+    runAllTrees(pattern, "simpleNot", createTestFile, NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)
 
 
 # ON NASDAQ SHORT
@@ -95,6 +151,7 @@ def multipleNotInTheMiddleTest(createTestFile=False):
     )
     # runTest("MultipleNotMiddle", [pattern], createTestFile)
     runAllTrees(pattern, "MultipleNotMiddle", createTestFile)
+    runAllTrees(pattern, "MultipleNotMiddle", createTestFile, NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)
 
 
 # ON NASDAQ SHORT
@@ -111,6 +168,7 @@ def oneNotAtTheBeginningTest(createTestFile=False):
     )
     # runTest("OneNotBegin", [pattern], createTestFile)
     runAllTrees(pattern, "OneNotBegin", createTestFile)
+    runAllTrees(pattern, "OneNotBegin", createTestFile, NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)
 
 # ON NASDAQ SHORT
 def multipleNotAtTheBeginningTest(createTestFile=False):
@@ -128,6 +186,7 @@ def multipleNotAtTheBeginningTest(createTestFile=False):
     )
     # runTest("MultipleNotBegin", [pattern], createTestFile)
     runAllTrees(pattern, "MultipleNotBegin", createTestFile)
+    runAllTrees(pattern, "MultipleNotBegin", createTestFile, NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)
 
 
 # ON NASDAQ *HALF* SHORT
@@ -144,6 +203,7 @@ def oneNotAtTheEndTest(createTestFile=False):
     )
     # runTest("OneNotEnd", [pattern], createTestFile)
     runAllTrees(pattern, "OneNotEnd", createTestFile)
+    runAllTrees(pattern, "OneNotEnd", createTestFile, NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)
 
 
 # ON NASDAQ *HALF* SHORT
@@ -161,6 +221,7 @@ def multipleNotAtTheEndTest(createTestFile=False):
     )
     # runTest("MultipleNotEnd", [pattern], createTestFile)
     runAllTrees(pattern, "MultipleNotEnd", createTestFile)
+    runAllTrees(pattern, "MultipleNotEnd", createTestFile, NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)
 
 # ON CUSTOM3
 def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
@@ -177,3 +238,4 @@ def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
     )
     # runTest("NotEverywhere", [pattern], createTestFile)
     runAllTrees(pattern, "NotEverywhere", createTestFile)
+    runAllTrees(pattern, "NotEverywhere", createTestFile, NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)
