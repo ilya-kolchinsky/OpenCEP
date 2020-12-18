@@ -173,6 +173,4 @@ class Pattern:
         return result
 
     def __repr__(self):
-        return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.structure,
-                                                                                self.condition,
-                                                                                self.window)
+        return f"Pattern structure: {self.full_structure}\nCondition: {self.condition}\nTime window: {self.window}"
