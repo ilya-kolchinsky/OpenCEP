@@ -37,6 +37,11 @@ class TreePlanLeafNode(TreePlanNode):
         self.event_index = event_index
         self.event_type = event_type
         self.event_name = event_name
+    def __str__(self) -> str:
+        """
+        “informal” or nicely printable string representation of an object
+        """
+        return str(hash(self))
 
 
 class TreePlanInternalNode(TreePlanNode):
@@ -47,7 +52,11 @@ class TreePlanInternalNode(TreePlanNode):
     def __init__(self, operator: OperatorTypes, height=0):
         super().__init__(height)
         self.operator = operator
-
+    def __str__(self) -> str:
+        """
+        “informal” or nicely printable string representation of an object
+        """
+        return str(self.operator).split('.')[1] + "-" + str(hash(self))
 
 class TreePlanUnaryNode(TreePlanInternalNode):
     """
@@ -58,7 +67,6 @@ class TreePlanUnaryNode(TreePlanInternalNode):
         super().__init__(operator)
         self.child = child
 
-
 class TreePlanBinaryNode(TreePlanInternalNode):
     """
     Represents an internal binary node of a tree-based plan.
@@ -68,7 +76,6 @@ class TreePlanBinaryNode(TreePlanInternalNode):
         super().__init__(operator, height=max(left_child.height,right_child.height)+1)
         self.left_child = left_child
         self.right_child = right_child
-
 
 class TreePlan:
     """

@@ -2,6 +2,7 @@ import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 
+from plan.TreePlan import TreePlanNode, TreePlanUnaryNode, TreePlanLeafNode
 from tree.nodes.Node import Node
 
 debug = False
@@ -75,7 +76,7 @@ class GraphVisualization:
         # self.vertexes_positions[vertex_value] = (number_of_nodes*7, node_level+ 0.4 * number_of_nodes)
         self.vertexes_positions[vertex_value] = (number_of_nodes*7, node_level+ 0.4 * number_of_nodes)
 
-    def visualize(self):
+    def visualize(self, split = False):
         """
             visualize function using networkx package
         """
@@ -101,5 +102,34 @@ class GraphVisualization:
 
         plt.margins(x=0.5)
         plt.show()
+
+    def build_from_root_treePlan(self, tree_plan_root: TreePlanNode, node_level=0):
+        if tree_plan_root is None:
+            return
+
+        curr_node_value = str(tree_plan_root)
+        if tree_plan_root in self.addVertex:
+            return
+        self.addVertex(curr_node_value)
+        self.set_vertex_pos(curr_node_value, node_level)
+
+        if type(tree_plan_root) == TreePlanLeafNode:
+            return
+
+        if type(tree_plan_root) == TreePlanUnaryNode:
+            self.build_from_root_treePlan(tree_plan_root.child, node_level - 1)
+            self.addEdge(str(tree_plan_root.child), curr_node_value)
+            return
+
+        self.build_from_root_treePlan(tree_plan_root.left_child, node_level-1)
+        self.build_from_root_treePlan(tree_plan_root.right_child, node_level-1)
+
+        self.addEdge(str(tree_plan_root.left_child), curr_node_value)
+        self.addEdge(str(tree_plan_root.right_child), curr_node_value)
+
+    def build_from_2root_treePlan(self, tree_plan_root_1: TreePlanNode, tree_plan_root_2: TreePlanNode, node_level_1=0, node_level_2=0):
+        self.build_from_root_treePlan(tree_plan_root_1, node_level_1)
+        self.build_from_root_treePlan(tree_plan_root_2, node_level_2)
+
 
 
