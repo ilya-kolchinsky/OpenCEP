@@ -6,7 +6,7 @@ from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, CompositeStructure, UnaryStructure, \
     KleeneClosureOperator, PrimitiveEventStructure, NegationOperator
 from misc.ConsumptionPolicy import ConsumptionPolicy
-from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanBinaryNode, OperatorTypes
+from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanBinaryNode, OperatorTypes, TreePlanNestedNode
 from tree.nodes.AndNode import AndNode
 from tree.nodes.KleeneClosureNode import KleeneClosureNode
 from tree.nodes.LeafNode import LeafNode
@@ -166,8 +166,9 @@ class Tree:
             return unary_node
 
         # the current operator is a nested binary operator
-        return self.__construct_tree(current_operator, Tree.__create_nested_structure(current_operator),
-                                     current_operator.args, sliding_window, parent, consumption_policy)
+        # return self.__construct_tree(current_operator, Tree.__create_nested_structure(current_operator),
+        #                              current_operator.args, sliding_window, parent, consumption_policy)
+
 
     def __construct_tree(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
                          args: List[PatternStructure], sliding_window: timedelta, parent: Node,
@@ -186,6 +187,10 @@ class Tree:
             # with leaves hiding nested structure
             return self.__handle_primitive_event_or_nested_structure(tree_plan, args[tree_plan.event_index],
                                                                      sliding_window, parent, consumption_policy)
+        if type(tree_plan) == TreePlanNestedNode:
+            #TODO: comment
+            return self.__construct_tree(args[tree_plan.nested_event_index], tree_plan.sub_tree_plan, tree_plan.args,
+                                         sliding_window, parent, consumption_policy)
 
         # an internal node
         current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)

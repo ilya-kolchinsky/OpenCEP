@@ -35,6 +35,15 @@ class TreePlanLeafNode(TreePlanNode):
         self.event_name = event_name
 
 
+class TreePlanNestedNode(TreePlanNode):
+    """
+    TODO:comment
+    """
+    def __init__(self, event_index: int, tree_plan: TreePlanNode, args):
+        self.nested_event_index = event_index
+        self.sub_tree_plan = tree_plan
+        self.args = args
+
 class TreePlanInternalNode(TreePlanNode):
     """
     Represents an internal node of a tree-based plan.

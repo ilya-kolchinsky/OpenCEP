@@ -18,7 +18,8 @@ class TreePlanBuilder(ABC):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
-        return TreePlan(self._create_tree_topology(pattern))
+        _, root = self._create_tree_topology(pattern)
+        return TreePlan(root)
 
     def _create_tree_topology(self, pattern: Pattern):
         """

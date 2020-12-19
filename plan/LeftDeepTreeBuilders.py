@@ -3,13 +3,15 @@ This file contains the implementations of algorithms constructing a left-deep tr
 """
 import random
 from typing import List
+import numpy as np
 
-from base.PatternStructure import CompositeStructure
+from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
+    SeqOperator, NegationOperator, AndOperator
 from misc import DefaultConfig
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType, \
     IterativeImprovementAlgorithmBuilder
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlan import TreePlanLeafNode
+from plan.TreePlan import TreePlanLeafNode, TreePlanNode, TreePlanNestedNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
@@ -21,22 +23,52 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
     """
     An abstract class for left-deep tree builders.
     """
+
     def _create_tree_topology(self, pattern: Pattern):
         """
         Invokes an algorithm (to be implemented by subclasses) that builds an evaluation order of the operands, and
         converts it into a left-deep tree topology.
         """
-        order = self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure, CompositeStructure) else [0]
-        return LeftDeepTreeBuilder._order_to_tree_topology(order, pattern)
+        nested_topologies = None
+        nested_args = None
+        nested_stats = None
+        if isinstance(pattern.positive_structure, CompositeStructure):  # TODO: else
+            nested_topologies = []
+            nested_args = []
+            nested_stats = []
+            for arg in pattern.positive_structure.get_args():
+                if isinstance(arg, CompositeStructure):
+                    temp_pattern = Pattern(arg, None, None)
+                    if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
+                        temp_pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, pattern.statistics)
+                    sub_stats, nested_topology = self._create_tree_topology(temp_pattern)
+                    nested_topologies.append(nested_topology)
+                    if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
+                        nested_stats.append(np.sum(sub_stats))
+                    nested_args.append(arg.args)
+                else:
+                    nested_topologies.append(None)
+                    nested_args.append(None)
+                    if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
+                        nested_stats.append(pattern.statistics[0])
+                        pattern.statistics.pop(0)
+            if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
+                pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, nested_stats)
+
+        order = self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure,
+                                                                     CompositeStructure) else [0]
+        return nested_stats, LeftDeepTreeBuilder._order_to_tree_topology(order, pattern, nested_topologies, nested_args)
 
     @staticmethod
-    def _order_to_tree_topology(order: List[int], pattern: Pattern):
+    def _order_to_tree_topology(order: List[int], pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None):
+
         """
         A helper method for converting a given order to a tree topology.
         """
-        tree_topology = TreePlanLeafNode(order[0])
+        tree_topology = TreePlanLeafNode(order[0]) if (nested_topologies is None or nested_topologies[order[0]] is None) else TreePlanNestedNode(order[0], nested_topologies[order[0]], nested_args[order[0]])
         for i in range(1, len(order)):
-            tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(order[i]))
+            new_node = TreePlanLeafNode(order[i]) if (nested_topologies is None or nested_topologies[order[i]] is None) else TreePlanNestedNode(order[i], nested_topologies[order[i]],nested_args[order[i]])
+            tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, new_node)
         return tree_topology
 
     def _get_order_cost(self, pattern: Pattern, order: List[int]):
@@ -57,6 +89,7 @@ class TrivialLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree following the pattern-specified order.
     """
+
     def _create_evaluation_order(self, pattern: Pattern):
         args_num = len(pattern.positive_structure.args)
         return list(range(args_num))
@@ -66,6 +99,7 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree following the order of ascending arrival rates of the event types.
     """
+
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.FREQUENCY_DICT:
             frequency_dict = pattern.statistics
@@ -85,6 +119,7 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree using a greedy strategy that selects at each step the event type that minimizes the cost
     function.
     """
+
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivityMatrix, arrivalRates) = pattern.statistics
@@ -136,6 +171,7 @@ class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree using the iterative improvement procedure.
     """
+
     def __init__(self, cost_model_type: TreeCostModels, step_limit: int,
                  ii_type: IterativeImprovementType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE,
                  init_type: IterativeImprovementInitType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE):
@@ -175,6 +211,7 @@ class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree using a dynamic programming algorithm.
     """
+
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivity_matrix, arrival_rates) = pattern.statistics
