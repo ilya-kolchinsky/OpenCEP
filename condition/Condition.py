@@ -81,6 +81,11 @@ class Condition(ABC):
         """
         raise NotImplementedError()
 
+    def __eq__(self, other):
+        """ Return self==value. """
+        raise NotImplementedError()
+
+
 
 class AtomicCondition(Condition, ABC):
     """

@@ -232,7 +232,8 @@ class Tree:
         current = plan_nodes_to_nodes_map.get(tree_plan) if plan_nodes_to_nodes_map is not None else None
         if current is not None:
             current.propagate_sliding_window(max(current.get_sliding_window(), sliding_window))
-            current.add_parent(parent)
+            if parent is not None:
+                current.add_parent(parent)
             return current
         # a special case where the top operator of the entire pattern is an unary operator
         if isinstance(root_operator, UnaryStructure) and parent is None:
@@ -254,7 +255,7 @@ class Tree:
                 plan_nodes_to_nodes_map[tree_plan] = node
             return node
         current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
-        if plan_nodes_to_nodes_map:
+        if plan_nodes_to_nodes_map is not None:
             plan_nodes_to_nodes_map[tree_plan] = current
         left_subtree = self.__construct_tree_unified_with_others(root_operator, tree_plan.left_child, args,
                                                                  sliding_window, current, consumption_policy,
@@ -264,77 +265,6 @@ class Tree:
                                                                   plan_nodes_to_nodes_map)
         current.set_subtrees(left_subtree, right_subtree)
         return current
-
-    def tree_get_leaves(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
-                        args: List[PatternStructure], sliding_window: timedelta, parent: Node,
-                        consumption_policy: ConsumptionPolicy):
-        leaves_nodes = []
-        if tree_plan is None:
-            return []
-        if isinstance(root_operator, UnaryStructure) and parent is None:
-            # a special case where the top operator of the entire pattern is an unary operator
-            constructed_node = self.__handle_primitive_event_or_nested_structure(tree_plan, root_operator,
-                                                                                 sliding_window, parent,
-                                                                                 consumption_policy)
-            return [constructed_node]
-        if type(tree_plan) == TreePlanLeafNode:
-            constructed_node = self.__handle_primitive_event_or_nested_structure(tree_plan, args[tree_plan.event_index],
-                                                                                 sliding_window, parent,
-                                                                                 consumption_policy)
-            return [constructed_node]
-        leaves_nodes.extend(
-            self.tree_get_leaves(root_operator, tree_plan.left_child, args, sliding_window, None, consumption_policy))
-        leaves_nodes.extend(
-            self.tree_get_leaves(root_operator, tree_plan.right_child, args, sliding_window, None, consumption_policy))
-        return leaves_nodes
-
-    def tree_get_leaves2(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
-                         args: List[PatternStructure], sliding_window: timedelta, parent: Node,
-                         consumption_policy: ConsumptionPolicy):
-
-        leaves_nodes1 = self.tree_get_layer_at_level(root_operator, tree_plan, args, sliding_window, parent,
-                                                     consumption_policy, 0)
-        layer_nodes1 = self.tree_get_layer_at_level(root_operator, tree_plan, args, sliding_window, parent,
-                                                    consumption_policy, 1)
-        layer_nodes2 = self.tree_get_layer_at_level(root_operator, tree_plan, args, sliding_window, parent,
-                                                    consumption_policy, 2)
-        leaves_nodes2 = self.tree_get_leaves(root_operator, tree_plan, args, sliding_window, parent, consumption_policy)
-        print("SALEH AND TONY")
-
-    def tree_get_layer_at_level(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
-                                args: List[PatternStructure], sliding_window: timedelta, parent: Node,
-                                consumption_policy: ConsumptionPolicy, height: int):
-
-        output_nodes = []
-        if tree_plan is None or height < 0 or tree_plan.height < height:
-            return []
-
-        if tree_plan.height == height:
-            if isinstance(root_operator, UnaryStructure):
-                constructed_node = self.__handle_primitive_event_or_nested_structure(tree_plan, root_operator,
-                                                                                     sliding_window, parent,
-                                                                                     consumption_policy)
-                return [constructed_node]
-
-            if isinstance(root_operator, CompositeStructure):
-                constructed_node = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
-                return [constructed_node]
-
-            if type(tree_plan) == TreePlanLeafNode:
-                constructed_node = self.__handle_primitive_event_or_nested_structure(tree_plan,
-                                                                                     args[tree_plan.event_index],
-                                                                                     sliding_window, parent,
-                                                                                     consumption_policy)
-                return [constructed_node]
-
-        output_nodes.extend(
-            self.tree_get_layer_at_level(root_operator, tree_plan.left_child, args, sliding_window, None,
-                                         consumption_policy, height))
-        output_nodes.extend(
-            self.tree_get_layer_at_level(root_operator, tree_plan.right_child, args, sliding_window, None,
-                                         consumption_policy, height))
-
-        return output_nodes
 
     def get_last_matches(self):
         """

@@ -33,8 +33,8 @@ ITERATIVE_IMPROVEMENT_TYPE = IterativeImprovementType.SWAP_BASED
 ITERATIVE_IMPROVEMENT_INIT_TYPE = IterativeImprovementInitType.RANDOM
 
 # multi-pattern optimization defaults
-# MULTI_PATTERN_APPROACH = MultiPatternEvaluationApproaches.TRIVIAL_SHARING_LEAVES
-MULTI_PATTERN_APPROACH = MultiPatternEvaluationApproaches.TREE_PLAN_UNIFIED_TREE
+MULTI_PATTERN_APPROACH = MultiPatternEvaluationApproaches.TRIVIAL_SHARING_LEAVES
+# MULTI_PATTERN_APPROACH = MultiPatternEvaluationApproaches.TREE_PLAN_UNIFIED_TREE
 
 # parallel execution settings
 DEFAULT_PARALLEL_EXECUTION_MODE = ParallelExecutionModes.SEQUENTIAL
