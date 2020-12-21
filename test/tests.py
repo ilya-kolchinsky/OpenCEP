@@ -5,6 +5,7 @@ from test.NegationTests import *
 from test.PolicyTests import *
 from test.MultiPattern_tests import *
 from test.StorageTests import *
+from test.NestedTests import *
 from test.UnitTests.test_storage import run_storage_tests
 
 
@@ -111,6 +112,10 @@ samePatternSharingRoot()
 severalPatternShareSubtree()
 notInTheBeginningShare()
 multipleParentsForInternalNode()
+
+# nested operator tests
+nestedTest()
+nestedAscendingTest()
 
 # benchmarks
 if INCLUDE_BENCHMARKS:
