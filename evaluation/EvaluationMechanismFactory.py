@@ -63,6 +63,7 @@ class EvaluationMechanismFactory:
         """
         if isinstance(patterns, Pattern):
             patterns = [patterns]
+        # This row is for create the tree
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
         pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
         return TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,

@@ -33,7 +33,7 @@ class SequentialEvaluationManager(EvaluationManager):
             statistics_collector = StatisticsFactory.build_statistics_collector(statistics_collector_params, patterns[0])
             self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_params,
                                                                                                    patterns[0],
-                                                                                                   statistics_collector)
+                                                                                                   self.statistics_collector)
         self.__pattern_matches = None
 
     def eval(self, event_stream: InputStream, pattern_matches: OutputStream, data_formatter: DataFormatter):
