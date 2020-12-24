@@ -57,6 +57,10 @@ class FailedCounter:
 
 numFailedTests = FailedCounter()
 
+file1 = os.path.join(absolutePath, 'test/StatisticsDocumentation/statistics.txt')
+with open(file1, 'w') as file:
+    file.write("\nDocumentation of the generated statistics for the negation tests:\n")
+file.close()
 
 def numOfLinesInPattern(file):
     """

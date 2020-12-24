@@ -9,17 +9,38 @@ from misc.StatisticsTypes import StatisticsTypes
 import copy
 from numpy import random, fill_diagonal
 
-
-def runAllTrees(pattern, expectedFileName, createTestFile, negationAlgo=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM):
-    eventsNum = len(pattern.full_structure.get_args())
+"""
+This function creates random statistics for the negation tests including based statistics trees
+The generated statistics are documented at "test/StatisticsDocumentation/statistics.txt" 
+"""
+def setStatisticsForTest(eventsNum , expectedFileName , negationAlgo):
     arrivalRates = [*random.rand(eventsNum)]
     selectivityMatrixA = random.rand(eventsNum, eventsNum)
     selectivityMatrix = selectivityMatrixA.T * selectivityMatrixA
-    fill_diagonal(selectivityMatrix, 1.0)
+    fill_diagonal(selectivityMatrix, 1)
     selectivityMatrix = selectivityMatrix.tolist()
+    with open(os.path.join(absolutePath, 'test/StatisticsDocumentation/statistics.txt'), 'a') as file:
+        file.write("\nStatistics values in %s %s tests: \n\n" % (expectedFileName , negationAlgo))
+        file.write("arrivalRates: [ ")
+        for i in arrivalRates:
+            file.write(str(i) + " ")
+        file.write("]" + "\n")
+        file.write("selectivityMatrix:" + "\n")
+        for line in selectivityMatrix:
+            file.write("[")
+            for i in line:
+                file.write(str(i) + " ")
+            file.write("]" + "\n")
+        file.write("\n**********************\n")
+    file.close()
+    return selectivityMatrix, arrivalRates
 
-    print("arrival rates are: ")
-    print(*arrivalRates, sep=", ")
+def runAllTrees(pattern, expectedFileName, createTestFile, negationAlgo=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM):
+    eventsNum = len(pattern.full_structure.get_args())
+    selectivityMatrix, arrivalRates = setStatisticsForTest(eventsNum, expectedFileName, negationAlgo)
+
+    # print("arrival rates are: ")
+    # print(*arrivalRates, sep=", ")
     # print("selectivity matrix is: ")
     # for s in selectivityMatrix:
       #  print(*s)
