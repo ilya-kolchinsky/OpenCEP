@@ -17,7 +17,6 @@ class GraphVisualization:
     """
         Utility class for visualization of the evaluation trees and graphs
     """
-
     def __init__(self, title=None):
         self.vertexes = set()
         self.vertexes_positions = {}
@@ -73,15 +72,11 @@ class GraphVisualization:
             self.nodes_level_counter_dict[node_level] += 1
 
         number_of_nodes = self.nodes_level_counter_dict[node_level]
-        curr_x, curr_y = 0.0, 0.0
-        if vertex_value in self.vertexes_positions:
-            curr_x, curr_y = self.vertexes_positions[vertex_value]
+        # self.vertexes_positions[vertex_value] = (number_of_nodes*7, node_level + 0.2 * number_of_nodes)
+        # self.vertexes_positions[vertex_value] = (number_of_nodes*7, node_level+ 0.4 * number_of_nodes)
+        self.vertexes_positions[vertex_value] = (number_of_nodes*7, node_level+ 0.4 * number_of_nodes)
 
-        x = max(curr_x, number_of_nodes * 12)
-        y = max(curr_y, node_level * 8 + 0.5 * number_of_nodes)
-        self.vertexes_positions[vertex_value] = (x, y)
-
-    def visualize(self):
+    def visualize(self, split = False):
         """
             visualize function using networkx package
         """
@@ -103,9 +98,9 @@ class GraphVisualization:
 
         plt.axis("off")  # turn of axis
         plt.title(self.title)  # turn of axis
-        nx.draw_networkx(G, pos=vertex_pos, with_labels=True, font_size=6, node_color=carac['vertex_color'].cat.codes, node_size=1500)
+        nx.draw_networkx(G, pos=vertex_pos, with_labels=True, font_size=8, node_color=carac['vertex_color'].cat.codes, node_size=1500)
 
-        plt.margins(x=0.1)
+        plt.margins(x=0.5)
         plt.show()
 
     def build_from_root_treePlan(self, tree_plan_root: TreePlanNode, node_level=0):
@@ -126,8 +121,8 @@ class GraphVisualization:
             self.addEdge(str(tree_plan_root.child), curr_node_value)
             return
 
-        self.build_from_root_treePlan(tree_plan_root.left_child, node_level - 1)
-        self.build_from_root_treePlan(tree_plan_root.right_child, node_level - 1)
+        self.build_from_root_treePlan(tree_plan_root.left_child, node_level-1)
+        self.build_from_root_treePlan(tree_plan_root.right_child, node_level-1)
 
         self.addEdge(str(tree_plan_root.left_child), curr_node_value)
         self.addEdge(str(tree_plan_root.right_child), curr_node_value)
@@ -135,3 +130,6 @@ class GraphVisualization:
     def build_from_2root_treePlan(self, tree_plan_root_1: TreePlanNode, tree_plan_root_2: TreePlanNode, node_level_1=0, node_level_2=0):
         self.build_from_root_treePlan(tree_plan_root_1, node_level_1)
         self.build_from_root_treePlan(tree_plan_root_2, node_level_2)
+
+
+

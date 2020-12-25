@@ -24,15 +24,6 @@ class CompositeCondition(Condition, ABC):
                 return self.__terminating_result
         return not self.__terminating_result
 
-    def __eq__(self, other):
-        if type(self) != type(other) or self.get_num_conditions() != other.get_num_conditions():
-            return False
-        for condition in self.__conditions:
-            if condition not in other.__conditions:
-                return False
-        return True
-
-
     def get_condition_of(self, names: set, get_kleene_closure_conditions=False, consume_returned_conditions=False):
         """
         Returns a new composite condition which only contains those conditions from this composite condition operating

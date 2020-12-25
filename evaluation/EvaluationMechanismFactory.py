@@ -69,16 +69,11 @@ class EvaluationMechanismFactory:
             patterns = [patterns]
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
         pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
-
-        # TODO MST: adding MultiPatternTreePlanUnionApproaches as user parameter
-
         unified_tree_map = tree_plan_builder._union_tree_plans(pattern_to_tree_plan_map.copy(),
-                                                             MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-
-
+                                                             MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
         unified_tree = TreeBasedEvaluationMechanism(unified_tree_map, eval_mechanism_params.storage_params,
                                              eval_mechanism_params.multi_pattern_eval_params)
-        unified_tree.visualize(title="SMT unified Tree")  # TODO need to delete this line
+        unified_tree.visualize(title="tree2")  # TODO need to delete this line
         return unified_tree
 
     @staticmethod

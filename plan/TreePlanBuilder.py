@@ -13,7 +13,7 @@ from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryN
 from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 from tree.Tree import Tree
 from tree.nodes.LeafNode import LeafNode
-from tree.nodes.Node import Node, PrimitiveEventDefinition
+from tree.nodes.Node import Node
 
 
 class TreePlanBuilder(ABC):
@@ -67,61 +67,52 @@ class TreePlanBuilder(ABC):
             raise Exception("Unsupported binary operator")
         return TreePlanBinaryNode(operator_type, left_subtree, right_subtree)
 
-    def __try_to_share_and_merge_nodes(self, root, root_pattern: Pattern, node, node_pattern: Pattern):
+    def __try_to_share_and_merge_nodes(self, root, node):
         """
             This method is trying to share the node (and its subtree) and the tree of root.
             If the root and node are not equivalent, trying to share the children of node and root.
         """
-        find_and_merge, is_merged = self.__find_and_merge_node_into_subtree(root, root_pattern, node, node_pattern)
-
-        if is_merged:
-            return node, True
-
+        if self.__find_and_merge_node_into_subtree(root, node) == node:
+            return node
         if isinstance(node, TreePlanBinaryNode):
-            partial_root, is_merged = self.__try_to_share_and_merge_nodes(root, root_pattern, node.left_child, node_pattern)
-            if is_merged:
-                return node.left_child, True
+            partial_root = self.__try_to_share_and_merge_nodes(root, node.left_child)
+            if partial_root != root:
+                return node.left_child
 
-            partial_root, is_merged = self.__try_to_share_and_merge_nodes(root, root_pattern, node.right_child, node_pattern)
-            if is_merged:
-                return node.right_child, True
+            partial_root = self.__try_to_share_and_merge_nodes(root, node.right_child)
+            if partial_root != root:
+                return node.right_child
 
         if isinstance(node, TreePlanUnaryNode):
-            partial_root, is_merged = self.__try_to_share_and_merge_nodes(root, root_pattern, node.child, node_pattern)
-            if is_merged:
-                return node.child, True
+            partial_root = self.__try_to_share_and_merge_nodes(root, node.child)
+            if partial_root != root:
+                return node.child
 
-        return root, False
+        return root
 
-    def __find_and_merge_node_into_subtree(self, root: TreePlanNode, root_pattern: Pattern, node: TreePlanNode, node_pattern: Pattern):
+    def __find_and_merge_node_into_subtree(self, root: TreePlanNode, node: TreePlanNode):
         """
                This method is trying to find node in the subtree of root (or an equivalent node).
                If such a node is found, it merges the equivalent nodes.
         """
-        if TreePlanBuilder.is_equivalent(root, root_pattern, node, node_pattern, self.leaves_dict):
-            return node, True
+        if TreePlanBuilder.is_equivalent(root, node, self.leaves_dict):
+            return node
 
         elif isinstance(root, TreePlanBinaryNode):
-            left_find_and_merge, is_left_updated = self.__find_and_merge_node_into_subtree(root.left_child, root_pattern, node, node_pattern)
-            right_find_and_merge, is_right_updated = self.__find_and_merge_node_into_subtree(root.right_child, root_pattern, node, node_pattern)
-
-            if is_left_updated:
-                root.left_child = left_find_and_merge
-
-            if is_right_updated:
-                root.left_child = left_find_and_merge
-
-            return root, is_left_updated or is_right_updated
+            root.left_child = self.__find_and_merge_node_into_subtree(root.left_child, node)
+            root.right_child = self.__find_and_merge_node_into_subtree(root.right_child, node)
 
         elif isinstance(root, TreePlanUnaryNode):
-            child_find_and_merge, is_child_updated = self.__find_and_merge_node_into_subtree(root.child, root_pattern, node, node_pattern)
+            root.child = self.__find_and_merge_node_into_subtree(root.child, node)
 
-            if is_child_updated:
-                root.child = child_find_and_merge
+        return root
 
-            return root, is_child_updated
-
-        return root, False
+    def __merge_nodes(self, node: TreePlanNode, other: TreePlanNode):
+        """
+        Merge two nodes, and update all the required information
+        """
+        # merges other into node
+        node = other
 
     def __construct_subtrees_union_tree_plan(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan):
         """
@@ -130,29 +121,31 @@ class TreePlanBuilder(ABC):
         We are sharing the maximal subtree that exists in the tree.
         We are assuming that each pattern appears only once in patterns (which is a legitimate assumption).
         """
+        # trees = self.__construct_trees_for_patterns(pattern_to_tree_plan_map, storage_params)
         leaves_dict = {}
+        # first_pattern = list(pattern_to_tree_plan_map.keys())[0]
         for i, pattern in enumerate(pattern_to_tree_plan_map):
             tree_plan = pattern_to_tree_plan_map[pattern]
             leaves_dict[pattern] = TreePlanBuilder.tree_get_leaves(pattern.positive_structure, tree_plan.root,
-                                                                   TreePlanBuilder.__get_operator_arg_list(pattern.positive_structure),
+                                                                   Tree.__get_operator_arg_list(pattern.positive_structure),
                                                                    pattern.window, pattern.consumption_policy)
 
         self.leaves_dict = leaves_dict
 
-        output_nodes = {}
+        output_nodes = []
+        pattern_to_output_node_dict = {}
         for i, pattern in enumerate(pattern_to_tree_plan_map):
             tree_plan = pattern_to_tree_plan_map[pattern]
             current_root = tree_plan.root
-            output_nodes[current_root] = pattern
+            pattern_id = i + 1
+            output_nodes.append(current_root)
+            pattern_to_output_node_dict[pattern_id] = current_root
             for root in output_nodes:
                 if root == current_root:
                     break
-                new_root, is_shared = self.__try_to_share_and_merge_nodes(current_root, pattern, root, output_nodes[root])
-                if is_shared:
-                    pattern_to_tree_plan_map[pattern].root = new_root
+                if self.__try_to_share_and_merge_nodes(root, current_root):
                     break
-
-        return pattern_to_tree_plan_map
+        return output_nodes
 
     def __share_leaves(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan):
         """ this function is the core implementation for the trivial_sharing_trees algorithm """
@@ -160,9 +153,8 @@ class TreePlanBuilder(ABC):
         first_pattern = list(pattern_to_tree_plan_map.keys())[0]
         for i, pattern in enumerate(pattern_to_tree_plan_map):
             tree_plan = pattern_to_tree_plan_map[pattern]
-            get_args = TreePlanBuilder.__get_operator_arg_list
             leaves_dict[pattern] = TreePlanBuilder.tree_get_leaves(pattern.positive_structure, tree_plan.root,
-                                                                   get_args(pattern.positive_structure),
+                                                                   Tree.__get_operator_arg_list(pattern.positive_structure),
                                                                    pattern.window, pattern.consumption_policy)
         shared_leaves_dict = {}
         for leaf in leaves_dict[first_pattern]:
@@ -186,63 +178,28 @@ class TreePlanBuilder(ABC):
         return TreePlanBuilder._tree_plans_update_leaves(pattern_to_tree_plan_map,
                                                          shared_leaves_dict)  # the unified tree
 
-    # TODO : MST
     @staticmethod
-    def __get_operator_arg_list(operator: PatternStructure):
-        """
-        Returns the list of arguments of the given operator for the tree construction process.
-        """
-        if isinstance(operator, CompositeStructure):
-            return operator.args
-        if isinstance(operator, UnaryStructure):
-            return [operator.arg]
-        # a PrimitiveEventStructure
-        return [operator]
+    def is_equivalent(plan_node1: TreePlanNode, plan_node2: TreePlanNode, leaves_dict: Dict[TreePlanNode, Node]):
 
-    @staticmethod
-    def get_condition_from_pattern_in_sub_tree(plan_node1: TreePlanNode, pattern1: Pattern, plan_node2: TreePlanNode, pattern2: Pattern,
-                      leaves_dict: Dict[Pattern, Dict[TreePlanNode, Node]]):
-
-        leaves_in_plan_node_1 = plan_node1.get_leaves()
-        leaves_in_plan_node_2 = plan_node2.get_leaves()
-
-        names1 = {leaves_dict.get(pattern1).get(plan_leaf).get_structure_summary() for plan_leaf in
-                  leaves_dict.get(pattern1).fromkeys(leaves_in_plan_node_1)}
-        names2 = {leaves_dict.get(pattern2).get(plan_leaf).get_structure_summary() for plan_leaf in
-                  leaves_dict.get(pattern2).fromkeys(leaves_in_plan_node_2)}
-
-        condition1 = pattern1.condition.get_condition_of(names1, get_kleene_closure_conditions=False, consume_returned_conditions=False)
-        condition2 = pattern2.condition.get_condition_of(names2, get_kleene_closure_conditions=False, consume_returned_conditions=False)
-        return condition1, condition2
-
-    @staticmethod
-    def is_equivalent(plan_node1: TreePlanNode, pattern1: Pattern, plan_node2: TreePlanNode, pattern2: Pattern,
-                      leaves_dict: Dict[Pattern, Dict[TreePlanNode, Node]]):
-
-        if type(plan_node1) != type(plan_node2) or plan_node1 is None:
-            return False
-
-        condition1, condition2 = TreePlanBuilder.get_condition_from_pattern_in_sub_tree(plan_node1, pattern1, plan_node2, pattern2, leaves_dict)
-
-        if condition1 != condition2:
+        if type(plan_node1) != type(plan_node2):
             return False
 
         nodes_type = type(plan_node1)
 
-        if issubclass(nodes_type, TreePlanInternalNode):
+        if nodes_type == TreePlanInternalNode:
             if plan_node1.operator != plan_node2.operator:
                 return False
             if nodes_type == TreePlanUnaryNode:
-                return TreePlanBuilder.is_equivalent(plan_node1.child, pattern1, plan_node2.child, pattern2, leaves_dict)
+                return TreePlanBuilder.is_equivalent(plan_node1.child, plan_node2.child, leaves_dict)
 
             if nodes_type == TreePlanBinaryNode:
-                return TreePlanBuilder.is_equivalent(plan_node1.left_child, pattern1, plan_node2.left_child, pattern2, leaves_dict) \
-                       and TreePlanBuilder.is_equivalent(plan_node1.right_child, pattern1, plan_node2.right_child, pattern2, leaves_dict)
+                return TreePlanBuilder.is_equivalent(plan_node1.left_child, plan_node2.left_child, leaves_dict) \
+                       and TreePlanBuilder.is_equivalent(plan_node1.right_child, plan_node2.right_child, leaves_dict)
 
         if nodes_type == TreePlanLeafNode:
-            leaf_node1 = leaves_dict.get(pattern1).get(plan_node1)
-            leaf_node2 = leaves_dict.get(pattern2).get(plan_node2)
-            if leaf_node1 and leaf_node2:
+            leaf_node1 = leaves_dict.get(plan_node1)
+            leaf_node2 = leaves_dict.get(plan_node2)
+            if not leaf_node1 and not leaf_node2:
                 return leaf_node1.get_event_name() == leaf_node2.get_event_name() and leaf_node1.is_equivalent(leaf_node2)
 
         return False

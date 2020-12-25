@@ -106,7 +106,6 @@ rootAndInner()
 
 # second approach: sharing equivalent subtrees
 onePatternIncludesOther()
-onePatternIncludesOtherNewApproach()
 samePatternSharingRoot()
 severalPatternShareSubtree()
 notInTheBeginningShare()

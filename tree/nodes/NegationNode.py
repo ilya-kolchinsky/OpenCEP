@@ -242,7 +242,7 @@ class NegativeSeqNode(NegationNode):
         “informal” or nicely printable string representation of an object
         """
         _prefix = 'NSeq'
-        return f'{_prefix} {str(self._left_subtree).replace(_prefix, "")} ->  {str(self._right_subtree).replace(_prefix, "")}'
+        return f'{_prefix} {str(self._left_subtree).replace(_prefix, "")}  {str(self._right_subtree).replace(_prefix, "")}'
 
     def _set_event_definitions(self,
                                positive_event_defs: List[PrimitiveEventDefinition],
