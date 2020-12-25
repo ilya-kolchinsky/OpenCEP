@@ -63,17 +63,17 @@ class EvaluationMechanismFactory:
         Instantiates a tree-based CEP evaluation mechanism according to the given configuration.
         in this function we fix the given implementation by merging treePattern and not trees , then we create
         TreeBasedEvaluationMechanism from the merged treePlans
-        TODO:need to clean the previous implementation in this function once we are sure of our implementation
         """
         if isinstance(patterns, Pattern):
             patterns = [patterns]
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
         pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
         unified_tree_map = tree_plan_builder._union_tree_plans(pattern_to_tree_plan_map.copy(),
-                                                             MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+                                                               eval_mechanism_params.tree_plan_params.tree_plan_union_type)
+
         unified_tree = TreeBasedEvaluationMechanism(unified_tree_map, eval_mechanism_params.storage_params,
-                                             eval_mechanism_params.multi_pattern_eval_params)
-        unified_tree.visualize(title="tree2")  # TODO need to delete this line
+                                                    eval_mechanism_params.multi_pattern_eval_params)
+        unified_tree.visualize(title="SMT unified Tree")
         return unified_tree
 
     @staticmethod

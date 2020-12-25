@@ -26,6 +26,11 @@ class TreePlanNode(ABC):
     def __init__(self, height=0):
         self.height = height
 
+    def get_leaves(self):
+        """
+        Returns all leaves in this tree - to be implemented by subclasses.
+        """
+        raise NotImplementedError()
 
 class TreePlanLeafNode(TreePlanNode):
     """
@@ -42,6 +47,10 @@ class TreePlanLeafNode(TreePlanNode):
         “informal” or nicely printable string representation of an object
         """
         return str(hash(self))
+
+    def get_leaves(self):
+        assert self.height == 0
+        return [self]
 
 
 class TreePlanInternalNode(TreePlanNode):
@@ -67,6 +76,9 @@ class TreePlanUnaryNode(TreePlanInternalNode):
         super().__init__(operator)
         self.child = child
 
+    def get_leaves(self):
+        return self.child.get_leaves()
+
 class TreePlanBinaryNode(TreePlanInternalNode):
     """
     Represents an internal binary node of a tree-based plan.
@@ -76,6 +88,9 @@ class TreePlanBinaryNode(TreePlanInternalNode):
         super().__init__(operator, height=max(left_child.height,right_child.height)+1)
         self.left_child = left_child
         self.right_child = right_child
+
+    def get_leaves(self):
+        return self.left_child.get_leaves() + self.right_child.get_leaves()
 
 class TreePlan:
     """

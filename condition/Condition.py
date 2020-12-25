@@ -43,6 +43,7 @@ class Variable:
     Typically, it will be of the form "x.y" where "X" corresponds to a known event name and y is an attribute available
     for events of x's type.
     """
+
     def __init__(self, name: str, getattr_func: callable):
         self.name = name
         # this callback function is used to fetch the attribute value from an event payload dict
@@ -61,13 +62,14 @@ class Variable:
         return self.name
 
     def __eq__(self, other):
-        return type(other) == Variable and self.name == other.name and self.getattr_func == other.getattr_func
+        return type(other) == Variable and self.name == other.name and self.getattr_func.__code__.co_code == other.getattr_func.__code__.co_code
 
 
 class Condition(ABC):
     """
     The base abstract class of the condition classes hierarchy.
     """
+
     def eval(self, binding: dict or list = None):
         """
         Returns True if the provided binding satisfies this condition and False otherwise.
@@ -81,11 +83,16 @@ class Condition(ABC):
         """
         raise NotImplementedError()
 
+    def __eq__(self, other):
+        """ Return self==value. """
+        raise NotImplementedError()
+
 
 class AtomicCondition(Condition, ABC):
     """
     Represents an atomic (non-composite) condition.
     """
+
     def is_condition_of(self, names: set):
         """
         Returns True if all variable names participating in this condition appear in the given set and False otherwise.
@@ -100,6 +107,7 @@ class TrueCondition(AtomicCondition):
     """
     Represents a Boolean True condition.
     """
+
     def eval(self, binding: dict = None):
         return True
 
@@ -120,6 +128,7 @@ class SimpleCondition(AtomicCondition):
     """
     A simple (non-composite) condition over N operands (either variables or constants).
     """
+
     def __init__(self, *terms, relation_op: callable):
         self.terms = terms
         self.relation_op = relation_op
@@ -152,6 +161,7 @@ class BinaryCondition(SimpleCondition):
     A binary condition containing no logic operators (e.g., A < B).
     This is a special case of a simple n-ary condition constrained to two operands.
     """
+
     def __init__(self, left_term, right_term, relation_op: callable):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of BinaryCondition!")

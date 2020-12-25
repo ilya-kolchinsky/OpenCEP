@@ -9,9 +9,11 @@ class TreePlanBuilderParameters:
     Parameters for the tree plan builder.
     """
     def __init__(self, builder_type: TreePlanBuilderTypes = DefaultConfig.DEFAULT_TREE_PLAN_BUILDER,
-                 cost_model_type: TreeCostModels = DefaultConfig.DEFAULT_TREE_COST_MODEL):
+                 cost_model_type: TreeCostModels = DefaultConfig.DEFAULT_TREE_COST_MODEL,
+                 tree_plan_union_type=DefaultConfig.DEFAULT_TREE_PLAN_UNION):
         self.builder_type = builder_type
         self.cost_model_type = cost_model_type
+        self.tree_plan_union_type = tree_plan_union_type
 
 
 class IterativeImprovementTreePlanBuilderParameters(TreePlanBuilderParameters):

@@ -8,16 +8,19 @@ from parallel.ParallelExecutionModes import ParallelExecutionModes
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType
 from plan.multi.MultiPatternEvaluationApproaches import MultiPatternEvaluationApproaches
+from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 
 
 # general settings
+
 DEFAULT_EVALUATION_MECHANISM_TYPE = EvaluationMechanismTypes.TREE_BASED
 
 # plan generation-related defaults
 DEFAULT_TREE_PLAN_BUILDER = TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE
 DEFAULT_TREE_COST_MODEL = TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL
+DEFAULT_TREE_PLAN_UNION = MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES
 
 # default selection strategies
 PRIMARY_SELECTION_STRATEGY = SelectionStrategies.MATCH_ANY
@@ -33,8 +36,11 @@ ITERATIVE_IMPROVEMENT_TYPE = IterativeImprovementType.SWAP_BASED
 ITERATIVE_IMPROVEMENT_INIT_TYPE = IterativeImprovementInitType.RANDOM
 
 # multi-pattern optimization defaults
-# MULTI_PATTERN_APPROACH = MultiPatternEvaluationApproaches.TRIVIAL_SHARING_LEAVES
 MULTI_PATTERN_APPROACH = MultiPatternEvaluationApproaches.TREE_PLAN_UNIFIED_TREE
+
+# multi-pattern optimization defaults
+VISUALIZATION = False
+
 
 # parallel execution settings
 DEFAULT_PARALLEL_EXECUTION_MODE = ParallelExecutionModes.SEQUENTIAL

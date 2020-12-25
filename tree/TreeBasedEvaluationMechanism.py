@@ -19,6 +19,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
+
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
                  storage_params: TreeStorageParameters,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
@@ -146,7 +147,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     def __repr__(self):
         return self.get_structure_summary()
 
-    def visualize(self,title=None):
-        G = GraphVisualization(title)
-        G.build_from_leaves(self.__tree.get_leaves())
-        G.visualize()
+    def visualize(self, title=None, visualize_flag=DefaultConfig.VISUALIZATION):
+        if visualize_flag:
+            G = GraphVisualization(title)
+            G.build_from_leaves(self.__tree.get_leaves())
+            G.visualize()
