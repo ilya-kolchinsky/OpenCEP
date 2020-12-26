@@ -38,8 +38,8 @@ ITERATIVE_IMPROVEMENT_INIT_TYPE = IterativeImprovementInitType.RANDOM
 # multi-pattern optimization defaults
 MULTI_PATTERN_APPROACH = MultiPatternEvaluationApproaches.TREE_PLAN_UNIFIED_TREE
 
-# multi-pattern optimization defaults
-VISUALIZATION = False
+# multi-pattern visualization defaults
+VISUALIZATION = True
 
 
 # parallel execution settings

@@ -113,7 +113,7 @@ class GraphVisualization:
             return
 
         curr_node_value = str(tree_plan_root)
-        if tree_plan_root in self.addVertex:
+        if tree_plan_root in self.vertexes:
             return
         self.addVertex(curr_node_value)
         self.set_vertex_pos(curr_node_value, node_level)

@@ -5,6 +5,8 @@ mechanisms based on tree structure.
 from abc import ABC
 from enum import Enum
 
+from misc import DefaultConfig
+
 
 class OperatorTypes(Enum):
     """
@@ -100,3 +102,7 @@ class TreePlan:
     def __init__(self, root: TreePlanNode):
         self.root = root
         self.height = root.height
+
+
+    def visualize(self, title=None, visualize_flag=DefaultConfig.VISUALIZATION):
+        self.root._visualize(title, visualize_flag)

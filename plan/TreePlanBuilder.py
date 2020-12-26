@@ -5,6 +5,7 @@ from typing import Dict, List
 from base.Pattern import Pattern
 from base.PatternStructure import AndOperator, SeqOperator, PatternStructure, UnaryStructure, PrimitiveEventStructure, \
     CompositeStructure
+from misc import DefaultConfig
 from misc.ConsumptionPolicy import ConsumptionPolicy
 from plan.TreeCostModel import TreeCostModelFactory
 from plan.TreeCostModels import TreeCostModels
@@ -12,6 +13,7 @@ from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryN
     TreePlanUnaryNode, TreePlanInternalNode
 from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 from tree.Tree import Tree
+from tree.TreeVisualizationUtility import GraphVisualization
 from tree.nodes.LeafNode import LeafNode
 from tree.nodes.Node import Node, PrimitiveEventDefinition
 
@@ -29,6 +31,18 @@ class TreePlanBuilder(ABC):
         Creates a tree-based evaluation plan for the given pattern.
         """
         return TreePlan(self._create_tree_topology(pattern))
+
+    def visualize(self, visualize_data : TreePlanNode or Dict[Pattern, TreePlan], title=None, visualize_flag=DefaultConfig.VISUALIZATION):
+        if visualize_flag and isinstance(visualize_data, TreePlanNode):
+            G = GraphVisualization(title)
+            G.build_from_root_treePlan(visualize_data, node_level=visualize_data.height)
+            G.visualize()
+
+        if visualize_flag and isinstance(visualize_data, dict):
+            G = GraphVisualization(title)
+            for i,(_, tree_plan) in enumerate(visualize_data.items()):
+                G.build_from_root_treePlan(tree_plan.root, node_level=tree_plan.root.height)
+            G.visualize()
 
     def _create_tree_topology(self, pattern: Pattern):
         """
