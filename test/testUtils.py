@@ -87,17 +87,18 @@ def fileCompare(pathA, pathB):
         closeFiles(file1, file2)
         return True
 
-    set1 = set()
-    set2 = set()
+    list1 = list()
+    list2 = list()
 
-    fillSet(file1, set1, counter1)
-    fillSet(file2, set2, counter2)
+    fillSet(file1, list1, counter1)
+    fillSet(file2, list2, counter2)
     closeFiles(file1, file2)
+    list1.sort()
+    list2.sort()
+    return list1 == list2
 
-    return set1 == set2
 
-
-def fillSet(file, set: set, counter: int):
+def fillSet(file, set: list, counter: int):
     """
     fill a set, each element of the set is x consecutive lines of the file, with x = counter
     :param file:
@@ -116,7 +117,7 @@ def fillSet(file, set: set, counter: int):
         tmp = tmp + 1
         # if we read 'counter' lines, we want to add it to the set, and continue with the next 'counter' lines
         if tmp == counter:
-            set.add(tuple(list))
+            set.append(tuple(list))
             list = []
             tmp = 0
 
@@ -146,8 +147,8 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
 def runTest(testName, patterns, createTestFile = False,
             eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
             events = None, eventStream = nasdaqEventStream,
-            parallel_execution_params: ParallelExecutionParameters = None,
-            data_parallel_params: DataParallelExecutionParameters = None
+            parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+            data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads=5)
             ):
     if createTestFile:
         createTest(testName, patterns, events, eventStream = eventStream)
@@ -177,7 +178,6 @@ def runTest(testName, patterns, createTestFile = False,
     output_file_name = "%sMatches.txt" % testName
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
-
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
     is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
@@ -185,7 +185,7 @@ def runTest(testName, patterns, createTestFile = False,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
     if is_test_successful:
-        os.remove(actual_matches_path)
+       os.remove(actual_matches_path)
 
 """
 Input:

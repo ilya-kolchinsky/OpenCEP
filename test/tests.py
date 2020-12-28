@@ -9,7 +9,7 @@ from test.UnitTests.test_storage import run_storage_tests
 
 
 runTest.over_all_time = 0
-""" 
+
 # basic functionality tests
 oneArgumentsearchTest()
 simplePatternSearchTest()
@@ -48,6 +48,7 @@ dpLdPatternSearchTest()
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
 
+"""
 # tree structure tests - CEP object only created not used
 structuralTest1()
 structuralTest2()
@@ -56,6 +57,7 @@ structuralTest4()
 structuralTest5()
 structuralTest6()
 structuralTest7()
+  """
 
 # Kleene closure tests
 oneArgumentsearchTestKleeneClosure()
@@ -95,6 +97,7 @@ freezePolicy2PatternSearchTest()
 
 # storage tests
 sortedStorageTest()
+""" 
 run_storage_tests()
 
 # multi-pattern tests
@@ -111,7 +114,7 @@ samePatternSharingRoot()
 severalPatternShareSubtree()
 notInTheBeginningShare()
 multipleParentsForInternalNode()
-
+"""
 # benchmarks
 if INCLUDE_BENCHMARKS:
     sortedStorageBenchMarkTest()
@@ -125,7 +128,7 @@ if INCLUDE_TWITTER:
     except ImportError:  # tweepy might not be installed
         pass
 
-"""
-oneArgumentsearchTestParallel()
 
+#oneArgumentsearchTestParallel()
+#oneArgumentsearchTest()
 print("Finished running all tests, overall time: %s" % runTest.over_all_time)
