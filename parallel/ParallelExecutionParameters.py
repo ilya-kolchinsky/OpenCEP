@@ -20,3 +20,4 @@ class DataParallelExecutionParameters:
                  num_threads: int = 1):
         self.algorithm = data_parallel_mode
         self.numThreads = num_threads
+

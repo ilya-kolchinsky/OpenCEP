@@ -11,12 +11,18 @@ from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters, EvaluationMechanismFactory
 
 from stream.Stream import InputStream, OutputStream
+from stream.DataParallelStream import *
 from base.DataFormatter import DataFormatter
+from stream.Stream import Stream
+
+import threading
+
 
 class ParallelEvaluationManager(EvaluationManager, ABC):
     """
     An abstract base class for all parallel evaluation managers.
     """
+
     def __init__(self, parallel_execution_params: ParallelExecutionParameters):
         self._platform = PlatformFactory.create_parallel_execution_platform(parallel_execution_params)
 
@@ -26,36 +32,27 @@ class DataParallelEvaluationManager(ParallelEvaluationManager):
     def __init__(self, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters,
                  parallel_execution_params: ParallelExecutionParameters,
-                data_parallel_params: DataParallelExecutionParameters):
+                 data_parallel_params: DataParallelExecutionParameters):
 
         super().__init__(parallel_execution_params)
-        self.mode = data_parallel_params.algorithm
-        self.numThreads = data_parallel_params.numThreads
-        #self.patteren_matcht
-        self.trees = []
-        for i in range(0, self.numThreads):
-            if isinstance(patterns, Pattern):
-                patterns = [patterns]
-            if len(patterns) > 1:
-                self.trees.append(EvaluationMechanismFactory.build_multi_pattern_eval_mechanism(
-                    eval_mechanism_params,
-                    patterns))
-            else:
-                self.trees.append(EvaluationMechanismFactory.build_single_pattern_eval_mechanism(
-                    eval_mechanism_params,
-                    patterns[0]))
-            self.__pattern_matches = None
+        self.__mode = data_parallel_params.algorithm
+        self.__numThreads = data_parallel_params.numThreads
+        self.__algorithm = PlatformFactory.create_data_parallel_evaluation_manager(data_parallel_params, patterns, eval_mechanism_params)
+        self.__pattern_matches = None
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
 
-        for tree in self.trees:
-            tree.eval(events, matches, data_formatter)
-
-        # remove duplicated
+        self.__pattern_matches = matches
+        self.__algorithm.eval_algorithm(events, matches, data_formatter, self._platform)# for now it copy all the output stream to the match stream inside the algorithms's classes
 
 
+    def get_pattern_match_stream(self):
+        return self.__pattern_matches
 
-
+"""
+    def get_structure_summary(self):
+        return self.__eval_mechanism.get_structure_summary()
+"""
 
 
 
