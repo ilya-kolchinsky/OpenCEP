@@ -113,6 +113,12 @@ class UnifiedTreeBuilder(TreePlanBuilder):
             if self.are_events_equal(pattern1, pattern2, event_name):
                 shared += [(event_name, pattern1_names.index(event_name), pattern2_names.index(event_name))]
 
+        if len(shared) == 0:
+            order1 = list(range(len(pattern1.positive_structure.args)))
+            order2 = list(range(len(pattern2.positive_structure.args)))
+            return [order1, order2]
+
+
         names, order1, order2 = list(zip(*shared))
         order1 = sorted(order1) + list(filter(lambda x: x not in order1, range(len(pattern1_names))))
         order2 = sorted(order2) + list(filter(lambda x: x not in order2, range(len(pattern2_names))))
