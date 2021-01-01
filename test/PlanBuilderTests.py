@@ -118,6 +118,9 @@ def same_leaves_test():
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
              7, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
+                                                          approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION),
+             7, MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def same_eventsType_different_names_leaves_test():
@@ -152,6 +155,9 @@ def same_eventsType_different_names_leaves_test():
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
              3, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
+                                                          approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION),
+             5, MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def same_events_different_condition_leaves_test():
@@ -186,6 +192,9 @@ def same_events_different_condition_leaves_test():
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
              4, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
+                                                          approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION),
+             5, MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def sameNames_different_eventTypes_leaves_test():
@@ -220,7 +229,9 @@ def sameNames_different_eventTypes_leaves_test():
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
              5, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-
+    myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
+                                                          approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION),
+             5, MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 def same_events_different_function_test():
     pattern1 = Pattern(
@@ -252,6 +263,9 @@ def same_events_different_function_test():
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
              3, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
+                                                          approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION),
+             5, MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def same_leaves_different_time_stamps_leaves_test():
@@ -284,6 +298,9 @@ def same_leaves_different_time_stamps_leaves_test():
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
              5, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
+                                                          approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION),
+             5, MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def distinct_leaves_test():
@@ -317,6 +334,9 @@ def distinct_leaves_test():
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
              0, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
+                                                          approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION),
+             0, MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def partially_shared_leaves_test():
@@ -352,7 +372,9 @@ def partially_shared_leaves_test():
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
              3, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-
+    myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
+                                                          approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION),
+             3, MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 def leaf_is_root_leaves_test():
     pattern1 = Pattern(
@@ -377,6 +399,9 @@ def leaf_is_root_leaves_test():
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
              0, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
+                                                          approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION),
+             0, MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def leaf_is_root_leaves_test2():
@@ -404,6 +429,9 @@ def leaf_is_root_leaves_test2():
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
              1, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
+                                                          approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION),
+             1, MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def three_patterns_no_sharing_leaves_test():
@@ -448,6 +476,9 @@ def three_patterns_no_sharing_leaves_test():
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2, pattern3],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
              0, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2, pattern3],
+                                                          approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION),
+             0, MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def three_patterns_partial_sharing_leaves_test():
@@ -486,6 +517,9 @@ def three_patterns_partial_sharing_leaves_test():
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2, pattern3],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
              5, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2, pattern3],
+                                                          approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION),
+             5, MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def three_patterns_partial_sharing_leaves_test_tmp():
