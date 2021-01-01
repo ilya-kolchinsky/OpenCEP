@@ -353,7 +353,8 @@ multi-pattern test sharing internal node between patterns
 def multipleParentsForInternalNode(createTestFile=False):
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"),
-                    PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
             GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
                                  Variable("b", lambda x: x["Opening Price"])),
@@ -364,7 +365,8 @@ def multipleParentsForInternalNode(createTestFile=False):
 
     pattern2 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"),
-                    PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
             GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
                                  Variable("b", lambda x: x["Opening Price"])),
