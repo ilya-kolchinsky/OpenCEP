@@ -353,7 +353,7 @@ def leaf_is_root_leaves_test2():
     )
 
     test_run(patterns=[pattern1, pattern2], expected=1, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
-    test_run(patterns=[pattern1, pattern2], expected=2, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    test_run(patterns=[pattern1, pattern2], expected=1, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 
@@ -432,25 +432,8 @@ def three_patterns_partial_sharing_leaves_test():
 
     test_run(patterns=[pattern1, pattern2, pattern3], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     test_run(patterns=[pattern1, pattern2, pattern3], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    test_run(patterns=[pattern1, pattern2,pattern3], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
-
-def three_patterns_partial_sharing_leaves_test_tmp():
-    pattern1 = Pattern(
-        AndOperator(PrimitiveEventStructure("AAPL", "a"),
-                    PrimitiveEventStructure("AMZN", "b"),
-                    PrimitiveEventStructure("GOOG", "c")),
-        SmallerThanCondition(Variable("a", get_peak_price), Variable("b", get_peak_price)),
-        timedelta(minutes=1)
-    )
-    pattern2 = Pattern(
-        AndOperator(PrimitiveEventStructure("AAPL", "a"),
-                    PrimitiveEventStructure("AMZN", "b"),
-                    PrimitiveEventStructure("GOOG", "c")),
-        SmallerThanCondition(Variable("a", get_peak_price), Variable("b", get_peak_price)),
-        timedelta(minutes=5)
-    )
-
-    test_run(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 
@@ -469,6 +452,3 @@ if __name__ == '__main__':
     leaf_is_root_leaves_test2()
     three_patterns_no_sharing_leaves_test()
     three_patterns_partial_sharing_leaves_test()
-
-    # third approach
-    three_patterns_partial_sharing_leaves_test_tmp()
