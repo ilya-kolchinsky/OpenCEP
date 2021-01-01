@@ -10,4 +10,5 @@ class MultiPatternTreePlanUnionApproaches(Enum):
      tree plans.
     """
     TREE_PLAN_TRIVIAL_SHARING_LEAVES = 0,
-    TREE_PLAN_SUBTREES_UNION = 1
+    TREE_PLAN_SUBTREES_UNION = 1,
+    TREE_PLAN_CHANGE_TOPOLOGY_UNION = 2
