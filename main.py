@@ -6,7 +6,6 @@ from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from condition.BaseRelationCondition import GreaterThanCondition
 from condition.CompositeCondition import AndCondition
 from condition.Condition import Variable
-from plan.DeepTreeBuilder import DeepTreeBuilder
 from plan.TreePlanBuilderOrders import TreePlanBuilderOrder
 from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 from test.testUtils import *

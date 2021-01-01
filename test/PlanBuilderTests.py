@@ -1,4 +1,6 @@
+import inspect
 import itertools
+import re
 from datetime import timedelta
 
 from typing import List
@@ -9,7 +11,7 @@ from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCon
     GreaterThanEqCondition
 from condition.CompositeCondition import AndCondition
 from condition.Condition import Variable
-from plan.DeepTreeBuilder import DeepTreeBuilder
+from plan.UnifiedTreeBuilder import UnifiedTreeBuilder as UnifiedTreeBuilder
 from plan.TreePlanBuilder import TreePlanBuilder
 from plan.TreePlanBuilderFactory import TreePlanBuilderFactory
 from plan.TreePlanBuilderOrders import TreePlanBuilderOrder
@@ -35,8 +37,12 @@ def split(string):
     return '{:10s}'.format(str(string).split(".")[1].split("_TREE")[0].replace("_", " "))
 
 
+def split_union_approaches(string):
+    return '{:10s}'.format(str(string).split("TREE_PLAN_")[1].replace("_", " "))
+
+
 # def get_size_of_intersection(pattern_1: Pattern, pattern_2: Pattern, approach):
-#     builder = DeepTreeBuilder(tree_plan_order_approach=approach)
+#     builder = UnifiedTreeBuilder(tree_plan_order_approach=approach)
 #     multi_pattern_eval_approach = MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION
 #     tree1 = builder.build_tree_plan(pattern_1)
 #     tree2 = builder.build_tree_plan(pattern_2)
@@ -45,8 +51,11 @@ def split(string):
 #                                                      multi_pattern_eval_approach).trees_number_nodes_shared
 #     return size_of_intersection
 
-def myAssert(output: int, expected: int, approach: int):
-    print("SUCCESS" + str(approach)) if output == expected else print("FAILED" + str(approach))
+def myAssert(output: int, expected: int,
+             approach: MultiPatternTreePlanUnionApproaches = MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES):
+    caller_func_name = 'test'  # re.sub(r'[\\n()\'\[\]\ ]+', '',  str(inspect.stack()[9][4]))
+    result = "SUCCESS" if output == expected else "FAILED"
+    print(caller_func_name + '\t' + result + '\t union approach: ' + split_union_approaches(approach))
 
 
 def get_max_size_of_intersection_of_all_patterns(patterns: List[Pattern],
@@ -54,9 +63,23 @@ def get_max_size_of_intersection_of_all_patterns(patterns: List[Pattern],
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters()
     tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
     pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
-    builder = DeepTreeBuilder()
-    _ = builder._union_tree_plans(pattern_to_tree_plan_map.copy(),
+    builder = UnifiedTreeBuilder()
+    _ = builder._union_tree_plans(pattern_to_tree_plan_map,
                                   approach)
+    size_of_intersection = builder.trees_number_nodes_shared
+    return size_of_intersection
+
+
+def get_max_size_of_intersection_of_all_patterns_tmp(patterns: List[Pattern], approach):  # TODO remove
+    pattern1, pattern2 = patterns[0], patterns[1]
+    approach1, approach2 = TreePlanBuilderOrder.list()[:2]
+    builder1 = UnifiedTreeBuilder.get_instance(tree_plan_order_approach=approach1)
+    builder2 = UnifiedTreeBuilder.get_instance(tree_plan_order_approach=approach2)
+    pattern_to_tree_plan_map = {pattern1: builder1.build_tree_plan(pattern1),
+                                pattern2: builder2.build_tree_plan(pattern2)}
+
+    builder = UnifiedTreeBuilder()
+    _ = builder._union_tree_plans(pattern_to_tree_plan_map, tree_plan_union_approach=approach)
     size_of_intersection = builder.trees_number_nodes_shared
     return size_of_intersection
 
@@ -91,10 +114,10 @@ def same_leaves_test():
     )
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES),
-             4, 1)
+             4, MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
-             7, 2)
+             7, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def same_eventsType_different_names_leaves_test():
@@ -125,10 +148,10 @@ def same_eventsType_different_names_leaves_test():
     )
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES),
-             3, 1)
+             3, MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
-             3, 2)
+             3, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def same_events_different_condition_leaves_test():
@@ -159,10 +182,10 @@ def same_events_different_condition_leaves_test():
     )
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES),
-             3, 1)
+             3, MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
-             4, 2)
+             4, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def sameNames_different_eventTypes_leaves_test():
@@ -193,10 +216,10 @@ def sameNames_different_eventTypes_leaves_test():
     )
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES),
-             3, 1)
+             3, MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
-             5, 2)
+             5, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def same_events_different_function_test():
@@ -225,10 +248,10 @@ def same_events_different_function_test():
     )
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES),
-             3, 1)
+             3, MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
-             3, 2)
+             3, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def same_leaves_different_time_stamps_leaves_test():
@@ -257,10 +280,10 @@ def same_leaves_different_time_stamps_leaves_test():
 
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES),
-             3, 1)
+             3, MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
-             5, 2)
+             5, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def distinct_leaves_test():
@@ -290,10 +313,10 @@ def distinct_leaves_test():
     )
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES),
-             0, 1)
+             0, MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
-             0, 2)
+             0, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def partially_shared_leaves_test():
@@ -325,10 +348,10 @@ def partially_shared_leaves_test():
     )
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES),
-             2, 1)
+             2, MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
-             3, 2)
+             3, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def leaf_is_root_leaves_test():
@@ -350,10 +373,10 @@ def leaf_is_root_leaves_test():
 
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES),
-             0, 1)
+             0, MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
-             0, 2)
+             0, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def leaf_is_root_leaves_test2():
@@ -377,10 +400,10 @@ def leaf_is_root_leaves_test2():
 
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES),
-             1, 1)
+             1, MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
-             1, 2)
+             1, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def three_patterns_no_sharing_leaves_test():
@@ -421,10 +444,10 @@ def three_patterns_no_sharing_leaves_test():
 
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2, pattern3],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES),
-             0, 1)
+             0, MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2, pattern3],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
-             0, 2)
+             0, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def three_patterns_partial_sharing_leaves_test():
@@ -459,10 +482,31 @@ def three_patterns_partial_sharing_leaves_test():
 
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2, pattern3],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES),
-             3, 1)
+             3, MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     myAssert(get_max_size_of_intersection_of_all_patterns([pattern1, pattern2, pattern3],
                                                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
-             5, 2)
+             5, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+
+
+def three_patterns_partial_sharing_leaves_test_tmp():
+    pattern1 = Pattern(
+        AndOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
+        SmallerThanCondition(Variable("a", get_peak_price), Variable("b", get_peak_price)),
+        timedelta(minutes=1)
+    )
+    pattern2 = Pattern(
+        AndOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
+        SmallerThanCondition(Variable("a", get_peak_price), Variable("b", get_peak_price)),
+        timedelta(minutes=5)
+    )
+
+    myAssert(get_max_size_of_intersection_of_all_patterns_tmp(patterns=[pattern1, pattern2],
+                                                              approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION),
+             5, MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 if __name__ == '__main__':
@@ -478,3 +522,6 @@ if __name__ == '__main__':
     leaf_is_root_leaves_test2()
     three_patterns_no_sharing_leaves_test()
     three_patterns_partial_sharing_leaves_test()
+
+    # third approach
+    three_patterns_partial_sharing_leaves_test_tmp()

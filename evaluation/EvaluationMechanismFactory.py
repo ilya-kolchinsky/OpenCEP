@@ -4,6 +4,7 @@ from base.Pattern import Pattern
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc import DefaultConfig
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory, TreePlanBuilder
+from plan.UnifiedTreeBuilder import UnifiedTreeBuilder
 from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
@@ -68,11 +69,12 @@ class EvaluationMechanismFactory:
             patterns = [patterns]
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
         pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
-        for i,(_, tree_plan) in enumerate(pattern_to_tree_plan_map.items()):
-            tree_plan_builder.visualize(visualize_data=tree_plan.root, title=f'pattern {i+1}')
+        for i, (_, tree_plan) in enumerate(pattern_to_tree_plan_map.items()):
+            tree_plan_builder.visualize(visualize_data=tree_plan.root, title=f'pattern {i + 1}')
 
-        unified_tree_map = tree_plan_builder._union_tree_plans(pattern_to_tree_plan_map.copy(),
-                                                               eval_mechanism_params.tree_plan_params.tree_plan_union_type)
+        union_builder = UnifiedTreeBuilder()
+        unified_tree_map = union_builder._union_tree_plans(pattern_to_tree_plan_map.copy(),
+                                                                eval_mechanism_params.tree_plan_params.tree_plan_union_type)
 
         tree_plan_builder.visualize(unified_tree_map, title=f'SMT unified Tree Plan')
 
