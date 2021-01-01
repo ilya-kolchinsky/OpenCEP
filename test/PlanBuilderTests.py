@@ -74,7 +74,7 @@ def get_max_size_of_intersection_of_all_patterns_tmp(patterns: List[Pattern], ap
 
 # tests for sharing leaves
 
-def same_leaves_test():
+def same_tests():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"),
                     PrimitiveEventStructure("AMZN", "b"),
@@ -106,7 +106,7 @@ def same_leaves_test():
     test_run(patterns=[pattern1, pattern2], expected=7, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
-def same_eventsType_different_names_leaves_test():
+def same_eventsType_different_names_tests():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"),
                     PrimitiveEventStructure("AMZN", "b"),
@@ -134,11 +134,12 @@ def same_eventsType_different_names_leaves_test():
     )
     test_run(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     test_run(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    test_run(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
-def same_events_different_condition_leaves_test():
+def same_events_different_condition_tests():
     pattern1 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+        AndOperator(PrimitiveEventStructure("AAPL", "a"),
                     PrimitiveEventStructure("AMZN", "b"),
                     PrimitiveEventStructure("GOOG", "c"),
                     PrimitiveEventStructure("GOOG", "e")),
@@ -151,7 +152,7 @@ def same_events_different_condition_leaves_test():
     )
 
     pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+        AndOperator(PrimitiveEventStructure("AAPL", "a"),
                     PrimitiveEventStructure("AMZN", "b"),
                     PrimitiveEventStructure("GOOG", "c"),
                     PrimitiveEventStructure("GOOG", "e")),
@@ -165,9 +166,10 @@ def same_events_different_condition_leaves_test():
 
     test_run(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     test_run(patterns=[pattern1, pattern2], expected=4, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    test_run(patterns=[pattern1, pattern2], expected=4, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    #TODO:third approach need to return 5 because AND is Commutative
 
-
-def sameNames_different_eventTypes_leaves_test():
+def sameNames_different_eventTypes_tests():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"),
                     PrimitiveEventStructure("AMZN", "b"),
@@ -195,6 +197,8 @@ def sameNames_different_eventTypes_leaves_test():
     )
     test_run(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     test_run(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    test_run(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+
 
 def same_events_different_function_test():
     pattern1 = Pattern(
@@ -222,9 +226,10 @@ def same_events_different_function_test():
     )
     test_run(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     test_run(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    test_run(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
-def same_leaves_different_time_stamps_leaves_test():
+def same_leaves_different_time_stamps_tests():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"),
                     PrimitiveEventStructure("AMZN", "b"),
@@ -250,9 +255,10 @@ def same_leaves_different_time_stamps_leaves_test():
 
     test_run(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     test_run(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    test_run(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
-def distinct_leaves_test():
+def distinct_tests():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("GOOG", "a"),
                     PrimitiveEventStructure("GOOG", "b"),
@@ -279,9 +285,10 @@ def distinct_leaves_test():
     )
     test_run(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     test_run(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    test_run(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
-def partially_shared_leaves_test():
+def partially_shared_tests():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"),
                     PrimitiveEventStructure("AMZN", "b"),
@@ -310,9 +317,10 @@ def partially_shared_leaves_test():
     )
     test_run(patterns=[pattern1, pattern2], expected=2, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     test_run(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    test_run(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
-def leaf_is_root_leaves_test():
+def leaf_is_root_tests():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
         GreaterThanCondition(Variable("a", get_peak_price), 135),
@@ -331,9 +339,10 @@ def leaf_is_root_leaves_test():
 
     test_run(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     test_run(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    test_run(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
-def leaf_is_root_leaves_test2():
+def leaf_is_root_tests2():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
         GreaterThanCondition(Variable("a", get_peak_price), 135),
@@ -354,11 +363,12 @@ def leaf_is_root_leaves_test2():
 
     test_run(patterns=[pattern1, pattern2], expected=1, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     test_run(patterns=[pattern1, pattern2], expected=1, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    test_run(patterns=[pattern1, pattern2], expected=1, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 
 
-def three_patterns_no_sharing_leaves_test():
+def three_patterns_no_sharing_tests():
     pattern1 = Pattern(
         AndOperator(PrimitiveEventStructure("AAPL", "a"),
                     PrimitiveEventStructure("AMZN", "b"),
@@ -396,11 +406,12 @@ def three_patterns_no_sharing_leaves_test():
 
     test_run(patterns=[pattern1, pattern2, pattern3], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     test_run(patterns=[pattern1, pattern2, pattern3], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
+    test_run(patterns=[pattern1, pattern2, pattern3], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 
 
-def three_patterns_partial_sharing_leaves_test():
+def three_patterns_partial_sharing_tests():
     pattern1 = Pattern(
         AndOperator(PrimitiveEventStructure("AAPL", "a"),
                     PrimitiveEventStructure("AMZN", "b"),
@@ -440,15 +451,15 @@ def three_patterns_partial_sharing_leaves_test():
 if __name__ == '__main__':
     print_result("TEST", "UNION APPROACH", "RESULT")
     print("==============================================================================================")
-    same_leaves_test()
-    same_eventsType_different_names_leaves_test()
-    same_events_different_condition_leaves_test()
-    sameNames_different_eventTypes_leaves_test()
+    same_tests()
+    same_eventsType_different_names_tests()
+    same_events_different_condition_tests()
+    sameNames_different_eventTypes_tests()
     same_events_different_function_test()
-    same_leaves_different_time_stamps_leaves_test()
-    distinct_leaves_test()
-    partially_shared_leaves_test()
-    leaf_is_root_leaves_test()
-    leaf_is_root_leaves_test2()
-    three_patterns_no_sharing_leaves_test()
-    three_patterns_partial_sharing_leaves_test()
+    same_leaves_different_time_stamps_tests()
+    distinct_tests()
+    partially_shared_tests()
+    leaf_is_root_tests()
+    leaf_is_root_tests2()
+    three_patterns_no_sharing_tests()
+    three_patterns_partial_sharing_tests()
