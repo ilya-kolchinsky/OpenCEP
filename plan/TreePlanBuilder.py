@@ -52,7 +52,7 @@ class TreePlanBuilder(ABC):
 
     def _union_tree_plans(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
                           tree_plan_union_approach: MultiPatternTreePlanUnionApproaches):
-        if isinstance(pattern_to_tree_plan_map, TreePlan) or len(pattern_to_tree_plan_map) == 1:
+        if isinstance(pattern_to_tree_plan_map, TreePlan) or len(pattern_to_tree_plan_map) <= 1:
             return pattern_to_tree_plan_map
         if tree_plan_union_approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES:
             return self.__share_leaves(pattern_to_tree_plan_map)
@@ -95,7 +95,6 @@ class TreePlanBuilder(ABC):
             return merged_node, number_merged
 
         if isinstance(node, TreePlanBinaryNode):
-            # try left merge
             return self.__try_to_share_and_merge_nodes_binary(root, root_pattern, node, node_pattern)
 
         if isinstance(node, TreePlanUnaryNode):
@@ -108,24 +107,19 @@ class TreePlanBuilder(ABC):
     def __try_to_share_and_merge_nodes_binary(self, root, root_pattern: Pattern, node, node_pattern: Pattern):
         # try left merge
         left_side_new_root, number_merged_left = self.__try_to_share_and_merge_nodes(root, root_pattern, node.left_child, node_pattern)
-        if number_merged_left:
-            # right_side_new_root, number_merged_right = self.__try_to_share_and_merge_nodes(root, root_pattern, node.right_child, node_pattern)
-            # if number_merged_right:
-            #     return right_side_new_root, number_merged_left + number_merged_right
-            return left_side_new_root, number_merged_left
+        if number_merged_left > 0:
+            right_side_new_root, number_merged_right = self.__try_to_share_and_merge_nodes(root, root_pattern, node.right_child, node_pattern)
+            if number_merged_right > 0:
+                return right_side_new_root, number_merged_left + number_merged_right
+            return left_side_new_root, number_merged_left + number_merged_right
 
-        # try right merge
         right_side_new_root, number_merged_right = self.__try_to_share_and_merge_nodes(root, root_pattern, node.right_child, node_pattern)
-        if number_merged_right:
-            # left_side_new_root, number_merged_left = self.__try_to_share_and_merge_nodes(root, root_pattern, node.left_child, node_pattern)
-            # if number_merged_left:
-            #     return left_side_new_root, number_merged_left + number_merged_right
+        if number_merged_right > 0:
             return right_side_new_root, number_merged_right
-
         return root, 0
 
     @staticmethod
-    def __sub_tree_size(root):
+    def _sub_tree_size(root):
 
         if root is None:
             return 0
@@ -134,10 +128,10 @@ class TreePlanBuilder(ABC):
             return 1
 
         if isinstance(root, TreePlanBinaryNode):
-            return 1 + TreePlanBuilder.__sub_tree_size(root.left_child) + TreePlanBuilder.__sub_tree_size(root.right_child)
+            return 1 + TreePlanBuilder._sub_tree_size(root.left_child) + TreePlanBuilder._sub_tree_size(root.right_child)
 
         if isinstance(root, TreePlanUnaryNode):
-            return 1 + TreePlanBuilder.__sub_tree_size(root.child)
+            return 1 + TreePlanBuilder._sub_tree_size(root.child)
 
         raise Exception("Unsupported tree plan node type")
 
@@ -147,7 +141,7 @@ class TreePlanBuilder(ABC):
                If such a node is found, it merges the equivalent nodes.
         """
         if TreePlanBuilder.is_equivalent(root, root_pattern, node, node_pattern, self.leaves_dict):
-            return node, TreePlanBuilder.__sub_tree_size(node)
+            return root, TreePlanBuilder._sub_tree_size(root)
 
         elif isinstance(root, TreePlanBinaryNode):
             left_find_and_merge, number_of_merged_left = self.__find_and_merge_node_into_subtree(root.left_child, root_pattern, node, node_pattern)
@@ -178,6 +172,7 @@ class TreePlanBuilder(ABC):
         We are sharing the maximal subtree that exists in the tree.
         We are assuming that each pattern appears only once in patterns (which is a legitimate assumption).
         """
+        self.trees_number_nodes_shared = 0
         leaves_dict = {}
         for i, pattern in enumerate(pattern_to_tree_plan_map):
             tree_plan = pattern_to_tree_plan_map[pattern]
@@ -205,6 +200,7 @@ class TreePlanBuilder(ABC):
 
     def __share_leaves(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan):
         """ this function is the core implementation for the trivial_sharing_trees algorithm """
+        self.trees_number_nodes_shared = 0
         leaves_dict = {}
         first_pattern = list(pattern_to_tree_plan_map.keys())[0]
         for i, pattern in enumerate(pattern_to_tree_plan_map):

@@ -77,7 +77,7 @@ class GraphVisualization:
         if vertex_value in self.vertexes_positions:
             curr_x, curr_y = self.vertexes_positions[vertex_value]
 
-        x = max(curr_x, number_of_nodes * 12)
+        x = max(curr_x, node_level * 0.5 + number_of_nodes * 5)
         y = max(curr_y, node_level * 8 + 0.5 * number_of_nodes)
         self.vertexes_positions[vertex_value] = (x, y)
 

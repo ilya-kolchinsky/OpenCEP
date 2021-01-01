@@ -17,7 +17,7 @@ class DeepTreeBuilder(TreePlanBuilder):
     An abstract class for left-deep tree builders.
     """
 
-    def __init__(self, cost_model_type: TreeCostModels = DEFAULT_TREE_COST_MODEL, tree_plan_order_approach: TreePlanBuilderOrder = TreePlanBuilderOrder.LEFT_DEEP_TREE):
+    def __init__(self, cost_model_type: TreeCostModels = DEFAULT_TREE_COST_MODEL, tree_plan_order_approach: TreePlanBuilderOrder = TreePlanBuilderOrder.LEFT_TREE):
         super(DeepTreeBuilder, self).__init__(cost_model_type)
         self.tree_plan_build_approach = tree_plan_order_approach
 
@@ -31,14 +31,18 @@ class DeepTreeBuilder(TreePlanBuilder):
 
     def _order_to_tree_topology(self, order: List[int], pattern: Pattern):
 
-        if self.tree_plan_build_approach == TreePlanBuilderOrder.LEFT_DEEP_TREE:
+        if self.tree_plan_build_approach == TreePlanBuilderOrder.LEFT_TREE:
             return DeepTreeBuilder._order_to_tree_topology_left(order, pattern)
 
-        if self.tree_plan_build_approach == TreePlanBuilderOrder.RIGHT_DEEP_TREE:
+        if self.tree_plan_build_approach == TreePlanBuilderOrder.RIGHT_TREE:
             return DeepTreeBuilder._order_to_tree_topology_right(order, pattern)
 
-        if self.tree_plan_build_approach == TreePlanBuilderOrder.BALANCED_DEEP_TREE:
+        if self.tree_plan_build_approach == TreePlanBuilderOrder.BALANCED_TREE:
             return DeepTreeBuilder._order_to_tree_topology_balanced(order, pattern)
+
+        if self.tree_plan_build_approach == TreePlanBuilderOrder.HALF_LEFT_HALF_BALANCED_TREE:
+            return DeepTreeBuilder._order_to_tree_topology_half_left_half_balanced(order, pattern)
+
         else:
             raise Exception("Unsupported tree topology build algorithm, yet")
 
@@ -50,7 +54,7 @@ class DeepTreeBuilder(TreePlanBuilder):
     @staticmethod
     def _order_to_tree_topology_balanced(order: List[int], pattern: Pattern):
         """
-        A helper method for converting a given order to a tree topology.
+        A helper method for converting a given order to a balanced tree topology.
         """
         if len(order) <= 1:
             return TreePlanLeafNode(order[0])
@@ -62,8 +66,10 @@ class DeepTreeBuilder(TreePlanBuilder):
     @staticmethod
     def _order_to_tree_topology_left(order: List[int], pattern: Pattern):
         """
-        A helper method for converting a given order to a tree topology.
+        A helper method for converting a given order to a left-deep tree topology.
         """
+        if len(order) <= 1:
+            return TreePlanLeafNode(order[0])
         tree_topology = TreePlanLeafNode(order[0])
         for i in range(1, len(order)):
             tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(order[i]))
@@ -72,9 +78,24 @@ class DeepTreeBuilder(TreePlanBuilder):
     @staticmethod
     def _order_to_tree_topology_right(order: List[int], pattern: Pattern):
         """
-        A helper method for converting a given order to a tree topology.
+        A helper method for converting a given order to a right-deep tree topology.
         """
+        if len(order) <= 1:
+            return TreePlanLeafNode(order[0])
         tree_topology = TreePlanLeafNode(order[len(order) - 1])
         for i in range(len(order) - 2, -1, -1):
             tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, TreePlanLeafNode(order[i]), tree_topology)
+        return tree_topology
+
+    @staticmethod
+    def _order_to_tree_topology_half_left_half_balanced(order: List[int], pattern: Pattern):
+        """
+        A helper method for converting a given order to a right-deep tree topology.
+        """
+        if len(order) <= 1:
+            return TreePlanLeafNode(order[0])
+
+        tree_topology1 = DeepTreeBuilder._order_to_tree_topology_left(order[0:len(order) // 2], pattern)
+        tree_topology2 = DeepTreeBuilder._order_to_tree_topology_balanced(order[len(order) // 2:], pattern)
+        tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology1, tree_topology2)
         return tree_topology

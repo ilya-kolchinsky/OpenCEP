@@ -103,6 +103,3 @@ class TreePlan:
         self.root = root
         self.height = root.height
 
-
-    def visualize(self, title=None, visualize_flag=DefaultConfig.VISUALIZATION):
-        self.root._visualize(title, visualize_flag)
