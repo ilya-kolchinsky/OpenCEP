@@ -2,6 +2,7 @@
 This file contains the implementations of algorithms constructing a left-deep tree-based evaluation mechanism.
 """
 import itertools
+import math
 from datetime import timedelta
 from typing import List, Dict
 
@@ -74,6 +75,71 @@ class UnifiedTreeBuilder(TreePlanBuilder):
                 G.build_from_root_treePlan(tree_plan.root, node_level=tree_plan.root.height)
             G.visualize()
 
+    def build_ordered_tree_plans(self, patterns: List[Pattern]):
+        """
+        Creates a tree-based evaluation plan for the given pattern.
+        """
+        orders = self.find_matches_orders(patterns)
+        trees = {pattern: TreePlan(self._order_to_tree_topology(orders[i], pattern)) for i, pattern in enumerate(patterns)}
+        return trees
+
+    def find_matches_orders(self, patterns: List[Pattern]):
+        """
+        """
+        if len(patterns) <= 1:
+            return UnifiedTreeBuilder._create_evaluation_order(patterns[0])
+
+        first_two_orders = self.find_orders_for_two_patterns(patterns[0], patterns[1])
+        orders = first_two_orders
+        for i, pattern in list(enumerate(patterns))[2:]:
+            orders += [self.find_order_for_new_pattern(patterns[0:i], pattern)]
+        return orders
+
+    def find_orders_for_two_patterns(self, pattern1: Pattern, pattern2: Pattern):
+        """
+        """
+        is_commutative1, is_commutative2 = pattern1.positive_structure.commutative(), pattern2.positive_structure.commutative()
+        if not (is_commutative1 and is_commutative2):
+            order1 = list(range(len(pattern1.positive_structure.args)))
+            order2 = list(range(len(pattern2.positive_structure.args)))
+            return [order1, order2]
+
+        pattern1_names = list(map(lambda event: event.name, pattern1.positive_structure.args))
+        pattern2_names = list(map(lambda event: event.name, pattern2.positive_structure.args))
+        shared = []
+        intersected_names = set(pattern1_names) & set(pattern2_names)
+
+        for event_name in intersected_names:
+            if self.are_events_equal(pattern1, pattern2, event_name):
+                shared += [(event_name, pattern1_names.index(event_name), pattern2_names.index(event_name))]
+
+        names, order1, order2 = list(zip(*shared))
+        order1 = sorted(order1) + list(filter(lambda x: x not in order1, range(len(pattern1_names))))
+        order2 = sorted(order2) + list(filter(lambda x: x not in order2, range(len(pattern2_names))))
+        return [order1, order2]
+
+    def are_events_equal(self, pattern1, pattern2, event_name):
+        condition1 = pattern1.condition.get_condition_of(event_name, get_kleene_closure_conditions=False, consume_returned_conditions=False)
+        condition2 = pattern2.condition.get_condition_of(event_name, get_kleene_closure_conditions=False, consume_returned_conditions=False)
+        return condition1 == condition2
+
+    def find_order_for_new_pattern(self, patterns: List[Pattern], new_pattern: Pattern):
+        """
+        """
+        is_commutative = new_pattern.positive_structure.commutative()
+        if not (is_commutative):
+            return list(range(len(new_pattern.positive_structure.args)))
+
+        max_order_len = - math.inf
+        best_order = []
+        for i, pattern in enumerate(patterns):
+            _, order2 = self.find_orders_for_two_patterns(pattern, new_pattern)
+            if len(order2) >= max_order_len:
+                max_order_len = len(order2)
+                best_order = order2
+
+        return best_order
+
     def _create_tree_topology(self, pattern: Pattern):
         """
         Invokes an algorithm (to be implemented by subclasses) that builds an evaluation order of the operands, and
@@ -102,6 +168,10 @@ class UnifiedTreeBuilder(TreePlanBuilder):
     @staticmethod
     def _create_evaluation_order(pattern: Pattern):
         args_num = len(pattern.positive_structure.args)
+        is_commutative = pattern.positive_structure.commutative()
+        if is_commutative:
+            return list(map(lambda t: t[0], sorted(enumerate(pattern.positive_structure.args), key=lambda t: t[1].name)))
+
         return list(range(args_num))
 
     @staticmethod
@@ -213,7 +283,7 @@ class UnifiedTreeBuilder(TreePlanBuilder):
                If such a node is found, it merges the equivalent nodes.
         """
         if UnifiedTreeBuilder.is_equivalent(root, root_pattern, node, node_pattern, self.leaves_dict):
-            return root, UnifiedTreeBuilder._sub_tree_size(root)
+            return root, UnifiedTreeBuilder._sub_tree_size(node)
 
         elif isinstance(root, TreePlanBinaryNode):
             left_find_and_merge, number_of_merged_left = self.__find_and_merge_node_into_subtree(root.left_child, root_pattern, node, node_pattern)
@@ -245,24 +315,24 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         Additional: we change tree plan topology trying to get maximum union
         We are assuming that each pattern appears only once in patterns (which is a legitimate assumption).
         """
-        builders = UnifiedTreeBuilder.create_ordered_tree_builders()
+        if len(pattern_to_tree_plan_map) <= 1:
+            return pattern_to_tree_plan_map
+        patterns = list(pattern_to_tree_plan_map.keys())
+        pattern1, pattern2 = patterns[0], patterns[1]
+        unified_tree_map, max_intersection = self._two_patterns_max_merge(pattern1, pattern2, pattern_to_tree_plan_map)
 
-        tree_plan_build_approaches = builders.keys()
-
-        multi_pattern_eval_approach = MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION
-
-        unified_tree_map, max_intersection = self._first_two_patterns_max_merge(pattern_to_tree_plan_map)
         self.trees_number_nodes_shared = max_intersection
-
+        best_orders = self.find_matches_orders(list(pattern_to_tree_plan_map.keys()))
         if len(pattern_to_tree_plan_map) <= 2:
             return unified_tree_map
 
         for i, pattern in list(enumerate(pattern_to_tree_plan_map))[2:]:
-            unified_tree_map, max_intersection = self._append_pattern_to_multi_tree(i, unified_tree_map, pattern_to_tree_plan_map)
+            current_unified_tree_map, max_intersection = self._append_pattern_to_multi_tree(i, unified_tree_map, best_orders[i], pattern_to_tree_plan_map)
+            unified_tree_map[pattern] = current_unified_tree_map[pattern]
             self.trees_number_nodes_shared += max_intersection
         return unified_tree_map
 
-    def _first_two_patterns_max_merge(self, pattern_to_tree_plan_map:  Dict[Pattern, TreePlan]):
+    def _two_patterns_max_merge(self, pattern1: Pattern, pattern2: Pattern, pattern_to_tree_plan_map: Dict[Pattern, TreePlan]):
         """
                 This method gets two patterns, and tree to each one of them,
                 and merges equivalent subtrees from different trees. then we try changing topology and merge again
@@ -270,11 +340,7 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         """
         builders = UnifiedTreeBuilder.create_ordered_tree_builders()
         tree_plan_build_approaches = builders.keys()
-
-        patterns = list(pattern_to_tree_plan_map.keys())
-        if len(patterns) <= 1:
-            return pattern_to_tree_plan_map
-        pattern1, pattern2 = patterns[0], patterns[1]
+        order1, order2 = self.find_matches_orders([pattern1, pattern2])
 
         union_builder = UnifiedTreeBuilder()
         sub_pattern_to_tree_plan_map = {pattern1: pattern_to_tree_plan_map[pattern1], pattern2: pattern_to_tree_plan_map[pattern2]}
@@ -286,8 +352,8 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         for approach1, approach2 in itertools.product(tree_plan_build_approaches, tree_plan_build_approaches):
             builder1 = builders.get(approach1)
             builder2 = builders.get(approach2)
-            tree1 = builder1.build_tree_plan(pattern1)
-            tree2 = builder2.build_tree_plan(pattern2)
+            tree1 = TreePlan(builder1._order_to_tree_topology(order1, pattern1))
+            tree2 = TreePlan(builder2._order_to_tree_topology(order2, pattern2))
             tree1_size = builder1._sub_tree_size(tree1.root)
             tree2_size = builder2._sub_tree_size(tree2.root)
             pattern_to_tree_plan_map = {pattern1: tree1, pattern2: tree2}
@@ -301,7 +367,7 @@ class UnifiedTreeBuilder(TreePlanBuilder):
 
         return unified, max_intersection
 
-    def _append_pattern_to_multi_tree(self, pattern_idx, unified_pattern_to_tree_plan_map, pattern_to_tree_plan_map):
+    def _append_pattern_to_multi_tree(self, pattern_idx, unified_pattern_to_tree_plan_map, best_order: List[int], pattern_to_tree_plan_map):
         """
                 This method gets two pattern_to_tree_plan_map, and pattern,
                 and merges equivalent subtrees from different pattern tree plan to the const unified multi tree of the other patterns.
@@ -313,28 +379,32 @@ class UnifiedTreeBuilder(TreePlanBuilder):
 
         patterns = list(pattern_to_tree_plan_map.keys())
         current_pattern = patterns[pattern_idx]
-        current_tree = pattern_to_tree_plan_map[current_pattern]
 
-        unified_pattern_to_tree_plan_map[current_pattern] = current_tree
+        best_unified_tree_map, max_intersection = None, 0
+        for pattern in unified_pattern_to_tree_plan_map:
+            unified_tree_map, cur_intersection = self._two_patterns_max_merge(pattern, current_pattern, pattern_to_tree_plan_map)
+            if cur_intersection >= max_intersection:
+                max_intersection = cur_intersection
+                best_unified_tree_map = unified_tree_map.copy()
 
-        union_builder = UnifiedTreeBuilder()
-        unified_tree_map = union_builder._union_tree_plans(unified_pattern_to_tree_plan_map,
-                                                           MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-        max_intersection = union_builder.trees_number_nodes_shared
+        for pattern in unified_pattern_to_tree_plan_map:
+            for approach in tree_plan_build_approaches:
+                builder = builders.get(approach)
+                tree = TreePlan(builder._order_to_tree_topology(best_order, current_pattern))
+                tree_size = builder._sub_tree_size(tree.root)
 
-        for approach in tree_plan_build_approaches:
-            builder = builders.get(approach)
-            tree = builder.build_tree_plan(current_pattern)
-            tree_size = builder._sub_tree_size(tree.root)
-            _ = union_builder._union_tree_plans(unified_tree_map, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-            trees_number_nodes_shared = union_builder.trees_number_nodes_shared
-            if trees_number_nodes_shared > max_intersection:
-                max_intersection = trees_number_nodes_shared
-            if max_intersection >= tree_size:
-                # we got the max intersection that could be
-                break
+                pattern_to_tree_plan_map[current_pattern] = tree
+                unified_tree_map, cur_intersection = self._two_patterns_max_merge(pattern, current_pattern, pattern_to_tree_plan_map)
 
-        return unified_tree_map, max_intersection
+                if cur_intersection > max_intersection:
+                    max_intersection = cur_intersection
+                    best_unified_tree_map = unified_pattern_to_tree_plan_map.copy()
+
+                if max_intersection >= tree_size:
+                    # we got the max intersection that could be
+                    break
+
+        return best_unified_tree_map, max_intersection
 
     def __construct_subtrees_union_tree_plan(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan):
         """

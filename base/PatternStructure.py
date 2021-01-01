@@ -76,6 +76,12 @@ class CompositeStructure(PatternStructure, ABC):
     def __init__(self, *args):
         self.args = list(args)
 
+    def commutative(self):
+        """
+        Returns True if this CompositeStructure is commutative operator, s.t Op(a, b) = Op(b, a)
+        """
+        raise NotImplementedError()
+
     def get_args(self):
         return self.args
 
@@ -106,6 +112,9 @@ class AndOperator(CompositeStructure):
     def duplicate_top_operator(self):
         return AndOperator()
 
+    def commutative(self):
+        return True
+
     def __repr__(self):
         return "AND(%s)" % (self.args,)
 
@@ -114,6 +123,9 @@ class OrOperator(CompositeStructure):
     def duplicate_top_operator(self):
         return OrOperator()
 
+    def commutative(self):
+        return True
+
     def __repr__(self):
         return "OR(%s)" % (self.args,)
 
@@ -121,6 +133,9 @@ class OrOperator(CompositeStructure):
 class SeqOperator(CompositeStructure):
     def duplicate_top_operator(self):
         return SeqOperator()
+
+    def commutative(self):
+        return True
 
     def __repr__(self):
         return "SEQ(%s)" % (self.args,)
