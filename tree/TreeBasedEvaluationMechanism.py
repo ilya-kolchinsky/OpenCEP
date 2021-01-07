@@ -1,6 +1,7 @@
 from typing import Dict
 from base.DataFormatter import DataFormatter
 from base.Event import Event
+from evaluation.TreeChangers import TreeChanger
 from plan.TreePlan import TreePlan
 from stream.Stream import InputStream, OutputStream
 from misc.Utils import *
@@ -21,8 +22,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                  storage_params: TreeStorageParameters,
                  statistics_collector,
+                 tree_changer: TreeChanger,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
-
 
         is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
         if is_multi_pattern_mode:
@@ -31,6 +32,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             self.__tree = Tree(list(pattern_to_tree_plan_map.values())[0],
                                list(pattern_to_tree_plan_map)[0], storage_params)
             self.__statistics_collector = statistics_collector
+            self.tree_changer = tree_changer
 
         self.__event_types_listeners = {}
 

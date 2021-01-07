@@ -1,13 +1,14 @@
 from typing import List
-
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
+from evaluation.TreeChangersFactory import TreeChangerFactory
 from misc import DefaultConfig
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from statistics_collector.StatisticsCollector import StatisticsCollector
+
 
 class EvaluationMechanismParameters:
     """
@@ -21,10 +22,12 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
     """
     Parameters for the creation of a tree-based evaluation mechanism.
     """
-    def __init__(self, tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
+    def __init__(self, tree_changer_params,
+                 tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
                  storage_params: TreeStorageParameters = TreeStorageParameters(),
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
         super().__init__(EvaluationMechanismTypes.TREE_BASED)
+        self.tree_changer_params = tree_changer_params
         self.tree_plan_params = tree_plan_params
         self.storage_params = storage_params
         self.multi_pattern_eval_params = multi_pattern_eval_params
@@ -63,11 +66,15 @@ class EvaluationMechanismFactory:
         """
         if isinstance(patterns, Pattern):
             patterns = [patterns]
-        # This row is for create the tree
+
+        # This row is for create the tree changer algorithm
+        tree_changer = TreeChangerFactory.create_tree_changer_algorithm(eval_mechanism_params.tree_changer_params)
+        # This row is for create the tree builder
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
         pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
         return TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
                                             statistics_collector,
+                                            tree_changer,
                                             eval_mechanism_params.multi_pattern_eval_params)
 
     @staticmethod
