@@ -91,6 +91,8 @@ def fileCompare(pathA, pathB):
     :param path2: path to second file
     :return: bool, True if the two files are equivalent
     """
+
+
     file1 = open(pathA)
     file2 = open(pathB)
 
@@ -103,6 +105,7 @@ def fileCompare(pathA, pathB):
     # quick check, if both files don't return the same counter, or if both files are empty
     if counter1 != counter2:
         closeFiles(file1, file2)
+        print("size of a match is not equal\n")
         return False
     elif counter1 == counter2 and counter1 == 0:
         closeFiles(file1, file2)
@@ -114,9 +117,24 @@ def fileCompare(pathA, pathB):
     fillSet(file1, set1, counter1)
     fillSet(file2, set2, counter2)
 
-    closeFiles(file1, file2)
+    if set1 != set2:
+        closeFiles(file1, file2)
+        print("matches are not equal\n")
+        return False
 
-    return set1 == set2
+    file1.seek(0)
+    file2.seek(0)
+
+    counterA = len([line.strip("\n") for line in file1 if line != "\n"])
+    counterB = len([line.strip("\n") for line in file2 if line != "\n"])
+
+    if counterA != counterB:
+        closeFiles(file1, file2)
+        print("number of lines is not equal\n")
+        return False
+
+    closeFiles(file1, file2)
+    return True
 
 
 def fillSet(file, set: set, counter: int):

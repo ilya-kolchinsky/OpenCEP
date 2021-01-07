@@ -133,7 +133,7 @@ def multipleNotBeginAndEndTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    # runAllTrees(pattern, "MultipleNotBeginAndEnd", createTestFile)
+    runAllTrees(pattern, "MultipleNotBeginAndEnd", createTestFile)
     runAllTrees(pattern, "MultipleNotBeginAndEnd", createTestFile, NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)
     # runTest("MultipleNotBeginAndEnd", [pattern], createTestFile)
 

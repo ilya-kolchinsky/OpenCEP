@@ -11,8 +11,8 @@ from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from tree.MultiPatternTree import MultiPatternTree
-
 from tree.Tree import Tree
+from datetime import timedelta
 
 
 class TreeBasedEvaluationMechanism(EvaluationMechanism):
@@ -41,15 +41,58 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
 
+    def __handle_timeout_pending_matches(self, timestamp, first_unbounded=None):
+        """
+        When new event (and therefore new timestamp) entering the system, the function checks if some pending
+        matches (in the first unbounded neg node) are time outed. If so, it evaluates if these matches are
+        valid and handles them accordingly.
+        """
+        new_matches = []
+        if first_unbounded is None:
+            return new_matches
+        pending_matches = first_unbounded.get_pending_partial_matches()
+        pending_matches_to_remove = []
+        for i, match in enumerate(pending_matches):
+            # since the window passed, the unbounded node holding the pending match won't reject it
+            if timestamp - match.first_timestamp > self.__pattern.window:
+                current_node = first_unbounded
+                while current_node is not None:
+                    # if the partial match matches negative event it is invalid and there's no need to keep propagate it
+                    if current_node.partial_match_is_valid(match) is False:
+                        break
+                    # the partial match was validated by all neg nodes till the root
+                    if current_node == self.__tree.get_root():
+                        new_matches.append(match)
+                        current_node = None
+                    else:
+                        current_node = current_node.get_parents()[0]
+                pending_matches_to_remove.append(i)
+
+        for i in reversed(pending_matches_to_remove):
+            del pending_matches[i]
+
+        return new_matches
+
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
         Activates the tree evaluation mechanism on the input event stream and reports all found pattern matches to the
         given output stream.
         """
         self.__register_event_listeners()
-
+        first_unbounded = None
+        if self.__pattern is not None:
+            if self.__pattern.negative_structure is not None:
+                first_unbounded = self.__tree.get_root().get_first_unbounded_negative_node()
+        if self.__pattern is None:
+            pass
+        max_time_stamp = 0  # seen so far
         for raw_event in events:
             event = Event(raw_event, data_formatter)
+            max_time_stamp = event.timestamp
+            # return valid pending matches (possible to check this thanks to the new timestamp)
+            new_matches = self.__handle_timeout_pending_matches(event.timestamp, first_unbounded)
+            for new_match in new_matches:
+                matches.add_item(new_match)
             if event.type not in self.__event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
@@ -64,6 +107,12 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
+        if self.__pattern is not None:
+            future_timestamp = max_time_stamp+self.__pattern.window
+            future_timestamp += timedelta(minutes=1)
+            new_matches = self.__handle_timeout_pending_matches(future_timestamp, first_unbounded)
+            for new_match in new_matches:
+                matches.add_item(new_match)
         for match in self.__tree.get_last_matches():
             matches.add_item(match)
         matches.close()
