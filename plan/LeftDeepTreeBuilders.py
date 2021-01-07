@@ -110,7 +110,7 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
         while len(left_to_add) > 0:
             # create first nominee to add.
             to_add = to_add_start = left_to_add.pop()
-            min_change_factor = selectivity_matrix[to_add][to_add]
+            min_change_factor = selectivity_matrix[to_add][to_add] * arrival_rates[to_add]
             for j in new_order:
                 min_change_factor *= selectivity_matrix[to_add][j]
 
