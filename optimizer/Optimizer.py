@@ -18,7 +18,11 @@ class Optimizer(ABC):
         pass
 
     @abstractmethod
-    def run(self, pattern):
+    def is_need_reoptimize(self, pattern):
+        pass
+
+    @abstractmethod
+    def build_new_tree_plan(self, pattern: Pattern):
         pass
 
 
@@ -27,10 +31,12 @@ class NaiveOptimizer(Optimizer):
     optimizer with the first algorithm.
     """
 
-    def run(self, pattern: Pattern):
-        # Handles even if it is the first time because in any case the build tree is invoke
+    def is_need_reoptimize(self, pattern: Pattern):
+        return True
+
+    def build_new_tree_plan(self, pattern: Pattern):
         tree_plan = self.__tree_plan_builder.build_tree_plan(pattern)
-        self.send_to_evaluation_mechanism(tree_plan)
+        return tree_plan
 
 
 class StatisticChangesAwareOptimizer(Optimizer):
@@ -43,16 +49,16 @@ class StatisticChangesAwareOptimizer(Optimizer):
         self.t = t
         self.prev_statistics = None
 
-    def run(self, pattern: Pattern):
-        if self.is_greater_then_t(pattern.statistics):
-            tree_plan = self.__tree_plan_builder.build_tree_plan(pattern)
-            self.send_to_evaluation_mechanism(tree_plan)
+    def is_need_reoptimize(self, pattern: Pattern):
+        # Handle the case its the first time
+        return self.prev_statistics is None or self.is_greater_then_t(pattern.statistics)
 
-    def is_greater_then_t(self, statistics):
-        # if its the first time
-        if self.prev_statistics is None:
-            return True
+    def build_new_tree_plan(self, pattern: Pattern):
+        tree_plan = self.__tree_plan_builder.build_tree_plan(pattern)
+        return tree_plan
 
+    @staticmethod
+    def is_greater_then_t(statistics):
         if statistics.statistics_type == StatisticsTypes.ARRIVAL_RATES:
             pass
         if statistics.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX:
@@ -70,8 +76,10 @@ class InvariantAwareOptimizer(Optimizer):
         super().__init__(tree_plan_builder)
         self.invariants = None
 
-    def run(self, pattern):
-        if self.invariants is None or self.invariants.is_invariants_violated(pattern):
-            tree_plan, self.invariants = self.__tree_plan_builder.build_tree_plan(pattern)
-            self.send_to_evaluation_mechanism(tree_plan)
+    def is_need_reoptimize(self, pattern):
+        # Handle the case its the first time
+        return self.invariants is None or self.invariants.is_invariants_violated(pattern)
 
+    def build_new_tree_plan(self, pattern: Pattern):
+        tree_plan, self.invariants = self.__tree_plan_builder.build_tree_plan(pattern)
+        return tree_plan
