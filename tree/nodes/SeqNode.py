@@ -42,7 +42,7 @@ class SeqNode(BinaryNode):
         “informal” or nicely printable string representation of an object
         """
         _prefix = 'Seq'
-        return f'{_prefix} {str(self._left_subtree).replace(_prefix, "")} ->  {str(self._right_subtree).replace(_prefix, "")}'
+        return f'{_prefix} {str(self._left_subtree).replace(_prefix, "")} -> {str(self._right_subtree).replace(_prefix, "")}'
 
     def is_equivalent(self, other):
         """

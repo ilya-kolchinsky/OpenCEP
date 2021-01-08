@@ -79,23 +79,25 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
-        orders = self.find_matches_orders(patterns)
+        orders = UnifiedTreeBuilder.find_matches_orders(patterns)
         trees = {pattern: TreePlan(self._order_to_tree_topology(orders[i], pattern)) for i, pattern in enumerate(patterns)}
         return trees
 
-    def find_matches_orders(self, patterns: List[Pattern]):
+    @staticmethod
+    def find_matches_orders(patterns: List[Pattern]):
         """
         """
         if len(patterns) <= 1:
             return UnifiedTreeBuilder._create_evaluation_order(patterns[0])
 
-        first_two_orders = self.find_orders_for_two_patterns(patterns[0], patterns[1])
+        first_two_orders = UnifiedTreeBuilder.find_orders_for_two_patterns(patterns[0], patterns[1])
         orders = first_two_orders
         for i, pattern in list(enumerate(patterns))[2:]:
-            orders += [self.find_order_for_new_pattern(patterns[0:i], pattern)]
+            orders += [UnifiedTreeBuilder.find_order_for_new_pattern(patterns[0:i], pattern)]
         return orders
 
-    def find_orders_for_two_patterns(self, pattern1: Pattern, pattern2: Pattern):
+    @staticmethod
+    def find_orders_for_two_patterns(pattern1: Pattern, pattern2: Pattern):
         """
         """
         is_commutative1, is_commutative2 = pattern1.positive_structure.commutative(), pattern2.positive_structure.commutative()
@@ -107,10 +109,10 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         pattern1_names = list(map(lambda event: event.name, pattern1.positive_structure.args))
         pattern2_names = list(map(lambda event: event.name, pattern2.positive_structure.args))
         shared = []
-        intersected_names = set(pattern1_names) & set(pattern2_names)
+        intersected_names = sorted(set(pattern1_names) & set(pattern2_names))
 
         for event_name in intersected_names:
-            if self.are_events_equal(pattern1, pattern2, event_name):
+            if UnifiedTreeBuilder.are_events_equal(pattern1, pattern2, event_name):
                 shared += [(event_name, pattern1_names.index(event_name), pattern2_names.index(event_name))]
 
         if len(shared) == 0:
@@ -118,28 +120,29 @@ class UnifiedTreeBuilder(TreePlanBuilder):
             order2 = list(range(len(pattern2.positive_structure.args)))
             return [order1, order2]
 
-
         names, order1, order2 = list(zip(*shared))
-        order1 = sorted(order1) + list(filter(lambda x: x not in order1, range(len(pattern1_names))))
-        order2 = sorted(order2) + list(filter(lambda x: x not in order2, range(len(pattern2_names))))
+        order1 = list(order1) + list(filter(lambda x: x not in order1, range(len(pattern1_names))))
+        order2 = list(order2) + list(filter(lambda x: x not in order2, range(len(pattern2_names))))
         return [order1, order2]
 
-    def are_events_equal(self, pattern1, pattern2, event_name):
+    @staticmethod
+    def are_events_equal(pattern1, pattern2, event_name):
         condition1 = pattern1.condition.get_condition_of(event_name, get_kleene_closure_conditions=False, consume_returned_conditions=False)
         condition2 = pattern2.condition.get_condition_of(event_name, get_kleene_closure_conditions=False, consume_returned_conditions=False)
         return condition1 == condition2
 
-    def find_order_for_new_pattern(self, patterns: List[Pattern], new_pattern: Pattern):
+    @staticmethod
+    def find_order_for_new_pattern(patterns: List[Pattern], new_pattern: Pattern):
         """
         """
         is_commutative = new_pattern.positive_structure.commutative()
-        if not (is_commutative):
+        if not is_commutative:
             return list(range(len(new_pattern.positive_structure.args)))
 
         max_order_len = - math.inf
         best_order = []
         for i, pattern in enumerate(patterns):
-            _, order2 = self.find_orders_for_two_patterns(pattern, new_pattern)
+            _, order2 = UnifiedTreeBuilder.find_orders_for_two_patterns(pattern, new_pattern)
             if len(order2) >= max_order_len:
                 max_order_len = len(order2)
                 best_order = order2
@@ -164,9 +167,6 @@ class UnifiedTreeBuilder(TreePlanBuilder):
 
         if self.tree_plan_build_approach == TreePlanBuilderOrder.BALANCED_TREE:
             return UnifiedTreeBuilder._order_to_tree_topology_balanced(order, pattern)
-
-        if self.tree_plan_build_approach == TreePlanBuilderOrder.HALF_LEFT_HALF_BALANCED_TREE:
-            return UnifiedTreeBuilder._order_to_tree_topology_half_left_half_balanced(order, pattern)
 
         else:
             raise Exception("Unsupported tree topology build algorithm, yet")
@@ -332,8 +332,9 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         if len(pattern_to_tree_plan_map) <= 2:
             return unified_tree_map
 
-        for i, pattern in list(enumerate(pattern_to_tree_plan_map))[2:]:
-            current_unified_tree_map, max_intersection = self._append_pattern_to_multi_tree(i, unified_tree_map, best_orders[i], pattern_to_tree_plan_map)
+        for i, pattern in list(enumerate(patterns))[2:]:
+            current_unified_tree_map, max_intersection = self._append_pattern_to_multi_tree(i, unified_tree_map, best_orders[i],
+                                                                                            pattern_to_tree_plan_map)
             unified_tree_map[pattern] = current_unified_tree_map[pattern]
             self.trees_number_nodes_shared += max_intersection
         return unified_tree_map
@@ -349,12 +350,9 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         order1, order2 = self.find_matches_orders([pattern1, pattern2])
 
         union_builder = UnifiedTreeBuilder()
-        sub_pattern_to_tree_plan_map = {pattern1: pattern_to_tree_plan_map[pattern1], pattern2: pattern_to_tree_plan_map[pattern2]}
-        _ = union_builder._union_tree_plans(sub_pattern_to_tree_plan_map, MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-        max_intersection = union_builder.trees_number_nodes_shared
+        max_intersection = - math.inf
 
-        unified = None
-        best_approach1, best_approach2 = None, None
+        best_unified = None
         for approach1, approach2 in itertools.product(tree_plan_build_approaches, tree_plan_build_approaches):
             builder1 = builders.get(approach1)
             builder2 = builders.get(approach2)
@@ -367,11 +365,12 @@ class UnifiedTreeBuilder(TreePlanBuilder):
             trees_number_nodes_shared = union_builder.trees_number_nodes_shared
             if trees_number_nodes_shared > max_intersection:
                 max_intersection, best_approach1, best_approach2 = trees_number_nodes_shared, approach1, approach2
+                best_unified = unified
             if max_intersection >= min(tree1_size, tree2_size):
                 # we got the max intersection that could be
                 break
 
-        return unified, max_intersection
+        return best_unified, max_intersection
 
     def _append_pattern_to_multi_tree(self, pattern_idx, unified_pattern_to_tree_plan_map, best_order: List[int], pattern_to_tree_plan_map):
         """
@@ -386,7 +385,7 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         patterns = list(pattern_to_tree_plan_map.keys())
         current_pattern = patterns[pattern_idx]
 
-        best_unified_tree_map, max_intersection = None, 0
+        best_unified_tree_map, max_intersection = None, -math.inf
         for pattern in unified_pattern_to_tree_plan_map:
             unified_tree_map, cur_intersection = self._two_patterns_max_merge(pattern, current_pattern, pattern_to_tree_plan_map)
             if cur_intersection >= max_intersection:
@@ -404,7 +403,7 @@ class UnifiedTreeBuilder(TreePlanBuilder):
 
                 if cur_intersection > max_intersection:
                     max_intersection = cur_intersection
-                    best_unified_tree_map = unified_pattern_to_tree_plan_map.copy()
+                    best_unified_tree_map = unified_tree_map.copy()
 
                 if max_intersection >= tree_size:
                     # we got the max intersection that could be

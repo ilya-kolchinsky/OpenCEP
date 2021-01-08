@@ -12,6 +12,4 @@ class TreePlanBuilderOrder(Enum):
 
     LEFT_TREE = 0,
     RIGHT_TREE = 1,
-    BALANCED_TREE = 2,
-    HALF_LEFT_HALF_BALANCED_TREE = 3
-
+    BALANCED_TREE = 2

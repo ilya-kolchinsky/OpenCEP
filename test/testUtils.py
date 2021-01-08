@@ -1,17 +1,24 @@
+import inspect
 import os
 import pathlib
 import sys
+from datetime import time
+from typing import List
 
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
+from plan.TreePlanBuilderOrders import TreePlanBuilderOrder
+from plan.UnifiedTreeBuilder import UnifiedTreeBuilder
+from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 from stream.Stream import OutputStream
 from stream.FileStream import FileInputStream, FileOutputStream
 from misc.Utils import generate_matches
-from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
+from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, Pattern, TreePlanBuilderFactory
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 from plugin.stocks.Stocks import MetastockDataFormatter
 from tree.PatternMatchStorage import TreeStorageParameters
+from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 
 currentPath = pathlib.Path(os.path.dirname(__file__))
 absolutePath = str(currentPath.parent)
@@ -41,6 +48,7 @@ DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True))
 DEFAULT_TESTING_DATA_FORMATTER = MetastockDataFormatter()
+
 
 def numOfLinesInPattern(file):
     """
@@ -130,7 +138,7 @@ def outputTestFile(base_path: str, matches: list, output_file_name: str = 'match
             f.write("\n")
 
 
-def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream):
+def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -141,11 +149,11 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
     print("Finished creating test %s" % testName)
 
 
-def runTest(testName, patterns, createTestFile = False,
-            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events = None, eventStream = nasdaqEventStream):
+def runTest(testName, patterns, createTestFile=False,
+            eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+            events=None, eventStream=nasdaqEventStream):
     if createTestFile:
-        createTest(testName, patterns, events, eventStream = eventStream)
+        createTest(testName, patterns, events, eventStream=eventStream)
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -182,6 +190,7 @@ def runTest(testName, patterns, createTestFile = False,
     if is_test_successful:
         os.remove(actual_matches_path)
 
+
 """
 Input:
 testName- name of the test
@@ -189,6 +198,8 @@ patterns- list of patterns
 Output:
 expected output file for the test.
 """
+
+
 def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                          events=None, eventStream=nasdaqEventStream):
     curr_events = events
@@ -208,6 +219,7 @@ def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTI
         single_pattern_path = os.path.join(expected_directory, filename)
         os.remove(single_pattern_path)
 
+
 def uniteFiles(testName, numOfPatterns):
     base_matches_directory = os.path.join(absolutePath, 'test', 'TestsExpected')
     output_file_name = "%sMatches.txt" % testName
@@ -226,14 +238,17 @@ def uniteFiles(testName, numOfPatterns):
             for line in setexp:
                 f.write(line)
                 f.write('\n\n')
+
+
 """
 This function runs multi-pattern CEP on the given list of patterns and prints
 success or fail output.
 """
-def runMultiTest(testName, patterns, createTestFile = False,
-            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events = None, eventStream = nasdaqEventStream):
 
+
+def runMultiTest(testName, patterns, createTestFile=False,
+                 eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                 events=None, eventStream=nasdaqEventStream):
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -284,7 +299,7 @@ def runMultiTest(testName, patterns, createTestFile = False,
 
     res = (exp_set == match_set)
     print("Test %s result: %s, Time Passed: %s" % (testName,
-          "Succeeded" if res else "Failed", running_time))
+                                                   "Succeeded" if res else "Failed", running_time))
     runTest.over_all_time += running_time
     if res:
         os.remove(actual_matches_path)
@@ -316,4 +331,55 @@ def runStructuralTest(testName, patterns, expected_result,
     # print('place a breakpoint after creating the CEP object to debug it.\n')
     cep = CEP(patterns, eval_mechanism_params)
     structure_summary = cep.get_evaluation_mechanism_structure_summary()
-    print("Test %s result: %s" % (testName,"Succeeded" if structure_summary == expected_result else "Failed"))
+    print("Test %s result: %s" % (testName, "Succeeded" if structure_summary == expected_result else "Failed"))
+
+
+def get_opening_price(x):
+    return x["Opening Price"]
+
+
+def get_peak_price(x):
+    return x["Peak Price"]
+
+
+def get_lowest_price(x):
+    return x["Lowest Price"]
+
+
+def split_union_approaches(string):
+    return '{:10s}'.format(str(string).split("TREE_PLAN_")[1].replace("_", " "))
+
+
+def union_intersection_size(patterns: List[Pattern], approach: MultiPatternTreePlanUnionApproaches):
+    eval_mechanism_params = TreeBasedEvaluationMechanismParameters()
+    tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
+    pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
+
+    unified_builder = UnifiedTreeBuilder(tree_plan_order_approach=TreePlanBuilderOrder.LEFT_TREE)
+
+    if approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION:
+        pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans(patterns)
+        unified = unified_builder._union_tree_plans(pattern_to_tree_plan_map_ordered, approach)
+        size_of_intersection = unified_builder.trees_number_nodes_shared
+        unified_tree = TreeBasedEvaluationMechanism(unified, eval_mechanism_params.storage_params,
+                                                    eval_mechanism_params.multi_pattern_eval_params)
+        # unified_builder.visualize(visualize_data=pattern_to_tree_plan_map)
+        unified_tree.visualize(title=r'$Unified \ Tree$')
+
+        return size_of_intersection
+
+    _ = unified_builder._union_tree_plans(pattern_to_tree_plan_map, approach)
+
+    size_of_intersection = unified_builder.trees_number_nodes_shared
+    return size_of_intersection
+
+
+def print_result(string1, string2, string3):
+    print("{:^50s} | {:^25s} | {:^15s}".format(string1, string2, string3))
+
+
+def run_tree_plan_union_test(patterns: List[Pattern], expected: int,
+                             approach: MultiPatternTreePlanUnionApproaches = MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES):
+    actual = union_intersection_size(patterns, approach=approach)
+    result = "SUCCESS" if actual == expected else f'\tFAILED \t expected: {expected}, actual: {actual}'
+    print_result(inspect.stack()[1][3], split_union_approaches(approach), result)
