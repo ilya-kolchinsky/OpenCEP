@@ -1,13 +1,21 @@
-from abc import ABC
+from abc import ABC, abstractmethod
+from tree.Tree import Tree
 
 
 class TreeChanger(ABC):
-    pass
+
+    @abstractmethod
+    def run(self, tree: Tree):
+        pass
 
 
 class TrivialTreeChanger(TreeChanger):
-    pass
+
+    def run(self, tree: Tree):
+        pass
 
 
 class ParallelTreeChanger(TreeChanger):
-    pass
+
+    def run(self, tree: Tree):
+        pass

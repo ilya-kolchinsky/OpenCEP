@@ -19,9 +19,10 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
+
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                  storage_params: TreeStorageParameters,
-                 statistics_collector,
+                 statistics_collector: StatisticsCollector,
                  tree_changer: TreeChanger,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
 
@@ -61,7 +62,13 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             self.__remove_expired_freezers(event)
 
             self.__statistics_collector.event_handler(event)
-            # self.__optimizer.optimize()
+
+            # Append time condition
+            # if self.optimizer.is_need_reoptimize(self.__statistics_collector.pattern):
+            #   new_tree_plan = self.optimizer.build_new_tree_plan()
+            #   todo need to understand what is the second parameter in Tree constructor
+            #   new_tree = Tree(new_tree_plan, self.__pattern)
+            #   self.tree_changer.run(new_tree)
 
             for leaf in self.__event_types_listeners[event.type]:
                 if self.__should_ignore_events_on_leaf(leaf):

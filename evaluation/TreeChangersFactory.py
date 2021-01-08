@@ -22,4 +22,4 @@ class TreeChangerFactory:
         if tree_changer_params.tree_changer_type == TreeChangerTypes.PARALLEL_TREE_CHANGER:
             return ParallelTreeChanger()
 
-        raise Exception("Unknown tree plan builder type: %s" % (tree_changer_params.tree_changer_type,))
+        raise Exception("Unknown tree changer type: %s" % (tree_changer_params.tree_changer_type,))
