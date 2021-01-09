@@ -8,4 +8,3 @@ class OptimizerTypes(Enum):
     TRIVIAL = 0,
     GREATER_THEN_T = 1,
     USING_INVARIANT = 2
-

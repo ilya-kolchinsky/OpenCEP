@@ -1,7 +1,8 @@
 from abc import ABC
 
-from plan.InvariantBushyTreeBuilder import InvariantAwareZStreamTreeBuilder
 from base.Pattern import Pattern
+from plan.TreeCostModel import TreeCostModelFactory, TreeCostModel
+from plan.TreeCostModels import TreeCostModels
 
 
 class Invariant:
@@ -39,8 +40,8 @@ class GreedyTreeInvariants(Invariants):
 
     def is_invariants_violated(self, pattern: Pattern):
 
-        arrival_rates = pattern.statistics.arrival_rates
-        selectivity_matrix = pattern.statistics.selectivity_matrix
+        selectivity_matrix = pattern.statistics[0]
+        arrival_rates = pattern.statistics[1]
 
         first_index, second_index = self.invariants[0].left, self.invariants[0].right
 
@@ -73,12 +74,15 @@ class ZStreamTreeInvariants(Invariants):
     Check every invariant in invariants with next condition:
     cost(invariant.left) < cost(invariant.right).
     """
+    def __init__(self, cost_model: TreeCostModel):
+        super().__init__()
+        self.__cost_model = cost_model
 
     def is_invariants_violated(self, pattern: Pattern):
 
         for (left, right) in self.invariants:
-            left_cost = InvariantAwareZStreamTreeBuilder._get_plan_cost(pattern, left)
-            right_cost = InvariantAwareZStreamTreeBuilder._get_plan_cost(pattern, right)
+            left_cost = self.__cost_model.get_plan_cost(pattern, left)
+            right_cost = self.__cost_model.get_plan_cost(pattern, right)
             if left_cost >= right_cost:
                 return True
 

@@ -1,4 +1,5 @@
 from test.BasicTests import *
+from test.OptimizerTests import create_optimizer
 from test.TreeConstructionTests import *
 from test.KC_tests import *
 from test.NegationTests import *
@@ -9,7 +10,7 @@ from test.UnitTests.test_storage import run_storage_tests
 
 
 runTest.over_all_time = 0
-
+"""
 # basic functionality tests
 oneArgumentsearchTest()
 simplePatternSearchTest()
@@ -111,6 +112,11 @@ samePatternSharingRoot()
 severalPatternShareSubtree()
 notInTheBeginningShare()
 multipleParentsForInternalNode()
+"""
+
+# Optimizer tests
+create_optimizer()
+
 
 # benchmarks
 if INCLUDE_BENCHMARKS:

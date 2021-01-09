@@ -5,6 +5,7 @@ by invoking the rest of the system components.
 from base.DataFormatter import DataFormatter
 from parallel.EvaluationManagerFactory import EvaluationManagerFactory
 from parallel.ParallelExecutionParameters import ParallelExecutionParameters
+from statistics_collector.StatisticsCollectorParameters import StatisticsCollectorParameters
 from stream.Stream import InputStream, OutputStream
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters

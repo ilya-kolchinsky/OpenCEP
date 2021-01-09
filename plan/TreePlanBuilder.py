@@ -26,7 +26,6 @@ class TreePlanBuilder(ABC):
         """
         raise NotImplementedError()
 
-    @staticmethod
     def _get_plan_cost(self, pattern: Pattern, plan: TreePlanNode):
         """
         Returns the cost of a given plan for the given plan according to a predefined cost model.

@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from base import Pattern
 from plan import TreePlanBuilder, TreePlan
-from plan.IterativeImprovement import IterativeImprovementInitType
-from statistics_collector.StatisticsCollector import StatisticsCollector
 from misc.StatisticsTypes import StatisticsTypes
 
 
@@ -12,7 +10,7 @@ class Optimizer(ABC):
     """
 
     def __init__(self, tree_plan_builder: TreePlanBuilder):
-        self.__tree_plan_builder = tree_plan_builder
+        self.tree_plan_builder = tree_plan_builder
 
     def send_to_evaluation_mechanism(self, tree_plan: TreePlan):
         pass
@@ -35,7 +33,7 @@ class NaiveOptimizer(Optimizer):
         return True
 
     def build_new_tree_plan(self, pattern: Pattern):
-        tree_plan = self.__tree_plan_builder.build_tree_plan(pattern)
+        tree_plan = self.tree_plan_builder.build_tree_plan(pattern)
         return tree_plan
 
 
@@ -54,7 +52,7 @@ class StatisticChangesAwareOptimizer(Optimizer):
         return self.prev_statistics is None or self.is_greater_then_t(pattern.statistics)
 
     def build_new_tree_plan(self, pattern: Pattern):
-        tree_plan = self.__tree_plan_builder.build_tree_plan(pattern)
+        tree_plan = self.tree_plan_builder.build_tree_plan(pattern)
         return tree_plan
 
     @staticmethod
@@ -81,5 +79,5 @@ class InvariantAwareOptimizer(Optimizer):
         return self.invariants is None or self.invariants.is_invariants_violated(pattern)
 
     def build_new_tree_plan(self, pattern: Pattern):
-        tree_plan, self.invariants = self.__tree_plan_builder.build_tree_plan(pattern)
+        tree_plan, self.invariants = self.tree_plan_builder.build_tree_plan(pattern)
         return tree_plan

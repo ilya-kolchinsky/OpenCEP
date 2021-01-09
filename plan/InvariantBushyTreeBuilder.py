@@ -34,7 +34,7 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
         }
 
         map_tree_to_second_min_tree = {}
-        invariants = ZStreamTreeInvariants()
+        invariants = ZStreamTreeInvariants(self.__cost_model)
         all_sub_trees = []
 
         # iterate over suborders' sizes

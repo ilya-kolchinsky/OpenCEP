@@ -10,7 +10,7 @@ from plan.Invariants import Invariant, GreedyTreeInvariants
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType, \
     IterativeImprovementAlgorithmBuilder
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlan import TreePlanLeafNode
+from plan.TreePlan import TreePlanLeafNode, TreePlan
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
@@ -22,6 +22,12 @@ class InvariantLeftDeepTreeBuilder(TreePlanBuilder):
     """
     An abstract class for left-deep tree builders.
     """
+    def build_tree_plan(self, pattern: Pattern):
+        """
+        Creates a tree-based evaluation plan for the given pattern.
+        """
+        tree_topology, invariants = self._create_tree_topology(pattern)
+        return TreePlan(tree_topology), invariants
 
     def _create_tree_topology(self, pattern: Pattern):
         """
@@ -30,7 +36,7 @@ class InvariantLeftDeepTreeBuilder(TreePlanBuilder):
         """
         order, invariants = self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure,
                                                                                  CompositeStructure) else [0]
-        return InvariantLeftDeepTreeBuilder._order_to_tree_topology(order, pattern), invariants
+        return self._order_to_tree_topology(order, pattern), invariants
 
     @staticmethod
     def _order_to_tree_topology(order: List[int], pattern: Pattern):
@@ -56,7 +62,7 @@ class InvariantLeftDeepTreeBuilder(TreePlanBuilder):
         raise NotImplementedError()
 
 
-class InvariantAwareGreedyTreeBuilder(TreePlanBuilder):
+class InvariantAwareGreedyTreeBuilder(InvariantLeftDeepTreeBuilder):
     """
     Creates a left-deep tree using a greedy strategy that selects at each step the event type that minimizes the cost
     function.
@@ -67,9 +73,9 @@ class InvariantAwareGreedyTreeBuilder(TreePlanBuilder):
             (selectivityMatrix, arrivalRates) = pattern.statistics
         else:
             raise MissingStatisticsException()
-        order = self.calculate_greedy_order(selectivityMatrix, arrivalRates)
-        self.invariants = order
-        return order
+        order, invariants = self.calculate_greedy_order(selectivityMatrix, arrivalRates)
+
+        return order, invariants
 
     @staticmethod
     def calculate_greedy_order(selectivity_matrix: List[List[float]], arrival_rates: List[int]):

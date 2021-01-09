@@ -13,43 +13,42 @@ class OptimizerParameters:
     Parameters required for optimizer creation.
     """
 
-    def __init__(self, pattern: Pattern = None,
-                 opt_type: OptimizerTypes = DefaultConfig.DEFAULT_OPTIMIZER_TYPE,
+    def __init__(self, opt_type: OptimizerTypes = DefaultConfig.DEFAULT_OPTIMIZER_TYPE,
                  tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters()):
-        self.pattern = pattern
         self.type = opt_type
         self.tree_plan_params = tree_plan_params
+        # was before in the constructor - pattern
 
 
-class Optimizer1Parameters(OptimizerParameters):
+class NaiveOptimizerParameters(OptimizerParameters):
     """
     Parameters for the creation of optimizer1 algorithm.
     """
 
-    def __init__(self, pattern: Pattern, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters):
-        super().__init__(pattern, opt_type, tree_plan_params)
+    def __init__(self, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters):
+        super().__init__(opt_type, tree_plan_params)
+    # before was also pattern
 
 
-class Optimizer2Parameters(OptimizerParameters):
+class StatisticChangesAwareOptimizerParameters(OptimizerParameters):
     """
     Parameters for the creation of optimizer2 algorithm.
     """
 
-    def __init__(self, pattern: Pattern, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters,
+    def __init__(self, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters,
                  t: int):
-        super().__init__(pattern, opt_type, tree_plan_params)
+        super().__init__(opt_type, tree_plan_params)
         self.t = t
 
 
-class Optimizer3Parameters(OptimizerParameters):
+class InvariantsAwareOptimizerParameters(OptimizerParameters):
     """
     Parameters for the creation of optimizer3 algorithm.
     """
 
-    def __init__(self, pattern: Pattern, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters,
-                 current_plan):
-        super().__init__(pattern, opt_type, tree_plan_params)
-        self.current_plan = current_plan
+    def __init__(self, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters):
+        super().__init__(opt_type, tree_plan_params)
+    # wa before also current_plan
 
 
 class OptimizerFactory:

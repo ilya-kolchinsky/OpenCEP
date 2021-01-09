@@ -1,4 +1,6 @@
 from plan.BushyTreeBuilders import *
+from plan.InvariantBushyTreeBuilder import InvariantAwareZStreamTreeBuilder
+from plan.InvariantLeftDeepTreeBuilder import InvariantAwareGreedyTreeBuilder
 from plan.LeftDeepTreeBuilders import *
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
@@ -53,4 +55,8 @@ class TreePlanBuilderFactory:
             return ZStreamTreeBuilder(tree_plan_params.cost_model_type)
         if tree_plan_params.builder_type == TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE:
             return ZStreamOrdTreeBuilder(tree_plan_params.cost_model_type)
+        if tree_plan_params.builder_type == TreePlanBuilderTypes.INVARIANT_AWARE_GREEDY_LEFT_DEEP_TREE:
+            return InvariantAwareGreedyTreeBuilder(tree_plan_params.cost_model_type)
+        if tree_plan_params.builder_type == TreePlanBuilderTypes.INVARIANT_AWARE_ZSTREAM_BUSHY_TREE:
+            return InvariantAwareZStreamTreeBuilder(tree_plan_params.cost_model_type)
         raise Exception("Unknown tree plan builder type: %s" % (tree_plan_params.builder_type,))
