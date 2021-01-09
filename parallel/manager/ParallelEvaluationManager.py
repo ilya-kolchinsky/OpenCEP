@@ -37,13 +37,13 @@ class DataParallelEvaluationManager(ParallelEvaluationManager):
         super().__init__(parallel_execution_params)
         self.__mode = data_parallel_params.algorithm
         self.__numThreads = data_parallel_params.numThreads
-        self.__algorithm = PlatformFactory.create_data_parallel_evaluation_manager(data_parallel_params, patterns, eval_mechanism_params)
+        self.__algorithm = PlatformFactory.create_data_parallel_evaluation_manager(data_parallel_params, patterns, eval_mechanism_params, self._platform)
         self.__pattern_matches = None
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
 
         self.__pattern_matches = matches
-        self.__algorithm.eval_algorithm(events, matches, data_formatter, self._platform)# for now it copy all the output stream to the match stream inside the algorithms's classes
+        self.__algorithm.eval_algorithm(events, matches, data_formatter)# for now it copy all the output stream to the match stream inside the algorithms's classes
 
 
     def get_pattern_match_stream(self):

@@ -68,6 +68,51 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             matches.add_item(match)
         matches.close()
 
+    def eval_parallel(self, events: InputStream, matches: Stream, data_formatter: DataFormatter, time1, time2):
+        self.__register_event_listeners()
+
+        for raw_event in events:
+            event = Event(raw_event, data_formatter)
+            if event.type not in self.__event_types_listeners.keys():
+                continue
+            self.__remove_expired_freezers(event)
+            for leaf in self.__event_types_listeners[event.type]:
+                if self.__should_ignore_events_on_leaf(leaf):
+                    continue
+                self.__try_register_freezer(event, leaf)
+                leaf.handle_event(event)
+
+            if raw_event.timestamp <= time1: #begin
+                for match in self.__tree.get_matches():
+                    match_event = match.events
+                    flag = True
+                    for event in match_event:
+                        if event.timestamp > time1: #not need to check if duplicated
+                            flag = False
+                            break
+                    matches.add_item([match, flag])
+                    self.__remove_matched_freezers(match.events)
+            elif raw_event.timestamp >= time2:# end
+                for match in self.__tree.get_matches():
+                    match_event = match.events
+                    flag = True
+                    for event in match_event:
+                        if event.timestamp < time2:  # not need to check if duplicated
+                            flag = False
+                            break
+                    matches.add_item([match, flag])
+                    self.__remove_matched_freezers(match.events)
+            else: #middle
+                for match in self.__tree.get_matches():
+                    matches.add_item([match, False])
+                    self.__remove_matched_freezers(match.events)
+
+        # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
+        # collect them now
+        for match in self.__tree.get_last_matches():
+            matches.add_item(match)
+        matches.close()
+
     def __register_event_listeners(self):
         """
         Register leaf listeners for event types.

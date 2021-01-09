@@ -1,4 +1,4 @@
-from stream.Stream import OutputStream, InputStream
+from stream.Stream import *
 from queue import Queue
 
 class DataParallelInputStream(InputStream):
@@ -13,27 +13,19 @@ class DataParallelInputStream(InputStream):
         self._stream.put(item)
 
 
-class DataParallelOutputStream(OutputStream):
+class DataParallelOutputBuffer(Stream):
     """
     Writes the objects into a queue for data Parallelism
     """
-    def __init__(self):
+    def __init__(self, matches: InputStream):
         super().__init__()
-        self._items = set()
+        self._duplicated = set()
         self._mutex = Queue()
+        self._matches = matches
 
-    def add_item(self, item: object):
+    def add_item(self, item: list):
         ######### #todo: need to lock this part
-        self._mutex.join()
-        self._mutex.put(1)
-        item_str = str(item)
-        if item_str not in self._items:
-            self._items.add(item_str)
-            self._stream.put(item)
-        self._mutex.task_done()
-        ############
-
-        #self._stream.task_done()
+        super().add_item(item)
 
 
     def close(self):

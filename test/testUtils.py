@@ -147,11 +147,11 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
 def runTest(testName, patterns, createTestFile = False,
             eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
             events = None, eventStream = nasdaqEventStream,
-            parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads=5)
+            parallel_execution_params: ParallelExecutionParameters = None,
+            data_parallel_params: DataParallelExecutionParameters = None
             ):
     if createTestFile:
-        createTest(testName, patterns, events, eventStream = eventStream)
+        createTest(testName, patterns, events, eventStream=eventStream)
     if events is None:
         events = eventStream.duplicate()
     else:

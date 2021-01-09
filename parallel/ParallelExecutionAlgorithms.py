@@ -10,24 +10,25 @@ from typing import List
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters, EvaluationMechanismFactory
 from base.DataFormatter import DataFormatter
-
+from queue import Queue
 from datetime import datetime
-
-def _eval_thread(tree, events: Stream, matches: Stream, final_matches: DataParallelOutputStream, data_formatter: DataFormatter):
-    print("&")
-    tree.eval(events, matches, data_formatter)
-
-    try:
-        stream_iter = iter(matches)
-        item = next(stream_iter)
-        while item:  # adding all items expect the last one to the output stream
-            final_matches.add_item(item)
-            item = next(stream_iter)
-    except StopIteration:
-        pass
+import threading
 
 
+def _make_tree(patterns: Pattern or List[Pattern],
+               eval_mechanism_params: EvaluationMechanismParameters):
+    if isinstance(patterns, Pattern):
+        patterns = [patterns]
+    if len(patterns) > 1:
+        tree = EvaluationMechanismFactory.build_multi_pattern_eval_mechanism(
+            eval_mechanism_params,
+            patterns)
+    else:
+        tree = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(
+            eval_mechanism_params,
+            patterns[0])
 
+    return tree
 
 
 class DataParallelAlgorithm(ABC):
@@ -36,36 +37,25 @@ class DataParallelAlgorithm(ABC):
         """
 
     def __init__(self, numthreads, patterns: Pattern or List[Pattern],
-                 eval_mechanism_params: EvaluationMechanismParameters ):
-
+                 eval_mechanism_params: EvaluationMechanismParameters, platform):
+        self._platform = platform
         self._numThreads = numthreads
         self._threads = []
         self._trees = []
         self._events = None
-        self._stream_thread = None
-
-        for i in range(0, self._numThreads):
-            if isinstance(patterns, Pattern):
-                patterns = [patterns]
-            if len(patterns) > 1:
-                self._trees.append(EvaluationMechanismFactory.build_multi_pattern_eval_mechanism(
-                    eval_mechanism_params,
-                    patterns))
-            else:
-                self._trees.append(EvaluationMechanismFactory.build_single_pattern_eval_mechanism(
-                    eval_mechanism_params,
-                    patterns[0]))
-
         self._events_list = []
-        for i in range(numthreads):
-            self._events_list.append(Stream())
-        #################for the tests
+        self._stream_thread = platform.create_parallel_execution_unit(unit_id=self._numThreads - 1, callback_function=self._stream_divide)
+        self._still_working = True
+        self._matches = None
+        self._paterrns = patterns
+
+
+        """ 
         self._matches_list = []
 
         for i in range(numthreads):
             self._matches_list.append(Stream())
-
-
+        """
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         raise NotImplementedError()
@@ -74,7 +64,6 @@ class DataParallelAlgorithm(ABC):
 class Algorithm1(DataParallelAlgorithm):
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         raise NotImplementedError
-
 
 
 class Algorithm2(DataParallelAlgorithm):
@@ -98,26 +87,74 @@ class Algorithm2(DataParallelAlgorithm):
 
         print("time: ", (datetime.now() - start).total_seconds())
 
+    def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
 
 
-    def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter, platform):
 
-        buffer_matches = DataParallelOutputStream()
+        for begin_time in  self._times[thread_id]:
+            time1, time2 #todo: calculate the shared times
+            self._trees[thread_id].eval_parallel(self._events_list, self._matches_buffer, data_formatter, time1, time2)
+            self._trees[thread_id] = _make_tree(self._patterens)
+            self._pool.append(thread_id)  # todo: change to the name linor given to the threads queue
+        
+    def _eval_test(self, thread_id, output):
+       while(1):
+        for item in self._events_list[thread_id]:
+            output.add_item(item)
+
+    def _match_to_output(self):
+        duplicated = set()
+        for match, flag in self._buffer:
+            if flag:
+                if match in duplicated:
+                    duplicated.remove(match)
+                else:
+                    self._matches.add_item(match)
+                    duplicated.add(match)
+            else:
+                self._matches.add_item(match)
+
+    def __init__(self, numthreads, patterns: Pattern or List[Pattern],
+                 eval_mechanism_params: EvaluationMechanismParameters, platform):
+
+        super().__init__(numthreads, patterns,eval_mechanism_params, platform)
+
+        for i in range(0, self._numThreads-2):
+            self._trees.append(_make_tree(patterns, eval_mechanism_params))
+            self._events_list.append(Stream())
+            self._output_handler = platform.create_parallel_execution_unit(unit_id=numthreads-2, callback_function=self._match_to_output)
+            self._matches_buffer = Stream()
+            #TODO: check with linor
+            self._init_time = None
+            self._epoch_time = None
+            self._shared_time = None
+            self._times = []
+            for _ in self._numThreads-2:
+                self._times.append(Queue())
+                self._pool.append(i)  # todo: change to the name linor given to the threads queue
+
+
+    def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+
         self._events = events
-        self._stream_thread = platform.create_parallel_execution_unit(unit_id= self._numThreads, callback_function= self._stream_divide)
+        self._matches = matches
         self._stream_thread.start()
 
-        for i in range(self._numThreads):
-            t = platform.create_parallel_execution_unit(unit_id=i, callback_function=_eval_thread, tree=self._trees[i],
-                                                              events=self._events_list[i], matches=self._matches_list[i], final_matches=buffer_matches, data_formatter=data_formatter)
+        for i in range(self._numThreads -2):
+            t = self._platform.create_parallel_execution_unit(unit_id=i, callback_function=self._eval_test, thread_id=i, output=matches)
+            #t = self._platform.create_parallel_execution_unit(unit_id=i, callback_function=self._eval_thread, thread_id=i, data_formatter=data_formatter)
             self._threads.append(t)
+            t.start()
+
+
+        self._output_handler.start()
 
         for t in self._threads:
-            t.start()
             t.wait()
-        self._stream_thread.wait()
 
+        self._output_handler.wait()
         ######################## for the test
+        """
         buffer_matches.close()
         try:
             stream_iter = iter(buffer_matches)
@@ -128,17 +165,11 @@ class Algorithm2(DataParallelAlgorithm):
         except StopIteration:
             pass
 
-
         matches.close()
+        """
+
 
 
 class Algorithm3(DataParallelAlgorithm):
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         raise NotImplementedError
-
-
-
-
-
-
-
