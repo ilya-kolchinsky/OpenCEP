@@ -56,7 +56,11 @@ if __name__ == '__main__':
 """
 
 
-def create_optimizer():
+def create_optimizer1():
+    """
+    Basic test, check if optimizer say that need to generate new tree in the case that
+    statistics doesnt change
+    """
     pattern = get_pattern_test()
     arrival_rates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     selectivity_matrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],

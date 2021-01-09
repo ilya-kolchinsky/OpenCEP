@@ -77,23 +77,6 @@ class OptimizerFactory:
 
         raise Exception("Unknown optimizer type: %s" % (optimizer_parameters.type,))
 
-    """
-    @staticmethod
-    def __create_optimizer(optimizer_parameters: OptimizerParameters):
-
-        tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(optimizer_parameters.tree_plan_params)
-        if optimizer_parameters.type == OptimizerTypes.TRIVIAL:
-            return Optimizer.Optimizer1(optimizer_parameters.pattern, tree_plan_builder)
-
-        if optimizer_parameters.type == OptimizerTypes.GREATER_THEN_T:
-            return Optimizer.Optimizer2(optimizer_parameters.pattern,
-                                        tree_plan_builder,
-                                        optimizer_parameters.t)
-        if optimizer_parameters.type == OptimizerTypes.USING_INVARIANT:
-            return Optimizer.InvariantAwareOptimizer(optimizer_parameters.pattern, tree_plan_builder)
-
-        raise Exception("Unknown optimizer type: %s" % (optimizer_parameters.type,))
-    """
     @staticmethod
     def __create_default_optimizer_parameters():
         """
@@ -103,37 +86,3 @@ class OptimizerFactory:
             return OptimizerParameters()
 
         raise Exception("Unknown optimizer type: %s" % (DefaultConfig.DEFAULT_OPTIMIZER_TYPE,))
-    """
-    @staticmethod
-    def create_optimizer_3(optimizer_parameters: OptimizerParameters, tree_plan_builder):
-
-        if optimizer_parameters.tree_plan_params.builder_type == TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE:
-            return Optimizer.TrivialLeftDeepTreeOptimizer(tree_plan_builder, optimizer_parameters.pattern)
-        if optimizer_parameters.tree_plan_params.builder_type == TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE:
-            return Optimizer.AscendingFrequencyTreeOptimizer(tree_plan_builder, optimizer_parameters.pattern)
-        if optimizer_parameters.tree_plan_params.builder_type == TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE:
-            return Optimizer.GreedyLeftDeepTreeOptimizer(tree_plan_builder, optimizer_parameters.pattern)
-        if optimizer_parameters.tree_plan_params.builder_type == TreePlanBuilderTypes.LOCAL_SEARCH_LEFT_DEEP_TREE:
-            return Optimizer.IterativeImprovementLeftDeepTreeOptimizer(tree_plan_builder, optimizer_parameters.pattern)
-        if optimizer_parameters.tree_plan_params.builder_type == TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE:
-            return Optimizer.DynamicProgrammingLeftDeepTreeOptimizer(tree_plan_builder, optimizer_parameters.pattern)
-        if optimizer_parameters.tree_plan_params.builder_type == TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE:
-            return Optimizer.DynamicProgrammingBushyTreeOptimizer(tree_plan_builder, optimizer_parameters.pattern)
-        if optimizer_parameters.tree_plan_params.builder_type == TreePlanBuilderTypes.ZSTREAM_BUSHY_TREE:
-            return Optimizer.ZStreamTreeOptimizer(tree_plan_builder, optimizer_parameters.pattern)
-        if optimizer_parameters.tree_plan_params.builder_type == TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE:
-            return Optimizer.ZStreamOrdTreeOptimizer(tree_plan_builder, optimizer_parameters.pattern)
-        raise Exception("Unknown optimizer type: %s" % (tree_plan_builder.builder_type,))
-    """
-
-    """
-    @staticmethod
-    def create_optimizer_3(optimizer_parameters: OptimizerParameters, tree_plan_builder):
-
-        if optimizer_parameters.tree_plan_params.builder_type == TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE:
-            return Optimizer.InvariantawareGreedyTreeBuilder(tree_plan_builder, optimizer_parameters.pattern)
-        if optimizer_parameters.tree_plan_params.builder_type == TreePlanBuilderTypes.ZSTREAM_BUSHY_TREE:
-            return Optimizer.InvariantawareZstreamTreeBuilder(tree_plan_builder, optimizer_parameters.pattern)
-        raise Exception("Unknown optimizer type: %s" % (tree_plan_builder.builder_type,))
-
-    """

@@ -50,7 +50,7 @@ class GreedyTreeInvariants(Invariants):
         if first_change_factor > second_change_factor:
             return True
 
-        for i in range(1, len(self.invariants)):
+        for i in range(1, len(self.invariants)-1):
 
             first_change_factor = second_change_factor
             first_change_factor *= selectivity_matrix[second_index][first_index]

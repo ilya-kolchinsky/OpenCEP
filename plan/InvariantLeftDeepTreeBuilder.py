@@ -110,8 +110,10 @@ class InvariantAwareGreedyTreeBuilder(InvariantLeftDeepTreeBuilder):
                 for j in new_order:
                     change_factor *= selectivity_matrix[i][j]
                 if change_factor < min_change_factor:
+
                     second_min_index = to_add
                     second_min_change_factor = min_change_factor
+                    
                     min_change_factor = change_factor
                     to_add = i
 
@@ -120,7 +122,7 @@ class InvariantAwareGreedyTreeBuilder(InvariantLeftDeepTreeBuilder):
                 # the first index that popped from set is the minimum.
                 # Hence we need to save the second minimum for the invariants
                 # because in this case we never change the second_min_index
-                if change_factor < second_min_change_factor or second_min_index == to_add:
+                elif change_factor < second_min_change_factor or second_min_index == to_add:
                     second_min_change_factor = change_factor
                     second_min_index = i
 

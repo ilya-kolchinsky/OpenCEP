@@ -1,5 +1,5 @@
 from test.BasicTests import *
-from test.OptimizerTests import create_optimizer
+from test.OptimizerTests import *
 from test.TreeConstructionTests import *
 from test.KC_tests import *
 from test.NegationTests import *
@@ -115,7 +115,7 @@ multipleParentsForInternalNode()
 """
 
 # Optimizer tests
-create_optimizer()
+create_optimizer1()
 
 
 # benchmarks
