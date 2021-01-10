@@ -7,7 +7,6 @@ from test.MultiPattern_tests import *
 from test.StorageTests import *
 from test.UnitTests.test_storage import run_storage_tests
 
-
 runTest.over_all_time = 0
 
 # basic functionality tests
@@ -79,7 +78,6 @@ KC_Condition_Failure_01()
 KC_Condition_Failure_02()
 KC_Condition_Failure_03()
 
-
 # negation tests
 simpleNotTest()
 multipleNotInTheMiddleTest()
@@ -134,4 +132,4 @@ if INCLUDE_TWITTER:
 print("Finished running all tests, overall time: %s" % runTest.over_all_time)
 numFailedTests.print_counter()
 if len(numFailedTests.failedTests):
-    print(*numFailedTests.failedTests, sep=", ")
+    print(numFailedTests.failedTests)

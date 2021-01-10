@@ -47,7 +47,7 @@ DEFAULT_TESTING_DATA_FORMATTER = MetastockDataFormatter()
 # this class helps tracking failed tests (if there are any)
 class FailedCounter:
     counter = 0
-    failedTests = []
+    failedTests = set()
     def increase_counter(self):
         self.counter = self.counter + 1
 
@@ -237,7 +237,7 @@ def runTest(expectedFileName, patterns, createTestFile = False,
         os.remove(actual_matches_path)
     else:
         numFailedTests.increase_counter()
-        numFailedTests.failedTests.append(testName)
+        numFailedTests.failedTests.add(testName)
 
 
 """
