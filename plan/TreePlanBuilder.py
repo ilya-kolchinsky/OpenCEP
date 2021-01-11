@@ -32,6 +32,9 @@ class TreePlanBuilder(ABC):
         """
         return self.__cost_model.get_plan_cost(pattern, plan)
 
+    def get_cost_model(self):
+        return self.__cost_model
+
     @staticmethod
     def _instantiate_binary_node(pattern: Pattern, left_subtree: TreePlanNode, right_subtree: TreePlanNode):
         """

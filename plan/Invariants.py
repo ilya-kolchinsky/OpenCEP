@@ -1,7 +1,7 @@
 from abc import ABC
 
 from base.Pattern import Pattern
-from plan.TreeCostModel import TreeCostModelFactory, TreeCostModel
+from plan.TreeCostModel import TreeCostModelFactory, TreeCostModel, IntermediateResultsTreeCostModel
 from plan.TreeCostModels import TreeCostModels
 
 
@@ -70,20 +70,20 @@ class GreedyTreeInvariants(Invariants):
 
 
 class ZStreamTreeInvariants(Invariants):
-    """
-    Check every invariant in invariants with next condition:
-    cost(invariant.left) < cost(invariant.right).
-    """
-    def __init__(self, cost_model: TreeCostModel):
+
+    def __init__(self, cost_model):
         super().__init__()
         self.__cost_model = cost_model
 
     def is_invariants_violated(self, pattern: Pattern):
-
-        for (left, right) in self.invariants:
-            left_cost = self.__cost_model.get_plan_cost(pattern, left)
-            right_cost = self.__cost_model.get_plan_cost(pattern, right)
-            if left_cost >= right_cost:
+        """
+        Check every invariant in invariants with next condition:
+        cost(invariant.left) < cost(invariant.right).
+        """
+        for invariant in self.invariants:
+            left_cost = self.__cost_model.get_plan_cost(pattern, invariant.left)
+            right_cost = self.__cost_model.get_plan_cost(pattern, invariant.right)
+            if left_cost > right_cost:
                 return True
 
         return False

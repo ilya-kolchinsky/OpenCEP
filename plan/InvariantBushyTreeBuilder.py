@@ -4,7 +4,7 @@ This file contains the implementations of algorithms constructing a generic (bus
 from typing import List
 
 from plan.Invariants import Invariant, ZStreamTreeInvariants
-from plan.TreePlan import TreePlanLeafNode
+from plan.TreePlan import TreePlanLeafNode, TreePlan
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.Utils import get_all_disjoint_sets
@@ -18,6 +18,12 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
     """
     Creates a bushy tree using ZStream algorithm.
     """
+    def build_tree_plan(self, pattern: Pattern):
+        """
+        Creates a tree-based evaluation plan for the given pattern.
+        """
+        tree_topology, invariants = self._create_tree_topology(pattern)
+        return TreePlan(tree_topology), invariants
 
     def _create_tree_topology(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
@@ -34,7 +40,8 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
         }
 
         map_tree_to_second_min_tree = {}
-        invariants = ZStreamTreeInvariants(self.__cost_model)
+        cost_model = self.get_cost_model()
+        invariants = ZStreamTreeInvariants(cost_model)
         all_sub_trees = []
 
         # iterate over suborders' sizes
@@ -70,7 +77,7 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
 
                         suborders[suborder] = new_tree, new_cost
 
-                    if new_cost < second_prev_cost or second_min_tree == tree:
+                    elif new_cost < second_prev_cost or second_min_tree == tree:
                         second_prev_cost = new_cost
                         second_min_tree = new_tree
 
@@ -94,7 +101,8 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
     @staticmethod
     def get_all_sub_trees(tree, map_tree_to_second_min_tree, all_sub_trees):
 
-        if isinstance(tree, TreePlanLeafNode):
+        if isinstance(tree, TreePlanLeafNode) or \
+                (isinstance(tree.left_child, TreePlanLeafNode) and isinstance(tree.right_child, TreePlanLeafNode)):
             return
 
         all_sub_trees.append(tree)
