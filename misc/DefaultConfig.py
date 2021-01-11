@@ -45,3 +45,7 @@ DEFAULT_STATISTICS_COLLECTOR_TYPE = StatisticsTypes.ARRIVAL_RATES
 
 # Optimizer settings
 DEFAULT_OPTIMIZER_TYPE = OptimizerTypes.TRIVIAL
+
+# statistics settings
+DEFAULT_STATISTICS_TYPE = StatisticsTypes.ARRIVAL_RATES
+

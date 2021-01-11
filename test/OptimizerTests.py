@@ -56,7 +56,7 @@ if __name__ == '__main__':
 """
 
 
-def create_optimizer1():
+def create_InvariantAwareGreedyTreeBuilder():
     """
     Basic test, check if optimizer say that need to generate new tree in the case that
     statistics doesnt change
@@ -80,10 +80,42 @@ def create_optimizer1():
 
     tree_plan = optimizer.build_new_tree_plan(pattern)
 
+    new_arrival_rates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
+    new_selectivity_matrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
+                          [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
+
+    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (new_selectivity_matrix, new_arrival_rates))
+    is_need_new_build = optimizer.is_need_reoptimize(pattern)
+
+
+def create_InvariantAwareZStreamTreeBuilder():
+    """
+    Basic test, check if optimizer say that need to generate new tree in the case that
+    statistics doesnt change
+    """
+    pattern = get_pattern_test()
     arrival_rates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     selectivity_matrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
                           [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
+    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
+                           (selectivity_matrix, arrival_rates))
 
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivity_matrix, arrival_rates))
+    opt_type = OptimizerTypes.USING_INVARIANT
+
+    builder_type = TreePlanBuilderTypes.INVARIANT_AWARE_ZSTREAM_BUSHY_TREE
+    tree_cost_models = TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL
+    tree_plan_params = TreePlanBuilderParameters(builder_type, tree_cost_models)
+
+    optimizer_parameters = InvariantsAwareOptimizerParameters(opt_type, tree_plan_params)
+
+    optimizer = OptimizerFactory.build_optimizer(optimizer_parameters)
+
+    tree_plan = optimizer.build_new_tree_plan(pattern)
+
+    new_arrival_rates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
+    new_selectivity_matrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
+                          [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
+
+    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (new_selectivity_matrix, new_arrival_rates))
     is_need_new_build = optimizer.is_need_reoptimize(pattern)
 

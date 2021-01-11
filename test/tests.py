@@ -115,7 +115,8 @@ multipleParentsForInternalNode()
 """
 
 # Optimizer tests
-create_optimizer1()
+create_InvariantAwareGreedyTreeBuilder()
+create_InvariantAwareZStreamTreeBuilder()
 
 
 # benchmarks
