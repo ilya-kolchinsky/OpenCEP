@@ -100,7 +100,9 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
 
     @staticmethod
     def get_all_sub_trees(tree, map_tree_to_second_min_tree, all_sub_trees):
-
+        """
+        We care about trees with at least 3 leaf node
+        """
         if isinstance(tree, TreePlanLeafNode) or \
                 (isinstance(tree.left_child, TreePlanLeafNode) and isinstance(tree.right_child, TreePlanLeafNode)):
             return
