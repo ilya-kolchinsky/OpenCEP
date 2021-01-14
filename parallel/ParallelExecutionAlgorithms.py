@@ -11,6 +11,8 @@ from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters, EvaluationMechanismFactory
 from base.DataFormatter import DataFormatter
 from queue import Queue
+from datetime import timedelta
+from base import Event
 from datetime import datetime
 import threading
 
@@ -68,24 +70,77 @@ class Algorithm1(DataParallelAlgorithm):
 
 class Algorithm2(DataParallelAlgorithm):
 
-    def _stream_divide(self):
+    def __init__(self, patterns: Pattern):
+        super.__init__()
+        self.start_list = [None] * self._numThreads
+        self.start_queue = Queue()
+        self.thread_pool = Queue()
+        self.buffer = Queue()
+        self.time_slot = 3 * Pattern.window
+        self.s = Pattern.window
+        self.base_year = 0
 
-        ####for the tests
-        start = datetime.now()
+    # transfer string to date
+    def produce_time(self, date, first=False):
+        days = 0
+        hours = 0
+        minutes = 0
+        if first:
+            self.base_year = date[0:3]
+        else:
+            days = (int(date[0:3]) - self.base_year) * 365
+        days += (int(date[4:5]) * 30)
+        days += int(date[6:7])
+        hours = int(date[8:9])
+        minutes = int(date[10:11])
+        time = timedelta(days=days, hours=hours, minutes=minutes)
+        return time
+
+    def _thread_streams_producer(self, events: InputStream,
+                                 data_formatter: DataFormatter):
         try:
-            stream_iter = iter(self._events)
-            item = next(stream_iter)
-            while item:  # adding all items expect the last one to the output stream
-                for i in range(self._numThreads):
-                    self._events_list[i].add_item(item)
-                item = next(stream_iter)
+            cur_event = Event(events.get_item(), data_formatter)
         except StopIteration:
-            for i in range(self._numThreads):
-                self._events_list[i].add_item(None)
-        finally:
-            self._events.close()
+            print("Stream has no data")
+            return
+        start_time = self.produce_time(cur_event.timestamp, True)
+        stream = Stream()
+        stream_s = Stream()
+        for item in events:
+            end_time = start_time + self.time_slot
+            curr_time = self.produce_time(cur_event.timestamp, False)
+            stream = stream_s
+            stream_s = None
+            while curr_time <= end_time:
+                stream.add_item(cur_event)
+                if curr_time >= end_time - self.s:
+                    stream_s.add_item(cur_event)
+                try:
+                    cur_event = Event(events.get_item(), data_formatter)
+                except StopIteration:
+                    print("Stream has illegal items")
+                    break
+                curr_time = cur_event.timestamp
+            if stream.count() > 0:
+                self.buffer.put_nowait(stream)
+                self.start_queue.put_nowait(start_time)
+            start_time = end_time - self.s
+            while not self.thread_pool.empty():
+                id = self.thread_pool.pop()
+                try:
+                    self._events_list[id] = self.buffer.get_nowait()
+                    self.start_stream.add_item((self.start_queue.get_nowait()))
+                except Queue.Empty:
+                    break
 
-        print("time: ", (datetime.now() - start).total_seconds())
+####not need
+    def _thread_devide(self, events: InputStream,
+                       data_formatter: DataFormatter):
+        thread_producer = threading.Thread(
+            target=self._thread_streams_producer(),
+            args=(InputStream, DataFormatter))
+        thread_producer.start()
+
 
     def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
 
@@ -98,7 +153,7 @@ class Algorithm2(DataParallelAlgorithm):
             self._pool.append(thread_id)  # todo: change to the name linor given to the threads queue
         
     def _eval_test(self, thread_id, output):
-       while(1):
+       ##while(1):
         for item in self._events_list[thread_id]:
             output.add_item(item)
 
@@ -126,12 +181,13 @@ class Algorithm2(DataParallelAlgorithm):
             self._matches_buffer = Stream()
             #TODO: check with linor
             self._init_time = None
-            self._epoch_time = None
-            self._shared_time = None
-            self._times = []
-            for _ in self._numThreads-2:
-                self._times.append(Queue())
-                self._pool.append(i)  # todo: change to the name linor given to the threads queue
+            self.time_slot = 3 * Pattern.window
+            self.s = Pattern.window
+            self.start_stream = Stream()
+            self.start_queue = Queue()
+            self.buffer = Queue()
+            self.thread_pool = Queue()
+            self.base_year = 0
 
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
