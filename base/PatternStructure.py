@@ -41,6 +41,10 @@ class PrimitiveEventStructure(PatternStructure):
     def __init__(self, event_type: str, name: str):
         self.type = event_type
         self.name = name
+        self.orig_idx = None
+
+    def set_orig_idx(self, num):
+        self.orig_idx = num
 
     def duplicate(self):
         return PrimitiveEventStructure(self.type, self.name)
@@ -151,10 +155,8 @@ class NegationOperator(UnaryStructure):
 
     def __init__(self, arg):
         super().__init__(arg)
-        self.orig_idx = None
-
-    def set_orig_idx(self, num):
-        self.orig_idx = num
+        # The indices of the positive events which this negative event is in contact with
+        self.pos_related_idxs = set()
 
     def duplicate(self):
         return NegationOperator(self.arg.duplicate())

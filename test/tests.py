@@ -10,6 +10,7 @@ from test.UnitTests.test_storage import run_storage_tests
 runTest.over_all_time = 0
 
 # basic functionality tests
+
 oneArgumentsearchTest()
 simplePatternSearchTest()
 
@@ -78,6 +79,7 @@ KC_Condition_Failure_01()
 KC_Condition_Failure_02()
 KC_Condition_Failure_03()
 
+
 # negation tests
 simpleNotTest()
 multipleNotInTheMiddleTest()
@@ -87,6 +89,7 @@ oneNotAtTheEndTest()
 multipleNotAtTheEndTest()
 multipleNotBeginAndEndTest()
 testWithMultipleNotAtBeginningMiddleEnd()
+
 
 # consumption policies tests
 singleType1PolicyPatternSearchTest()
@@ -133,3 +136,6 @@ print("Finished running all tests, overall time: %s" % runTest.over_all_time)
 numFailedTests.print_counter()
 if len(numFailedTests.failedTests):
     print(numFailedTests.failedTests)
+if len(numFailedTests.miss_comb):
+    print("\nTests that didn't check all the statistic combinations:")
+    print(*numFailedTests.miss_comb, sep=", ")

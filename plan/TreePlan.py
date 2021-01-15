@@ -22,7 +22,7 @@ class TreePlanNode(ABC):
     """
     Represents a single node of a tree-based plan.
     """
-    pass
+    parent = None
 
 
 class TreePlanLeafNode(TreePlanNode):
@@ -60,6 +60,9 @@ class TreePlanBinaryNode(TreePlanInternalNode):
         super().__init__(operator)
         self.left_child = left_child
         self.right_child = right_child
+        # Bitmap of the size of the number of positive nodes. The i(th) cell is set if the leaf node represents the
+        # i(th) positive event is a descendant of this node
+        self.descendants_bitmap = None
 
 
 class TreePlan:

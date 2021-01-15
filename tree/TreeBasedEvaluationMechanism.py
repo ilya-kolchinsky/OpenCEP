@@ -6,6 +6,7 @@ from plan.TreePlan import TreePlan
 from stream.Stream import InputStream, OutputStream
 from misc.Utils import *
 from tree.nodes.LeafNode import LeafNode
+from tree.nodes.NegationNode import NegationNode
 from tree.PatternMatchStorage import TreeStorageParameters
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
@@ -82,7 +83,9 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         first_unbounded = None
         if self.__pattern is not None:
             if self.__pattern.negative_structure is not None:
-                first_unbounded = self.__tree.get_root().get_first_unbounded_negative_node()
+                # in case the root is not negation node there are no unbounded nodes in the whole tree
+                if isinstance(self.__tree.get_root(), NegationNode):
+                    first_unbounded = self.__tree.get_root().get_first_unbounded_negative_node()
         if self.__pattern is None:
             pass
         max_time_stamp = 0  # seen so far

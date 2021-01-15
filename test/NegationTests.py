@@ -9,7 +9,7 @@ from misc.StatisticsTypes import StatisticsTypes
 import copy
 from numpy import random, fill_diagonal
 from itertools import permutations
-import json
+
 
 class Statistics:
     def __init__(self, pattern, path):
@@ -75,37 +75,44 @@ class Statistics:
         with open(self.path, 'a') as file:
             file.write(" +++++++++++++++++++++++ summary ++++++++++++++++++++++++ \n")
             file.write("In %s test - %s \n" % (name, result))
-            if to_print_map ==1:
+            if to_print_map == 1:
                 map_status = str(self.map_comb)
-                file.write(map_status+ "\n")
+                file.write(map_status + "\n")
             file.write(" +++++++++++++++++++++++++++++++++++++++++++++++++++++++ \n")
         file.close()
 
+
 def runTrees(pattern, expectedFileName, createTestFile):
     path = os.path.join(absolutePath, 'test/StatisticsDocumentation/statistics.txt')
-    statistics = Statistics(pattern , path)
+    statistics = Statistics(pattern, path)
     combinations_total_num = len(statistics.map_comb)
-    max_loops= combinations_total_num*2
-    #max_loops = 2 # missing combinations example
+    max_loops = combinations_total_num*2
 
-    while(statistics.comb_done < combinations_total_num and statistics.comb_done < max_loops):
+    while statistics.comb_done < combinations_total_num and statistics.comb_done < max_loops:
         selectivityMatrix, arrivalRates = statistics.setStatisticsForTest(expectedFileName)
-        print("#### The following tests used the statistic combination " + statistics.last_comb +":")
+        print("#### The following tests used the statistic combination " + statistics.last_comb + ":")
+
         # NAIVE NEGATION ALGORITHM
         runAllTrees(pattern, expectedFileName, createTestFile, selectivityMatrix=selectivityMatrix,
-                    arrivalRates=arrivalRates )
+                    arrivalRates=arrivalRates)
         # STATISTIC NEGATION ALGORITHM
         runAllTrees(pattern, expectedFileName, createTestFile, NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM,
-                    selectivityMatrix,arrivalRates )
+                    selectivityMatrix, arrivalRates)
+
+        # LOWEST POSITION NEGATION ALGORITHM
+        runAllTrees(pattern, expectedFileName, createTestFile, NegationAlgorithmTypes.LOWEST_POSITION_NEGATION_ALGORITHM
+                    , selectivityMatrix, arrivalRates)
+
         print("### ### ###")
     if combinations_total_num == statistics.comb_done:
         statistics.print_to_statistics_file("all combinations were tested", expectedFileName)
     else:
-        statistics.print_to_statistics_file("missing combinations", expectedFileName,1)
+        statistics.print_to_statistics_file("missing combinations", expectedFileName, 1)
+        numFailedTests.miss_comb.append(expectedFileName)
+
 
 def runAllTrees(pattern, expectedFileName, createTestFile, negationAlgo=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM
-                ,selectivityMatrix = None, arrivalRates = None):
-
+                , selectivityMatrix = None, arrivalRates = None):
 
     # Trivial tree
     origPatt = copy.deepcopy(pattern)
@@ -196,6 +203,7 @@ def multipleNotBeginAndEndTest(createTestFile=False):
         timedelta(minutes=5)
     )
     runTrees(pattern, "MultipleNotBeginAndEnd", createTestFile)
+
 
 # ON custom2
 def simpleNotTest(createTestFile=False):
@@ -294,11 +302,13 @@ def multipleNotAtTheEndTest(createTestFile=False):
     )
     runTrees(pattern, "MultipleNotEnd", createTestFile)
 
+
 # ON CUSTOM3
 def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
     pattern = Pattern(
-        SeqOperator(NegationOperator(PrimitiveEventStructure("AAPL", "a")), PrimitiveEventStructure("AMAZON", "b"), NegationOperator(PrimitiveEventStructure("GOOG", "c")),
-                     PrimitiveEventStructure("FB", "d"), NegationOperator(PrimitiveEventStructure("TYP1", "x"))),
+        SeqOperator(NegationOperator(PrimitiveEventStructure("AAPL", "a")), PrimitiveEventStructure("AMAZON", "b"),
+                    NegationOperator(PrimitiveEventStructure("GOOG", "c")), PrimitiveEventStructure("FB", "d"),
+                    NegationOperator(PrimitiveEventStructure("TYP1", "x"))),
         AndCondition(
             GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
                                  Variable("b", lambda x: x["Opening Price"])),

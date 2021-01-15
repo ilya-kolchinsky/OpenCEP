@@ -48,6 +48,8 @@ DEFAULT_TESTING_DATA_FORMATTER = MetastockDataFormatter()
 class FailedCounter:
     counter = 0
     failedTests = set()
+    miss_comb = []
+
     def increase_counter(self):
         self.counter = self.counter + 1
 
@@ -217,8 +219,8 @@ def runTest(expectedFileName, patterns, createTestFile = False,
             negAlg = "naive"
         elif negation_algorithm is NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM:
             negAlg = "statistic"
-        else:  # TODO when implementing 3rd neg alg
-            pass
+        else:
+            negAlg = "lowestPos"
         testName = expectedFileName+negAlg+testName
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')

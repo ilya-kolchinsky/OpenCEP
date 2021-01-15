@@ -28,6 +28,8 @@ class Tree:
             else [pattern.positive_structure.get_arg()]
         if pattern.negative_structure is not None:
             args = pattern.positive_structure.get_args() + pattern.negative_structure.get_args()
+        # list of pointers to all the negation nodes in the tree
+        self.__negative_events = []
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root, args,
                                             pattern.window, None, pattern.consumption_policy)
 
@@ -63,6 +65,7 @@ class Tree:
     def __adjust_leaf_indices(self, pattern: Pattern):
         """
         Fixes the values of the leaf indices in the positive tree to take the negative events into account.
+        In addition the event_defs of the negative nodes are fixed.
         """
         leaf_mapping = {}
         # update the leaves
@@ -71,25 +74,22 @@ class Tree:
             correct_index = pattern.get_index_by_event_name(leaf.get_event_name())
             leaf.set_leaf_index(correct_index)
             leaf_mapping[current_index] = correct_index
-        # update the event definitions in the internal nodes
-        # note that it is enough to only update the root since it contains all the event definition objects
+        # Update the event definitions in the internal nodes
+        # Note that it is enough to only update the root since it contains pointers to all the event definition objects
         for event_def in self.__root.get_positive_event_definitions():
             event_def.index = leaf_mapping[event_def.index]
-        current = self.__root
-        while isinstance(current, NegationNode):
-            current.get_negative_event_defs()[0].index = leaf_mapping[current.get_negative_event_defs()[0].index]
-            current.get_event_definitions().sort(key=PrimitiveEventDefinition.get_event_index)
-            current = current.get_left_subtree()
+        for neg_event in self.__negative_events:
+            neg_event.get_negative_event_defs()[0].index = leaf_mapping[neg_event.get_negative_event_defs()[0].index]
+            neg_event.get_event_definitions().sort(key=PrimitiveEventDefinition.get_event_index)
 
     def __update_bounded_neg_seq_nodes(self, pattern: Pattern):
         # When top operator is And, negations are unbounded anyway
         if pattern.full_structure.get_top_operator() == AndOperator:
             return
-        current_node = self.__root
-        while isinstance(current_node, NegativeSeqNode):
-            current_node.set_is_unbounded(Tree.__is_unbounded_negative_event(pattern, current_node.get_right_subtree().
-                                                                             get_leaves()[0].get_leaf_index()))
-            current_node = current_node.get_left_subtree()
+
+        for neg_event in self.__negative_events:
+            neg_event.set_is_unbounded(Tree.__is_unbounded_negative_event
+                                       (pattern, neg_event.get_right_subtree().get_leaves()[0].get_leaf_index()))
 
     def get_leaves(self):
         return self.__root.get_leaves()
@@ -192,6 +192,8 @@ class Tree:
             flag = True
         # an internal node
         current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent, flag)
+        if flag is True:
+            self.__negative_events.append(current)
         left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
                                              sliding_window, current, consumption_policy)
         right_subtree = self.__construct_tree(root_operator, tree_plan.right_child, args,
