@@ -177,6 +177,8 @@ def runTest(testName, patterns, createTestFile = False,
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
+    print(base_matches_directory, output_file_name)
+    print(matches_stream)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
