@@ -107,6 +107,7 @@ class Algorithm2(DataParallelAlgorithm):
         start_time = cur_event.timestamp
         stream = Stream()
         stream_s = Stream()
+        #ffsf
         check_data = True
         while(check_data):
             end_time = start_time + self.time_slot
