@@ -157,6 +157,7 @@ class Algorithm2(DataParallelAlgorithm):
         for begin_time in self.start_list[thread_id]:
             for item in self._events_list[thread_id]:
                 output.add_item(item)
+            self.thread_pool.put_nowait(thread_id)
         print("end thread id:", thread_id)
 
     def _match_to_output(self):
