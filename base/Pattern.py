@@ -179,3 +179,6 @@ class Pattern:
 
     def count_primitive_positive_events(self):
         return self.positive_structure.count_primitive_events()
+
+    #def get_primitive_positive_events_indexes(self):
+     #   return [self.get_index_by_event_name(name) for name in self.positive_structure.get_primitive_events_names()]

@@ -39,6 +39,12 @@ class PatternStructure(ABC):
         """
         raise NotImplementedError()
 
+    def get_primitive_events_names(self):
+        """
+        TODO: comment
+        """
+        raise NotImplementedError()
+
 
 class PrimitiveEventStructure(PatternStructure):
     """
@@ -63,6 +69,10 @@ class PrimitiveEventStructure(PatternStructure):
     def count_primitive_events(self):
         return 1
 
+    def get_primitive_events_names(self):
+        return [self.name]
+
+
 class UnaryStructure(PatternStructure, ABC):
     """
     Represents a pattern structure with an unary operator at the top level.
@@ -78,6 +88,9 @@ class UnaryStructure(PatternStructure, ABC):
 
     def count_primitive_events(self):
         return self.arg.count_primitive_events()
+
+    def get_primitive_events_names(self):
+        return self.arg.get_primitive_events_names()
 
 
 class CompositeStructure(PatternStructure, ABC):
@@ -119,6 +132,14 @@ class CompositeStructure(PatternStructure, ABC):
                 raise Exception("message") #TODO: fill
             n = n + arg.count_primitive_events()
         return n
+
+    def get_primitive_events_names(self):
+        names = []
+        for arg in self.args:
+            if not isinstance(arg, PatternStructure):
+                raise Exception("message")  # TODO: fill
+            names = names + arg.get_primitive_events_names()
+        return names
 
 
 class AndOperator(CompositeStructure):

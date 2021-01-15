@@ -10,9 +10,9 @@ from test.UnitTests.test_storage import run_storage_tests
 
 
 runTest.over_all_time = 0
-nestedTest()
-nestedAscendingTest()
-#greedyNestedTest()
+#nestedTest()
+#nestedAscendingTest()
+greedyNestedTest()
 exit(0)
 # basic functionality tests
 oneArgumentsearchTest()

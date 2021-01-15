@@ -1,10 +1,12 @@
 from abc import ABC
 
 from base.Pattern import Pattern
-from base.PatternStructure import AndOperator, SeqOperator
+from base.PatternStructure import *
 from plan.TreeCostModel import TreeCostModelFactory
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode
+from misc.StatisticsTypes import StatisticsTypes
+import numpy as np
 
 
 class TreePlanBuilder(ABC):
@@ -50,5 +52,40 @@ class TreePlanBuilder(ABC):
 
     @staticmethod
     def _selectivity_matrix_for_nested_operators(pattern: Pattern):
+        if pattern.statistics_type != StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+            raise Exception("not supported")
+        (selectivityMatrix, _) = pattern.statistics
+        if pattern.count_primitive_positive_events() != len(selectivityMatrix):
+            raise Exception("size mismatch")
+        nested_selectivity_matrix = []
+        primitive_sons_list = []
+        event_names = [name for name in pattern.positive_structure.get_primitive_events_names()]
+        for arg in pattern.positive_structure.get_args():
+            primitive_sons_list.append([name for name in arg.get_primitive_events_names()])
+        for i, row_entry in enumerate(primitive_sons_list):
+            nested_selectivity_matrix.append([])
+            for col_entry in primitive_sons_list:
+                nested_selectivity_matrix[i].append(TreePlanBuilder._calculate_nested_selectivity(event_names, selectivityMatrix, row_entry, col_entry))
+        return nested_selectivity_matrix
 
-        #if pattern.count_primitive_positive_events() == len()
+    @staticmethod
+    def _calculate_nested_selectivity(names, selectivity_matrix, row_entry, col_entry):
+        selectivity = 1.0
+        for row_name in row_entry:
+           for col_name in col_entry:
+               selectivity = selectivity * selectivity_matrix[names.index(row_name)][names.index(col_name)]
+        return selectivity
+
+    @staticmethod
+    def _chop_matrix(pattern: Pattern, arg: PatternStructure):
+        if pattern.statistics_type != StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+            raise Exception("not supported")
+        (selectivityMatrix, _) = pattern.statistics
+        if pattern.count_primitive_positive_events() != len(selectivityMatrix):
+            raise Exception("size mismatch")
+        event_names = [name for name in pattern.positive_structure.get_primitive_events_names()]
+        primitive_sons = [name for name in arg.get_primitive_events_names()]
+        chop_start = event_names.index(primitive_sons[0])
+        chop_end = event_names.index(primitive_sons[-1])
+        selectivity_array = np.array(selectivityMatrix)
+        return selectivity_array[chop_start:chop_end+1, chop_start:chop_end+1].tolist()

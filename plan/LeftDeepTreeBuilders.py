@@ -41,15 +41,20 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
             nested_arrival_rates = []
             nested_selectivity = []
             nested_cost = []
+            if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+                nested_selectivity = TreePlanBuilder._selectivity_matrix_for_nested_operators(pattern)
             for arg in pattern.positive_structure.get_args():
                 if isinstance(arg, CompositeStructure):
                     temp_pattern = Pattern(arg, None, pattern.window)
-                    TreePlanBuilder._selectivity_matrix_for_nested_operators(temp_pattern)
                     if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
                         temp_pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, pattern.statistics)
+                    elif pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+                        (_, arrival_rates) = pattern.statistics
+                        temp_nested_selectivity = TreePlanBuilder._chop_matrix(pattern, arg)
+                        temp_pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (temp_nested_selectivity, arrival_rates))
                     nested_topology = self._create_tree_topology(temp_pattern)
                     nested_topologies.append(nested_topology)
-                    if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
+                    if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES or StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
                         cost = self._get_plan_cost(temp_pattern, nested_topology)
                         nested_arrival_rates.append(cost/pattern.window.total_seconds())
                         nested_cost.append(cost)
@@ -63,8 +68,15 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
                     if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
                         nested_arrival_rates.append(pattern.statistics[0])
                         pattern.statistics.pop(0)
+                    elif pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+                        (selectivity_matrix, arrival_rates) = pattern.statistics
+                        nested_arrival_rates.append(arrival_rates[0])
+                        arrival_rates.pop(0)
+                        pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivity_matrix, arrival_rates))
             if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
                 pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, nested_arrival_rates)
+            elif pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+                pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (nested_selectivity, nested_arrival_rates))
 
         order = self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure,
                                                                      CompositeStructure) else [0]
