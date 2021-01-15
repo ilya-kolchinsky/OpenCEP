@@ -176,3 +176,6 @@ class Pattern:
         return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.structure,
                                                                                 self.condition,
                                                                                 self.window)
+
+    def count_primitive_positive_events(self):
+        return self.positive_structure.count_primitive_events()

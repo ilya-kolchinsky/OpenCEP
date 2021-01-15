@@ -33,6 +33,12 @@ class PatternStructure(ABC):
         """
         raise NotImplementedError()
 
+    def count_primitive_events(self):
+        """
+        TODO: comment
+        """
+        raise NotImplementedError()
+
 
 class PrimitiveEventStructure(PatternStructure):
     """
@@ -54,6 +60,8 @@ class PrimitiveEventStructure(PatternStructure):
     def __repr__(self):
         return "%s %s" % (self.type, self.name)
 
+    def count_primitive_events(self):
+        return 1
 
 class UnaryStructure(PatternStructure, ABC):
     """
@@ -67,6 +75,9 @@ class UnaryStructure(PatternStructure, ABC):
 
     def contains_event(self, event_name: str):
         return self.arg.contains_event(event_name)
+
+    def count_primitive_events(self):
+        return self.arg.count_primitive_events()
 
 
 class CompositeStructure(PatternStructure, ABC):
@@ -100,6 +111,14 @@ class CompositeStructure(PatternStructure, ABC):
             if arg.contains_event(event_name):
                 return True
         return False
+
+    def count_primitive_events(self):
+        n = 0
+        for arg in self.args:
+            if not isinstance(arg, PatternStructure):
+                raise Exception("message") #TODO: fill
+            n = n + arg.count_primitive_events()
+        return n
 
 
 class AndOperator(CompositeStructure):

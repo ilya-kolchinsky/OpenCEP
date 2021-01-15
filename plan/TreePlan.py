@@ -39,10 +39,11 @@ class TreePlanNestedNode(TreePlanNode):
     """
     TODO:comment
     """
-    def __init__(self, event_index: int, tree_plan: TreePlanNode, args):
+    def __init__(self, event_index: int, tree_plan: TreePlanNode, args, cost):
         self.nested_event_index = event_index
         self.sub_tree_plan = tree_plan
         self.args = args
+        self.cost = cost
 
 class TreePlanInternalNode(TreePlanNode):
     """

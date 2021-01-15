@@ -3,7 +3,8 @@ This file contains the implementations of algorithms constructing a left-deep tr
 """
 import random
 from typing import List
-import numpy as np
+#import numpy as np
+import copy
 
 from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
     SeqOperator, NegationOperator, AndOperator
@@ -31,43 +32,53 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
         """
         nested_topologies = None
         nested_args = None
-        nested_stats = None
+        nested_arrival_rates = None
+        nested_selectivity = None
+        nested_cost = None
         if isinstance(pattern.positive_structure, CompositeStructure):  # TODO: else
             nested_topologies = []
             nested_args = []
-            nested_stats = []
+            nested_arrival_rates = []
+            nested_selectivity = []
+            nested_cost = []
             for arg in pattern.positive_structure.get_args():
                 if isinstance(arg, CompositeStructure):
-                    temp_pattern = Pattern(arg, None, None)
+                    temp_pattern = Pattern(arg, None, pattern.window)
+                    TreePlanBuilder._selectivity_matrix_for_nested_operators(temp_pattern)
                     if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
                         temp_pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, pattern.statistics)
-                    sub_stats, nested_topology = self._create_tree_topology(temp_pattern)
+                    nested_topology = self._create_tree_topology(temp_pattern)
                     nested_topologies.append(nested_topology)
                     if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
-                        nested_stats.append(np.sum(sub_stats))
+                        cost = self._get_plan_cost(temp_pattern, nested_topology)
+                        nested_arrival_rates.append(cost/pattern.window.total_seconds())
+                        nested_cost.append(cost)
+                    else:
+                        nested_cost.append(None)
                     nested_args.append(arg.args)
                 else:
                     nested_topologies.append(None)
                     nested_args.append(None)
+                    nested_cost.append(None)
                     if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
-                        nested_stats.append(pattern.statistics[0])
+                        nested_arrival_rates.append(pattern.statistics[0])
                         pattern.statistics.pop(0)
             if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
-                pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, nested_stats)
+                pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, nested_arrival_rates)
 
         order = self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure,
                                                                      CompositeStructure) else [0]
-        return nested_stats, LeftDeepTreeBuilder._order_to_tree_topology(order, pattern, nested_topologies, nested_args)
+        return LeftDeepTreeBuilder._order_to_tree_topology(order, pattern, nested_topologies, nested_args, nested_cost)
 
     @staticmethod
-    def _order_to_tree_topology(order: List[int], pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None):
+    def _order_to_tree_topology(order: List[int], pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
 
         """
         A helper method for converting a given order to a tree topology.
         """
-        tree_topology = TreePlanLeafNode(order[0]) if (nested_topologies is None or nested_topologies[order[0]] is None) else TreePlanNestedNode(order[0], nested_topologies[order[0]], nested_args[order[0]])
+        tree_topology = TreePlanLeafNode(order[0]) if (nested_topologies is None or nested_topologies[order[0]] is None) else TreePlanNestedNode(order[0], nested_topologies[order[0]], nested_args[order[0]], nested_cost[order[0]])
         for i in range(1, len(order)):
-            new_node = TreePlanLeafNode(order[i]) if (nested_topologies is None or nested_topologies[order[i]] is None) else TreePlanNestedNode(order[i], nested_topologies[order[i]],nested_args[order[i]])
+            new_node = TreePlanLeafNode(order[i]) if (nested_topologies is None or nested_topologies[order[i]] is None) else TreePlanNestedNode(order[i], nested_topologies[order[i]], nested_args[order[i]], nested_cost[order[i]])
             tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, new_node)
         return tree_topology
 

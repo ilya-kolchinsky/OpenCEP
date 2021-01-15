@@ -11,6 +11,7 @@ class TreePlanBuilder(ABC):
     """
     The base class for the builders of tree-based plans.
     """
+
     def __init__(self, cost_model_type: TreeCostModels):
         self.__cost_model = TreeCostModelFactory.create_cost_model(cost_model_type)
 
@@ -18,7 +19,7 @@ class TreePlanBuilder(ABC):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
-        _, root = self._create_tree_topology(pattern)
+        root = self._create_tree_topology(pattern)
         return TreePlan(root)
 
     def _create_tree_topology(self, pattern: Pattern):
@@ -46,3 +47,8 @@ class TreePlanBuilder(ABC):
         else:
             raise Exception("Unsupported binary operator")
         return TreePlanBinaryNode(operator_type, left_subtree, right_subtree)
+
+    @staticmethod
+    def _selectivity_matrix_for_nested_operators(pattern: Pattern):
+
+        #if pattern.count_primitive_positive_events() == len()

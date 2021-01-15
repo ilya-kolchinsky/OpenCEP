@@ -5,7 +5,7 @@ from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlan import TreePlanNode, TreePlanLeafNode
+from plan.TreePlan import TreePlanNode, TreePlanLeafNode, TreePlanNestedNode
 
 
 class TreeCostModel(ABC):
@@ -26,6 +26,9 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
     def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivity_matrix, arrival_rates) = pattern.statistics
+        elif pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
+            arrival_rates = pattern.statistics
+            selectivity_matrix = [[1.0 for x in range(len(arrival_rates))] for y in range(len(arrival_rates))]
         else:
             raise MissingStatisticsException()
         _, _, cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(plan, selectivity_matrix,
@@ -44,11 +47,14 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
                         selectivity_matrix[tree.event_index][tree.event_index]
             return [tree.event_index], pm, cost
 
+        if isinstance(tree, TreePlanNestedNode):
+            return [tree.nested_event_index], tree.cost, tree.cost
+
         # calculate for left subtree
         left_args, left_pm, left_cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.left_child,
-                                                                                             selectivity_matrix,
-                                                                                             arrival_rates,
-                                                                                             time_window)
+                                                                                                selectivity_matrix,
+                                                                                                arrival_rates,
+                                                                                                time_window)
         # calculate for right subtree
         right_args, right_pm, right_cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.right_child,
                                                                                                 selectivity_matrix,
