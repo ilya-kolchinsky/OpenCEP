@@ -93,10 +93,6 @@ class Algorithm2(DataParallelAlgorithm):
                  eval_mechanism_params: EvaluationMechanismParameters, platform):
 
         super().__init__(numthreads, patterns, eval_mechanism_params, platform)
-
-        self._output_handler = platform.create_parallel_execution_unit(
-            unit_id=numthreads + 1,
-            callback_function=self._match_to_output)  # todo:  change it to the main thread
         self._matches_buffer = Stream()
         self._init_time = None
         if isinstance(patterns, Pattern):
@@ -112,45 +108,66 @@ class Algorithm2(DataParallelAlgorithm):
         self.streams_queue = Queue()
         self.thread_pool = Queue()
         self.base_year = 0
+        for i in range(numthreads-1):
+            self.thread_pool.put(i)
+
+        ##
+        self.checker = set()
 
     def _stream_divide(self):
+
+        count1 = 0
+        count_total = 0
+        count_shared = 0
+        count_used = 0
         try:
             event_raw = self._events.get_item()
             cur_event = Event(event_raw, self._data_formatter)
         except StopIteration:
             raise Exception("Stream has no data")
 
-        start_time = cur_event.timestamp
-        stream = Stream()
+        curr_time = start_time = cur_event.timestamp
+        end_time = start_time + self.time_slot
         stream_s = Stream()
+        stream = Stream()
         check_data = True
         while check_data:
-            end_time = start_time + self.time_slot
-            curr_time = cur_event.timestamp
+            count_shared+=  stream_s.count()
             stream = stream_s.duplicate()
             stream_s = Stream()
             while curr_time <= end_time and check_data:
                 stream.add_item(event_raw)
-                if curr_time >= end_time - self.shared_time:
+                if curr_time >= end_time-self.shared_time:
                     stream_s.add_item(event_raw)
                 try:
                     event_raw = self._events.get_item()
                     cur_event = Event(event_raw, self._data_formatter)
+                    curr_time = cur_event.timestamp
                 except:
                     check_data = False
-                curr_time = cur_event.timestamp
-                if stream.count() > 0:
-                    stream.close()
-                    self.streams_queue.put_nowait(stream)
-                    self.start_queue.put_nowait(start_time)
-                start_time = end_time - self.shared_time
-                while not self.thread_pool.empty() and not self.streams_queue.empty():
-                    id = self.thread_pool.get()
-                    self._events_list[id] = self.streams_queue.get_nowait()
-                    self.start_list[id].add_item(self.start_queue.get_nowait())
+            stream.close()
+            if stream.count() > 0:
+                self.streams_queue.put_nowait(stream.duplicate())
+                self.start_queue.put_nowait(start_time)
+            start_time = end_time - self.shared_time
+            end_time = start_time + self.time_slot
+            ##########
+            while not self.thread_pool.empty() and not self.streams_queue.empty():
+                id = self.thread_pool.get()
+                self._events_list[id] = self.streams_queue.get_nowait().duplicate() #stream of input data
+                self.start_list[id].add_item(self.start_queue.get_nowait())
 
+        while not self.streams_queue.empty():
+                id = self.thread_pool.get()
+                self._events_list[id] = self.streams_queue.get_nowait().duplicate()  # stream of input data
+                self.start_list[id].add_item(self.start_queue.get_nowait())
+
+        #finished to divide the data
         for i in range(0, self._numThreads - 1):
             self.start_list[i].close()
+        print("shared", count_shared)
+        self._still_working= False
+
 
 
     def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
@@ -162,15 +179,17 @@ class Algorithm2(DataParallelAlgorithm):
             self._pool.append(thread_id)  # todo: change to the name linor given to the threads queue
 
     def _eval_test(self, thread_id, output):
-
-        # print("start thread id:", thread_id)
-        for begin_time in self.start_list[thread_id]:
+        counter = 0
+        for _ in self.start_list[thread_id]:
+            counter += 1
             for item in self._events_list[thread_id]:
-                output.add_item(item)
-            # print("id * ", thread_id)
+                if item not in self.checker:
+                    output.add_item(item)
+                    self.checker.add(item)
+
             self.thread_pool.put(thread_id)
-            # print("id ** ", thread_id)
-        print("end thread id:", thread_id)
+
+
 
     def _match_to_output(self):
         duplicated = set()
@@ -192,32 +211,34 @@ class Algorithm2(DataParallelAlgorithm):
         self._matches = matches
         self._stream_thread.start()
         for i in range(self._numThreads - 1):
-            self.thread_pool.put(i)
             t = self._platform.create_parallel_execution_unit(unit_id=i, callback_function=self._eval_test, thread_id=i, output=matches)
             # t = self._platform.create_parallel_execution_unit(unit_id=i, callback_function=self._eval_thread, thread_id=i, data_formatter=data_formatter)
             self._threads.append(t)
             t.start()
-        print("outputtt")
-        self._output_handler.start()
 
         for t in self._threads:
             t.wait()
-        print("outputtt 0")
-        #self._output_handler.wait()
-        ######################## for the test
-        """
-        buffer_matches.close()
-        try:
-            stream_iter = iter(buffer_matches)
-            item = next(stream_iter)
-            while item:  # adding all items expect the last one to the output stream
-                matches.add_item(item)
-                item = next(stream_iter)
-        except StopIteration:
-            pass
 
+        """ 
+        duplicated = set() ## todo: lock the section
+        for match, flag in self._matches_buffer:
+            print("hey 0")
+            if flag:
+                if match in duplicated:
+                    duplicated.remove(match)
+                else:
+                    self._matches.add_item(match)
+                    duplicated.add(match)
+            else:
+                self._matches.add_item(match)
+            print("hey ")
+            if self._matches_buffer.stream.empty and self._still_working:
+                matches.close()
+                break
+            """
         matches.close()
-        """
+
+
 
 
 class Algorithm3(DataParallelAlgorithm):

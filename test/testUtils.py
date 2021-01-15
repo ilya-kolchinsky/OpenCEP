@@ -62,8 +62,26 @@ def closeFiles(file1, file2):
     file1.close()
     file2.close()
 
-
 def fileCompare(pathA, pathB):
+    file1 = open(pathA)
+    file2 = open(pathB)
+    file1.seek(0)
+    file2.seek(0)
+    list1= list2 = []
+
+    for line in file1:
+        list1.append(line)
+
+    for line in file2:
+        list2.append(line)
+
+    list1.sort()
+    list2.sort()
+    file1.close()
+    file2.close()
+    return list1==list2
+
+def fileCompare1(pathA, pathB):
     """
     Compare expected output and actual ouput
     :param path1: path to first file
@@ -80,12 +98,14 @@ def fileCompare(pathA, pathB):
     file2.seek(0)
 
     # quick check, if both files don't return the same counter, or if both files are empty
+    """ 
     if counter1 != counter2:
         closeFiles(file1, file2)
         return False
     elif counter1 == counter2 and counter1 == 0:
         closeFiles(file1, file2)
         return True
+    """
 
     list1 = list()
     list2 = list()
@@ -95,6 +115,7 @@ def fileCompare(pathA, pathB):
     closeFiles(file1, file2)
     list1.sort()
     list2.sort()
+    print(list1 == list2)
     return list1 == list2
 
 
@@ -177,17 +198,16 @@ def runTest(testName, patterns, createTestFile = False,
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
-    print(base_matches_directory, output_file_name)
-    print(matches_stream)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
+    print(actual_matches_path)
     is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
-    if is_test_successful:
-       os.remove(actual_matches_path)
+    #if is_test_successful:
+      # os.remove(actual_matches_path)
 
 """
 Input:
