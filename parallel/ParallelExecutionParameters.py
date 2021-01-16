@@ -16,7 +16,7 @@ class ParallelExecutionParameters:
 
 class DataParallelExecutionParameters:
 
-    def __init__(self, data_parallel_mode: DataParallelExecutionModes = DataParallelExecutionModes.ALGORITHM2,
+    def __init__(self, data_parallel_mode: DataParallelExecutionModes = DefaultConfig.DEFAULT_DATA_PARALLEL_ALGORITHM,
                  num_threads: int = 1, key: str = None):
         self.algorithm = data_parallel_mode
         self.numThreads = num_threads

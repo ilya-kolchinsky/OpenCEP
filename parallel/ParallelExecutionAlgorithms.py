@@ -51,7 +51,7 @@ class DataParallelAlgorithm(ABC):
         self._stream_thread = platform.create_parallel_execution_unit(unit_id=self._numThreads - 1, callback_function=self._stream_divide)
         self._still_working = True
         self._matches = None
-        self._paterrns = patterns
+        self._patterns = patterns
 
         for i in range(0, self._numThreads - 1):
             self._trees.append(_make_tree(patterns, eval_mechanism_params))
@@ -65,8 +65,14 @@ class DataParallelAlgorithm(ABC):
         """
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
-        raise NotImplementedError()
-
+        self._events = events
+        self._data_formatter = data_formatter
+        self._matches = matches
+        self._stream_thread.start()
+        for i in range(self._numThreads - 1):
+            t = self._platform.create_parallel_execution_unit(unit_id=i, callback_function=self._eval_thread, thread_id=i, data_formatter=data_formatter)
+            self._threads.append(t)
+            t.start()
 
 class Algorithm1(DataParallelAlgorithm):
     def __init__(self, numthreads, patterns: Pattern or List[Pattern],
@@ -75,6 +81,7 @@ class Algorithm1(DataParallelAlgorithm):
         self.key = key
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+
         event = Event(events.first())
         key_val = event.payload[self.key]
         if not isinstance(key_val, (int, float)):
@@ -93,6 +100,7 @@ class Algorithm2(DataParallelAlgorithm):
                  eval_mechanism_params: EvaluationMechanismParameters, platform):
 
         super().__init__(numthreads, patterns, eval_mechanism_params, platform)
+        self._eval_mechanism_params = eval_mechanism_params
         self._matches_buffer = Stream()
         self._init_time = None
         if isinstance(patterns, Pattern):
@@ -108,11 +116,14 @@ class Algorithm2(DataParallelAlgorithm):
         self.streams_queue = Queue()
         self.thread_pool = Queue()
         self.base_year = 0
-        for i in range(numthreads-1):
+        self._finished_list = []
+        for i in range(numthreads - 1):
             self.thread_pool.put(i)
+            self._finished_list.append(0)
 
         ##
-        self.checker = set()
+
+    # def _threads_divide_date(self):
 
     def _stream_divide(self):
 
@@ -132,12 +143,12 @@ class Algorithm2(DataParallelAlgorithm):
         stream = Stream()
         check_data = True
         while check_data:
-            count_shared+=  stream_s.count()
+            count_shared += stream_s.count()
             stream = stream_s.duplicate()
             stream_s = Stream()
             while curr_time <= end_time and check_data:
                 stream.add_item(event_raw)
-                if curr_time >= end_time-self.shared_time:
+                if curr_time >= end_time - self.shared_time:
                     stream_s.add_item(event_raw)
                 try:
                     event_raw = self._events.get_item()
@@ -154,29 +165,30 @@ class Algorithm2(DataParallelAlgorithm):
             ##########
             while not self.thread_pool.empty() and not self.streams_queue.empty():
                 id = self.thread_pool.get()
-                self._events_list[id] = self.streams_queue.get_nowait().duplicate() #stream of input data
-                self.start_list[id].add_item(self.start_queue.get_nowait())
-
-        while not self.streams_queue.empty():
-                id = self.thread_pool.get()
                 self._events_list[id] = self.streams_queue.get_nowait().duplicate()  # stream of input data
                 self.start_list[id].add_item(self.start_queue.get_nowait())
 
-        #finished to divide the data
+        while not self.streams_queue.empty():
+            id = self.thread_pool.get()
+            self._events_list[id] = self.streams_queue.get_nowait().duplicate()  # stream of input data
+            self.start_list[id].add_item(self.start_queue.get_nowait())
+
+        # finished to divide the data
         for i in range(0, self._numThreads - 1):
             self.start_list[i].close()
-        print("shared", count_shared)
-        self._still_working= False
-
-
+        self._still_working = False
 
     def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
-
-        for begin_time in self._times[thread_id]:
-            time1, time2  # todo: calculate the shared times
-            self._trees[thread_id].eval_parallel(self._events_list, self._matches_buffer, data_formatter, time1, time2)
-            self._trees[thread_id] = _make_tree(self._patterens)
-            self._pool.append(thread_id)  # todo: change to the name linor given to the threads queue
+        print("?")
+        for start_time in self.start_list[thread_id]:
+            print("s ", thread_id)
+            shared_time1 = start_time + self.shared_time
+            shared_time2 = start_time + self.time_slot - self.shared_time  # todo: calculate the shared times
+            self._trees[thread_id].eval_parallel(self._events_list[thread_id], self._matches_buffer, data_formatter, shared_time1, shared_time2)
+            self._trees[thread_id] = _make_tree(self._patterns, self._eval_mechanism_params)
+            self.thread_pool.put(thread_id)  # todo: change to the name linor given to the threads queue
+            print("e ", thread_id)
+        self._finished_list[thread_id] = 1
 
     def _eval_test(self, thread_id, output):
         counter = 0
@@ -188,8 +200,6 @@ class Algorithm2(DataParallelAlgorithm):
                     self.checker.add(item)
 
             self.thread_pool.put(thread_id)
-
-
 
     def _match_to_output(self):
         duplicated = set()
@@ -206,39 +216,23 @@ class Algorithm2(DataParallelAlgorithm):
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
 
-        self._events = events
-        self._data_formatter = data_formatter
-        self._matches = matches
-        self._stream_thread.start()
-        for i in range(self._numThreads - 1):
-            t = self._platform.create_parallel_execution_unit(unit_id=i, callback_function=self._eval_test, thread_id=i, output=matches)
-            # t = self._platform.create_parallel_execution_unit(unit_id=i, callback_function=self._eval_thread, thread_id=i, data_formatter=data_formatter)
-            self._threads.append(t)
-            t.start()
+        super().eval_algorithm(events, matches, data_formatter)
 
-        for t in self._threads:
-            t.wait()
-
-        """ 
-        duplicated = set() ## todo: lock the section
+        check_duplicated = set()  ## todo: lock the section??
         for match, flag in self._matches_buffer:
-            print("hey 0")
             if flag:
-                if match in duplicated:
-                    duplicated.remove(match)
+                if match.__str__() in check_duplicated:
+                    check_duplicated.remove(match.__str__)
                 else:
                     self._matches.add_item(match)
-                    duplicated.add(match)
+                    check_duplicated.add(match.__str__)
             else:
                 self._matches.add_item(match)
-            print("hey ")
-            if self._matches_buffer.stream.empty and self._still_working:
+
+            if self._matches_buffer.stream.empty and self._still_working == False and sum(self._finished_list) == self._numThreads - 1:
+                print("what")
                 matches.close()
                 break
-            """
-        matches.close()
-
-
 
 
 class Algorithm3(DataParallelAlgorithm):

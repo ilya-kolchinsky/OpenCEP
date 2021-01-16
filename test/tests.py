@@ -9,11 +9,15 @@ from test.internal_tests import *
 from test.UnitTests.test_storage import run_storage_tests
 
 
+
+
+
+
 runTest.over_all_time = 0
 
 # basic functionality tests
-stream_test()
 
+oneArgumentsearchTest()
 '''
 oneArgumentsearchTest()
 simplePatternSearchTest()

@@ -83,7 +83,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__try_register_freezer(event, leaf)
                 leaf.handle_event(event)
 
-            if raw_event.timestamp <= time1: #begin
+            if event.timestamp <= time1: #begin
                 for match in self.__tree.get_matches():
                     match_event = match.events
                     flag = True
@@ -93,7 +93,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                             break
                     matches.add_item([match, flag])
                     self.__remove_matched_freezers(match.events)
-            elif raw_event.timestamp >= time2:# end
+            elif event.timestamp >= time2:# end
                 for match in self.__tree.get_matches():
                     match_event = match.events
                     flag = True
@@ -111,7 +111,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         for match in self.__tree.get_last_matches():
-            matches.add_item(match)
+            matches.add_item([match, True])
         matches.close()
 
     def __register_event_listeners(self):

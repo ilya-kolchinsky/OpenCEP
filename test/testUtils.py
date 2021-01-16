@@ -65,7 +65,7 @@ def closeFiles(file1, file2):
     file2.close()
 
 
-def fileCompare(pathA, pathB):
+def fileCompare1(pathA, pathB):
     file1 = open(pathA)
     file2 = open(pathB)
     file1.seek(0)
@@ -90,7 +90,7 @@ def fileCompare(pathA, pathB):
     return list1 == list2
 
 
-def fileCompare1(pathA, pathB):
+def fileCompare(pathA, pathB):
     """
     Compare expected output and actual ouput
     :param path1: path to first file
@@ -177,8 +177,8 @@ def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
 def runTest(testName, patterns, createTestFile=False,
             eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
             events=None, eventStream=nasdaqEventStream,
-            parallel_execution_params: ParallelExecutionParameters = None,
-            data_parallel_params: DataParallelExecutionParameters = None
+            parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+            data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads= 6)
             ):
     if createTestFile:
         createTest(testName, patterns, events, eventStream=eventStream)
@@ -217,8 +217,8 @@ def runTest(testName, patterns, createTestFile=False,
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
-    # if is_test_successful:
-    # os.remove(actual_matches_path)
+    if is_test_successful:
+        os.remove(actual_matches_path)
 
 
 """
