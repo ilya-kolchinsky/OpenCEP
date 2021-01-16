@@ -1,5 +1,5 @@
 from functools import reduce
-from typing import List
+from typing import List, Any
 
 from base.Event import Event
 from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
@@ -172,7 +172,10 @@ class Pattern:
                 result.extend(nested_sequences)
         return result
 
+    def set_time_window(self, new_time_window):
+        self.window = new_time_window
+
     def __repr__(self):
-        return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.structure,
+        return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.full_structure,
                                                                                 self.condition,
                                                                                 self.window)

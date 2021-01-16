@@ -26,6 +26,7 @@ class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
         args_num = len(selectivity_matrix)
         if args_num == 1:
             return [0]
+            # FIXME, should be leafNode
 
         items = frozenset(range(args_num))
         # Save subsets' optimal topologies, the cost and the left to add items.

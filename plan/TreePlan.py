@@ -63,6 +63,10 @@ class TreePlanInternalNode(TreePlanNode):
     def __init__(self, operator: OperatorTypes, height=0):
         super().__init__(height)
         self.operator = operator
+
+    def get_operator(self):
+        return self.operator
+
     def __str__(self) -> str:
         """
         “informal” or nicely printable string representation of an object

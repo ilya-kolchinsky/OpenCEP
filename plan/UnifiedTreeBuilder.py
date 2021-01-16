@@ -545,12 +545,6 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         leaves_in_plan_node_2 = plan_node2.get_leaves()
         if leaves_in_plan_node_1 is None or leaves_in_plan_node_2 is None:
             return None, None
-        for leaf in leaves_in_plan_node_1:
-            if leaf not in list(leaves_dict.get(pattern1).keys()):
-                return None, None
-        for leaf in leaves_in_plan_node_2:
-            if leaf not in list(leaves_dict.get(pattern2).keys()):
-                return None, None
 
         event_indexes1 = list(map(lambda e: e.event_index, leaves_in_plan_node_1))
         pattern1_events = list(leaves_dict.get(pattern1).values())
