@@ -72,9 +72,9 @@ class Tree:
         """
         condition_copy = deepcopy(pattern.condition)
         self.__root.apply_condition(condition_copy)
-        if condition_copy.get_num_conditions() > 0:
-            raise Exception("Unused conditions after condition propagation: {}".format(
-                condition_copy.get_conditions_list()))
+        #if condition_copy.get_num_conditions() > 0:
+            #raise Exception("Unused conditions after condition propagation: {}".format(
+             #   condition_copy.get_conditions_list()))
 
     def __adjust_leaf_indices(self, pattern: Pattern):
         """

@@ -107,7 +107,7 @@ class LeafNode(Node):
         """
         “informal” or nicely printable string representation of an object
         """
-        return self.__event_name
+        return self.__event_name + ' ' + self.__event_type + ' ' + str(hash(self))[0:3]
 
     def is_equivalent(self, other):
         """

@@ -56,7 +56,7 @@ class GraphVisualization:
         curr_node_value = str(node)
         self.addVertex(curr_node_value)
         self.set_vertex_pos(curr_node_value, node_level)
-        if len(node.get_parents()) == 0:  # root
+        if len(node.get_parents()) == 0 or (node in self.roots):  # root
             self.roots.add(curr_node_value)
         else:
             for parent in node.get_parents():

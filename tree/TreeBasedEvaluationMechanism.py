@@ -148,7 +148,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         return self.get_structure_summary()
 
     def visualize(self, title=None, visualize_flag=DefaultConfig.VISUALIZATION):
-        if visualize_flag:
-            G = GraphVisualization(title)
-            G.build_from_leaves(self.__tree.get_leaves())
-            G.visualize()
+         if visualize_flag:
+             G = GraphVisualization(title)
+             G.roots = {str(root) for root in list(self._TreeBasedEvaluationMechanism__tree._MultiPatternTree__pattern_to_output_node_dict.values())}
+             G.build_from_leaves(self.__tree.get_leaves())
+             G.visualize()

@@ -368,7 +368,8 @@ def union_intersection_size(patterns: List[Pattern], approach: MultiPatternTreeP
 
         return size_of_intersection
 
-    _ = unified_builder._union_tree_plans(pattern_to_tree_plan_map, approach)
+    ut = unified_builder._union_tree_plans(pattern_to_tree_plan_map, approach)
+    tree_plan_builder.visualize(ut, title=f'SMT unified Tree Plan')
 
     size_of_intersection = unified_builder.trees_number_nodes_shared
     return size_of_intersection
