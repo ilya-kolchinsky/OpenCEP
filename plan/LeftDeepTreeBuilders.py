@@ -128,10 +128,7 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
     """
 
     def _create_evaluation_order(self, pattern: Pattern):
-        if pattern.statistics_type == StatisticsTypes.FREQUENCY_DICT:
-            frequency_dict = pattern.statistics
-            order = get_order_by_occurrences(pattern.positive_structure.args, frequency_dict)
-        elif pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
+        if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
             arrival_rates = pattern.statistics
             # create an index-arrival rate binding and sort according to arrival rate.
             sorted_order = sorted([(i, arrival_rates[i]) for i in range(len(arrival_rates))], key=lambda x: x[1])
