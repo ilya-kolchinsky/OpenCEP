@@ -33,6 +33,7 @@ nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/Ev
 custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"))
 custom2 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom2.txt"))
 custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.txt"))
+custom_temp = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom_temp.txt"))
 
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
@@ -43,6 +44,7 @@ DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True))
 DEFAULT_TESTING_DATA_FORMATTER = MetastockDataFormatter()
+
 
 def numOfLinesInPattern(file):
     """
@@ -63,6 +65,31 @@ def closeFiles(file1, file2):
     file2.close()
 
 
+def fileCompare1(pathA, pathB):
+    file1 = open(pathA)
+    file2 = open(pathB)
+    file1.seek(0)
+    file2.seek(0)
+    list1 = []
+    list2 = []
+
+    for line in file1:
+        list1.append(line)
+
+    for line in file2:
+        list2.append(line)
+    print(len(list1), len(list2))
+    if len(list1) != len(list2):
+        return False
+
+    list1.sort()
+    list2.sort()
+    file1.close()
+    file2.close()
+
+    return list1 == list2
+
+
 def fileCompare(pathA, pathB):
     """
     Compare expected output and actual ouput
@@ -80,12 +107,14 @@ def fileCompare(pathA, pathB):
     file2.seek(0)
 
     # quick check, if both files don't return the same counter, or if both files are empty
+    """ 
     if counter1 != counter2:
         closeFiles(file1, file2)
         return False
     elif counter1 == counter2 and counter1 == 0:
         closeFiles(file1, file2)
         return True
+    """
 
     list1 = list()
     list2 = list()
@@ -95,6 +124,7 @@ def fileCompare(pathA, pathB):
     closeFiles(file1, file2)
     list1.sort()
     list2.sort()
+    print(list1 == list2)
     return list1 == list2
 
 
@@ -133,7 +163,7 @@ def outputTestFile(base_path: str, matches: list, output_file_name: str = 'match
             f.write("\n")
 
 
-def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream):
+def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -144,11 +174,11 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
     print("Finished creating test %s" % testName)
 
 
-def runTest(testName, patterns, createTestFile = False,
-            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events = None, eventStream = nasdaqEventStream,
-            parallel_execution_params: ParallelExecutionParameters = None,
-            data_parallel_params: DataParallelExecutionParameters = None
+def runTest(testName, patterns, createTestFile=False,
+            eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+            events=None, eventStream=nasdaqEventStream,
+            parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+            data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads= 6)
             ):
     if createTestFile:
         createTest(testName, patterns, events, eventStream=eventStream)
@@ -161,6 +191,7 @@ def runTest(testName, patterns, createTestFile = False,
     listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd"]
     listCustom2 = ["simpleNot"]
+    list_temp = ["i"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
@@ -169,6 +200,8 @@ def runTest(testName, patterns, createTestFile = False,
         events = custom.duplicate()
     elif testName in listCustom2:
         events = custom2.duplicate()
+    elif testName in list_temp:
+        events = custom_temp.duplicate()
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
 
@@ -177,8 +210,6 @@ def runTest(testName, patterns, createTestFile = False,
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
-    print(base_matches_directory, output_file_name)
-    print(matches_stream)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
@@ -186,8 +217,9 @@ def runTest(testName, patterns, createTestFile = False,
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
-    if is_test_successful:
-       os.remove(actual_matches_path)
+    #if is_test_successful:
+     #   os.remove(actual_matches_path)
+
 
 """
 Input:
@@ -196,6 +228,8 @@ patterns- list of patterns
 Output:
 expected output file for the test.
 """
+
+
 def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                          events=None, eventStream=nasdaqEventStream):
     curr_events = events
@@ -215,6 +249,7 @@ def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTI
         single_pattern_path = os.path.join(expected_directory, filename)
         os.remove(single_pattern_path)
 
+
 def uniteFiles(testName, numOfPatterns):
     base_matches_directory = os.path.join(absolutePath, 'test', 'TestsExpected')
     output_file_name = "%sMatches.txt" % testName
@@ -233,14 +268,17 @@ def uniteFiles(testName, numOfPatterns):
             for line in setexp:
                 f.write(line)
                 f.write('\n\n')
+
+
 """
 This function runs multi-pattern CEP on the given list of patterns and prints
 success or fail output.
 """
-def runMultiTest(testName, patterns, createTestFile = False,
-            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events = None, eventStream = nasdaqEventStream):
 
+
+def runMultiTest(testName, patterns, createTestFile=False,
+                 eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                 events=None, eventStream=nasdaqEventStream):
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -290,7 +328,7 @@ def runMultiTest(testName, patterns, createTestFile = False,
             exp_set[int(match.partition(':')[0]) - 1].add(match.strip()[match.index(' ') + 1:])
     res = (exp_set == match_set)
     print("Test %s result: %s, Time Passed: %s" % (testName,
-          "Succeeded" if res else "Failed", running_time))
+                                                   "Succeeded" if res else "Failed", running_time))
     runTest.over_all_time += running_time
     if res:
         os.remove(actual_matches_path)
@@ -322,4 +360,4 @@ def runStructuralTest(testName, patterns, expected_result,
     # print('place a breakpoint after creating the CEP object to debug it.\n')
     cep = CEP(patterns, eval_mechanism_params)
     structure_summary = cep.get_evaluation_mechanism_structure_summary()
-    print("Test %s result: %s" % (testName,"Succeeded" if structure_summary == expected_result else "Failed"))
+    print("Test %s result: %s" % (testName, "Succeeded" if structure_summary == expected_result else "Failed"))

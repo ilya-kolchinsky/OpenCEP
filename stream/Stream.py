@@ -43,6 +43,10 @@ class Stream:
             x = self._stream.queue[-2]
         return x
 
+    @property
+    def stream(self):
+        return self._stream
+
 
 class InputStream(Stream):
     """
