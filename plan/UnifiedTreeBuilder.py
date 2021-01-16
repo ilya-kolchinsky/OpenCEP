@@ -186,11 +186,6 @@ class UnifiedTreeBuilder(TreePlanBuilder):
     @staticmethod
     def _create_evaluation_order(pattern: Pattern):
         args_num = len(pattern.positive_structure.args)
-        is_commutative = pattern.positive_structure.commutative()
-        if is_commutative:
-            return list(
-                map(lambda t: t[0], sorted(enumerate(pattern.positive_structure.args), key=lambda t: t[1].name)))
-
         return list(range(args_num))
 
     @staticmethod

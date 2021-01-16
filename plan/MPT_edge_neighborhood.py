@@ -5,7 +5,7 @@ from typing import List, Dict
 
 from base.PatternStructure import SeqOperator, OrOperator, AndOperator, KleeneClosureOperator, NegationOperator, \
     PrimitiveEventStructure
-from condition.BaseRelationCondition import GreaterThanCondition
+from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCondition
 from condition.CompositeCondition import AndCondition
 from condition.Condition import Variable
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
@@ -27,13 +27,16 @@ class algoA(TreePlanBuilder):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivity_matrix, arrival_rates) = pattern.statistics
         else:
-            return TrivialLeftDeepTreeBuilder(TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL)
+            builder = UnifiedTreeBuilder.get_instance()
+            pattern_tree_plan = builder.build_tree_plan(pattern)
+            return pattern_tree_plan
+
         args_num = len(selectivity_matrix)
         if args_num == 1:
-            pattern_event_name = {event.name for event in pattern.positive_structure.get_args()}
-            assert len(pattern_event_name) == 1
-            event_index = pattern.get_index_by_event_name(pattern_event_name[0])
-            return TreePlanLeafNode(event_index)
+            assert len(pattern.positive_structure.get_args()) == 1
+            event_index = pattern.get_index_by_event_name(pattern.positive_structure.get_args()[0])
+            node = TreePlanLeafNode(event_index)
+            return TreePlan(root=node)
 
         items = frozenset(range(args_num)) - frozenset(const_sub_ord)
         # Save subsets' optimal topologies, the cost and the left to add items.
@@ -155,7 +158,8 @@ class algoA(TreePlanBuilder):
         for node1, node2 in itertools.product(tree1_subtrees, tree2_subtrees):
             if UnifiedTreeBuilder.is_equivalent(node1, pattern1, node2, pattern2, leaves_dict):
                 sharable_sub_pattern = algoA.build_pattern_from_plan_node(node1, pattern1, leaves_dict, first_time=True)
-                sharable_sub_pattern.set_time_window(min(pattern1.window, pattern2.window))  # TODO : need to make sure which one to apply between min/max
+                sharable_sub_pattern.set_time_window(min(pattern1.window,
+                                                         pattern2.window))  # TODO : need to make sure which one to apply between min/max
                 sharable.append(sharable_sub_pattern)
         return list(set(sharable))  # this conversion to set and back to list is to make sure we get no duplicates
 
@@ -246,44 +250,24 @@ class algoA(TreePlanBuilder):
         sub_pattern_shareable_array[j, i].remove(sub_pattern)
 
 
-def sub_pattern_unit_test():
-    pattern = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZ", "b")),
-        AndCondition(
-            GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
-            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                                 Variable("b", lambda x: x["Opening Price"]))),
-        timedelta(minutes=5)
-    )
-
-    eval_mechanism_params = TreeBasedEvaluationMechanismParameters()
-    tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
-    tree_plan = tree_plan_builder.build_tree_plan(pattern)
-
-    sub_pattern = algoA.build_pattern_from_plan_node(node=tree_plan.root, pattern1=pattern, first_time=True)
-
-    assert str(sub_pattern) == str(pattern)
-
-    sub_pattern1 = algoA.build_pattern_from_plan_node(node=tree_plan.root.left_child,
-                                                      pattern1=pattern, first_time=True)
-
-
 def shareable_all_pairs_unit_test():
     pattern1 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZ", "b")),
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
         AndCondition(
             GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
             GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
                                  Variable("b", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-
     pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZ", "b")),
+        SeqOperator(PrimitiveEventStructure("AAPL", "x"), PrimitiveEventStructure("AMZN", "y"),
+                    PrimitiveEventStructure("GOOG", "z")),
         AndCondition(
-            GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
-            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                                 Variable("b", lambda x: x["Opening Price"]))),
+            GreaterThanCondition(Variable("x", lambda x: x["Peak Price"]), 135),
+            GreaterThanCondition(Variable("x", lambda x: x["Opening Price"]),
+                                 Variable("y", lambda x: x["Opening Price"])),
+            SmallerThanCondition(Variable("y", lambda x: x["Opening Price"]),
+                                 Variable("z", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
 
@@ -294,9 +278,29 @@ def shareable_all_pairs_unit_test():
 
     pattern_to_tree_plan_map = {p: tree_plan_builder.build_tree_plan(p) for p in patterns}
 
-    shareable_pairs = algoA.get_all_sharable_sub_patterns(pattern_to_tree_plan_map[pattern1], pattern1, pattern_to_tree_plan_map[pattern2], pattern2)
+    shareable_pairs = algoA.get_all_sharable_sub_patterns(pattern_to_tree_plan_map[pattern1], pattern1,
+                                                          pattern_to_tree_plan_map[pattern2], pattern2)
+    print('Ok')
+
+
+def create_topology_test():
+    pattern1 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("GOOG", "d")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
+                         [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
+    arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
+    pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    algoA_instance = algoA()
+    new_plan = algoA_instance._create_topology_with_const_sub_order(pattern1, [0, 3])
     print('Ok')
 
 
 if __name__ == '__main__':
-    shareable_all_pairs_unit_test()
+    create_topology_test()
