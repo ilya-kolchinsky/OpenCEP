@@ -1,28 +1,80 @@
 import itertools
 import random
 from datetime import timedelta
-from typing import List, Dict
+from itertools import combinations
+from typing import List, Dict, Tuple
 
+import numpy as np
+
+from SimulatedAnnealing import tree_plan_visualize_annealing
+from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, OrOperator, AndOperator, KleeneClosureOperator, NegationOperator, \
     PrimitiveEventStructure
 from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCondition
 from condition.CompositeCondition import AndCondition
 from condition.Condition import Variable
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
-from plan.TreePlanBuilder import TreePlanBuilder
-from base.Pattern import Pattern
-from misc.Utils import get_all_disjoint_sets
 from misc.StatisticsTypes import StatisticsTypes
-from plan.LeftDeepTreeBuilders import TrivialLeftDeepTreeBuilder
-from itertools import combinations
+from misc.Utils import get_all_disjoint_sets
 from plan import TreeCostModels
+from plan.LeftDeepTreeBuilders import TrivialLeftDeepTreeBuilder
+from plan.TreeCostModel import TreeCostModelFactory
+from plan.TreePlan import *
+from plan.TreePlanBuilder import TreePlanBuilder
 from plan.TreePlanBuilderFactory import TreePlanBuilderFactory
 from plan.UnifiedTreeBuilder import UnifiedTreeBuilder
-from plan.TreePlan import *
-import numpy as np
 
 
 class algoA(TreePlanBuilder):
+
+    def _create_tree_topology(self, pattern: Pattern):
+
+        if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+            (selectivity_matrix, arrival_rates) = pattern.statistics
+        else:
+            builder = UnifiedTreeBuilder.get_instance()
+            pattern_tree_plan = builder.build_tree_plan(pattern)
+            return pattern_tree_plan
+
+        args_num = len(selectivity_matrix)
+        if args_num == 1:
+            assert len(pattern.positive_structure.get_args()) == 1
+            event_index = pattern.get_index_by_event_name(pattern.positive_structure.get_args()[0])
+            node = TreePlanLeafNode(event_index)
+            return TreePlan(root=node)
+
+        items = frozenset(range(args_num))
+        # Save subsets' optimal topologies, the cost and the left to add items.
+        sub_trees = {frozenset({i}): (TreePlanLeafNode(i),
+                                      self._get_plan_cost(pattern, TreePlanLeafNode(i)),
+                                      items.difference({i}))
+                     for i in items}
+
+        # for each subset of size i, find optimal topology for these subsets according to size (i-1) subsets.
+        for i in range(2, args_num + 1):
+            for tSubset in combinations(items, i):
+                subset = frozenset(tSubset)
+                disjoint_sets_iter = get_all_disjoint_sets(subset)  # iterator for all disjoint splits of a set.
+                # use first option as speculative best.
+                set1_, set2_ = next(disjoint_sets_iter)
+                tree1_, _, _ = sub_trees[set1_]
+                tree2_, _, _ = sub_trees[set2_]
+                new_tree_ = TreePlanBuilder._instantiate_binary_node(pattern, tree1_, tree2_)
+                new_cost_ = self._get_plan_cost(pattern, new_tree_)
+                new_left_ = items.difference({subset})
+                sub_trees[subset] = new_tree_, new_cost_, new_left_
+                # find the best topology based on previous topologies for smaller subsets.
+                for set1, set2 in disjoint_sets_iter:
+                    tree1, _, _ = sub_trees[set1]
+                    tree2, _, _ = sub_trees[set2]
+                    new_tree = TreePlanBuilder._instantiate_binary_node(pattern, tree1, tree2)
+                    new_cost = self._get_plan_cost(pattern, new_tree)
+                    _, cost, left = sub_trees[subset]
+                    # if new subset's topology is better, then update to it.
+                    if new_cost < cost:
+                        sub_trees[subset] = new_tree, new_cost, left
+        return sub_trees[items][0]  # return the best topology (index 0 at tuple) for items - the set of all arguments.
+
     def _create_topology_with_const_sub_order(self, pattern: Pattern, const_sub_ord: list):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivity_matrix, arrival_rates) = pattern.statistics
@@ -301,6 +353,71 @@ def create_topology_test():
     new_plan = algoA_instance._create_topology_with_const_sub_order(pattern1, [0, 3])
     print('Ok')
 
+# =======================================================================================
+def tree_plan_cost_function(state: Tuple[Dict[Pattern, TreePlan], np.array]):
+    pattern_to_tree_plan_map, _ = state
+    cost_model = TreeCostModelFactory.create_cost_model()
+
+    def _single_pattern_cost(pattern: Pattern, tree_plan_root: TreePlanNode):
+        try:
+            cost = cost_model.get_plan_cost(pattern, tree_plan_root)
+            return cost
+        except:
+            return 0  # TODO??
+
+    tree_plan_total_cost = sum([_single_pattern_cost(pattern, tree_plan.root) for pattern, tree_plan in pattern_to_tree_plan_map.items()])
+    return tree_plan_total_cost
+
+
+def patterns_initialize_function(patterns: List[Pattern]):
+    alg = algoA()
+    pattern_to_tree_plan_map = {p: alg._create_tree_topology(p) for p in patterns}
+    shareable_pairs = algoA.get_shareable_pairs(pattern_to_tree_plan_map)
+    return pattern_to_tree_plan_map, shareable_pairs
+
+
+def tree_plan_neighbour(state: Tuple[Dict[Pattern, TreePlan], np.array]):
+    """Move a little bit x, from the left or the right."""
+    pattern_to_tree_plan_map, shareable_pairs = state
+    alg = algoA()
+    neighbour = alg.Nedge_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
+    return neighbour
+
+def tree_plan_state_get_summary(state: Tuple[Dict[Pattern, TreePlan], np.array]):
+    _, shareable_pairs = state
+    count_common_pairs = lambda lst: len(lst) if lst is not None else 0
+
+    # dividing by 2 cause the shareable_pairs is a symmetric matrix
+    return "common pairs size = " + str(np.sum([count_common_pairs(lst) for lst in shareable_pairs.reshape(-1)]) // 2)
+
 
 if __name__ == '__main__':
-    create_topology_test()
+    # shareable_pairs_unit_test()
+
+    pattern1 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZ", "b")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+
+    pattern2 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZ", "b")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+
+    patterns = [pattern1, pattern2]
+    pattern_to_tree_plan_map = patterns_initialize_function(patterns)
+    state, c, states, costs = tree_plan_visualize_annealing(patterns=patterns,
+                                                            initialize_function=patterns_initialize_function,
+                                                            state_repr_function=tree_plan_state_get_summary,
+                                                            cost_function=tree_plan_cost_function,
+                                                            neighbour_function=tree_plan_neighbour)
+
+
