@@ -179,7 +179,6 @@ class Algorithm2(DataParallelAlgorithm):
         self._still_working = False
 
     def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
-        print("?")
         for start_time in self.start_list[thread_id]:
             print("s ", thread_id)
             shared_time1 = start_time + self.shared_time
@@ -220,6 +219,7 @@ class Algorithm2(DataParallelAlgorithm):
 
         check_duplicated = set()  ## todo: lock the section??
         for match, flag in self._matches_buffer:
+            print("!")
             if flag:
                 if match.__str__() in check_duplicated:
                     check_duplicated.remove(match.__str__)
