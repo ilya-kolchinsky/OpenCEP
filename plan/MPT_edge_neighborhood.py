@@ -29,7 +29,13 @@ from plan.UnifiedTreeBuilder import UnifiedTreeBuilder
 class algoA(TreePlanBuilder):
 
     def _create_tree_topology(self, pattern: Pattern):
-
+        """
+        Description: this function returns a treePlan for the given pattern
+        we do that using dynamic programming , in each iteration we calculate the sub plan cost
+        and pick the the one with the cheapest cost , the best sub plan is what we consider to build from for the next
+        iterations , note that cost(plan) is calculated by the pattern statistics , if no statistics passed then there
+         is no meaning to the cheapest plan , we simply build any plan and return it
+        """
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivity_matrix, arrival_rates) = pattern.statistics
         else:
@@ -79,6 +85,11 @@ class algoA(TreePlanBuilder):
 
     def _create_topology_with_const_sub_order(self, pattern: Pattern,
                                               const_sub_ord: list):
+        """
+        Description :the same as _create_tree_topology , only that this time we build the plan for the
+        complementary pattern the complementary pattern is defined by the pattern events indexes minus
+        the events indexes in const_sub_order
+        """
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivity_matrix, arrival_rates) = pattern.statistics
         else:
@@ -91,17 +102,13 @@ class algoA(TreePlanBuilder):
             event_index = const_sub_ord[0]
             node = TreePlanLeafNode(event_index)
             return node
-
-        # todo remove
         args_num = len(selectivity_matrix)
-
         items = frozenset(range(args_num)) - frozenset(const_sub_ord)
         # Save subsets' optimal topologies, the cost and the left to add items.
         sub_trees = {frozenset({i}): (TreePlanLeafNode(i),
                                       self._get_plan_cost(pattern, TreePlanLeafNode(i)),
                                       items.difference({i}))
                      for i in items}
-
         # for each subset of size i, find optimal topology for these subsets according to size (i-1) subsets.
         for i in range(2, args_num + 1):
             for tSubset in combinations(items, i):
@@ -127,12 +134,15 @@ class algoA(TreePlanBuilder):
                         sub_trees[subset] = new_tree, new_cost, left
         return sub_trees[items][0]  # return the best topology (index 0 at tuple) for items - the set of all arguments.
 
-    def _create_topology_with_const_sub_order2(self, sub_pattern_data: Tuple):
-
+    def _create_pattern_topology(self, sub_pattern_data: Tuple):
+        """
+        Description: like create_tree_topology function , only that this time we pass the
+        sub pattern data which is a tuble of 3 :  sub_pattern, sub_pattern event indexes, sub_pattern event names
+        we use this information to build the sub_pattern we custom build where we choose what the events are in the sub tree
+        because we want those same indexes of the big pattern that includes the sub pattern and not some new indexes
+        """
         pattern, sub_pattern_indexes, sub_pattern_names = sub_pattern_data
-        if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivity_matrix, arrival_rates) = pattern.statistics
-        else:
+        if pattern.statistics_type != StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             builder = UnifiedTreeBuilder.get_instance()
             pattern_tree_plan = builder.build_tree_plan(pattern)
             return pattern_tree_plan
@@ -143,7 +153,7 @@ class algoA(TreePlanBuilder):
             node = TreePlanLeafNode(event_index)
             return node
 
-        #     return TreePlan(root=node)
+        # return TreePlan(root=node)
         args_num = len(sub_pattern_indexes)
         items = frozenset(sub_pattern_indexes)
         # Save subsets' optimal topologies, the cost and the left to add items.
@@ -151,7 +161,6 @@ class algoA(TreePlanBuilder):
                                       self._get_plan_cost(pattern, TreePlanLeafNode(i)),
                                       items.difference({i}))
                      for i in sub_pattern_indexes}
-
         # for each subset of size i, find optimal topology for these subsets according to size (i-1) subsets.
         for i in range(2, args_num + 1):
             for tSubset in combinations(items, i):
@@ -180,22 +189,18 @@ class algoA(TreePlanBuilder):
     def _create_tree_topology_shared_subpattern(self, pattern: Pattern, sub_pattern_data: Tuple):
         """this function builds the best tree topology such that the pattern starts with the subpattern order
          and the remained pattern built with best order"""
-
         sub_pattern, sub_pattern_indexes, sub_pattern_names = sub_pattern_data
         if sub_pattern is None:
             return self._create_topology_with_const_sub_order(pattern, [])
-        sub_pattern_topology = self._create_topology_with_const_sub_order2(sub_pattern_data)
-
-        event_names = sub_pattern_names
+        sub_pattern_topology = self._create_pattern_topology(sub_pattern_data)
         sub_pattern_order = sub_pattern_indexes
-
-        # sub_pattern_topology = self._create_topology_with_const_sub_order(sub_pattern, sub_pattern_order)
         complementary_pattern_topolgy = self._create_topology_with_const_sub_order(pattern, sub_pattern_order)
         node = TreePlanBuilder._instantiate_binary_node(pattern, sub_pattern_topology, complementary_pattern_topolgy)
         return TreePlan(root=node)
 
     @staticmethod
     def get_all_subtree_roots(plan_node: TreePlanNode):
+        """simply returns all plan nodes in the tree with the root = the argument plan node"""
         if isinstance(plan_node, TreePlanLeafNode):
             return [plan_node]
         elif isinstance(plan_node, TreePlanUnaryNode):
@@ -208,6 +213,7 @@ class algoA(TreePlanBuilder):
 
     @staticmethod
     def get_event_args(node: TreePlanNode, pattern: Pattern):
+        """ Discription: we pass a leaf node that got event index/type/name , we return all those data"""
         pattern_event_names = [event.name for event in pattern.positive_structure.get_args()]
         pattern_event_types = [event.type for event in pattern.positive_structure.get_args()]
         pattern_event_indexes = [pattern.get_index_by_event_name(name) for name in pattern_event_names]
@@ -217,6 +223,9 @@ class algoA(TreePlanBuilder):
 
     @staticmethod
     def build_pattern_from_plan_node(node: TreePlanNode, pattern1: Pattern, leaves_dict, first_time=False):
+        """Disciption: given an internal tree plan node we build recursively the pattern that describe the tree plan
+            with root=node and this will be the sub pattern of the big pattern"""
+        # first time we use Pattern construct unlike applying operator constructors in the next iterations
         if first_time:
             condition = UnifiedTreeBuilder.get_condition_from_pattern_in_one_sub_tree(node, pattern1, leaves_dict)
             pattern = Pattern(algoA.build_pattern_from_plan_node(node, pattern1, leaves_dict), condition,
@@ -259,45 +268,43 @@ class algoA(TreePlanBuilder):
 
     @staticmethod
     def get_all_sharable_sub_patterns(tree_plan1: TreePlan, pattern1: Pattern, tree_plan2: TreePlan, pattern2: Pattern):
+        """Description: we pass two patterns,and return a list with all
+        the subpattern that are sharable between both pattern"""
         tree1_subtrees = algoA.get_all_subtree_roots(tree_plan1.root)
         tree2_subtrees = algoA.get_all_subtree_roots(tree_plan2.root)
         sharable = []
-
         pattern_to_tree_plan_map = {pattern1: tree_plan1, pattern2: tree_plan2}
-
         leaves_dict = {}
         for i, pattern in enumerate(pattern_to_tree_plan_map):
             tree_plan_leaves_pattern = pattern_to_tree_plan_map[pattern].root.get_leaves()
             pattern_event_size = len(pattern.positive_structure.get_args())
             leaves_dict[pattern] = {tree_plan_leaves_pattern[i]: pattern.positive_structure.get_args()[i] for i in
                                     range(pattern_event_size)}
-
         for node1, node2 in itertools.product(tree1_subtrees, tree2_subtrees):
             if UnifiedTreeBuilder.is_equivalent(node1, pattern1, node2, pattern2, leaves_dict):
-
                 leaves_in_plan_node_1 = node1.get_leaves()
                 leaves_in_plan_node_2 = node2.get_leaves()
                 if leaves_in_plan_node_1 is None or leaves_in_plan_node_2 is None:
                     return None, None
-
                 event_indexes1 = list(map(lambda e: e.event_index, leaves_in_plan_node_1))
                 pattern1_events = list(leaves_dict.get(pattern1).values())
-
                 event_indexes2 = list(map(lambda e: e.event_index, leaves_in_plan_node_2))
                 pattern2_events = list(leaves_dict.get(pattern2).values())
-                #
+                # get the events name in both patterns
                 names1 = {pattern1_events[event_index].name for event_index in event_indexes1}
                 names2 = {pattern2_events[event_index].name for event_index in event_indexes2}
-
                 sharable_sub_pattern = algoA.build_pattern_from_plan_node(node1, pattern1, leaves_dict, first_time=True)
+                # time window is set to be the min between them by defintion
                 sharable_sub_pattern.set_time_window(min(pattern1.window,
-                                                         pattern2.window))  # TODO : need to make sure which one to apply between min/max
+                                                         pattern2.window))
                 sharable_sub_pattern_data = (sharable_sub_pattern, event_indexes1, names1, event_indexes2, names2)
                 sharable.append(sharable_sub_pattern_data)
-        return sharable  # this conversion to set and back to list is to make sure we get no duplicates
+        return sharable
 
     @staticmethod
     def get_shareable_pairs(pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan):
+        """we build a [n][n] matrix we store [i][j] a list with all sharable
+            sub patterns between pattern i and pattern j"""
         number_of_patterns = len(pattern_to_tree_plan_map)
         shape = (number_of_patterns, number_of_patterns)
         shareable_pairs_array = np.empty(shape=shape, dtype=list)
@@ -306,7 +313,7 @@ class algoA(TreePlanBuilder):
             for j, patternj in enumerate(pattern_to_tree_plan_map.keys()):
                 if j == i:
                     continue
-                if j < i:
+                if j < i:  # because shareable_pairs_array[i][j] = shareable_pairs_array[j][i]
                     shareable_pairs_array[i][j] = shareable_pairs_array[j][i]
                     continue
                 tree_plan1 = pattern_to_tree_plan_map[patterni]
@@ -332,7 +339,7 @@ class algoA(TreePlanBuilder):
 
         pattern_to_tree_plan_map_copy = pattern_to_tree_plan_map.copy()
         sub_pattern_shareable_array_copy = deepcopy(sub_pattern_shareable_array)
-        for p,tree in pattern_to_tree_plan_map_copy.items():
+        for p, tree in pattern_to_tree_plan_map_copy.items():
             new_tree = TreePlan(root=tree.root.get_node_copy())
             pattern_to_tree_plan_map_copy[p] = new_tree
 
@@ -342,7 +349,7 @@ class algoA(TreePlanBuilder):
         while len(shareable_pairs_i_j) == 0:
             i, patterni = random_patterns_pair[0]
             j, patternj = random_patterns_pair[1]
-            if i > j: # swap such that i < j
+            if i > j:  # swap such that i < j
                 tmp = random_patterns_pair[0]
                 i, patterni = random_patterns_pair[1]
                 j, patternj = tmp
@@ -376,7 +383,9 @@ class algoA(TreePlanBuilder):
         return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
 
 
-# =======================================================================================
+""" ======================================== Tests for all functions in MPT_edge_neighborhood ====================="""
+
+
 def tree_plan_cost_function(state: Tuple[Dict[Pattern, TreePlan], np.array]):
     pattern_to_tree_plan_map, _ = state
     cost_model = TreeCostModelFactory.create_cost_model()
@@ -540,7 +549,6 @@ def Nedge_test():
 if __name__ == '__main__':
     # shareable_pairs_unit_test()
 
-
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
                     PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("GOOG", "d")),
@@ -569,11 +577,9 @@ if __name__ == '__main__':
     pattern2.set_statistics(StatisticsTypes.FREQUENCY_DICT, frequencyDict)
     patterns = [pattern1, pattern2]
     state, c = tree_plan_visualize_annealing(patterns=patterns,
-                                                            initialize_function=patterns_initialize_function,
-                                                            state_repr_function=tree_plan_state_get_summary,
-                                                            cost_function=tree_plan_cost_function,
-                                                            neighbour_function=tree_plan_neighbour)
-
-
+                                             initialize_function=patterns_initialize_function,
+                                             state_repr_function=tree_plan_state_get_summary,
+                                             cost_function=tree_plan_cost_function,
+                                             neighbour_function=tree_plan_neighbour)
 
     Nedge_test()
