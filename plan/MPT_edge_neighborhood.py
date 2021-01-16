@@ -332,9 +332,6 @@ def shareable_all_pairs_unit_test():
                                                           pattern_to_tree_plan_map[pattern2], pattern2)
     print('Ok')
 
-    sub_pattern1 = algoA.build_pattern_from_plan_node(node=tree_plan.root.left_child,
-                                                      pattern1=pattern, first_time=True)
-
 def create_topology_test():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
