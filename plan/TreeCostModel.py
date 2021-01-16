@@ -2,6 +2,7 @@ from abc import ABC
 from typing import List
 
 from base.Pattern import Pattern
+from misc.DefaultConfig import DEFAULT_TREE_COST_MODEL
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from plan.TreeCostModels import TreeCostModels
@@ -68,7 +69,7 @@ class TreeCostModelFactory:
     A factory for instantiating the cost model object.
     """
     @staticmethod
-    def create_cost_model(cost_model_type: TreeCostModels):
+    def create_cost_model(cost_model_type: TreeCostModels = DEFAULT_TREE_COST_MODEL):
         """
         Returns a cost model of the specified type.
         """

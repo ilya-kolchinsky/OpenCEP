@@ -27,16 +27,13 @@ class algoA(TreePlanBuilder):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivity_matrix, arrival_rates) = pattern.statistics
         else:
-            builder = UnifiedTreeBuilder.get_instance()
-            pattern_tree_plan = builder.build_tree_plan(pattern)
-            return pattern_tree_plan
-
+            return TrivialLeftDeepTreeBuilder(TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL)
         args_num = len(selectivity_matrix)
         if args_num == 1:
-            assert len(pattern.positive_structure.get_args()) == 1
-            event_index = pattern.get_index_by_event_name(pattern.positive_structure.get_args()[0])
-            node = TreePlanLeafNode(event_index)
-            return TreePlan(root=node)
+            pattern_event_name = {event.name for event in pattern.positive_structure.get_args()}
+            assert len(pattern_event_name) == 1
+            event_index = pattern.get_index_by_event_name(pattern_event_name[0])
+            return TreePlanLeafNode(event_index)
 
         items = frozenset(range(args_num)) - frozenset(const_sub_ord)
         # Save subsets' optimal topologies, the cost and the left to add items.
@@ -275,6 +272,7 @@ def shareable_all_pairs_unit_test():
 
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters()
     tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
+    tree_plan = tree_plan_builder.build_tree_plan(pattern1)
 
     pattern_to_tree_plan_map = {p: tree_plan_builder.build_tree_plan(p) for p in patterns}
 
@@ -282,6 +280,8 @@ def shareable_all_pairs_unit_test():
                                                           pattern_to_tree_plan_map[pattern2], pattern2)
     print('Ok')
 
+    sub_pattern1 = algoA.build_pattern_from_plan_node(node=tree_plan.root.left_child,
+                                                      pattern1=pattern, first_time=True)
 
 def create_topology_test():
     pattern1 = Pattern(
