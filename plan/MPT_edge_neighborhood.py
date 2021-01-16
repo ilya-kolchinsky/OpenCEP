@@ -1,3 +1,4 @@
+import itertools
 import random
 from datetime import timedelta
 from typing import List, Dict
@@ -99,9 +100,10 @@ class algoA(TreePlanBuilder):
         return pattern_event_types[index_in_list], pattern_event_names[index_in_list]
 
     @staticmethod
-    def build_pattern_from_plan_node(node: TreePlanNode, pattern1: Pattern, first_time=False):
+    def build_pattern_from_plan_node(node: TreePlanNode, pattern1: Pattern, leaves_dict, first_time=False):
         if first_time:
-            return Pattern(algoA.build_pattern_from_plan_node(node, pattern1), pattern1.condition,
+            condition = UnifiedTreeBuilder.get_condition_from_pattern_in_one_sub_tree(node, pattern1, leaves_dict)
+            return Pattern(algoA.build_pattern_from_plan_node(node, pattern1, leaves_dict), condition,
                            pattern1.window, pattern1.consumption_policy, pattern1.id)
         node_type = type(node)
         if issubclass(node_type, TreePlanLeafNode):
@@ -113,25 +115,25 @@ class algoA(TreePlanBuilder):
         elif issubclass(node_type, TreePlanInternalNode):  # internal node
             node_operator: OperatorTypes = node.get_operator()
             if node_operator == OperatorTypes.SEQ:
-                return SeqOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1),
-                                   algoA.build_pattern_from_plan_node(node.right_child, pattern1))
+                return SeqOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1, leaves_dict),
+                                   algoA.build_pattern_from_plan_node(node.right_child, pattern1, leaves_dict))
             elif node_operator == OperatorTypes.OR:
-                return OrOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1),
-                                  algoA.build_pattern_from_plan_node(node.right_child, pattern1))
+                return OrOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1, leaves_dict),
+                                  algoA.build_pattern_from_plan_node(node.right_child, pattern1, leaves_dict))
             elif node_operator == OperatorTypes.AND:
-                return AndOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1),
-                                   algoA.build_pattern_from_plan_node(node.right_child, pattern1))
+                return AndOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1, leaves_dict),
+                                   algoA.build_pattern_from_plan_node(node.right_child, pattern1, leaves_dict))
             elif node_operator == OperatorTypes.KC:
                 return KleeneClosureOperator(
-                    algoA.build_pattern_from_plan_node(node.child, pattern1))
+                    algoA.build_pattern_from_plan_node(node.child, pattern1, leaves_dict))
             elif node_operator == OperatorTypes.NSEQ:
                 return NegationOperator(
-                    SeqOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1),
-                                algoA.build_pattern_from_plan_node(node.right_child, pattern1)))
+                    SeqOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1, leaves_dict),
+                                algoA.build_pattern_from_plan_node(node.right_child, pattern1, leaves_dict)))
             elif node_operator == OperatorTypes.NAND:
                 return NegationOperator(
-                    AndOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1),
-                                algoA.build_pattern_from_plan_node(node.right_child, pattern1)))
+                    AndOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1, leaves_dict),
+                                algoA.build_pattern_from_plan_node(node.right_child, pattern1, leaves_dict)))
             else:
                 raise NotImplementedError
 
@@ -150,14 +152,11 @@ class algoA(TreePlanBuilder):
             leaves_dict[pattern] = {tree_plan_leaves_pattern[i]: pattern.positive_structure.get_args()[i] for i in
                                     range(pattern_event_size)}
 
-        for node1 in tree1_subtrees:
-            for node2 in tree2_subtrees:
-
-                if UnifiedTreeBuilder.is_equivalent(node1, pattern1, node2, pattern2, leaves_dict):
-                    sharable_sub_pattern = algoA.build_pattern_from_plan_node(node1, pattern1, first_time=True)
-                    sharable_sub_pattern.set_time_window(min(pattern1.window,
-                                                             pattern2.window))  # TODO : need to make sure which one to apply between min/max
-                    sharable.append(sharable_sub_pattern)
+        for node1, node2 in itertools.product(tree1_subtrees, tree2_subtrees):
+            if UnifiedTreeBuilder.is_equivalent(node1, pattern1, node2, pattern2, leaves_dict):
+                sharable_sub_pattern = algoA.build_pattern_from_plan_node(node1, pattern1, leaves_dict, first_time=True)
+                sharable_sub_pattern.set_time_window(min(pattern1.window, pattern2.window))  # TODO : need to make sure which one to apply between min/max
+                sharable.append(sharable_sub_pattern)
         return list(set(sharable))  # this conversion to set and back to list is to make sure we get no duplicates
 
     @staticmethod
@@ -269,7 +268,7 @@ def sub_pattern_unit_test():
                                                       pattern1=pattern, first_time=True)
 
 
-def shareable_pairs_unit_test():
+def shareable_all_pairs_unit_test():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZ", "b")),
         AndCondition(
@@ -295,9 +294,9 @@ def shareable_pairs_unit_test():
 
     pattern_to_tree_plan_map = {p: tree_plan_builder.build_tree_plan(p) for p in patterns}
 
-    shareable_pairs = algoA.get_shareable_pairs(pattern_to_tree_plan_map)
+    shareable_pairs = algoA.get_all_sharable_sub_patterns(pattern_to_tree_plan_map[pattern1], pattern1, pattern_to_tree_plan_map[pattern2], pattern2)
     print('Ok')
 
 
 if __name__ == '__main__':
-    shareable_pairs_unit_test()
+    shareable_all_pairs_unit_test()

@@ -537,6 +537,18 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         return [operator]
 
     @staticmethod
+    def get_condition_from_pattern_in_one_sub_tree(plan_node: TreePlanNode, pattern: Pattern, leaves_dict):
+
+        leaves_in_plan_node_1 = plan_node.get_leaves()
+        if leaves_in_plan_node_1 is None:
+            return None
+        event_indexes1 = list(map(lambda e: e.event_index, leaves_in_plan_node_1))
+        pattern1_events = list(leaves_dict.get(pattern).values())
+        names1 = {pattern1_events[event_index].name for event_index in event_indexes1}
+        return deepcopy(pattern.condition.get_condition_of(names1, get_kleene_closure_conditions=False,
+                                                                  consume_returned_conditions=False))
+
+    @staticmethod
     def get_condition_from_pattern_in_sub_tree(plan_node1: TreePlanNode, pattern1: Pattern, plan_node2: TreePlanNode,
                                                pattern2: Pattern,
                                                leaves_dict):
