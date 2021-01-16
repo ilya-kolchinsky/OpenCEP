@@ -28,8 +28,7 @@ class Tree:
                                             Tree.__get_operator_arg_list(pattern.positive_structure),
                                             pattern.window, None, pattern.consumption_policy)
 
-        if pattern.consumption_policy is not None and \
-                pattern.consumption_policy.should_register_event_type_as_single(True):
+        if pattern.consumption_policy is not None and pattern.consumption_policy.should_register_event_type_as_single(True):
             for event_type in pattern.consumption_policy.single_types:
                 self.__root.register_single_event_type(event_type)
 
@@ -159,7 +158,7 @@ class Tree:
             # the current operator is a unary operator hiding a nested pattern structure
             unary_node = self.__create_internal_node_by_operator(current_operator, sliding_window, parent)
             nested_operator = current_operator.arg
-            child = self.__construct_tree(nested_operator, Tree.__create_nested_structure(nested_operator),
+            child = self.__construct_tree(nested_operator, TreePlanLeafNode(0) if isinstance(nested_operator, PrimitiveEventStructure) else tree_plan_leaf.sub_tree_plan,
                                           Tree.__get_operator_arg_list(nested_operator), sliding_window, unary_node,
                                           consumption_policy)
             unary_node.set_subtree(child)
@@ -176,7 +175,7 @@ class Tree:
         """
         Recursively builds an evaluation tree according to the specified structure.
         """
-        if isinstance(root_operator, UnaryStructure) and parent is None:
+        if isinstance(root_operator, UnaryStructure):
             # a special case where the top operator of the entire pattern is an unary operator
             return self.__handle_primitive_event_or_nested_structure(tree_plan, root_operator,
                                                                      sliding_window, parent, consumption_policy)
@@ -217,22 +216,22 @@ class Tree:
         # the pending matches were released and have hopefully reached the root
         return self.get_matches()
 
-    @staticmethod
-    def __create_nested_structure(nested_operator: PatternStructure):
-        """
-        This method is a temporal hack, hopefully it will be removed soon.
-        # TODO: calculate the evaluation order in the way it should work - using a tree plan builder
-        """
-        order = list(range(len(nested_operator.args))) if isinstance(nested_operator, CompositeStructure) else [0]
-        operator_type = None
-        if isinstance(nested_operator, AndOperator):
-            operator_type = OperatorTypes.AND
-        elif isinstance(nested_operator, SeqOperator):
-            operator_type = OperatorTypes.SEQ
-        ret = TreePlanLeafNode(order[0])
-        for i in range(1, len(order)):
-            ret = TreePlanBinaryNode(operator_type, ret, TreePlanLeafNode(order[i]))
-        return ret
+    # @staticmethod
+    # def __create_nested_structure(nested_operator: PatternStructure, tree_plan: TreePlanNode):
+    #     """
+    #     This method is a temporal hack, hopefully it will be removed soon.
+    #     # TODO: calculate the evaluation order in the way it should work - using a tree plan builder
+    #     """
+    #     order = list(range(len(nested_operator.args))) if isinstance(nested_operator, CompositeStructure) else [0]
+    #     operator_type = None
+    #     if isinstance(nested_operator, AndOperator):
+    #         operator_type = OperatorTypes.AND
+    #     elif isinstance(nested_operator, SeqOperator):
+    #         operator_type = OperatorTypes.SEQ
+    #     ret = TreePlanLeafNode(order[0])
+    #     for i in range(1, len(order)):
+    #         ret = TreePlanBinaryNode(operator_type, ret, TreePlanLeafNode(order[i]))
+    #     return ret
 
     @staticmethod
     def __is_unbounded_negative_event(pattern: Pattern, negation_operator: NegationOperator):

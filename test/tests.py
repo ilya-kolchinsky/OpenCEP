@@ -10,10 +10,7 @@ from test.UnitTests.test_storage import run_storage_tests
 
 
 runTest.over_all_time = 0
-#nestedTest()
-#nestedAscendingTest()
-greedyNestedTest()
-exit(0)
+
 # basic functionality tests
 oneArgumentsearchTest()
 simplePatternSearchTest()
@@ -119,6 +116,13 @@ multipleParentsForInternalNode()
 # nested operator tests
 nestedTest()
 nestedAscendingTest()
+greedyNestedTest()
+iiGreedyNestedPatternSearchTest()
+greedyNestedComplexTest()
+dpLdNestedPatternSearchTest()
+dpLdNestedPatternComplexSearchTest()
+zStreamOrdNestedPatternComplexSearchTest()
+KC_AND_IndexCondition_02_Nested()
 
 # benchmarks
 if INCLUDE_BENCHMARKS:

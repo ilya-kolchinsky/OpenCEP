@@ -7,7 +7,7 @@ from typing import List
 import copy
 
 from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
-    SeqOperator, NegationOperator, AndOperator
+    SeqOperator, NegationOperator, AndOperator, UnaryStructure
 from misc import DefaultConfig
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType, \
     IterativeImprovementAlgorithmBuilder
@@ -32,10 +32,10 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
         """
         nested_topologies = None
         nested_args = None
-        nested_arrival_rates = None
-        nested_selectivity = None
+        # nested_arrival_rates = None
+        # nested_selectivity = None
         nested_cost = None
-        if isinstance(pattern.positive_structure, CompositeStructure):  # TODO: else
+        if not isinstance(pattern.positive_structure, PrimitiveEventStructure):
             nested_topologies = []
             nested_args = []
             nested_arrival_rates = []
@@ -44,7 +44,8 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
             if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
                 nested_selectivity = TreePlanBuilder._selectivity_matrix_for_nested_operators(pattern)
             for arg in pattern.positive_structure.get_args():
-                if isinstance(arg, CompositeStructure):
+                # if isinstance(arg, CompositeStructure):
+                if not isinstance(arg, PrimitiveEventStructure):
                     temp_pattern = Pattern(arg, None, pattern.window)
                     if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
                         temp_pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, pattern.statistics)
@@ -54,13 +55,16 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
                         temp_pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (temp_nested_selectivity, arrival_rates))
                     nested_topology = self._create_tree_topology(temp_pattern)
                     nested_topologies.append(nested_topology)
-                    if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES or StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+                    if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES or pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
                         cost = self._get_plan_cost(temp_pattern, nested_topology)
-                        nested_arrival_rates.append(cost/pattern.window.total_seconds())
+                        if isinstance(arg, UnaryStructure):
+                            nested_arrival_rates.append(pow(2, cost) / pattern.window.total_seconds())
+                        else:
+                            nested_arrival_rates.append(cost/pattern.window.total_seconds())
                         nested_cost.append(cost)
                     else:
                         nested_cost.append(None)
-                    nested_args.append(arg.args)
+                    nested_args.append(arg.get_args())
                 else:
                     nested_topologies.append(None)
                     nested_args.append(None)

@@ -92,6 +92,9 @@ class UnaryStructure(PatternStructure, ABC):
     def get_primitive_events_names(self):
         return self.arg.get_primitive_events_names()
 
+    def get_args(self):
+        return [self.arg]
+
 
 class CompositeStructure(PatternStructure, ABC):
     """
