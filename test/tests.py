@@ -82,14 +82,14 @@ KC_Condition_Failure_03()
 
 # negation tests
 simpleNotTest()
-multipleNotInTheMiddleTest()
+multipleNotInTheMiddleTest(check_all_combs=True)
 oneNotAtTheBeginningTest()
-multipleNotAtTheBeginningTest()
+multipleNotAtTheBeginningTest(check_all_combs=True)
 oneNotAtTheEndTest()
-multipleNotAtTheEndTest()
-multipleNotBeginAndEndTest()
-testWithMultipleNotAtBeginningMiddleEnd()
-
+multipleNotAtTheEndTest(check_all_combs=True)
+multipleNotBeginAndEndTest(check_all_combs=True)
+testWithMultipleNotAtBeginningMiddleEnd(check_all_combs=True)
+testWithMultipleNotAtBeginningMiddleEnd2()
 
 # consumption policies tests
 singleType1PolicyPatternSearchTest()
