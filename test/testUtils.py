@@ -197,7 +197,7 @@ def runTest(expectedFileName, patterns, createTestFile = False,
 
     listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns"]
     listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
-    listCustom = ["MultipleNotBeginAndEnd"]
+    listCustom = ["MultipleNotBeginAndEnd", "NotEverywhere2"]
     listCustom2 = ["simpleNot"]
     if expectedFileName in listShort:
         events = nasdaqEventStreamShort.duplicate()

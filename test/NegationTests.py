@@ -15,31 +15,44 @@ class Statistics:
     def __init__(self, pattern, path):
         self.path = path
         self.negation_index_list = []
-        self.map_comb = {}
+        self.map_comb = {} # key: negative events' indices combination, value : 0  or 1 (if the combination was checked).
         self.comb_done = 0
         self.last_comb = ""
         self.eventsNum = len(pattern.full_structure.get_args())
+        # Collecting the negative events' indices
         for i, arg in enumerate(pattern.full_structure.get_args()):
             if type(arg) == NegationOperator:
-                # a negative event was found and needs to be extracted
                 self.negation_index_list.append(i)
+        # Generating all the possible combinations for the negative events.
         for val in list(permutations(self.negation_index_list)):
             self.map_comb[val] = 0
 
     def setStatisticsForTest(self, expectedFileName):
+        """
+        The function searches for statistic with negative indexes combination that wasn't checked before.
+        If it succeeds, it returns the statistics, otherwise it returns None.
+        """
         eventsNum = self.eventsNum
         arrivalRates = [*random.rand(eventsNum)]
         counter = 0
-        while (self.is_good_statistics(arrivalRates) is False and (counter < 5)):
+        # Maximum searching loops for a new combination
+        max_loops = 5
+        is_valid = self.is_statistic_valid(arrivalRates)
+        while counter < max_loops and is_valid is False:
             arrivalRates = [*random.rand(eventsNum)]
             counter = counter + 1
+            is_valid = self.is_statistic_valid(arrivalRates)
+        if counter == max_loops and is_valid is False:
+            return None, None, False
         selectivityMatrixA = random.rand(eventsNum, eventsNum)
         selectivityMatrix = selectivityMatrixA.T * selectivityMatrixA
         fill_diagonal(selectivityMatrix, 1)
         selectivityMatrix = selectivityMatrix.tolist()
+
+        # Documentation of the new statistics.
         with open(self.path, 'a') as file:
-            file.write("\nStatistics values in %s tests: \n\n" % (expectedFileName))
-            file.write("negation combination: %s \n" % (self.last_comb))
+            file.write("\nStatistics values in %s tests: \n\n" % expectedFileName)
+            file.write("negation combination: %s \n" % self.last_comb)
             file.write("arrivalRates: [ ")
             for i in arrivalRates:
                 file.write(str(i) + " ")
@@ -52,44 +65,58 @@ class Statistics:
                 file.write("]" + "\n")
             file.write("\n**********************\n")
         file.close()
-        return selectivityMatrix, arrivalRates
+        return selectivityMatrix, arrivalRates, True
 
-    def is_good_statistics(self, arrivalRates):
+    def is_statistic_valid(self, arrivalRates):
+        """
+        The function returns True if a statistic with the same negative index combination wasn't checked before.
+        """
         map_neg_statistic_comb = {}
+        # Creating a map with a negative event index as a key and a suitable statistic as a value.
         for i in range(len(self.negation_index_list)):
             map_neg_statistic_comb[self.negation_index_list[i]] = arrivalRates[self.negation_index_list[i]]
         sorted_keys = sorted(map_neg_statistic_comb, key=map_neg_statistic_comb.get)
         tup = tuple(sorted_keys)
         if self.map_comb[tup] == 0:
             self.map_comb[tup] = 1
+            self.comb_done = self.comb_done + 1
             if len(self.map_comb) == 1:
                 self.last_comb = "(" + str(self.negation_index_list[0]) + ")"
             else:
                 self.last_comb = str(tup)
-            self.comb_done = self.comb_done + 1
             return True
         else:
             return False
 
-    def print_to_statistics_file(self,result, name, to_print_map =0):
+    def print_to_statistics_file(self, result, name, map_to_print=0):
         with open(self.path, 'a') as file:
             file.write(" +++++++++++++++++++++++ summary ++++++++++++++++++++++++ \n")
             file.write("In %s test - %s \n" % (name, result))
-            if to_print_map == 1:
+            if map_to_print == 1:
                 map_status = str(self.map_comb)
                 file.write(map_status + "\n")
             file.write(" +++++++++++++++++++++++++++++++++++++++++++++++++++++++ \n")
         file.close()
 
 
-def runTrees(pattern, expectedFileName, createTestFile):
+def runTrees(pattern, expectedFileName, createTestFile, check_all_combs):
+    """
+    The function runs the test with the three negation algorithms on different statistics. In each loop,
+    the negative events get a statistic combination that wasn't checked before, unless the flag "check_all_combs
+    is False (in this case only one combination will be tested).
+    """
     path = os.path.join(absolutePath, 'test/StatisticsDocumentation/statistics.txt')
     statistics = Statistics(pattern, path)
     combinations_total_num = len(statistics.map_comb)
-    max_loops = combinations_total_num*2
+    max_loops = combinations_total_num * 2
+    num_loops_so_far = 0
 
-    while statistics.comb_done < combinations_total_num and statistics.comb_done < max_loops:
-        selectivityMatrix, arrivalRates = statistics.setStatisticsForTest(expectedFileName)
+    while statistics.comb_done < combinations_total_num and num_loops_so_far < max_loops:
+        selectivityMatrix, arrivalRates, result = statistics.setStatisticsForTest(expectedFileName)
+        num_loops_so_far += 1
+        # If the result is False the previous function didn't succeed in finding a statistic combination that wasn't checked before.
+        if result is False:
+            continue
         print("#### The following tests used the statistic combination " + statistics.last_comb + ":")
 
         # NAIVE NEGATION ALGORITHM
@@ -98,26 +125,30 @@ def runTrees(pattern, expectedFileName, createTestFile):
         # STATISTIC NEGATION ALGORITHM
         runAllTrees(pattern, expectedFileName, createTestFile, NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM,
                     selectivityMatrix, arrivalRates)
-
         # LOWEST POSITION NEGATION ALGORITHM
         runAllTrees(pattern, expectedFileName, createTestFile, NegationAlgorithmTypes.LOWEST_POSITION_NEGATION_ALGORITHM
                     , selectivityMatrix, arrivalRates)
 
         print("### ### ###")
+
+        if check_all_combs is False:
+            break
     if combinations_total_num == statistics.comb_done:
         statistics.print_to_statistics_file("all combinations were tested", expectedFileName)
-    else:
+    elif check_all_combs:
         statistics.print_to_statistics_file("missing combinations", expectedFileName, 1)
         numFailedTests.miss_comb.append(expectedFileName)
 
 
 def runAllTrees(pattern, expectedFileName, createTestFile, negationAlgo=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM
-                , selectivityMatrix = None, arrivalRates = None):
-
+                , selectivityMatrix=None, arrivalRates=None):
+    """
+    This function runs each test case with all kind of positive trees
+    """
     # Trivial tree
     origPatt = copy.deepcopy(pattern)
     origPatt.set_statistics(StatisticsTypes.ARRIVAL_RATES, arrivalRates)
-    runTest(expectedFileName, [origPatt], createTestFile, negation_algorithm=negationAlgo, testName="Trivial ")
+    runTest(expectedFileName, [origPatt], createTestFile, negation_algorithm=negationAlgo, testName="Trivial")
 
     # SORT_BY_FREQUENCY_LEFT_DEEP_TREE
     origPatt = copy.deepcopy(pattern)
@@ -183,7 +214,7 @@ def runAllTrees(pattern, expectedFileName, createTestFile, negationAlgo=Negation
 
 
 # ON CUSTOM
-def multipleNotBeginAndEndTest(createTestFile=False):
+def multipleNotBeginAndEndTest(createTestFile=False, check_all_combs=False):
     pattern = Pattern(
         SeqOperator(NegationOperator(PrimitiveEventStructure("TYP1", "x")),
                     NegationOperator(PrimitiveEventStructure("TYP4", "t")),
@@ -202,11 +233,11 @@ def multipleNotBeginAndEndTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "MultipleNotBeginAndEnd", createTestFile)
+    runTrees(pattern, "MultipleNotBeginAndEnd", createTestFile, check_all_combs)
 
 
 # ON custom2
-def simpleNotTest(createTestFile=False):
+def simpleNotTest(createTestFile=False, check_all_combs=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), NegationOperator(PrimitiveEventStructure("AMZN", "b")), PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
@@ -217,11 +248,11 @@ def simpleNotTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "simpleNot", createTestFile)
+    runTrees(pattern, "simpleNot", createTestFile, check_all_combs)
 
 
 # ON NASDAQ SHORT
-def multipleNotInTheMiddleTest(createTestFile=False):
+def multipleNotInTheMiddleTest(createTestFile=False, check_all_combs=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), NegationOperator(PrimitiveEventStructure("LI", "d")), PrimitiveEventStructure("AMZN", "b"),
                      NegationOperator(PrimitiveEventStructure("FB", "e")), PrimitiveEventStructure("GOOG", "c")),
@@ -237,11 +268,11 @@ def multipleNotInTheMiddleTest(createTestFile=False):
             ),
         timedelta(minutes=4)
     )
-    runTrees(pattern, "MultipleNotMiddle", createTestFile)
+    runTrees(pattern, "MultipleNotMiddle", createTestFile, check_all_combs)
 
 
 # ON NASDAQ SHORT
-def oneNotAtTheBeginningTest(createTestFile=False):
+def oneNotAtTheBeginningTest(createTestFile=False, check_all_combs=False):
     pattern = Pattern(
         SeqOperator(NegationOperator(PrimitiveEventStructure("TYP1", "x")), PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
@@ -252,11 +283,11 @@ def oneNotAtTheBeginningTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "OneNotBegin", createTestFile)
+    runTrees(pattern, "OneNotBegin", createTestFile, check_all_combs)
 
 
 # ON NASDAQ SHORT
-def multipleNotAtTheBeginningTest(createTestFile=False):
+def multipleNotAtTheBeginningTest(createTestFile=False, check_all_combs=False):
     pattern = Pattern(
         SeqOperator(NegationOperator(PrimitiveEventStructure("TYP1", "x")), NegationOperator(PrimitiveEventStructure("TYP2", "y")),
                     NegationOperator(PrimitiveEventStructure("TYP3", "z")), PrimitiveEventStructure("AAPL", "a"),
@@ -269,11 +300,11 @@ def multipleNotAtTheBeginningTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "MultipleNotBegin", createTestFile)
+    runTrees(pattern, "MultipleNotBegin", createTestFile, check_all_combs)
 
 
 # ON NASDAQ *HALF* SHORT
-def oneNotAtTheEndTest(createTestFile=False):
+def oneNotAtTheEndTest(createTestFile=False, check_all_combs=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c"), NegationOperator(PrimitiveEventStructure("TYP1", "x"))),
         AndCondition(
@@ -284,11 +315,11 @@ def oneNotAtTheEndTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "OneNotEnd", createTestFile)
+    runTrees(pattern, "OneNotEnd", createTestFile, check_all_combs)
 
 
 # ON NASDAQ *HALF* SHORT
-def multipleNotAtTheEndTest(createTestFile=False):
+def multipleNotAtTheEndTest(createTestFile=False, check_all_combs=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c"), NegationOperator(PrimitiveEventStructure("TYP1", "x")),
                     NegationOperator(PrimitiveEventStructure("TYP2", "y")), NegationOperator(PrimitiveEventStructure("TYP3", "z"))),
@@ -300,11 +331,11 @@ def multipleNotAtTheEndTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "MultipleNotEnd", createTestFile)
+    runTrees(pattern, "MultipleNotEnd", createTestFile, check_all_combs)
 
 
 # ON CUSTOM3
-def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
+def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False, check_all_combs=False):
     pattern = Pattern(
         SeqOperator(NegationOperator(PrimitiveEventStructure("AAPL", "a")), PrimitiveEventStructure("AMAZON", "b"),
                     NegationOperator(PrimitiveEventStructure("GOOG", "c")), PrimitiveEventStructure("FB", "d"),
@@ -317,4 +348,29 @@ def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "NotEverywhere", createTestFile)
+    runTrees(pattern, "NotEverywhere", createTestFile, check_all_combs)
+
+
+# ON CUSTOM
+def testWithMultipleNotAtBeginningMiddleEnd2(createTestFile=False, check_all_combs=False):
+    pattern = Pattern(
+        SeqOperator(NegationOperator(PrimitiveEventStructure("TYP1", "x")),
+                    NegationOperator(PrimitiveEventStructure("TYP4", "t")),
+                    PrimitiveEventStructure("AAPL", "a"),
+                    NegationOperator(PrimitiveEventStructure("TYP5", "m")),
+                    NegationOperator(PrimitiveEventStructure("TYP6", "f")),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c"),
+                    NegationOperator(PrimitiveEventStructure("TYP2", "y")),
+                    NegationOperator(PrimitiveEventStructure("TYP3", "z"))),
+        AndCondition(
+            GreaterThanCondition(Variable("x", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            SmallerThanCondition(Variable("y", lambda x: x["Opening Price"]),
+                                 Variable("c", lambda x: x["Opening Price"])),
+            GreaterThanCondition(Variable("t", lambda x: x["Opening Price"]),
+                                 Variable("a", lambda x: x["Opening Price"]))
+        ),
+        timedelta(minutes=5)
+    )
+    runTrees(pattern, "NotEverywhere2", createTestFile, check_all_combs)

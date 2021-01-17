@@ -5,7 +5,7 @@ from base.PatternStructure import AndOperator, SeqOperator
 from plan.TreeCostModel import TreeCostModelFactory
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode, TreePlanLeafNode
-from plan.NegationAlgorithmTypes import NegationAlgorithmTypes
+from plan.NegationAlgorithmTypes import NegationAlgorithmTypes as NegAlg
 from misc.StatisticsTypes import StatisticsTypes
 from bitmap import BitMap
 
@@ -229,20 +229,23 @@ class TreePlanBuilder(ABC):
         """
         tree_topology = positive_subtree
         if pattern.negative_structure is not None:
+            neg_algo = pattern.negation_algorithm
             negative_events_num = len(pattern.negative_structure.get_args())
             order = [*range(len(pattern.positive_structure.get_args()), len(pattern.full_structure.get_args()))]
-            if pattern.negation_algorithm == NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM \
-                    and pattern.full_statistics is not None:
+            # If the neg alg is Lowest Pos, but the top operator is "AND", all the negative nodes are unbounded and
+            # therefore should be inserted on the top of the tree, so the Stat neg alg would handle it the best.
+            flag = True if pattern.full_structure.get_top_operator() == AndOperator else False
+            if (neg_algo == NegAlg.STATISTIC_NEGATION_ALGORITHM and pattern.full_statistics is not None) or \
+               (neg_algo == NegAlg.LOWEST_POSITION_NEGATION_ALGORITHM and flag):
                 idx_statistics_list = create_sorted_stat_list(pattern)
                 # Rearrange "order" negative events by the desired order (according to the statistics)
                 for i in range(0, negative_events_num):
                     order[i] = idx_statistics_list[i][0] + len(pattern.positive_structure.get_args())
             # The neg part being added to the tree plan (in case of naive or statistic neg algs only)
-            if pattern.negation_algorithm != NegationAlgorithmTypes.LOWEST_POSITION_NEGATION_ALGORITHM:
+            if pattern.negation_algorithm != NegAlg.LOWEST_POSITION_NEGATION_ALGORITHM or flag:
                 for i in range(0, negative_events_num):
                     tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(order[i]))
-
-            if pattern.negation_algorithm == NegationAlgorithmTypes.LOWEST_POSITION_NEGATION_ALGORITHM:
+            if pattern.negation_algorithm == NegAlg.LOWEST_POSITION_NEGATION_ALGORITHM and not flag:
                 pattern.update_conds_lists()
                 # Holds the pointers to all leaf nodes of the tree plan (which includes only the positive part so far)
                 pointers_to_leaves_map = {}
