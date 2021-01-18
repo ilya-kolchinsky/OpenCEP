@@ -64,7 +64,7 @@ class LeafNode(Node):
         """
         self.__leaf_index = index
 
-    def event_handler(self, event: Event):
+    def handle_event(self, event: Event):
         """
         Inserts the given event to this leaf.
         """
