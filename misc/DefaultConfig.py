@@ -6,6 +6,7 @@ from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc.SelectionStrategies import SelectionStrategies
 from misc.StatisticsTypes import StatisticsTypes
 from misc.OptimizerTypes import OptimizerTypes
+from misc.Tree_Evaluation_Mechanism_Types import TreeEvaluationMechanismTypes
 from parallel.ParallelExecutionModes import ParallelExecutionModes
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType
@@ -49,3 +50,5 @@ DEFAULT_OPTIMIZER_TYPE = OptimizerTypes.TRIVIAL
 # statistics settings
 DEFAULT_STATISTICS_TYPE = StatisticsTypes.ARRIVAL_RATES
 
+# Tree Evaluation Mechanism settings
+DEFAULT_TREE_EVALUATION_MECHANISM_TYPE = TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION
