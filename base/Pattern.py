@@ -50,7 +50,7 @@ class Pattern:
             if consumption_policy.contiguous_names is not None:
                 self.__init_strict_conditions(pattern_structure)
 
-    def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
+    def set_statistics(self, statistics_type: StatisticsTypes, statistics):
         """
         Sets the statistical properties related to the events and conditions of this pattern.
         """
