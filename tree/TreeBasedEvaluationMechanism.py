@@ -82,7 +82,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 start_time = datetime.now()
 
             self.play_new_event_on_tree(event, matches)
-
+            self.get_matches(matches)
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         for match in self._tree.get_last_matches():
@@ -260,13 +260,11 @@ class SimultaneousEvaluation(TreeBasedEvaluationMechanism):
             # after this round, we ask if the simultaneous running is move on or stop
             # after time window is finished we can back to run event only on one tree
             if datetime.now() - self.tree_update_time > self.__pattern.window:
-                self._tree = self.new_tree
-                self.new_tree = None
-                self._event_types_listeners = self.new_event_types_listeners
-                self.new_event_types_listeners = None
+                self._tree, self.new_tree = self.new_tree, None
+                self._event_types_listeners, self.new_event_types_listeners = self.new_event_types_listeners, None
                 self.is_Simultaneous_state = False
 
-    def add_matches(self, matches: OutputStream):
+    def get_matches(self, matches: OutputStream):
         for match in self._tree.get_matches():
             if not self.is_all_new_event(match):
                 matches.add_item(match)
