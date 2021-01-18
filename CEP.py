@@ -5,13 +5,13 @@ by invoking the rest of the system components.
 from base.DataFormatter import DataFormatter
 from parallel.EvaluationManagerFactory import EvaluationManagerFactory
 from parallel.ParallelExecutionParameters import ParallelExecutionParameters
-from statistics_collector.StatisticsCollectorParameters import StatisticsCollectorParameters
+from statistics_collector.NewStatCollectorFactory import StatCollectorParameters
 from stream.Stream import InputStream, OutputStream
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from typing import List
 from datetime import datetime
-
+from optimizer.OptimizerFactory import OptimizerParameters
 
 class CEP:
     """
@@ -21,7 +21,8 @@ class CEP:
     """
     def __init__(self, patterns: Pattern or List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None,
                  parallel_execution_params: ParallelExecutionParameters = None,
-                 statistics_collector_params: StatisticsCollectorParameters = None):
+                 statistics_collector_params: StatCollectorParameters = None,
+                 optimizer_params: OptimizerParameters = None):
         """
         Constructor of the class.
         """
@@ -30,7 +31,8 @@ class CEP:
         self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(patterns,
                                                                                        eval_mechanism_params,
                                                                                        parallel_execution_params,
-                                                                                       statistics_collector_params)
+                                                                                       statistics_collector_params,
+                                                                                       optimizer_params)
 
     def run(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
