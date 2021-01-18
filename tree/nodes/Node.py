@@ -378,3 +378,6 @@ class Node(ABC):
         An abstract method for recursive partial match storage initialization.
         """
         raise NotImplementedError()
+
+    def get_filtered_events(self):
+        return self._filtered_events
