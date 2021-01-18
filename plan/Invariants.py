@@ -1,8 +1,11 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from base.Pattern import Pattern
+from misc.Statistics import MissingStatisticsException
 from plan.TreeCostModel import TreeCostModelFactory, TreeCostModel, IntermediateResultsTreeCostModel
 from plan.TreeCostModels import TreeCostModels
+from statistics_collector.NewStatistics import Statistics, SelectivityAndArrivalRatesStatistics
+from statistics_collector.StatisticsObjects import StatisticsObject
 
 
 class Invariant:
@@ -38,10 +41,12 @@ class GreedyTreeInvariants(Invariants):
     The verification proceeds in a bottom up order
     """
 
-    def is_invariants_violated(self, pattern: Pattern):
+    def is_invariants_violated(self, new_statistics: StatisticsObject, pattern: Pattern):
 
-        selectivity_matrix = pattern.statistics[0]
-        arrival_rates = pattern.statistics[1]
+        if isinstance(new_statistics, SelectivityAndArrivalRatesStatistics):
+            (selectivity_matrix, arrival_rates) = new_statistics.get_statistics()
+        else:
+            raise MissingStatisticsException()
 
         first_index, second_index = self.invariants[0].left, self.invariants[0].right
 
@@ -75,14 +80,14 @@ class ZStreamTreeInvariants(Invariants):
         super().__init__()
         self.__cost_model = cost_model
 
-    def is_invariants_violated(self, pattern: Pattern):
+    def is_invariants_violated(self, new_statistics: StatisticsObject, pattern: Pattern):
         """
         Check every invariant in invariants with next condition:
         cost(invariant.left) < cost(invariant.right).
         """
         for invariant in self.invariants:
-            left_cost = self.__cost_model.get_plan_cost(pattern, invariant.left)
-            right_cost = self.__cost_model.get_plan_cost(pattern, invariant.right)
+            left_cost = self.__cost_model.get_plan_cost(new_statistics, pattern, invariant.left)
+            right_cost = self.__cost_model.get_plan_cost(new_statistics, pattern, invariant.right)
             if left_cost > right_cost:
                 return True
 

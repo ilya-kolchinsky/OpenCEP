@@ -13,21 +13,24 @@ from misc.StatisticsTypes import StatisticsTypes
 from plan.LeftDeepTreeBuilders import GreedyLeftDeepTreeBuilder
 from itertools import combinations
 
+from statistics_collector.NewStatistics import Statistics, SelectivityAndArrivalRatesStatistics
+from statistics_collector.StatisticsObjects import StatisticsObject, SelectivityMatrixAndArrivalRates
+
 
 class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
     """
     Creates a bushy tree using ZStream algorithm.
     """
-    def build_tree_plan(self, pattern: Pattern):
+    def build_tree_plan(self, statistics: StatisticsObject, pattern: Pattern):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
-        tree_topology, invariants = self._create_tree_topology(pattern)
+        tree_topology, invariants = self._create_tree_topology(statistics, pattern)
         return TreePlan(tree_topology), invariants
 
-    def _create_tree_topology(self, pattern: Pattern):
-        if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivity_matrix, arrival_rates) = pattern.statistics
+    def _create_tree_topology(self, statistics: StatisticsObject, pattern: Pattern):
+        if isinstance(statistics, SelectivityMatrixAndArrivalRates):
+            (selectivity_matrix, arrival_rates) = statistics.statistics
         else:
             raise MissingStatisticsException()
 
@@ -35,7 +38,7 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
         args_num = len(order)
         items = tuple(order)
         suborders = {
-            (i,): (TreePlanLeafNode(i), self._get_plan_cost(pattern, TreePlanLeafNode(i)))
+            (i,): (TreePlanLeafNode(i), self._get_plan_cost(statistics, pattern, TreePlanLeafNode(i)))
             for i in items
         }
 
@@ -55,7 +58,7 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
                 tree1_, _ = suborders[order1_]
                 tree2_, _ = suborders[order2_]
                 tree = TreePlanBuilder._instantiate_binary_node(pattern, tree1_, tree2_)
-                cost = self._get_plan_cost(pattern, tree)
+                cost = self._get_plan_cost(statistics, pattern, tree)
                 suborders[suborder] = tree, cost
 
                 second_prev_cost = cost
@@ -70,7 +73,7 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
                     tree2, _ = suborders[order2]
                     _, prev_cost = suborders[suborder]
                     new_tree = TreePlanBuilder._instantiate_binary_node(pattern, tree1, tree2)
-                    new_cost = self._get_plan_cost(pattern, new_tree)
+                    new_cost = self._get_plan_cost(statistics, pattern, new_tree)
                     if new_cost < prev_cost:
                         second_prev_cost = prev_cost
                         second_min_tree = suborders[suborder][0]

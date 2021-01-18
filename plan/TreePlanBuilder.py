@@ -5,6 +5,8 @@ from base.PatternStructure import AndOperator, SeqOperator
 from plan.TreeCostModel import TreeCostModelFactory
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode
+from statistics_collector.NewStatistics import Statistics
+from statistics_collector.StatisticsObjects import StatisticsObject
 
 
 class TreePlanBuilder(ABC):
@@ -14,23 +16,23 @@ class TreePlanBuilder(ABC):
     def __init__(self, cost_model_type: TreeCostModels):
         self.__cost_model = TreeCostModelFactory.create_cost_model(cost_model_type)
 
-    def build_tree_plan(self, pattern: Pattern):
+    def build_tree_plan(self, statistics: StatisticsObject, pattern: Pattern):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
-        return TreePlan(self._create_tree_topology(pattern))
+        return TreePlan(self._create_tree_topology(statistics, pattern))
 
-    def _create_tree_topology(self, pattern: Pattern):
+    def _create_tree_topology(self, statistics: StatisticsObject, pattern: Pattern):
         """
         An abstract method for creating the actual tree topology.
         """
         raise NotImplementedError()
 
-    def _get_plan_cost(self, pattern: Pattern, plan: TreePlanNode):
+    def _get_plan_cost(self, statistics: StatisticsObject, pattern: Pattern, plan: TreePlanNode):
         """
         Returns the cost of a given plan for the given plan according to a predefined cost model.
         """
-        return self.__cost_model.get_plan_cost(pattern, plan)
+        return self.__cost_model.get_plan_cost(statistics, pattern, plan)
 
     def get_cost_model(self):
         return self.__cost_model

@@ -2,6 +2,10 @@ from abc import ABC, abstractmethod
 from base import Pattern
 from plan import TreePlanBuilder, TreePlan
 from misc.StatisticsTypes import StatisticsTypes
+from statistics_collector.NewStatistics import Statistics, ArrivalRatesStatistics, SelectivityStatistics,\
+    SelectivityAndArrivalRatesStatistics
+from statistics_collector.StatisticsObjects import StatisticsObject, ArrivalRates, SelectivityMatrix, \
+    SelectivityMatrixAndArrivalRates
 
 
 class Optimizer(ABC):
@@ -16,11 +20,11 @@ class Optimizer(ABC):
         pass
 
     @abstractmethod
-    def is_need_reoptimize(self, pattern):
+    def is_need_reoptimize(self, new_statistics: StatisticsObject, pattern: Pattern):
         pass
 
     @abstractmethod
-    def build_new_tree_plan(self, pattern: Pattern):
+    def build_new_tree_plan(self, new_statistics: StatisticsObject, pattern: Pattern):
         pass
 
 
@@ -29,11 +33,11 @@ class NaiveOptimizer(Optimizer):
     optimizer with the first algorithm.
     """
 
-    def is_need_reoptimize(self, pattern: Pattern):
+    def is_need_reoptimize(self, new_statistics: StatisticsObject, pattern: Pattern):
         return True
 
-    def build_new_tree_plan(self, pattern: Pattern):
-        tree_plan = self.tree_plan_builder.build_tree_plan(pattern)
+    def build_new_tree_plan(self, new_statistics: StatisticsObject, pattern: Pattern):
+        tree_plan = self.tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
 
 
@@ -47,22 +51,44 @@ class StatisticChangesAwareOptimizer(Optimizer):
         self.t = t
         self.prev_statistics = None
 
-    def is_need_reoptimize(self, pattern: Pattern):
+    def is_need_reoptimize(self, new_statistics: StatisticsObject, pattern: Pattern):
         # Handle the case its the first time
-        return self.prev_statistics is None or self.is_greater_then_t(pattern.statistics)
+        return self.prev_statistics is None or self.is_greater_then_t(new_statistics)
 
-    def build_new_tree_plan(self, pattern: Pattern):
-        tree_plan = self.tree_plan_builder.build_tree_plan(pattern)
+    def build_new_tree_plan(self, new_statistics: StatisticsObject, pattern: Pattern):
+        tree_plan = self.tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
 
-    @staticmethod
-    def is_greater_then_t(statistics):
-        if statistics.statistics_type == StatisticsTypes.ARRIVAL_RATES:
-            pass
-        if statistics.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX:
-            pass
-        if statistics.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            pass
+    def is_greater_then_t(self, new_statistics: StatisticsObject):
+        if isinstance(new_statistics, ArrivalRates):
+            for arrival_rate in new_statistics.statistics:
+                if self.prev_statistics + self.t * self.prev_statistics < arrival_rate or \
+                        self.prev_statistics - self.t * self.prev_statistics > arrival_rate:
+                    return True
+            return False
+
+        if isinstance(new_statistics, SelectivityMatrix):
+            for row in new_statistics.statistics:
+                for selectivity in row:
+                    if self.prev_statistics + self.t * self.prev_statistics < selectivity or \
+                            self.prev_statistics - self.t * self.prev_statistics > selectivity:
+                        return True
+            return False
+
+        if isinstance(new_statistics, SelectivityMatrixAndArrivalRates):
+            (selectivity_matrix, arrival_rates) = new_statistics.statistics
+            for arrival_rate in arrival_rates:
+                if self.prev_statistics + self.t * self.prev_statistics < arrival_rate or \
+                        self.prev_statistics - self.t * self.prev_statistics > arrival_rate:
+                    return True
+
+            for row in selectivity_matrix:
+                for selectivity in row:
+                    if self.prev_statistics + self.t * self.prev_statistics < selectivity or \
+                            self.prev_statistics - self.t * self.prev_statistics > selectivity:
+                        return True
+
+            return False
 
 
 class InvariantAwareOptimizer(Optimizer):
@@ -74,10 +100,10 @@ class InvariantAwareOptimizer(Optimizer):
         super().__init__(tree_plan_builder)
         self.invariants = None
 
-    def is_need_reoptimize(self, pattern):
+    def is_need_reoptimize(self, new_statistics: StatisticsObject, pattern: Pattern):
         # Handle the case its the first time
-        return self.invariants is None or self.invariants.is_invariants_violated(pattern)
+        return self.invariants is None or self.invariants.is_invariants_violated(new_statistics, pattern)
 
-    def build_new_tree_plan(self, pattern: Pattern):
-        tree_plan, self.invariants = self.tree_plan_builder.build_tree_plan(pattern)
+    def build_new_tree_plan(self, new_statistics: StatisticsObject, pattern: Pattern):
+        tree_plan, self.invariants = self.tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
