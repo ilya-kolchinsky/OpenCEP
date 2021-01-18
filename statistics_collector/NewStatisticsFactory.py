@@ -1,3 +1,4 @@
+from base.Pattern import Pattern
 from misc import DefaultConfig
 from misc.StatisticsTypes import StatisticsTypes
 from statistics_collector.NewStatistics import SelectivityAndArrivalRatesStatistics, SelectivityStatistics, \
@@ -34,11 +35,12 @@ class StatisticsFactory:
     Creates a statistics collector given its specification.
     """
     @staticmethod
-    def create_statistics(statistics_params: StatisticsParameters):
+    def create_statistics(pattern: Pattern, statistics_params: StatisticsParameters):
         if statistics_params.stat_type == StatisticsTypes.ARRIVAL_RATES:
-            return ArrivalRatesStatistics()
+            return ArrivalRatesStatistics(pattern)
         if statistics_params.stat_type == StatisticsTypes.SELECTIVITY_MATRI:
-            return SelectivityStatistics()
+            return SelectivityStatistics(pattern)
         if statistics_params.stat_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            return SelectivityAndArrivalRatesStatistics()
+            return SelectivityAndArrivalRatesStatistics(ArrivalRatesStatistics(pattern),
+                                                        SelectivityStatistics(pattern))
         raise Exception("Unknown statistics type: %s" % (statistics_params.stat_type,))

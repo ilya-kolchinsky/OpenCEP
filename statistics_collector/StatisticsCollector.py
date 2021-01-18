@@ -1,16 +1,18 @@
+from typing import List
+
 from base.Event import Event
-from misc.StatisticsTypes import StatisticsTypes
-from optimizer import Optimizer
-from statistics_collector.ArrivalRates import ArrivalRates
-from statistics_collector.SelectivityMatrixAndArrivalRates import SelectivityMatrixAndArrivedRates
-from base import Pattern
+from base.Pattern import Pattern
+from statistics_collector.NewStatistics import Statistics
 
 
 class StatisticsCollector:
 
-    def __init__(self, pattern: Pattern):
-        self.__statistics = pattern.statistics
+    def __init__(self, pattern: Pattern, statistics: Statistics):
+        self.pattern = pattern
+        self.__statistics = statistics
 
     def event_handler(self, event: Event):
-        for stat in self.__statistics:
-            stat.update(event)
+        self.__statistics.update(event)
+
+    def get_statistics(self):
+        return self.__statistics.get_statistics()
