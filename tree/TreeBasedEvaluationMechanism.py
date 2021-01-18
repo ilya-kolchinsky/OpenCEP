@@ -111,7 +111,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     matches.add_item([match, False])
                     self.__remove_matched_freezers(match.events)
 
-        print("m ", countM)
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         for match in self.__tree.get_last_matches():

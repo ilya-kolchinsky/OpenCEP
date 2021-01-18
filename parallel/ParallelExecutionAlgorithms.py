@@ -73,6 +73,8 @@ class DataParallelAlgorithm(ABC):
             self._threads.append(t)
             t.start()
 
+    def get_structure_summary(self):
+        return self._trees[0].get_structure_summary()
 
 class Algorithm1(DataParallelAlgorithm):
     def __init__(self, numthreads, patterns: Pattern or List[Pattern],
@@ -188,7 +190,7 @@ class Algorithm2(DataParallelAlgorithm):
         for start_time in self.start_list[thread_id]:
             shared_time1 = start_time + self.shared_time
             shared_time2 = start_time + self.time_slot - self.shared_time
-            print(start_time, shared_time1, shared_time2)
+            #print(start_time, shared_time1, shared_time2)
             self._trees[thread_id].eval_parallel(self._events_list[thread_id], self._matches_handler, data_formatter, shared_time1, shared_time2)
             self._trees[thread_id] = _make_tree(self._patterns, self._eval_mechanism_params)
             self.thread_pool.put(thread_id)
@@ -224,15 +226,25 @@ class Algorithm2(DataParallelAlgorithm):
         #     t.wait()
         count = 0
         check_duplicated = list()
+
+        matches_dict= {}
+
         for match, is_duplicated in self._matches_handler:
 
             if is_duplicated: #duplicated
+                #
+                # matches_dict[match.__str__()]= 1
+                # if matches_dict[match.__str__()] == 1:
+                #     print("in")
+                #     check_duplicated.append(match)
+                #
+                #
 
-                if match.__str__ in check_duplicated:
-                    check_duplicated.remove(match.__str__)
+                if match.__str__() in check_duplicated:
+                    check_duplicated.remove(match.__str__())
                 else:
                     self._matches.add_item(match)
-                    check_duplicated.append(match.__str__)
+                    check_duplicated.append(match.__str__())
             else:
                 self._matches.add_item(match)
 

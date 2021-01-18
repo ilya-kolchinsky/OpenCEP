@@ -155,6 +155,13 @@ def fileCompare(pathA, pathB):
     closeFiles(file1, file2)
     list1.sort()
     list2.sort()
+    file3= open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l1.txt", 'w')
+    for item in list1:
+        print(item, file= file3)
+
+    file4= open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l2.txt", 'w')
+    for item in list2:
+        print(item, file= file4)
     print(len(list1), len(list2))
     return list1 == list2
 
@@ -399,6 +406,6 @@ def runStructuralTest(testName, patterns, expected_result,
                       ):
     # print('{} is a test to check the tree structure, without actually running a test'.format(testName))
     # print('place a breakpoint after creating the CEP object to debug it.\n')
-    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, parallel_execution_params, data_parallel_params)
+    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, data_parallel_params)
     structure_summary = cep.get_evaluation_mechanism_structure_summary()
     print("Test %s result: %s" % (testName, "Succeeded" if structure_summary == expected_result else "Failed"))
