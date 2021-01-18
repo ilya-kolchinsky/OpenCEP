@@ -47,10 +47,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         given output stream.
         """
         self.__register_event_listeners()
-        print("first:", events.first())
         for raw_event in events:
             event = Event(raw_event, data_formatter)
-            print(type(event.payload["Opening Price"]))
             if event.type not in self.__event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
@@ -71,8 +69,10 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
     def eval_parallel(self, events: InputStream, matches: Stream, data_formatter: DataFormatter, time1, time2):
         self.__register_event_listeners()
-
+        countM = 0
+        countE = 0
         for raw_event in events:
+            countE+=1
             event = Event(raw_event, data_formatter)
             if event.type not in self.__event_types_listeners.keys():
                 continue
@@ -82,6 +82,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     continue
                 self.__try_register_freezer(event, leaf)
                 leaf.handle_event(event)
+            ######
 
             if event.timestamp <= time1: #begin
                 for match in self.__tree.get_matches():
@@ -93,6 +94,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                             break
                     matches.add_item([match, flag])
                     self.__remove_matched_freezers(match.events)
+                    countM+=1
             elif event.timestamp >= time2:# end
                 for match in self.__tree.get_matches():
                     match_event = match.events
@@ -103,16 +105,19 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                             break
                     matches.add_item([match, flag])
                     self.__remove_matched_freezers(match.events)
+                    countM+=1
             else: #middle
                 for match in self.__tree.get_matches():
                     matches.add_item([match, False])
                     self.__remove_matched_freezers(match.events)
 
+        print("m ", countM)
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         for match in self.__tree.get_last_matches():
             matches.add_item([match, True])
-        matches.close()
+            countM+=1
+
 
     def __register_event_listeners(self):
         """

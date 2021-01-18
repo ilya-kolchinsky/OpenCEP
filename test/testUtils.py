@@ -65,7 +65,7 @@ def closeFiles(file1, file2):
     file2.close()
 
 
-def fileCompare1(pathA, pathB):
+def fileCompare_StreamTest(pathA, pathB):
     file1 = open(pathA)
     file2 = open(pathB)
     file1.seek(0)
@@ -89,6 +89,38 @@ def fileCompare1(pathA, pathB):
 
     return list1 == list2
 
+def fileCompare1(pathA, pathB):
+    """
+    Compare expected output and actual ouput
+    :param path1: path to first file
+    :param path2: path to second file
+    :return: bool, True if the two files are equivalent
+    """
+    file1 = open(pathA)
+    file2 = open(pathB)
+
+    counter1 = numOfLinesInPattern(file1)
+    counter2 = numOfLinesInPattern(file2)
+
+    file1.seek(0)
+    file2.seek(0)
+
+    # quick check, if both files don't return the same counter, or if both files are empty
+    if counter1 != counter2:
+        closeFiles(file1, file2)
+        return False
+    elif counter1 == counter2 and counter1 == 0:
+        closeFiles(file1, file2)
+        return True
+
+    set1 = set()
+    set2 = set()
+
+    fillSet(file1, set1, counter1)
+    fillSet(file2, set2, counter2)
+    closeFiles(file1, file2)
+
+    return set1 == set2
 
 def fileCompare(pathA, pathB):
     """
@@ -107,14 +139,13 @@ def fileCompare(pathA, pathB):
     file2.seek(0)
 
     # quick check, if both files don't return the same counter, or if both files are empty
-    """ 
+
     if counter1 != counter2:
         closeFiles(file1, file2)
         return False
     elif counter1 == counter2 and counter1 == 0:
         closeFiles(file1, file2)
         return True
-    """
 
     list1 = list()
     list2 = list()
@@ -124,7 +155,7 @@ def fileCompare(pathA, pathB):
     closeFiles(file1, file2)
     list1.sort()
     list2.sort()
-    print(list1 == list2)
+    print(len(list1), len(list2))
     return list1 == list2
 
 
@@ -217,8 +248,8 @@ def runTest(testName, patterns, createTestFile=False,
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
-    #if is_test_successful:
-     #   os.remove(actual_matches_path)
+    if is_test_successful:
+        os.remove(actual_matches_path)
 
 
 """
@@ -278,16 +309,20 @@ success or fail output.
 
 def runMultiTest(testName, patterns, createTestFile=False,
                  eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                 events=None, eventStream=nasdaqEventStream):
+                 events=None, eventStream=nasdaqEventStream,
+                 parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+                 data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads= 6)
+                 ):
     if events is None:
         events = eventStream.duplicate()
     else:
         events = events.duplicate()
 
-    listShort = ["multiplePatterns", "distinctPatterns", "MultipleNotBeginningShare", "multipleParentsForInternalNode"]
-    listHalfShort = ["onePatternIncludesOther", "threeSharingSubtrees"]
-    listCustom = []
-    listCustom2 = ["FirstMultiPattern", "RootAndInner"]
+    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns"]
+    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
+    listCustom = ["MultipleNotBeginAndEnd"]
+    listCustom2 = ["simpleNot"]
+
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
@@ -302,7 +337,7 @@ def runMultiTest(testName, patterns, createTestFile=False,
     if createTestFile:
         createExpectedOutput(testName, patterns, eval_mechanism_params, events.duplicate(), eventStream)
 
-    cep = CEP(patterns, eval_mechanism_params)
+    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, data_parallel_params)
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
@@ -339,7 +374,10 @@ class DummyOutputStream(OutputStream):
         pass
 
 
-def runBenchMark(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS, events=None):
+def runBenchMark(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS, events=None,
+                 parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+                 data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads=6)
+                 ):
     """
     this runs a bench mark ,since some outputs for benchmarks are very large,
     we assume correct functionality and only check runtimes. (not a test)
@@ -348,16 +386,19 @@ def runBenchMark(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALU
         events = nasdaqEventStream.duplicate()
     else:
         events = events.duplicate()
-    cep = CEP(patterns, eval_mechanism_params)
+    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, data_parallel_params  )
     running_time = cep.run(events, DummyOutputStream(), DEFAULT_TESTING_DATA_FORMATTER)
     print("Bench Mark %s completed, Time Passed: %s" % (testName, running_time))
     runTest.over_all_time += running_time
 
 
 def runStructuralTest(testName, patterns, expected_result,
-                      eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS):
+                      eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                      parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+                      data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads=6)
+                      ):
     # print('{} is a test to check the tree structure, without actually running a test'.format(testName))
     # print('place a breakpoint after creating the CEP object to debug it.\n')
-    cep = CEP(patterns, eval_mechanism_params)
+    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, parallel_execution_params, data_parallel_params)
     structure_summary = cep.get_evaluation_mechanism_structure_summary()
     print("Test %s result: %s" % (testName, "Succeeded" if structure_summary == expected_result else "Failed"))
