@@ -19,12 +19,12 @@ class Statistics(ABC):
 
 class ArrivalRatesStatistics(Statistics):
 
-    def __init__(self, pattern: Pattern):
+    def __init__(self, time_window: timedelta, pattern: Pattern):
         self.arrival_rates = [0.0] * len(pattern.positive_structure.args)
         self.event_type_to_index_map = {e.type: i
                                         for i, e in enumerate(pattern.positive_structure.args)}
         self.events_arrival_time = []
-        self.window = pattern.window
+        self.time_window = time_window
 
     def update(self, event: Event):
         event_type = event.type

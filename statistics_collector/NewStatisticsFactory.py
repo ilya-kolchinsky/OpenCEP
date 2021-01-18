@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from base.Pattern import Pattern
 from misc import DefaultConfig
 from misc.StatisticsTypes import StatisticsTypes
@@ -10,10 +12,9 @@ class StatisticsParameters:
     Parameters required for statistics creation.
     """
 
-    def __init__(self, stat_type: StatisticsTypes = DefaultConfig.DEFAULT_STATISTICS_TYPE):
+    def __init__(self, time_window: timedelta, stat_type: StatisticsTypes = DefaultConfig.DEFAULT_STATISTICS_TYPE):
         self.stat_type = stat_type
-        # self.window_time = window_time
-        # need to add the constructor some window time
+        self.time_window = time_window
 
 
 class ArrivalRateStatisticsParameters(StatisticsParameters):
@@ -37,10 +38,10 @@ class StatisticsFactory:
     @staticmethod
     def create_statistics(pattern: Pattern, statistics_params: StatisticsParameters):
         if statistics_params.stat_type == StatisticsTypes.ARRIVAL_RATES:
-            return ArrivalRatesStatistics(pattern)
+            return ArrivalRatesStatistics(statistics_params.time_window, pattern)
         if statistics_params.stat_type == StatisticsTypes.SELECTIVITY_MATRI:
             return SelectivityStatistics(pattern)
         if statistics_params.stat_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            return SelectivityAndArrivalRatesStatistics(ArrivalRatesStatistics(pattern),
+            return SelectivityAndArrivalRatesStatistics(ArrivalRatesStatistics(statistics_params.time_window, pattern),
                                                         SelectivityStatistics(pattern))
         raise Exception("Unknown statistics type: %s" % (statistics_params.stat_type,))

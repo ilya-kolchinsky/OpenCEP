@@ -1,7 +1,7 @@
 from misc.StatisticsTypes import StatisticsTypes
 from statistics_collector.StatisticsCollector import StatisticsCollector
 from statistics_collector.StatisticsCollectorParameters import StatisticsCollectorParameters
-from statistics_collector.ArrivalRates import ArrivalRates
+from statistics_collector.StatisticsObjects import ArrivalRates
 from misc import DefaultConfig
 from base.Pattern import Pattern
 
