@@ -117,6 +117,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             matches.add_item([match, True])
             countM+=1
 
+        #print("m ", countM)
 
     def __register_event_listeners(self):
         """

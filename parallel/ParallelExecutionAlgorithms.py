@@ -119,11 +119,15 @@ class Algorithm2(DataParallelAlgorithm):
         self.streams_queue = Queue()
         self.thread_pool = Queue()
         self.base_year = 0
+
         for i in range(numthreads - 1):
             self.thread_pool.put(i)
 
+        self._mutex = Queue()
+
 
         ##
+
 
     # def _threads_divide_date(self):
 
@@ -179,9 +183,10 @@ class Algorithm2(DataParallelAlgorithm):
         for i in range(0, self._numThreads - 1):
             self.start_list[i].close()
 
+        while self._mutex.qsize() < self._numThreads-1:
+            pass
 
-        for t in self._threads:
-            t.wait()
+
         self._matches_handler.close()
 
 
@@ -194,6 +199,8 @@ class Algorithm2(DataParallelAlgorithm):
             self._trees[thread_id].eval_parallel(self._events_list[thread_id], self._matches_handler, data_formatter, shared_time1, shared_time2)
             self._trees[thread_id] = _make_tree(self._patterns, self._eval_mechanism_params)
             self.thread_pool.put(thread_id)
+        self._mutex.put(1)
+
 
     def _eval_test(self, thread_id, output):
         counter = 0
@@ -227,19 +234,10 @@ class Algorithm2(DataParallelAlgorithm):
         count = 0
         check_duplicated = list()
 
-        matches_dict= {}
 
         for match, is_duplicated in self._matches_handler:
-
+            count+=1
             if is_duplicated: #duplicated
-                #
-                # matches_dict[match.__str__()]= 1
-                # if matches_dict[match.__str__()] == 1:
-                #     print("in")
-                #     check_duplicated.append(match)
-                #
-                #
-
                 if match.__str__() in check_duplicated:
                     check_duplicated.remove(match.__str__())
                 else:

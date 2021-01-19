@@ -12,7 +12,7 @@ from stream.Stream import *
 
 runTest.over_all_time = 0
 
-# basic functionality tests
+#basic functionality tests
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
@@ -23,7 +23,7 @@ amazonSpecificPatternSearchTest()
 googleAmazonLowPatternSearchTest()
 nonsensePatternSearchTest()
 hierarchyPatternSearchTest()
-duplicateEventTypeTest()            #failure !!!!
+duplicateEventTypeTest()
 
 # tree plan generation algorithms
 arrivalRatesPatternSearchTest()
@@ -61,32 +61,33 @@ structuralTest7()
 
 # Kleene closure tests
 oneArgumentsearchTestKleeneClosure()  #failure
-MinMax_0_TestKleeneClosure()            #failure
-MinMax_1_TestKleeneClosure()            #failure
-MinMax_2_TestKleeneClosure()            #failure
+MinMax_0_TestKleeneClosure()
+MinMax_1_TestKleeneClosure()
+MinMax_2_TestKleeneClosure()
 KC_AND()                                #failure
 
 # Kleene Condition tests
-KC_AND_IndexCondition_01()              #failure
-KC_AND_IndexCondition_02()              #failure
-KC_AND_NegOffSet_01()                    #failure
-KC_AllValues()                           #failure
-KC_Specific_Value()                      #failure
-KC_Mixed()                                #failure
+KC_AND_IndexCondition_01()
+KC_AND_IndexCondition_02()
+KC_AND_NegOffSet_01()
+KC_AllValues()
+KC_Specific_Value()
+KC_Mixed()
 KC_Condition_Failure_01()
 KC_Condition_Failure_02()
 KC_Condition_Failure_03()
-############################all above failure ###################################
+
 # negation tests
 simpleNotTest()
 multipleNotInTheMiddleTest()
 oneNotAtTheBeginningTest()
 multipleNotAtTheBeginningTest()
+#############all above are failure ###########
 oneNotAtTheEndTest()
 multipleNotAtTheEndTest()
 multipleNotBeginAndEndTest()
 testWithMultipleNotAtBeginningMiddleEnd()
-
+################ end of failure#############################
 # consumption policies tests
 singleType1PolicyPatternSearchTest()
 singleType2PolicyPatternSearchTest()
@@ -94,7 +95,7 @@ contiguousPolicyPatternSearchTest()
 contiguousPolicy2PatternSearchTest()
 freezePolicyPatternSearchTest()
 freezePolicy2PatternSearchTest()
-#####################################################end of failure################
+
 # storage tests
 sortedStorageTest()
 run_storage_tests()

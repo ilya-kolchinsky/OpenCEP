@@ -37,6 +37,9 @@ class Stream:
     def first(self):
         return self._stream.queue[0]
 
+    def sec(self):
+        return self._stream.queue[1]
+
     def last(self):
         x = self._stream.queue[-1]
         if x is None:  # if stream is closed last is None. We need the one before None.

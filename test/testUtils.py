@@ -139,7 +139,7 @@ def fileCompare(pathA, pathB):
     file2.seek(0)
 
     # quick check, if both files don't return the same counter, or if both files are empty
-
+    #print("in", counter1, counter2)
     if counter1 != counter2:
         closeFiles(file1, file2)
         return False
@@ -155,14 +155,8 @@ def fileCompare(pathA, pathB):
     closeFiles(file1, file2)
     list1.sort()
     list2.sort()
-    file3= open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l1.txt", 'w')
-    for item in list1:
-        print(item, file= file3)
 
-    file4= open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l2.txt", 'w')
-    for item in list2:
-        print(item, file= file4)
-    print(len(list1), len(list2))
+   # print(len(list1), len(list2))
     return list1 == list2
 
 
