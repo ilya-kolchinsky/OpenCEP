@@ -108,15 +108,24 @@ notInTheBeginningShare()
 multipleParentsForInternalNode()
 
 # nested operator tests
-nestedTest()
+basicNestedTest()
 nestedAscendingTest()
+nestedAscendingStructuralTest()
 greedyNestedTest()
+greedyNestedStructuralTest()
 iiGreedyNestedPatternSearchTest()
+iiGreedyNestedStructuralTest()
 greedyNestedComplexTest()
+greedyNestedComplexStructuralTest()
 dpLdNestedPatternSearchTest()
+dpLdNestedStructuralTest()
+dpBPatternSearchTest()
+dpBNestedStructuralTest()
 dpLdNestedPatternComplexSearchTest()
+dpLdNestedComplexStructuralTest()
 zStreamOrdNestedPatternComplexSearchTest()
-KC_AND_IndexCondition_02_Nested()
+zstreamOrdNestedComplexStructuralTest()
+KCNestedStructuralTest()
 
 # benchmarks
 if INCLUDE_BENCHMARKS:
