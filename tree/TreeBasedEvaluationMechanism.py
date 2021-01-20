@@ -41,7 +41,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
 
-    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter, to_close=True):
         """
         Activates the tree evaluation mechanism on the input event stream and reports all found pattern matches to the
         given output stream.
@@ -65,7 +65,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         # collect them now
         for match in self.__tree.get_last_matches():
             matches.add_item(match)
-        matches.close()
+        if to_close:
+            matches.close()
 
     def eval_parallel(self, events: InputStream, matches: Stream, data_formatter: DataFormatter, time1, time2):
         self.__register_event_listeners()
