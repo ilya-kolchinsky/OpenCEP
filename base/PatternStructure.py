@@ -35,13 +35,13 @@ class PatternStructure(ABC):
 
     def count_primitive_events(self):
         """
-        TODO: comment
+        Returns the number of pimitive events under this structure
         """
         raise NotImplementedError()
 
     def get_primitive_events_names(self):
         """
-        TODO: comment
+        Returns a list of all the events' names contained in this pattern
         """
         raise NotImplementedError()
 
@@ -132,7 +132,7 @@ class CompositeStructure(PatternStructure, ABC):
         n = 0
         for arg in self.args:
             if not isinstance(arg, PatternStructure):
-                raise Exception("message") #TODO: fill
+                raise Exception("unexpected arg")
             n = n + arg.count_primitive_events()
         return n
 
@@ -140,7 +140,7 @@ class CompositeStructure(PatternStructure, ABC):
         names = []
         for arg in self.args:
             if not isinstance(arg, PatternStructure):
-                raise Exception("message")  # TODO: fill
+                raise Exception("unexpected arg")
             names = names + arg.get_primitive_events_names()
         return names
 

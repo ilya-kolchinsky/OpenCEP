@@ -20,11 +20,13 @@ class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
     Creates a bushy tree using a dynamic programming algorithm.
     """
     def _create_tree_topology(self, pattern: Pattern):
+        """
+        This function is very very similar to the one on the LeftDeepTree. Just the final algorithm (for building the
+        actual tree plan) is different
+        """
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             nested_topologies = None
             nested_args = None
-            # nested_arrival_rates = None
-            # nested_selectivity = None
             nested_cost = None
             if not isinstance(pattern.positive_structure, PrimitiveEventStructure):
                 nested_topologies = []
@@ -103,6 +105,10 @@ class ZStreamTreeBuilder(TreePlanBuilder):
     Creates a bushy tree using ZStream algorithm.
     """
     def _create_tree_topology(self, pattern: Pattern):
+        """
+        This function is very very similar to the one on the LeftDeepTree. Just the final algorithm (for building the
+        actual tree plan) is different
+        """
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             nested_topologies = None
             nested_args = None

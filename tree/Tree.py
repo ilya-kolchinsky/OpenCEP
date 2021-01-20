@@ -164,10 +164,6 @@ class Tree:
             unary_node.set_subtree(child)
             return unary_node
 
-        # the current operator is a nested binary operator
-        # return self.__construct_tree(current_operator, Tree.__create_nested_structure(current_operator),
-        #                              current_operator.args, sliding_window, parent, consumption_policy)
-
 
     def __construct_tree(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
                          args: List[PatternStructure], sliding_window: timedelta, parent: Node,
@@ -181,13 +177,11 @@ class Tree:
                                                                      sliding_window, parent, consumption_policy)
 
         if type(tree_plan) == TreePlanLeafNode:
-            # either a leaf node or an unary operator encapsulating a nested structure
-            # TODO: must implement a mechanism for actually creating nested tree plans instead of a flat plan
-            # with leaves hiding nested structure
+            # This is either a leaf or unary node (maybe encapsulating nested structure)
             return self.__handle_primitive_event_or_nested_structure(tree_plan, args[tree_plan.event_index],
                                                                      sliding_window, parent, consumption_policy)
         if type(tree_plan) == TreePlanNestedNode:
-            #TODO: comment
+            # This is a nested node, therefore needs to use construct a subtree of this nested tree, recursively.
             return self.__construct_tree(args[tree_plan.nested_event_index], tree_plan.sub_tree_plan, tree_plan.args,
                                          sliding_window, parent, consumption_policy)
 
@@ -215,23 +209,6 @@ class Tree:
         first_unbounded_negative_node.flush_pending_matches()
         # the pending matches were released and have hopefully reached the root
         return self.get_matches()
-
-    # @staticmethod
-    # def __create_nested_structure(nested_operator: PatternStructure, tree_plan: TreePlanNode):
-    #     """
-    #     This method is a temporal hack, hopefully it will be removed soon.
-    #     # TODO: calculate the evaluation order in the way it should work - using a tree plan builder
-    #     """
-    #     order = list(range(len(nested_operator.args))) if isinstance(nested_operator, CompositeStructure) else [0]
-    #     operator_type = None
-    #     if isinstance(nested_operator, AndOperator):
-    #         operator_type = OperatorTypes.AND
-    #     elif isinstance(nested_operator, SeqOperator):
-    #         operator_type = OperatorTypes.SEQ
-    #     ret = TreePlanLeafNode(order[0])
-    #     for i in range(1, len(order)):
-    #         ret = TreePlanBinaryNode(operator_type, ret, TreePlanLeafNode(order[i]))
-    #     return ret
 
     @staticmethod
     def __is_unbounded_negative_event(pattern: Pattern, negation_operator: NegationOperator):
