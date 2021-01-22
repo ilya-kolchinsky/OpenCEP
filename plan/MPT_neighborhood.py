@@ -460,6 +460,9 @@ class algoA(TreePlanBuilder):
             if idx == i:
                 continue
             patterns_i_idx_data = sub_pattern_shareable_array_copy[i, idx]
+            if len(patterns_i_idx_data) == 0:
+                continue
+
             sub_patterns_i_idx = np.array(patterns_i_idx_data)
             if len(sub_patterns_i_idx) > 0:  # get patterns from patterns_i_j_data (first column)
                 sub_patterns_i_idx = sub_patterns_i_idx[:, 0]
