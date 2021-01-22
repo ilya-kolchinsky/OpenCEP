@@ -329,7 +329,7 @@ class algoA(TreePlanBuilder):
                 tree_plan_i = unified_builder.build_tree_plan(patterni)
                 tree_plan_j = unified_builder.build_tree_plan(patternj)
                 """
-                pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans([patterni,patternj])
+                pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans(patterns)
                 tree_plan1 = pattern_to_tree_plan_map_ordered[patterni]
                 tree_plan2 = pattern_to_tree_plan_map_ordered[patternj]
                 sharable_sub_patterns = algoA.get_all_sharable_sub_patterns(tree_plan1, patterni, tree_plan2, patternj)
@@ -412,8 +412,8 @@ class algoA(TreePlanBuilder):
 
     @staticmethod
     def Nvertex_neighborhood(pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
-                             sub_pattern_shareable_array: np.array):
-        k = max(2, sub_pattern_shareable_array.shape[0] // 4)
+                             sub_pattern_shareable_array: np.array, k=DefaultConfig.SELECT_NEIGHBOR_PATTERNS):
+        # k = max(2, sub_pattern_shareable_array.shape[0] // 4)
         """
         the Nedge neighborhood function as explained in the article Section 4.2
 
@@ -461,7 +461,9 @@ class algoA(TreePlanBuilder):
 
             sub_patterns_i_j = np.array(patterns_i_j_data)[:, 0]  # get patterns from patterns_i_j_data (first column)
             # sub_patterns_i_j = [patterns_i_j_data[k][0] for k in range(len(patterns_i_j_data))]
-            if sub_pattern in sub_patterns_i_j:
+            is_j_contain_sub_pattern = len(
+                list(filter(lambda pattern: pattern.is_equivalent(sub_pattern), sub_patterns_i_j))) > 0
+            if is_j_contain_sub_pattern:
                 all_pattern_indexes_contains_sub_pattern.append(j)
         all_pattern_indexes_contains_sub_pattern = np.array(sorted(all_pattern_indexes_contains_sub_pattern))
         assert len(all_pattern_indexes_contains_sub_pattern) >= 2
@@ -476,7 +478,7 @@ class algoA(TreePlanBuilder):
         # patterns_contains_sub_pattern = sub_pattern_shareable_array_copy[i][all_pattern_indexes_contains_sub_pattern]
 
         # TODO : change the sharing from sharing all to share only max_sharing
-        for p_idx in all_pattern_indexes_contains_sub_pattern:
+        for p_idx in all_pattern_indexes_contains_sub_pattern[:max_sharing]:
             if p_idx == i:
                 continue
             sub_pattern_index = -1
@@ -495,7 +497,15 @@ class algoA(TreePlanBuilder):
             curr_sub_pattern_data = (sub_pattern, curr_event_indexes, curr_names)
             curr_new_plan = alg._create_tree_topology_shared_subpattern(pattern, curr_sub_pattern_data)
             # do the sharing process
-            curr_new_plan.root.left_child = new_tree_plan1.root.left_child
+            if sub_pattern.is_equivalent(patterni) and sub_pattern.is_equivalent(patternj):
+                curr_new_plan.root = new_tree_plan1.root
+            elif sub_pattern.is_equivalent(patterni):
+                curr_new_plan.root.left_child = new_tree_plan1.root
+            elif sub_pattern.is_equivalent(patternj):
+                curr_new_plan.root.left_child = new_tree_plan1.root
+            else:
+                curr_new_plan.root.left_child = new_tree_plan1.root.left_child
+
             pattern_to_tree_plan_map_copy[pattern] = curr_new_plan
             del sub_pattern_shareable_array_copy[i, p_idx][sub_pattern_index]
         return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
@@ -541,7 +551,8 @@ def tree_plan_cost_function(state: Tuple[Dict[Pattern, TreePlan], np.array]):
     cost_model = TreeCostModelFactory.create_cost_model()
     patterns = list(pattern_to_tree_plan_map.keys())
 
-    tree_plan_total_cost = sum([single_pattern_cost(p, tree_plan.root, cost_model) for p, tree_plan in pattern_to_tree_plan_map.items()])
+    tree_plan_total_cost = sum(
+        [single_pattern_cost(p, tree_plan.root, cost_model) for p, tree_plan in pattern_to_tree_plan_map.items()])
     for i, j in itertools.product(range(len(patterns)), range(len(patterns))):
         if i >= j:
             continue
@@ -570,12 +581,17 @@ def tree_plan_neighbour(state: Tuple[Dict[Pattern, TreePlan], np.array]):
     return neighbour
 
 
+iter_num = 1
+
+
 def tree_plan_state_get_summary(state: Tuple[Dict[Pattern, TreePlan], np.array]):
     _, shareable_pairs = state
     count_common_pairs = lambda lst: len(lst) if lst is not None else 0
-
+    global iter_num
+    iter_num += 1
     # dividing by 2 cause the shareable_pairs is a symmetric matrix
-    return "common pairs size = " + str(np.sum([count_common_pairs(lst) for lst in shareable_pairs.reshape(-1)]) // 2)
+    return "iter " + str(iter_num) + " common pairs size = " + str(
+        np.sum([count_common_pairs(lst) for lst in shareable_pairs.reshape(-1)]) // 2)
 
 
 def tree_plan_equal(state1: Tuple[Dict[Pattern, TreePlan], np.array],
@@ -758,17 +774,14 @@ def annealing_basic_test():
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
                     PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("GOOG", "d")),
         AndCondition(
-            GreaterThanCondition(Variable("b", lambda x: x["Peak Price"]), 135),
-            GreaterThanCondition(Variable("b", lambda x: x["Opening Price"]),
-                                 Variable("c", lambda x: x["Opening Price"]))),
+            GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
     pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
-        AndCondition(
-            GreaterThanCondition(Variable("b", lambda x: x["Peak Price"]), 135),
-            GreaterThanCondition(Variable("b", lambda x: x["Opening Price"]),
-                                 Variable("c", lambda x: x["Opening Price"]))),
+        SeqOperator(PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("GOOG", "d")),
+        AndCondition(),
         timedelta(minutes=5)
     )
     selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
@@ -776,9 +789,8 @@ def annealing_basic_test():
     arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
 
-    selectivityMatrix = [[1.0, 0.9457796098355941], [0.9457796098355941, 0.15989723367389616]]
-    arrivalRates = [0.016597077244258872, 0.01454418928322895]
-
+    selectivityMatrix = [[1.0, 0.15989723367389616], [1.0, 1.0]]
+    arrivalRates = [0.013917884481558803, 0.012421711899791231]
     pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     patterns = [pattern1, pattern2]
     state, c = tree_plan_visualize_annealing(patterns=patterns,
@@ -836,6 +848,45 @@ def annealing_med_test():
                                              neighbour_function=tree_plan_neighbour)
     pattern_to_tree_plan_map, shareable_pairs = state
     return pattern_to_tree_plan_map
+
+
+def Nvertex_test():
+    pattern1 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    pattern2 = Pattern(
+        SeqOperator(PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
+    pattern3 = Pattern(
+        SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("TONY", "b"),
+                    PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
+
+    )
+
+    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
+                         [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
+    arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
+    pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern3.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    selectivityMatrix = [[1.0, 0.15989723367389616], [1.0, 1.0]]
+    arrivalRates = [0.013917884481558803, 0.012421711899791231]
+    pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    patterns = [pattern1, pattern2, pattern3]
+    state = patterns_initialize_function(patterns)
+    pattern_to_tree_plan_map, shareable_pairs = state
+    alg = algoA()
+    alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 3)
+    print('Ok')
 
 
 if __name__ == '__main__':
