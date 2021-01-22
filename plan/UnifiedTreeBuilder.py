@@ -5,12 +5,11 @@ import itertools
 import math
 from copy import deepcopy
 from datetime import timedelta
-import random
 from typing import List, Dict
+
 from base.Pattern import Pattern
 from base.PatternStructure import CompositeStructure, PatternStructure, UnaryStructure, PrimitiveEventStructure
 from condition.Condition import Variable
-#from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
 from misc import DefaultConfig
 from misc.ConsumptionPolicy import ConsumptionPolicy
 from misc.DefaultConfig import DEFAULT_TREE_COST_MODEL
@@ -18,12 +17,10 @@ from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlanLeafNode, TreePlan, TreePlanNode, TreePlanInternalNode, TreePlanUnaryNode, \
     TreePlanBinaryNode
 from plan.TreePlanBuilder import TreePlanBuilder
-from plan.TreePlanBuilderFactory import TreePlanBuilderFactory
 from plan.TreePlanBuilderOrders import TreePlanBuilderOrder
 from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 from tree.TreeVisualizationUtility import GraphVisualization
 from tree.nodes.LeafNode import LeafNode
-import evaluation.EvaluationMechanismFactory
 from tree.nodes.Node import Node
 
 
@@ -56,9 +53,6 @@ class UnifiedTreeBuilder(TreePlanBuilder):
 
     def _union_tree_plans(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
                           tree_plan_union_approach: MultiPatternTreePlanUnionApproaches):
-        """
-        pick which algorithm to run according to approach
-        """
         if isinstance(pattern_to_tree_plan_map, TreePlan) or len(pattern_to_tree_plan_map) <= 1:
             return pattern_to_tree_plan_map
 
@@ -98,9 +92,7 @@ class UnifiedTreeBuilder(TreePlanBuilder):
     @staticmethod
     def find_matches_orders(patterns: List[Pattern]):
         """
-        match and find the common events in patterns
         """
-
         if len(patterns) <= 1:
             return UnifiedTreeBuilder._create_evaluation_order(patterns[0])
 
@@ -113,12 +105,17 @@ class UnifiedTreeBuilder(TreePlanBuilder):
     @staticmethod
     def find_orders_for_two_patterns(pattern1: Pattern, pattern2: Pattern):
         """
-        finding the matching events in two pattern
         """
+        # is_commutative1, is_commutative2 = pattern1.positive_structure.commutative(), pattern2.positive_structure.commutative()
+        # if not (is_commutative1 and is_commutative2):
+        #     order1 = list(range(len(pattern1.positive_structure.args)))
+        #     order2 = list(range(len(pattern2.positive_structure.args)))
+        #     return [order1, order2]
 
         pattern1_events = pattern1.positive_structure.get_args()
         pattern2_events = pattern2.positive_structure.get_args()
         shared = []
+        # intersected_names = sorted(set(pattern1_names) & set(pattern2_names))
 
         for event1 in pattern1_events:
             for event2 in pattern2_events:
@@ -126,6 +123,9 @@ class UnifiedTreeBuilder(TreePlanBuilder):
                                                                                           pattern2, event2.name):
                     shared += [(event1.name, event2.name, pattern1_events.index(event1), pattern2_events.index(event2))]
                     break
+        # for event_name in intersected_names:
+        #     if UnifiedTreeBuilder.are_con_equal(pattern1, pattern2, event_name):
+        #         shared += [(event_name, pattern1_names.index(event_name), pattern2_names.index(event_name))]
 
         if len(shared) == 0:
             order1 = list(range(len(pattern1.positive_structure.args)))
@@ -133,15 +133,12 @@ class UnifiedTreeBuilder(TreePlanBuilder):
             return [order1, order2]
 
         names1, names2, order1, order2 = list(zip(*shared))
-        order1 = list(order1) + list(filter(lambda x: x not in order1, range(len(pattern1_events))))
-        order2 = list(order2) + list(filter(lambda x: x not in order2, range(len(pattern2_events))))
+        order1 = list(np.unique(order1)) + list(filter(lambda x: x not in order1, range(len(pattern1_events))))
+        order2 = list(np.unique(order2)) + list(filter(lambda x: x not in order2, range(len(pattern2_events))))
         return [order1, order2]
 
     @staticmethod
     def are_conditions_equal(pattern1, event_name1, pattern2, event_name2):
-        """
-        return true if two patterns have the same condition else false
-        """
         condition1 = pattern1.condition.get_condition_of(event_name1, get_kleene_closure_conditions=False,
                                                          consume_returned_conditions=False)
         condition2 = pattern2.condition.get_condition_of(event_name2, get_kleene_closure_conditions=False,
@@ -151,7 +148,6 @@ class UnifiedTreeBuilder(TreePlanBuilder):
     @staticmethod
     def find_order_for_new_pattern(patterns: List[Pattern], new_pattern: Pattern):
         """
-        finding the maximum matching between patterns and return it
         """
 
         max_order_len = - math.inf
@@ -175,9 +171,6 @@ class UnifiedTreeBuilder(TreePlanBuilder):
 
     def _order_to_tree_topology(self, order: List[int], pattern: Pattern):
 
-        """
-        call the the order of topology according to the approach and each approach handle separetly
-        """
         if self.tree_plan_build_approach == TreePlanBuilderOrder.LEFT_TREE:
             return UnifiedTreeBuilder._order_to_tree_topology_left(order, pattern)
 
@@ -462,12 +455,8 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         We are assuming that each pattern appears only once in patterns (which is a legitimate assumption).
         """
         self.trees_number_nodes_shared = 0
-        leaves_dict = {}
-        for i, pattern in enumerate(pattern_to_tree_plan_map):
-            tree_plan_leaves_pattern = pattern_to_tree_plan_map[pattern].root.get_leaves()
-            pattern_event_size = len(pattern.positive_structure.get_args())
-            leaves_dict[pattern] = {tree_plan_leaves_pattern[i]: pattern.positive_structure.get_args()[i] for i in
-                                    range(pattern_event_size)}
+
+        leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(pattern_to_tree_plan_map)
 
         self.leaves_dict = leaves_dict
 
@@ -493,10 +482,8 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         self.trees_number_nodes_shared = 0
         leaves_dict = {}
         first_pattern = list(pattern_to_tree_plan_map.keys())[0]
-        for i, pattern in enumerate(pattern_to_tree_plan_map):
-            tree_plan_leaves_pattern = pattern_to_tree_plan_map[pattern].root.get_leaves()
-            leaves_dict[pattern] = {tree_plan_leaves_pattern[i]: pattern.positive_structure.get_args()[i] for i in
-                                    range(0, len(tree_plan_leaves_pattern))}
+
+        leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(pattern_to_tree_plan_map)
 
         shared_leaves_dict = {}
         for leaf in leaves_dict[first_pattern]:
@@ -547,6 +534,9 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         leaves_in_plan_node_1 = plan_node.get_leaves()
         if leaves_in_plan_node_1 is None:
             return None
+
+        pattern1_leaves, pattern1_events = list(zip(*list(leaves_dict.get(pattern).items())))
+
         event_indexes1 = list(map(lambda e: e.event_index, leaves_in_plan_node_1))
         pattern1_events = list(leaves_dict.get(pattern).values())
         names1 = {pattern1_events[event_index].name for event_index in event_indexes1}
@@ -582,14 +572,17 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         if leaves_in_plan_node_1 is None or leaves_in_plan_node_2 is None:
             return None, None
 
+        pattern1_leaves, pattern1_events = list(zip(*list(leaves_dict.get(pattern1).items())))
+        pattern2_leaves, pattern2_events = list(zip(*list(leaves_dict.get(pattern2).items())))
+
         event_indexes1 = list(map(lambda e: e.event_index, leaves_in_plan_node_1))
-        pattern1_events = list(leaves_dict.get(pattern1).values())
+        plan_node_1_events = list(filter(lambda i: pattern1_leaves[i].event_index in event_indexes1, range(len(pattern1_leaves))))
 
         event_indexes2 = list(map(lambda e: e.event_index, leaves_in_plan_node_2))
-        pattern2_events = list(leaves_dict.get(pattern2).values())
+        plan_node_2_events = list(filter(lambda i: pattern2_leaves[i].event_index in event_indexes2, range(len(pattern2_leaves))))
 
-        names1 = {pattern1_events[event_index].name for event_index in event_indexes1}
-        names2 = {pattern2_events[event_index].name for event_index in event_indexes2}
+        names1 = {pattern1_events[event_index].name for event_index in plan_node_1_events}
+        names2 = {pattern2_events[event_index].name for event_index in plan_node_2_events}
 
         condition1 = deepcopy(pattern1.condition.get_condition_of(names1, get_kleene_closure_conditions=False,
                                                                   consume_returned_conditions=False))
@@ -723,7 +716,7 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         rand_pattern1, rand_pattern2 = random.sample(pattern_to_tree_plan_map.keys(), k=2)
         pattern_to_tree_plan_map, size = UnifiedTreeBuilder.merge_two_patterns(rand_pattern1, rand_pattern2, pattern_to_tree_plan_map)
         new_state = pattern_to_tree_plan_map, current_cost + size
-for        return new_state
+
 
     @staticmethod
     def merge_two_patterns(pattern_1, pattern_2, pattern_to_tree_plan_map: Dict[Pattern, TreePlan]):

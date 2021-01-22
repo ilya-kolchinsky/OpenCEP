@@ -112,13 +112,14 @@ def annealing(random_start,
             new_state = random_neighbour(state, fraction)
             new_cost = cost_function(new_state)
             if debug: print(
-                "Step #{:>2}/{:>2} : T = {:>4.3g}, state = {:>4.3g}, cost = {:>4.3g}, new_state = {:>4.3g}, new_cost = {:>4.3g} ...".format(step,
-                                                                                                                                            maxsteps,
-                                                                                                                                            T,
-                                                                                                                                            state,
-                                                                                                                                            cost,
-                                                                                                                                            new_state,
-                                                                                                                                            new_cost))
+                "Step #{:>2}/{:>2} : T = {:>4.3g}, state = {:>4.3g}, cost = {:>4.3g}, new_state = {:>4.3g}, new_cost = {:>4.3g} ...".format(
+                    step,
+                    maxsteps,
+                    T,
+                    state,
+                    cost,
+                    new_state,
+                    new_cost))
             if acceptance_probability(cost, new_cost, T) > rn.random():
                 state, cost = new_state, new_cost
                 states.append(state)
@@ -134,9 +135,11 @@ def tree_plan_annealing(
         random_start,
         cost_function,
         random_neighbour,
+        state_equal_function,
         state_repr_function,
         acceptance,
-        temperature,
+        temperature=temperature,
+        early_stop=100,
         maxsteps=1000,
         debug=True):
     """ Optimize the black-box function 'cost_function' with the simulated annealing algorithm."""
@@ -144,26 +147,33 @@ def tree_plan_annealing(
     cost = cost_function(state)
     states, costs = [state_repr_function(state)], [cost]
     T = 0.95
+    no_improve_steps = 0
     with tqdm.tqdm(total=maxsteps, file=sys.stdout) as pbar:
         for step in range(maxsteps):
             fraction = step / float(maxsteps)
             T = update_temperature(T)
             new_state = random_neighbour(state)
             new_cost = cost_function(new_state)
+            pbar.update()
             if debug: print(
-                "Step #{:>2}/{:>2} : T = {:>4.3g}, state = {:>4.3g}, cost = {:>4.3g}, new_state = {:>4.3g}, new_cost = {:>4.3g} ...".format(step,
-                                                                                                                                            maxsteps,
-                                                                                                                                            T,
-                                                                                                                                            state,
-                                                                                                                                            cost,
-                                                                                                                                            new_state,
-                                                                                                                                            new_cost))
+                "Step #{:>2}/{:>2} : T = {:>4.3g}, state = {:>4.3g}, cost = {:>4.3g}, new_state = {:>4.3g}, new_cost = {:>4.3g} ...".format(
+                    step,
+                    maxsteps,
+                    T,
+                    state,
+                    cost,
+                    new_state,
+                    new_cost))
             if acceptance_probability(cost, new_cost, T) > rn.random():
                 state, cost = new_state, new_cost
                 states.append(state_repr_function(state))
                 costs.append(cost)
+                no_improve_steps = 0
+            else:
+                no_improve_steps += 1
 
-            pbar.update()
+            if state_equal_function(new_state, state):
+                return state, cost_function(state), states, costs
 
     return state, cost_function(state), states, costs
 
@@ -239,15 +249,17 @@ def visualize_annealing_timed(cost_function):
     return state, c
 
 
-def tree_plan_visualize_annealing(patterns: List[Pattern], initialize_function, state_repr_function, cost_function, neighbour_function):
+def tree_plan_visualize_annealing(patterns: List[Pattern], initialize_function, state_equal_function, state_repr_function, cost_function,
+                                  neighbour_function):
     state, c, states, costs = tree_plan_annealing(patterns=patterns,
                                                   random_start=initialize_function,
                                                   cost_function=cost_function,
                                                   random_neighbour=neighbour_function,
+                                                  state_equal_function=state_equal_function,
                                                   state_repr_function=state_repr_function,
                                                   acceptance=acceptance_probability,
                                                   temperature=temperature,
-                                                  maxsteps=1000,
+                                                  maxsteps=100000,
                                                   debug=False)
     see_annealing(states, costs)
     return state, c
@@ -262,7 +274,8 @@ def rand_bin_array(n):
     return arr
 
 
-def random_tree_plan_neighbour(pattern_to_tree_plan_map: Dict[Pattern, Tuple[TreePlan, List[int], TreePlanBuilderOrder]]):
+def random_tree_plan_neighbour(
+        pattern_to_tree_plan_map: Dict[Pattern, Tuple[TreePlan, List[int], TreePlanBuilderOrder]]):
     """Move a little bit x, from the left or the right."""
 
     builders = UnifiedTreeBuilder.create_ordered_tree_builders()
@@ -275,31 +288,9 @@ def random_tree_plan_neighbour(pattern_to_tree_plan_map: Dict[Pattern, Tuple[Tre
         order = list(range(args_num))
         np.random.shuffle(order)
         tree = TreePlan(builder._order_to_tree_topology(order, pattern))
-        # h = tree_plan.root.height
-        # K = np.random.randint(low=0, high=h)
-        # rand_vector = rand_bin_array(h)
-        # tree_copy = TreePlan(tree.root.get_node_copy())
         tree_copy = tree
         pattern_to_tree_plan_map[pattern] = (tree_copy, order, random_builder_approach)
 
-    # visualize(tree_plan=tree_copy, title="random_neighbour before swap")
-    #
-    # curr_node = tree_copy.root
-    # for bit in rand_vector[0:K]:
-    #     if curr_node.height <= 2:
-    #         break
-    #     if bit == 0:
-    #         curr_node = curr_node.left_child
-    #     if bit == 1:
-    #         curr_node = curr_node.right_child
-    #
-    # if not isinstance(curr_node, TreePlanLeafNode):
-    #     # swap left right
-    #     tmp = curr_node.left_child
-    #     curr_node.left_child = curr_node.right_child
-    #     curr_node.right_child = tmp
-    #
-    # visualize(tree_plan=tree_copy, title="random_neighbour after swap")
     return pattern_to_tree_plan_map
 
 
@@ -312,7 +303,8 @@ def state_get_summary_aux(orders: List[int], approach: TreePlanBuilderOrder):
 
 
 def state_get_summary(pattern_to_tree_plan_map: Dict[Pattern, Tuple[TreePlan, List[int], TreePlanBuilderOrder]]):
-    return "".join([state_get_summary_aux(orders, approach) + '\n' for _, (_, orders, approach) in pattern_to_tree_plan_map.items()])
+    return "".join([state_get_summary_aux(orders, approach) + '\n' for _, (_, orders, approach) in
+                    pattern_to_tree_plan_map.items()])
 
 
 def random_tree_start(pattern: Pattern):
@@ -373,8 +365,34 @@ def patterns_random_initialize_function(patterns: List[Pattern]):
 
 def tree_plan_cost_function(pattern_to_tree_plan_map: Dict[Pattern, Tuple[TreePlan, List[int], TreePlanBuilderOrder]]):
     cost_model = TreeCostModelFactory.create_cost_model()
-    tree_plan_total_cost = sum([cost_model.get_plan_cost(pattern, tree_plan.root) for pattern, (tree_plan, _, _) in pattern_to_tree_plan_map.items()])
+    tree_plan_total_cost = sum([cost_model.get_plan_cost(pattern, tree_plan.root) for pattern, (tree_plan, _, _) in
+                                pattern_to_tree_plan_map.items()])
     return tree_plan_total_cost
+
+
+def tree_plan_equal(pattern_to_tree_plan_map1: Dict[Pattern, Tuple[TreePlan, List[int], TreePlanBuilderOrder]],
+                    pattern_to_tree_plan_map2: Dict[Pattern, Tuple[TreePlan, List[int], TreePlanBuilderOrder]]):
+    leaves_dict = {}
+
+    patterns = list(pattern_to_tree_plan_map1.keys())
+    for i, pattern in enumerate(patterns):
+        tree_plan, _, _ = pattern_to_tree_plan_map1[pattern]
+        tree_plan_leaves_pattern = tree_plan.root.get_leaves()
+        pattern_args = pattern.positive_structure.get_args()
+        pattern_event_size = len(pattern_args)
+        leaves_dict[pattern] = {tree_plan_leaves_pattern[i]: pattern_args[tree_plan_leaves_pattern[0].event_index] for i
+                                in
+                                range(pattern_event_size)}
+
+    tree_plans1 = list([tree_plan for _, (tree_plan, _, _) in pattern_to_tree_plan_map1.items()])
+    tree_plans2 = list([tree_plan for _, (tree_plan, _, _) in pattern_to_tree_plan_map2.items()])
+
+    for idx, pattern in enumerate(patterns):
+        tree_plans1_root = tree_plans1[idx].root
+        tree_plans2_root = tree_plans2[idx].root
+        if not UnifiedTreeBuilder.is_equivalent(tree_plans1_root, pattern, tree_plans2_root, pattern, leaves_dict):
+            return False
+    return True
 
 
 if __name__ == '__main__':
@@ -388,6 +406,7 @@ if __name__ == '__main__':
     tree_plan_visualize_annealing(patterns=patterns,
                                   initialize_function=patterns_random_initialize_function,
                                   state_repr_function=state_get_summary,
+                                  state_equal_function=tree_plan_equal,
                                   cost_function=tree_plan_cost_function,
                                   neighbour_function=random_tree_plan_neighbour)
     # visualize(tree_plan=random_neighbour, title="random_neighbour")
