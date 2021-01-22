@@ -279,25 +279,27 @@ class algoA(TreePlanBuilder):
         tree2_subtrees = algoA.get_all_nodes(tree_plan2.root)
         sharable = []
         pattern_to_tree_plan_map = {pattern1: tree_plan1, pattern2: tree_plan2}
-        leaves_dict = {}
-        for i, pattern in enumerate(pattern_to_tree_plan_map):
-            tree_plan_leaves_pattern = pattern_to_tree_plan_map[pattern].root.get_leaves()
-            pattern_event_size = len(pattern.positive_structure.get_args())
-            leaves_dict[pattern] = {tree_plan_leaves_pattern[i]: pattern.positive_structure.get_args()[i] for i in
-                                    range(pattern_event_size)}
+        leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(pattern_to_tree_plan_map)
+
         for node1, node2 in itertools.product(tree1_subtrees, tree2_subtrees):
             if UnifiedTreeBuilder.is_equivalent(node1, pattern1, node2, pattern2, leaves_dict):
                 leaves_in_plan_node_1 = node1.get_leaves()
                 leaves_in_plan_node_2 = node2.get_leaves()
                 if leaves_in_plan_node_1 is None or leaves_in_plan_node_2 is None:
                     return None, None
+                pattern1_leaves, pattern1_events = list(zip(*list(leaves_dict.get(pattern1).items())))
+                pattern2_leaves, pattern2_events = list(zip(*list(leaves_dict.get(pattern2).items())))
+
                 event_indexes1 = list(map(lambda e: e.event_index, leaves_in_plan_node_1))
-                pattern1_events = list(leaves_dict.get(pattern1).values())
+                plan_node_1_events = list(
+                    filter(lambda i: pattern1_leaves[i].event_index in event_indexes1, range(len(pattern1_leaves))))
+
                 event_indexes2 = list(map(lambda e: e.event_index, leaves_in_plan_node_2))
-                pattern2_events = list(leaves_dict.get(pattern2).values())
-                # get the events name in both patterns
-                names1 = {pattern1_events[event_index].name for event_index in event_indexes1}
-                names2 = {pattern2_events[event_index].name for event_index in event_indexes2}
+                plan_node_2_events = list(
+                    filter(lambda i: pattern2_leaves[i].event_index in event_indexes2, range(len(pattern2_leaves))))
+
+                names1 = {pattern1_events[event_index].name for event_index in plan_node_1_events}
+                names2 = {pattern2_events[event_index].name for event_index in plan_node_2_events}
                 sharable_sub_pattern = algoA.build_pattern_from_plan_node(node1, pattern1, leaves_dict, first_time=True)
                 # time window is set to be the min between them by defintion
                 sharable_sub_pattern.set_time_window(min(pattern1.window,
@@ -322,6 +324,11 @@ class algoA(TreePlanBuilder):
                     shareable_pairs_array[i][j] = shareable_pairs_array[j][i]
                     continue
                 unified_builder = UnifiedTreeBuilder(tree_plan_order_approach=TreePlanBuilderOrder.LEFT_TREE)
+                """
+                unified_builder = UnifiedTreeBuilder(tree_plan_order_approach=TreePlanBuilderOrder.LEFT_TREE)
+                tree_plan_i = unified_builder.build_tree_plan(patterni)
+                tree_plan_j = unified_builder.build_tree_plan(patternj)
+                """
                 pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans(patterns)
                 tree_plan1 = pattern_to_tree_plan_map_ordered[patterni]
                 tree_plan2 = pattern_to_tree_plan_map_ordered[patternj]
@@ -370,14 +377,13 @@ class algoA(TreePlanBuilder):
             return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
         assert len(shareable_pairs_i_j) > 0
 
-        random_idx = random.choice(range(len(shareable_pairs_i_j))) # TODO
+        random_idx = random.choice(range(len(shareable_pairs_i_j)))  # TODO
         # random_idx = 0
         assert random_idx < len(shareable_pairs_i_j)
 
         sub_pattern, event_indexes1, names1, event_indexes2, names2 = shareable_pairs_i_j[random_idx]
 
         # shareable_pairs_i_j[0][0].full_structure == patternj.full_structure, shareable_pairs_i_j[0][0].condition == patternj.condition
-
 
         alg = algoA()
         sub_pattern_data_1 = (sub_pattern, event_indexes1, names1)
@@ -390,9 +396,9 @@ class algoA(TreePlanBuilder):
         if sub_pattern.is_equivalent(patterni) and sub_pattern.is_equivalent(patternj):
             new_tree_plan_i.root = new_tree_plan_j.root
         elif sub_pattern.is_equivalent(patterni):
-            new_tree_plan_j.root.left_child = new_tree_plan_i
+            new_tree_plan_j.root.left_child = new_tree_plan_i.root
         elif sub_pattern.is_equivalent(patternj):
-            new_tree_plan_i.root.left_child = new_tree_plan_j
+            new_tree_plan_i.root.left_child = new_tree_plan_j.root
         else:
             new_tree_plan_i.root.left_child = new_tree_plan_j.root.left_child
 
@@ -402,6 +408,96 @@ class algoA(TreePlanBuilder):
         del sub_pattern_shareable_array_copy[i, j][random_idx]
         # del sub_pattern_shareable_array[j, i][random_idx]
 
+        return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
+
+    @staticmethod
+    def Nvertex_neighborhood(pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
+                             sub_pattern_shareable_array: np.array):
+        k = max(2, sub_pattern_shareable_array.shape[0] // 4)
+        """
+        the Nedge neighborhood function as explained in the article Section 4.2
+
+        :param pattern_to_tree_plan_map : dict that maps every pattern in the MPT to his TreePlan
+        :param sub_pattern_shareable_array : a [n][n] matrix (n is number of patterns in MPT ) ,
+                   where sub_pattern_shareable_array[i][j] = the list of all equal  sub patterns between patterni and patternj
+        :return: creates new tree plans where sub pattern of two patterns merged
+
+        """
+        if isinstance(pattern_to_tree_plan_map, TreePlan) or len(pattern_to_tree_plan_map) <= 1:
+            return pattern_to_tree_plan_map
+        pattern_to_tree_plan_map_copy = pattern_to_tree_plan_map.copy()
+        sub_pattern_shareable_array_copy = deepcopy(sub_pattern_shareable_array)
+        patterns_list = list(enumerate(pattern_to_tree_plan_map_copy.keys()))
+        for p, tree in pattern_to_tree_plan_map_copy.items():
+            new_tree = TreePlan(root=tree.root.get_node_copy())
+            pattern_to_tree_plan_map_copy[p] = new_tree
+        # select random two patterns to select a random sub pattern that is sharable between the two
+        random_patterns_pair = random.sample(patterns_list, k=2)
+        shareable_pairs_i_j = []
+        i, j, patterni, patternj = 0, 0, None, None
+        while len(shareable_pairs_i_j) == 0:
+            i, patterni = random_patterns_pair[0]
+            j, patternj = random_patterns_pair[1]
+            if i > j:  # swap such that i < j
+                tmp = random_patterns_pair[0]
+                i, patterni = random_patterns_pair[1]
+                j, patternj = tmp
+            shareable_pairs_i_j = sub_pattern_shareable_array_copy[i, j]
+        if len(shareable_pairs_i_j) == 0:
+            """ no share exist """
+            return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
+        assert len(shareable_pairs_i_j) > 0
+        # here we select the random sub pattern to share
+        random_idx = random.choices(range(len(shareable_pairs_i_j)), k=1)[0]
+        assert random_idx < len(shareable_pairs_i_j)
+        sub_pattern, event_indexes1, names1, event_indexes2, names2 = shareable_pairs_i_j[random_idx]
+        # now we must share this sub_ pattern with all patterns containing this sub_pattern
+        all_pattern_indexes_contains_sub_pattern = [i]
+        for j in range(len(patterns_list)):
+            if j == i:
+                continue
+
+            patterns_i_j_data = sub_pattern_shareable_array_copy[i, j]
+
+            sub_patterns_i_j = np.array(patterns_i_j_data)[:, 0]  # get patterns from patterns_i_j_data (first column)
+            # sub_patterns_i_j = [patterns_i_j_data[k][0] for k in range(len(patterns_i_j_data))]
+            if sub_pattern in sub_patterns_i_j:
+                all_pattern_indexes_contains_sub_pattern.append(j)
+        all_pattern_indexes_contains_sub_pattern = np.array(sorted(all_pattern_indexes_contains_sub_pattern))
+        assert len(all_pattern_indexes_contains_sub_pattern) >= 2
+        assert i in all_pattern_indexes_contains_sub_pattern
+        assert j in all_pattern_indexes_contains_sub_pattern
+        max_sharing = min(k, len(all_pattern_indexes_contains_sub_pattern))
+        alg = algoA()
+        sub_pattern_data_1 = (sub_pattern, event_indexes1, names1)
+        new_tree_plan1 = alg._create_tree_topology_shared_subpattern(patterni, sub_pattern_data_1)
+        pattern_to_tree_plan_map_copy[patterni] = new_tree_plan1
+
+        # patterns_contains_sub_pattern = sub_pattern_shareable_array_copy[i][all_pattern_indexes_contains_sub_pattern]
+
+        # TODO : change the sharing from sharing all to share only max_sharing
+        for p_idx in all_pattern_indexes_contains_sub_pattern:
+            if p_idx == i:
+                continue
+            sub_pattern_index = -1
+            shareable_pairs_i_p_idx = sub_pattern_shareable_array_copy[i, p_idx]
+            # find sub pattern index at shareable[i][p_idx]
+            pattern = patterns_list[p_idx][1]
+            # find sub pattern index at shareable[i][p_idx]
+            for j, shared_sub_pattern in enumerate(shareable_pairs_i_p_idx):
+                if shared_sub_pattern[0].is_equivalent(sub_pattern):
+                    sub_pattern_index = j
+                    break
+            if sub_pattern_index == -1:
+                raise Exception("Error , must find the sub pattern index")
+            sub_pattern, event_indexes1, names1, curr_event_indexes, curr_names = shareable_pairs_i_p_idx[
+                sub_pattern_index]
+            curr_sub_pattern_data = (sub_pattern, curr_event_indexes, curr_names)
+            curr_new_plan = alg._create_tree_topology_shared_subpattern(pattern, curr_sub_pattern_data)
+            # do the sharing process
+            curr_new_plan.root.left_child = new_tree_plan1.root.left_child
+            pattern_to_tree_plan_map_copy[pattern] = curr_new_plan
+            del sub_pattern_shareable_array_copy[i, p_idx][sub_pattern_index]
         return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
 
 
@@ -446,17 +542,14 @@ def tree_plan_state_get_summary(state: Tuple[Dict[Pattern, TreePlan], np.array])
     # dividing by 2 cause the shareable_pairs is a symmetric matrix
     return "common pairs size = " + str(np.sum([count_common_pairs(lst) for lst in shareable_pairs.reshape(-1)]) // 2)
 
+
 def tree_plan_equal(state1: Tuple[Dict[Pattern, TreePlan], np.array],
                     state2: Tuple[Dict[Pattern, TreePlan], np.array]):
     leaves_dict = {}
 
     patterns = list(state1[0].keys())
-    for i, pattern in enumerate(patterns):
-        tree_plan = state1[0][pattern]
-        tree_plan_leaves_pattern = tree_plan.root.get_leaves()
-        pattern_event_size = len(pattern.positive_structure.get_args())
-        leaves_dict[pattern] = {tree_plan_leaves_pattern[i]: pattern.positive_structure.get_args()[i] for i in
-                                range(pattern_event_size)}
+
+    leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(state1[0])
 
     tree_plans1 = list([tree_plan for _, tree_plan in state1[0].items()])
     tree_plans2 = list([tree_plan for _, tree_plan in state2[0].items()])
@@ -592,6 +685,7 @@ def create_topology_sub_pattern_eq_pattern_test():
     new_plan = algoA_instance._create_tree_topology_shared_subpattern(pattern1, pattern2_data)
     print('Ok')
 
+
 def Nedge_test():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
@@ -603,11 +697,8 @@ def Nedge_test():
         timedelta(minutes=5)
     )
     pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
-        AndCondition(
-            GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
-            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                                 Variable("b", lambda x: x["Opening Price"]))),
+        SeqOperator(PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("GOOG", "d")),
+        AndCondition(),
         timedelta(minutes=5)
     )
     selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
@@ -615,16 +706,16 @@ def Nedge_test():
     arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
 
-    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0]]
-    arrivalRates = [0.016597077244258872, 0.01454418928322895]
+    selectivityMatrix = [[1.0, 0.15989723367389616], [1.0, 1.0]]
+    arrivalRates = [0.013917884481558803, 0.012421711899791231]
     pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     patterns = [pattern1, pattern2]
 
     state = patterns_initialize_function(patterns)
-    new_state = tree_plan_neighbour(state)
-    pattern_to_tree_plan_map, shareable_pairs = new_state
+    pattern_to_tree_plan_map, shareable_pairs = state
+    alg = algoA()
+    alg.Nedge_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
     print('Ok')
-
 
 
 def annealing_basic_test():
@@ -663,6 +754,7 @@ def annealing_basic_test():
                                              neighbour_function=tree_plan_neighbour)
     pattern_to_tree_plan_map, shareable_pairs = state
 
+
 def annealing_med_test():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
@@ -682,7 +774,7 @@ def annealing_med_test():
                                  Variable("b", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    pattern3  = Pattern(
+    pattern3 = Pattern(
         SeqOperator(PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
             GreaterThanCondition(Variable("b", lambda x: x["Peak Price"]), 135),
@@ -709,9 +801,6 @@ def annealing_med_test():
                                              neighbour_function=tree_plan_neighbour)
     pattern_to_tree_plan_map, shareable_pairs = state
 
+
 if __name__ == '__main__':
-    # shareable_pairs_unit_test()
-    # create_topology_sub_pattern_eq_pattern_test()
-    # Nedge_test()
-    # annealing_basic_test()
-    annealing_med_test()
+    Nedge_test()

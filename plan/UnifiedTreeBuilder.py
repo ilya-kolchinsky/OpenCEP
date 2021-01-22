@@ -6,7 +6,7 @@ import math
 from copy import deepcopy
 from datetime import timedelta
 from typing import List, Dict
-
+import numpy as np
 from base.Pattern import Pattern
 from base.PatternStructure import CompositeStructure, PatternStructure, UnaryStructure, PrimitiveEventStructure
 from condition.Condition import Variable
@@ -133,8 +133,8 @@ class UnifiedTreeBuilder(TreePlanBuilder):
             return [order1, order2]
 
         names1, names2, order1, order2 = list(zip(*shared))
-        order1 = list(order1) + list(filter(lambda x: x not in order1, range(len(pattern1_events))))
-        order2 = list(order2) + list(filter(lambda x: x not in order2, range(len(pattern2_events))))
+        order1 = list(np.unique(order1)) + list(filter(lambda x: x not in order1, range(len(pattern1_events))))
+        order2 = list(np.unique(order2)) + list(filter(lambda x: x not in order2, range(len(pattern2_events))))
         return [order1, order2]
 
     @staticmethod
@@ -452,12 +452,8 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         We are assuming that each pattern appears only once in patterns (which is a legitimate assumption).
         """
         self.trees_number_nodes_shared = 0
-        leaves_dict = {}
-        for i, pattern in enumerate(pattern_to_tree_plan_map):
-            tree_plan_leaves_pattern = pattern_to_tree_plan_map[pattern].root.get_leaves()
-            pattern_event_size = len(pattern.positive_structure.get_args())
-            leaves_dict[pattern] = {tree_plan_leaves_pattern[i]: pattern.positive_structure.get_args()[i] for i in
-                                    range(pattern_event_size)}
+
+        leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(pattern_to_tree_plan_map)
 
         self.leaves_dict = leaves_dict
 
@@ -481,12 +477,9 @@ class UnifiedTreeBuilder(TreePlanBuilder):
     def __share_leaves(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan):
         """ this function is the core implementation for the trivial_sharing_trees algorithm """
         self.trees_number_nodes_shared = 0
-        leaves_dict = {}
         first_pattern = list(pattern_to_tree_plan_map.keys())[0]
-        for i, pattern in enumerate(pattern_to_tree_plan_map):
-            tree_plan_leaves_pattern = pattern_to_tree_plan_map[pattern].root.get_leaves()
-            leaves_dict[pattern] = {tree_plan_leaves_pattern[i]: pattern.positive_structure.get_args()[i] for i in
-                                    range(0, len(tree_plan_leaves_pattern))}
+
+        leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(pattern_to_tree_plan_map)
 
         shared_leaves_dict = {}
         for leaf in leaves_dict[first_pattern]:
@@ -541,7 +534,7 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         pattern1_events = list(leaves_dict.get(pattern).values())
         names1 = {pattern1_events[event_index].name for event_index in event_indexes1}
         return deepcopy(pattern.condition.get_condition_of(names1, get_kleene_closure_conditions=False,
-                                                                  consume_returned_conditions=False))
+                                                           consume_returned_conditions=False))
 
     @staticmethod
     def get_condition_from_pattern_in_sub_tree(plan_node1: TreePlanNode, pattern1: Pattern, plan_node2: TreePlanNode,
@@ -553,14 +546,17 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         if leaves_in_plan_node_1 is None or leaves_in_plan_node_2 is None:
             return None, None
 
+        pattern1_leaves, pattern1_events = list(zip(*list(leaves_dict.get(pattern1).items())))
+        pattern2_leaves, pattern2_events = list(zip(*list(leaves_dict.get(pattern2).items())))
+
         event_indexes1 = list(map(lambda e: e.event_index, leaves_in_plan_node_1))
-        pattern1_events = list(leaves_dict.get(pattern1).values())
+        plan_node_1_events = list(filter(lambda i: pattern1_leaves[i].event_index in event_indexes1, range(len(pattern1_leaves))))
 
         event_indexes2 = list(map(lambda e: e.event_index, leaves_in_plan_node_2))
-        pattern2_events = list(leaves_dict.get(pattern2).values())
+        plan_node_2_events = list(filter(lambda i: pattern2_leaves[i].event_index in event_indexes2, range(len(pattern2_leaves))))
 
-        names1 = {pattern1_events[event_index].name for event_index in event_indexes1}
-        names2 = {pattern2_events[event_index].name for event_index in event_indexes2}
+        names1 = {pattern1_events[event_index].name for event_index in plan_node_1_events}
+        names2 = {pattern2_events[event_index].name for event_index in plan_node_2_events}
 
         condition1 = deepcopy(pattern1.condition.get_condition_of(names1, get_kleene_closure_conditions=False,
                                                                   consume_returned_conditions=False))
@@ -572,7 +568,6 @@ class UnifiedTreeBuilder(TreePlanBuilder):
 
         event1_name_type = {event.name: event.type for event in pattern1_events}
         event2_name_type = {event.name: event.type for event in pattern2_events}
-
 
         for e in condition1._CompositeCondition__conditions:
             if type(e.left_term_repr) == Variable:
@@ -586,6 +581,18 @@ class UnifiedTreeBuilder(TreePlanBuilder):
                 e.right_term_repr.name = event2_name_type[e.right_term_repr.name]
 
         return condition1, condition2
+
+    @staticmethod
+    def get_pattern_leaves_dict(pattern_to_tree_plan_map: Dict[Pattern, TreePlan]):
+        leaves_dict = {}
+        for i, pattern in enumerate(pattern_to_tree_plan_map):
+            tree_plan_leaves_pattern = pattern_to_tree_plan_map[pattern].root.get_leaves()
+            pattern_args = pattern.positive_structure.get_args()
+            pattern_event_size = len(pattern_args)
+            leaves_dict[pattern] = {tree_plan_leaves_pattern[i]: pattern_args[tree_plan_leaves_pattern[i].event_index]
+                                    for i in
+                                    range(pattern_event_size)}
+        return leaves_dict
 
     @staticmethod
     def is_equivalent(plan_node1: TreePlanNode, pattern1: Pattern, plan_node2: TreePlanNode, pattern2: Pattern,

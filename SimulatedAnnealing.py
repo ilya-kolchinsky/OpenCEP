@@ -378,8 +378,10 @@ def tree_plan_equal(pattern_to_tree_plan_map1: Dict[Pattern, Tuple[TreePlan, Lis
     for i, pattern in enumerate(patterns):
         tree_plan, _, _ = pattern_to_tree_plan_map1[pattern]
         tree_plan_leaves_pattern = tree_plan.root.get_leaves()
-        pattern_event_size = len(pattern.positive_structure.get_args())
-        leaves_dict[pattern] = {tree_plan_leaves_pattern[i]: pattern.positive_structure.get_args()[i] for i in
+        pattern_args = pattern.positive_structure.get_args()
+        pattern_event_size = len(pattern_args)
+        leaves_dict[pattern] = {tree_plan_leaves_pattern[i]: pattern_args[tree_plan_leaves_pattern[0].event_index] for i
+                                in
                                 range(pattern_event_size)}
 
     tree_plans1 = list([tree_plan for _, (tree_plan, _, _) in pattern_to_tree_plan_map1.items()])
