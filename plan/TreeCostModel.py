@@ -29,12 +29,12 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
             (selectivity_matrix, arrival_rates) = pattern.statistics
         else:
             raise MissingStatisticsException()
-        _, _, cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(plan, selectivity_matrix,
+        _, _, cost = IntermediateResultsTreeCostModel.get_plan_cost_aux(plan, selectivity_matrix,
                                                                           arrival_rates, pattern.window.total_seconds())
         return cost
 
     @staticmethod
-    def __get_plan_cost_aux(tree: TreePlanNode, selectivity_matrix: List[List[float]],
+    def get_plan_cost_aux(tree: TreePlanNode, selectivity_matrix: List[List[float]],
                             arrival_rates: List[int], time_window: float):
         """
         A helper function for calculating the cost function of the given tree.
@@ -46,12 +46,12 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
             return [tree.event_index], pm, cost
 
         # calculate for left subtree
-        left_args, left_pm, left_cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.left_child,
+        left_args, left_pm, left_cost = IntermediateResultsTreeCostModel.get_plan_cost_aux(tree.left_child,
                                                                                              selectivity_matrix,
                                                                                              arrival_rates,
                                                                                              time_window)
         # calculate for right subtree
-        right_args, right_pm, right_cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.right_child,
+        right_args, right_pm, right_cost = IntermediateResultsTreeCostModel.get_plan_cost_aux(tree.right_child,
                                                                                                 selectivity_matrix,
                                                                                                 arrival_rates,
                                                                                                 time_window)

@@ -164,6 +164,10 @@ def tree_plan_annealing(
                     cost,
                     new_state,
                     new_cost))
+
+            if state_equal_function(new_state, state):
+                return state, cost_function(state), states, costs
+
             if acceptance_probability(cost, new_cost, T) > rn.random():
                 state, cost = new_state, new_cost
                 states.append(state_repr_function(state))
@@ -172,8 +176,6 @@ def tree_plan_annealing(
             else:
                 no_improve_steps += 1
 
-            if state_equal_function(new_state, state):
-                return state, cost_function(state), states, costs
 
     return state, cost_function(state), states, costs
 
@@ -409,4 +411,3 @@ if __name__ == '__main__':
                                   state_equal_function=tree_plan_equal,
                                   cost_function=tree_plan_cost_function,
                                   neighbour_function=random_tree_plan_neighbour)
-    # visualize(tree_plan=random_neighbour, title="random_neighbour")

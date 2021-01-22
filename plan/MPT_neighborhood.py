@@ -7,7 +7,7 @@ from typing import List, Dict, Tuple
 
 import numpy as np
 
-from SimulatedAnnealing import tree_plan_visualize_annealing
+from SimulatedAnnealing import tree_plan_visualize_annealing, TreeBasedEvaluationMechanism
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, OrOperator, AndOperator, KleeneClosureOperator, NegationOperator, \
     PrimitiveEventStructure
@@ -19,7 +19,7 @@ from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_all_disjoint_sets
 from plan import TreeCostModels
 from plan.LeftDeepTreeBuilders import TrivialLeftDeepTreeBuilder
-from plan.TreeCostModel import TreeCostModelFactory
+from plan.TreeCostModel import TreeCostModelFactory, TreeCostModel
 from plan.TreePlan import *
 from plan.TreePlanBuilder import TreePlanBuilder
 from plan.TreePlanBuilderFactory import TreePlanBuilderFactory
@@ -329,7 +329,7 @@ class algoA(TreePlanBuilder):
                 tree_plan_i = unified_builder.build_tree_plan(patterni)
                 tree_plan_j = unified_builder.build_tree_plan(patternj)
                 """
-                pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans(patterns)
+                pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans([patterni,patternj])
                 tree_plan1 = pattern_to_tree_plan_map_ordered[patterni]
                 tree_plan2 = pattern_to_tree_plan_map_ordered[patternj]
                 sharable_sub_patterns = algoA.get_all_sharable_sub_patterns(tree_plan1, patterni, tree_plan2, patternj)
@@ -504,19 +504,54 @@ class algoA(TreePlanBuilder):
 """ ======================================== Tests for all functions in MPT_edge_neighborhood ====================="""
 
 
+def single_pattern_cost(pattern: Pattern, tree_plan_root: TreePlanNode, cost_model: TreeCostModel):
+    try:
+        cost = cost_model.get_plan_cost(pattern, tree_plan_root)
+        return cost
+    except:
+        return 0  # TODO??
+
+
+def get_duplicated_cost(pattern_i, tree_plan_i_root, pattern_j, tree_plan_j_root, cost_model: TreeCostModel):
+    node1, node2 = None, None
+    if tree_plan_i_root == tree_plan_j_root:
+        node1 = tree_plan_i_root
+        node2 = tree_plan_j_root
+    elif tree_plan_i_root.left_child == tree_plan_j_root:
+        node1 = tree_plan_i_root.left_child
+        node2 = tree_plan_j_root
+    elif tree_plan_i_root == tree_plan_j_root.left_child:
+        node1 = tree_plan_i_root
+        node2 = tree_plan_j_root.left_child
+    elif tree_plan_i_root.left_child == tree_plan_j_root.left_child:
+        node1 = tree_plan_i_root.left_child
+        node2 = tree_plan_j_root.left_child
+
+    if node1 is None or node2 is None:
+        return 0
+
+    cost_i = single_pattern_cost(pattern_i, tree_plan_i_root, cost_model)
+    cost_j = single_pattern_cost(pattern_j, tree_plan_j_root, cost_model)
+    duplicated_cost = min(cost_i, cost_j)
+    return duplicated_cost
+
+
 def tree_plan_cost_function(state: Tuple[Dict[Pattern, TreePlan], np.array]):
     pattern_to_tree_plan_map, _ = state
     cost_model = TreeCostModelFactory.create_cost_model()
+    patterns = list(pattern_to_tree_plan_map.keys())
 
-    def _single_pattern_cost(pattern: Pattern, tree_plan_root: TreePlanNode):
-        try:
-            cost = cost_model.get_plan_cost(pattern, tree_plan_root)
-            return cost
-        except:
-            return 0  # TODO??
+    tree_plan_total_cost = sum([single_pattern_cost(p, tree_plan.root, cost_model) for p, tree_plan in pattern_to_tree_plan_map.items()])
+    for i, j in itertools.product(range(len(patterns)), range(len(patterns))):
+        if i >= j:
+            continue
+        pattern_i = patterns[i]
+        pattern_j = patterns[j]
+        tree_plan_i_root = pattern_to_tree_plan_map[pattern_i].root
+        tree_plan_j_root = pattern_to_tree_plan_map[pattern_j].root
+        duplicated_cost = get_duplicated_cost(pattern_i, tree_plan_i_root, pattern_j, tree_plan_j_root, cost_model)
+        tree_plan_total_cost -= duplicated_cost
 
-    tree_plan_total_cost = sum(
-        [_single_pattern_cost(pattern, tree_plan.root) for pattern, tree_plan in pattern_to_tree_plan_map.items()])
     return tree_plan_total_cost
 
 
@@ -758,7 +793,7 @@ def annealing_basic_test():
 def annealing_med_test():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
-                    PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("GOOG", "d")),
+                    PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
         AndCondition(
             GreaterThanCondition(Variable("b", lambda x: x["Peak Price"]), 135),
             GreaterThanCondition(Variable("b", lambda x: x["Opening Price"]),
@@ -767,7 +802,7 @@ def annealing_med_test():
     )
     pattern2 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
-                    PrimitiveEventStructure("GOOG", "e"), PrimitiveEventStructure("GOOG", "f")),
+                    PrimitiveEventStructure("GOOG", "e"), PrimitiveEventStructure("SALEH", "f")),
         AndCondition(
             GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
             GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
@@ -800,7 +835,14 @@ def annealing_med_test():
                                              cost_function=tree_plan_cost_function,
                                              neighbour_function=tree_plan_neighbour)
     pattern_to_tree_plan_map, shareable_pairs = state
+    return pattern_to_tree_plan_map
 
 
 if __name__ == '__main__':
-    Nedge_test()
+    # Nedge_test()
+    pattern_to_tree_plan_map = annealing_med_test()
+
+    eval_mechanism_params = TreeBasedEvaluationMechanismParameters()
+    unified_tree = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
+                                                eval_mechanism_params.multi_pattern_eval_params)
+    unified_tree.visualize(title="SMT unified Tree")
