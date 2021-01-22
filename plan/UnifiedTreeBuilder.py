@@ -3,6 +3,8 @@ This file contains the implementations of algorithms constructing a left-deep tr
 """
 import itertools
 import math
+import random
+import numpy as np
 from copy import deepcopy
 from datetime import timedelta
 from typing import List, Dict
@@ -17,10 +19,12 @@ from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlanLeafNode, TreePlan, TreePlanNode, TreePlanInternalNode, TreePlanUnaryNode, \
     TreePlanBinaryNode
 from plan.TreePlanBuilder import TreePlanBuilder
+from plan.TreePlanBuilderFactory import TreePlanBuilderFactory
 from plan.TreePlanBuilderOrders import TreePlanBuilderOrder
 from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 from tree.TreeVisualizationUtility import GraphVisualization
 from tree.nodes.LeafNode import LeafNode
+import evaluation.EvaluationMechanismFactory
 from tree.nodes.Node import Node
 
 
@@ -265,7 +269,7 @@ class UnifiedTreeBuilder(TreePlanBuilder):
 
     def __try_to_share_and_merge_nodes_binary(self, root, root_pattern: Pattern, node, node_pattern: Pattern):
 
-        #tried to find matching subtrees in calling the left subtree of node
+        # tried to find matching subtrees in calling the left subtree of node
         left_side_new_root, number_merged_left = self.__try_to_share_and_merge_nodes(root, root_pattern,
                                                                                      node.left_child, node_pattern)
         if number_merged_left > 0:
@@ -447,6 +451,18 @@ class UnifiedTreeBuilder(TreePlanBuilder):
 
         return best_unified_tree_map, max_intersection
 
+    @staticmethod
+    def get_pattern_leaves_dict(pattern_to_tree_plan_map: Dict[Pattern, TreePlan]):
+        leaves_dict = {}
+        for i, pattern in enumerate(pattern_to_tree_plan_map):
+            tree_plan_leaves_pattern = pattern_to_tree_plan_map[pattern].root.get_leaves()
+            pattern_args = pattern.positive_structure.get_args()
+            pattern_event_size = len(pattern_args)
+            leaves_dict[pattern] = {tree_plan_leaves_pattern[i]: pattern_args[tree_plan_leaves_pattern[i].event_index]
+                                    for i in
+                                    range(pattern_event_size)}
+        return leaves_dict
+
     def __construct_subtrees_union_tree_plan(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan):
         """
         This method gets patterns, builds a single-pattern tree to each one of them,
@@ -499,7 +515,7 @@ class UnifiedTreeBuilder(TreePlanBuilder):
                     curr_leaf_pattern = pattern
                     event1 = leaves_dict[curr_leaf_pattern][curr_leaf]
                     event2 = leaves_dict[leaf_pattern][leaf]
-                    #get the condition for every leaf
+                    # get the condition for every leaf
                     condition1, condition2 = UnifiedTreeBuilder.get_condition_from_pattern_in_sub_tree(curr_leaf,
                                                                                                        curr_leaf_pattern,
                                                                                                        leaf,
@@ -540,12 +556,13 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         event_indexes1 = list(map(lambda e: e.event_index, leaves_in_plan_node_1))
         pattern1_events = list(leaves_dict.get(pattern).values())
         names1 = {pattern1_events[event_index].name for event_index in event_indexes1}
-        return deepcopy(pattern.condition.get_condition_of(names1, get_kleene_closure_conditions=False, consume_returned_conditions=False))
+        return deepcopy(pattern.condition.get_condition_of(names1, get_kleene_closure_conditions=False,
+                                                           consume_returned_conditions=False))
 
+    def replace_name_by_type_condition(condition1, condition2, pattern1_events: List[PrimitiveEventStructure],
+                                       pattern2_events: List[PrimitiveEventStructure]):
 
-    def replace_name_by_type_condition(condition1, condition2, pattern1_events : List[PrimitiveEventStructure], pattern2_events : List[PrimitiveEventStructure]):
-
-        #replace every event's name in condition by his type in opder to compare between condition.
+        # replace every event's name in condition by his type in opder to compare between condition.
         event1_name_type = {event.name: event.type for event in pattern1_events}
         event2_name_type = {event.name: event.type for event in pattern2_events}
 
@@ -576,10 +593,12 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         pattern2_leaves, pattern2_events = list(zip(*list(leaves_dict.get(pattern2).items())))
 
         event_indexes1 = list(map(lambda e: e.event_index, leaves_in_plan_node_1))
-        plan_node_1_events = list(filter(lambda i: pattern1_leaves[i].event_index in event_indexes1, range(len(pattern1_leaves))))
+        plan_node_1_events = list(
+            filter(lambda i: pattern1_leaves[i].event_index in event_indexes1, range(len(pattern1_leaves))))
 
         event_indexes2 = list(map(lambda e: e.event_index, leaves_in_plan_node_2))
-        plan_node_2_events = list(filter(lambda i: pattern2_leaves[i].event_index in event_indexes2, range(len(pattern2_leaves))))
+        plan_node_2_events = list(
+            filter(lambda i: pattern2_leaves[i].event_index in event_indexes2, range(len(pattern2_leaves))))
 
         names1 = {pattern1_events[event_index].name for event_index in plan_node_1_events}
         names2 = {pattern2_events[event_index].name for event_index in plan_node_2_events}
@@ -591,7 +610,8 @@ class UnifiedTreeBuilder(TreePlanBuilder):
 
         if condition1 == condition2:
             return condition1, condition2
-        return UnifiedTreeBuilder.replace_name_by_type_condition(condition1, condition2, pattern1_events, pattern2_events)
+        return UnifiedTreeBuilder.replace_name_by_type_condition(condition1, condition2, pattern1_events,
+                                                                 pattern2_events)
 
     @staticmethod
     def is_equivalent(plan_node1: TreePlanNode, pattern1: Pattern, plan_node2: TreePlanNode, pattern2: Pattern,
@@ -702,7 +722,7 @@ class UnifiedTreeBuilder(TreePlanBuilder):
             raise Exception("Unsupported Node type")
 
     @staticmethod
-    def initialize_Dict(patterns : List[Pattern]):
+    def initialize_Dict(patterns: List[Pattern]):
 
         eval_mechanism_params = evaluation.EvaluationMechanismFactory.TreeBasedEvaluationMechanismParameters()
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
@@ -714,16 +734,18 @@ class UnifiedTreeBuilder(TreePlanBuilder):
     def neighbor(pattern_to_tree_plan_map: Dict[Pattern, TreePlan], current_cost):
 
         rand_pattern1, rand_pattern2 = random.sample(pattern_to_tree_plan_map.keys(), k=2)
-        pattern_to_tree_plan_map, size = UnifiedTreeBuilder.merge_two_patterns(rand_pattern1, rand_pattern2, pattern_to_tree_plan_map)
+        pattern_to_tree_plan_map, size = UnifiedTreeBuilder.merge_two_patterns(rand_pattern1, rand_pattern2,
+                                                                               pattern_to_tree_plan_map)
         new_state = pattern_to_tree_plan_map, current_cost + size
-
+        return new_state
 
     @staticmethod
     def merge_two_patterns(pattern_1, pattern_2, pattern_to_tree_plan_map: Dict[Pattern, TreePlan]):
 
         unified_builder = UnifiedTreeBuilder(tree_plan_order_approach=TreePlanBuilderOrder.LEFT_TREE)
         pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans([pattern_1, pattern_2])
-        unified_tree_plan_map = unified_builder._union_tree_plans(pattern_to_tree_plan_map_ordered, tree_plan_union_approach = MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+        unified_tree_plan_map = unified_builder._union_tree_plans(pattern_to_tree_plan_map_ordered,
+                                                                  tree_plan_union_approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
         pattern_to_tree_plan_map[pattern_1] = unified_tree_plan_map[pattern_1]
         pattern_to_tree_plan_map[pattern_2] = unified_tree_plan_map[pattern_2]
         return pattern_to_tree_plan_map, unified_builder.trees_number_nodes_shared
