@@ -135,6 +135,7 @@ def tree_plan_annealing(
         random_start,
         cost_function,
         random_neighbour,
+        state_equal_function,
         state_repr_function,
         acceptance,
         temperature=temperature,
@@ -171,8 +172,8 @@ def tree_plan_annealing(
             else:
                 no_improve_steps += 1
 
-            # if no_improve_steps >= early_stop:
-            #     return state, cost_function(state), states, costs
+            if state_equal_function(new_state, state):
+                return state, cost_function(state), states, costs
 
     return state, cost_function(state), states, costs
 
@@ -248,12 +249,13 @@ def visualize_annealing_timed(cost_function):
     return state, c
 
 
-def tree_plan_visualize_annealing(patterns: List[Pattern], initialize_function, state_repr_function, cost_function,
+def tree_plan_visualize_annealing(patterns: List[Pattern], initialize_function, state_equal_function, state_repr_function, cost_function,
                                   neighbour_function):
     state, c, states, costs = tree_plan_annealing(patterns=patterns,
                                                   random_start=initialize_function,
                                                   cost_function=cost_function,
                                                   random_neighbour=neighbour_function,
+                                                  state_equal_function=state_equal_function,
                                                   state_repr_function=state_repr_function,
                                                   acceptance=acceptance_probability,
                                                   temperature=temperature,
@@ -368,6 +370,29 @@ def tree_plan_cost_function(pattern_to_tree_plan_map: Dict[Pattern, Tuple[TreePl
     return tree_plan_total_cost
 
 
+def tree_plan_equal(pattern_to_tree_plan_map1: Dict[Pattern, Tuple[TreePlan, List[int], TreePlanBuilderOrder]],
+                    pattern_to_tree_plan_map2: Dict[Pattern, Tuple[TreePlan, List[int], TreePlanBuilderOrder]]):
+    leaves_dict = {}
+
+    patterns = list(pattern_to_tree_plan_map1.keys())
+    for i, pattern in enumerate(patterns):
+        tree_plan, _, _ = pattern_to_tree_plan_map1[pattern]
+        tree_plan_leaves_pattern = tree_plan.root.get_leaves()
+        pattern_event_size = len(pattern.positive_structure.get_args())
+        leaves_dict[pattern] = {tree_plan_leaves_pattern[i]: pattern.positive_structure.get_args()[i] for i in
+                                range(pattern_event_size)}
+
+    tree_plans1 = list([tree_plan for _, (tree_plan, _, _) in pattern_to_tree_plan_map1.items()])
+    tree_plans2 = list([tree_plan for _, (tree_plan, _, _) in pattern_to_tree_plan_map2.items()])
+
+    for idx, pattern in enumerate(patterns):
+        tree_plans1_root = tree_plans1[idx].root
+        tree_plans2_root = tree_plans2[idx].root
+        if not UnifiedTreeBuilder.is_equivalent(tree_plans1_root, pattern, tree_plans2_root, pattern, leaves_dict):
+            return False
+    return True
+
+
 if __name__ == '__main__':
     # single_pattern_annealing_unit_test()
 
@@ -379,6 +404,7 @@ if __name__ == '__main__':
     tree_plan_visualize_annealing(patterns=patterns,
                                   initialize_function=patterns_random_initialize_function,
                                   state_repr_function=state_get_summary,
+                                  state_equal_function=tree_plan_equal,
                                   cost_function=tree_plan_cost_function,
                                   neighbour_function=random_tree_plan_neighbour)
     # visualize(tree_plan=random_neighbour, title="random_neighbour")
