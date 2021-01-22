@@ -105,7 +105,7 @@ runTest.over_all_time = 0
 # multi-pattern tests
 # first approach: sharing leaves
 # leafIsRoot()
-leafIsRoot2()
+# leafIsRoot2()
 # distinctPatterns()
 # threePatternsTest()
 # samePatternDifferentTimeStamps()

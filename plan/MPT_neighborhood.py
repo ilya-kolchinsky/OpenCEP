@@ -329,7 +329,7 @@ class algoA(TreePlanBuilder):
                 tree_plan_i = unified_builder.build_tree_plan(patterni)
                 tree_plan_j = unified_builder.build_tree_plan(patternj)
                 """
-                pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans(patterns)
+                pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans([patterni,patternj])
                 tree_plan1 = pattern_to_tree_plan_map_ordered[patterni]
                 tree_plan2 = pattern_to_tree_plan_map_ordered[patternj]
                 sharable_sub_patterns = algoA.get_all_sharable_sub_patterns(tree_plan1, patterni, tree_plan2, patternj)
@@ -356,8 +356,8 @@ class algoA(TreePlanBuilder):
         for p, tree in pattern_to_tree_plan_map_copy.items():
             new_tree = TreePlan(root=tree.root.get_node_copy())
             pattern_to_tree_plan_map_copy[p] = new_tree
-
-        random_patterns_pair = random.sample(list(enumerate(pattern_to_tree_plan_map_copy.keys())), k=2)
+        patterns_list = list(enumerate(pattern_to_tree_plan_map_copy.keys()))
+        random_patterns_pair = random.sample(patterns_list, k=2)
         shareable_pairs_i_j = []
         i, j, patterni, patternj = 0, 0, None, None
         while len(shareable_pairs_i_j) == 0:
@@ -369,6 +369,7 @@ class algoA(TreePlanBuilder):
                 j, patternj = tmp
 
             shareable_pairs_i_j = sub_pattern_shareable_array_copy[i, j]
+            random_patterns_pair = random.sample(patterns_list, k=2)
 
         if len(shareable_pairs_i_j) == 0:
             """
@@ -443,6 +444,8 @@ class algoA(TreePlanBuilder):
                 i, patterni = random_patterns_pair[1]
                 j, patternj = tmp
             shareable_pairs_i_j = sub_pattern_shareable_array_copy[i, j]
+            random_patterns_pair = random.sample(patterns_list, k=2)
+
         if len(shareable_pairs_i_j) == 0:
             """ no share exist """
             return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
@@ -453,18 +456,18 @@ class algoA(TreePlanBuilder):
         sub_pattern, event_indexes1, names1, event_indexes2, names2 = shareable_pairs_i_j[random_idx]
         # now we must share this sub_ pattern with all patterns containing this sub_pattern
         all_pattern_indexes_contains_sub_pattern = [i]
-        for j in range(len(patterns_list)):
-            if j == i:
+        for idx in range(len(patterns_list)):
+            if idx == i:
                 continue
-
-            patterns_i_j_data = sub_pattern_shareable_array_copy[i, j]
-
-            sub_patterns_i_j = np.array(patterns_i_j_data)[:, 0]  # get patterns from patterns_i_j_data (first column)
+            patterns_i_idx_data = sub_pattern_shareable_array_copy[i, idx]
+            sub_patterns_i_idx = np.array(patterns_i_idx_data)
+            if len(sub_patterns_i_idx) > 0:  # get patterns from patterns_i_j_data (first column)
+                sub_patterns_i_idx = sub_patterns_i_idx[:, 0]
             # sub_patterns_i_j = [patterns_i_j_data[k][0] for k in range(len(patterns_i_j_data))]
             is_j_contain_sub_pattern = len(
-                list(filter(lambda pattern: pattern.is_equivalent(sub_pattern), sub_patterns_i_j))) > 0
+                list(filter(lambda pattern: pattern.is_equivalent(sub_pattern), sub_patterns_i_idx))) > 0
             if is_j_contain_sub_pattern:
-                all_pattern_indexes_contains_sub_pattern.append(j)
+                all_pattern_indexes_contains_sub_pattern.append(idx)
         all_pattern_indexes_contains_sub_pattern = np.array(sorted(all_pattern_indexes_contains_sub_pattern))
         assert len(all_pattern_indexes_contains_sub_pattern) >= 2
         assert i in all_pattern_indexes_contains_sub_pattern
@@ -850,7 +853,7 @@ def annealing_med_test():
     return pattern_to_tree_plan_map
 
 
-def Nvertex_test():
+def basic_Nvertex_test():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
                     PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
@@ -889,11 +892,184 @@ def Nvertex_test():
     print('Ok')
 
 
-if __name__ == '__main__':
-    # Nedge_test()
-    pattern_to_tree_plan_map = annealing_med_test()
+def advanced_Nvertex_no_conditions_test():
+    pattern1 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c"),
+                    PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
+    pattern2 = Pattern(
+        SeqOperator(PrimitiveEventStructure("MSFT", "a"),
+                    PrimitiveEventStructure("TONY", "b"),
+                    PrimitiveEventStructure("GOOG", "c"),
+                    PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
 
-    eval_mechanism_params = TreeBasedEvaluationMechanismParameters()
-    unified_tree = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
-                                                eval_mechanism_params.multi_pattern_eval_params)
-    unified_tree.visualize(title="SMT unified Tree")
+    )
+    pattern3 = Pattern(
+        SeqOperator(PrimitiveEventStructure("GOOG", "c"),
+                    PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
+    pattern4 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
+
+    pattern5 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("FB", "e")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
+
+    pattern6 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("LI", "c")),
+        AndCondition(),
+        timedelta(minutes=2)
+    )
+    pattern7 = Pattern(
+        SeqOperator(PrimitiveEventStructure("MSFT", "a"),
+                    PrimitiveEventStructure("TONY", "b"),
+                    PrimitiveEventStructure("FB", "e")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
+
+    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0],
+                         [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
+                         [1.0, 0.15989723367389616, 1.0, 0.9992557393942864],
+                         [1.0, 1.0, 0.9992557393942864, 1.0]]
+    arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
+    pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    selectivityMatrix = [[1.0, 0.15989723367389616],
+                         [1.0, 1.0]]
+    arrivalRates = [0.013917884481558803, 0.012421711899791231]
+    pattern3.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0],
+                         [0.9457796098355941, 1.0, 0.15989723367389616],
+                         [1.0, 0.15989723367389616, 1.0]]
+    arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803]
+    pattern4.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern5.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern6.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern7.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+
+    patterns = [pattern1, pattern2, pattern3, pattern4, pattern5, pattern6, pattern7]
+    state = patterns_initialize_function(patterns)
+    pattern_to_tree_plan_map, shareable_pairs = state
+    alg = algoA()
+    alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 7)
+    print('Ok')
+
+
+def advanced_Nvertex_test():
+    pattern1 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    pattern2 = Pattern(
+        SeqOperator(PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
+    pattern3 = Pattern(
+        SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("TONY", "b"),
+                    PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
+
+    )
+    pattern4 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            GreaterThanCondition(Variable("c", lambda x: x["Peak Price"]), 500)
+        ),
+        timedelta(minutes=5)
+    )
+
+    pattern5 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            GreaterThanCondition(Variable("c", lambda x: x["Peak Price"]), 530)
+        ),
+        timedelta(minutes=3)
+    )
+
+    pattern6 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("FB", "e")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            GreaterThanCondition(Variable("e", lambda x: x["Peak Price"]), 520)
+        ),
+        timedelta(minutes=5)
+    )
+
+    pattern7 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("LI", "c")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            GreaterThanCondition(Variable("c", lambda x: x["Peak Price"]), 100)
+        ),
+        timedelta(minutes=2)
+    )
+    pattern3 = Pattern(
+        SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("TONY", "b"),
+                    PrimitiveEventStructure("FB", "e")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
+
+    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
+                         [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
+    arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
+    pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern3.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    selectivityMatrix = [[1.0, 0.15989723367389616], [1.0, 1.0]]
+    arrivalRates = [0.013917884481558803, 0.012421711899791231]
+    pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    patterns = [pattern1, pattern2, pattern3]
+    state = patterns_initialize_function(patterns)
+    pattern_to_tree_plan_map, shareable_pairs = state
+    alg = algoA()
+    alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 3)
+    print('Ok')
+
+
+if __name__ == '__main__':
+    # pattern_to_tree_plan_map = annealing_med_test()
+    #
+    # eval_mechanism_params = TreeBasedEvaluationMechanismParameters()
+    # unified_tree = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
+    #                                             eval_mechanism_params.multi_pattern_eval_params)
+    # unified_tree.visualize(title="SMT unified Tree")
+    advanced_Nvertex_no_conditions_test()
