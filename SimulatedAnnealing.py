@@ -1,6 +1,6 @@
 import time
 import traceback
-from datetime import timedelta
+from datetime import timedelta, date, datetime
 from typing import Dict, Tuple
 
 import matplotlib as mpl
@@ -28,48 +28,12 @@ mpl.rcParams['figure.figsize'] = FIGSIZE
 interval = (-10, 10)
 
 
-def f(x):
-    """ Function to minimize."""
-    return x ** 2
-
-
-def clip(x):
-    """ Force x to be in the interval."""
-    a, b = interval
-    return max(min(x, b), a)
-
-
-def random_start():
-    """ Random point in the interval."""
-    a, b = interval
-    return a + (b - a) * rn.random_sample()
-
-
-def basic_cost_function(x):
-    """ Cost of x = f(x)."""
-    return f(x)
-
-
-def random_neighbour(x, fraction=1):
-    """Move a little bit x, from the left or the right."""
-    amplitude = (max(interval) - min(interval)) * fraction / 10
-    delta = (-amplitude / 2.) + amplitude * rn.random_sample()
-    return clip(x + delta)
-
-
 def acceptance_probability(cost, new_cost, temperature):
     if new_cost < cost:
-        # print("    - Acceptance probabilty = 1 as new_cost = {} < cost = {}...".format(new_cost, cost))
         return 1
     else:
         p = np.exp(- (new_cost - cost) / temperature)
-        # print("    - Acceptance probabilty = {:.3g}...".format(p))
         return p
-
-
-def temperature(fraction):
-    """ Example of temperature dicreasing as the process goes on."""
-    return max(0.01, min(1, 1 - fraction))
 
 
 def update_temperature(T, fraction=0.95):
@@ -79,55 +43,18 @@ def update_temperature(T, fraction=0.95):
 
 def see_annealing(states, costs, title="Evolution of states and costs of the simulated annealing"):
     fig = plt.figure()
-    plt.suptitle(title, fontsize=16)
-    plt.subplot(121)
-    plt.xlabel("Step")
-    plt.plot(states, 'r')
+    # plt.suptitle(title, fontsize=16)
+    # plt.subplot(121)
+    # plt.xlabel("Step")
+    # plt.plot(states, 'r')
 
     plt.title("States")
-    plt.subplot(122)
+    # plt.subplot()
     plt.xlabel("Step")
     plt.plot(costs, 'b')
     plt.title("Costs")
     plt.subplots_adjust(top=0.85)
     plt.show()
-
-
-def annealing(random_start,
-              cost_function,
-              random_neighbour,
-              acceptance,
-              temperature,
-              maxsteps=1000,
-              debug=True):
-    """ Optimize the black-box function 'cost_function' with the simulated annealing algorithm."""
-    state = random_start()
-    cost = cost_function(state)
-    states, costs = [state], [cost]
-
-    with tqdm.tqdm(total=maxsteps, file=sys.stdout) as pbar:
-        for step in range(maxsteps):
-            fraction = step / float(maxsteps)
-            T = temperature(fraction)
-            new_state = random_neighbour(state, fraction)
-            new_cost = cost_function(new_state)
-            if debug: print(
-                "Step #{:>2}/{:>2} : T = {:>4.3g}, state = {:>4.3g}, cost = {:>4.3g}, new_state = {:>4.3g}, new_cost = {:>4.3g} ...".format(
-                    step,
-                    maxsteps,
-                    T,
-                    state,
-                    cost,
-                    new_state,
-                    new_cost))
-            if acceptance_probability(cost, new_cost, T) > rn.random():
-                state, cost = new_state, new_cost
-                states.append(state)
-                costs.append(cost)
-
-            pbar.update()
-
-    return state, cost_function(state), states, costs
 
 
 def tree_plan_annealing(
@@ -137,28 +64,27 @@ def tree_plan_annealing(
         random_neighbour,
         state_equal_function,
         state_repr_function,
-        acceptance,
-        temperature=temperature,
-        early_stop=100,
-        maxsteps=1000,
+        acceptance=acceptance_probability,
+        temperature=update_temperature,
+        max_steps=1000,
         debug=True):
     """ Optimize the black-box function 'cost_function' with the simulated annealing algorithm."""
     state = random_start(patterns)
     cost = cost_function(state)
-    states, costs = [state_repr_function(state)], [cost]
+    states, costs = [1], [cost]
     T = 0.95
     no_improve_steps = 0
-    with tqdm.tqdm(total=maxsteps, file=sys.stdout) as pbar:
-        for step in range(maxsteps):
-            fraction = step / float(maxsteps)
-            T = update_temperature(T)
+    with tqdm.tqdm(total=max_steps, file=sys.stdout) as pbar:
+        for step in range(2, max_steps):
+            fraction = step / float(max_steps)
+            T = temperature(T)
             new_state = random_neighbour(state)
             new_cost = cost_function(new_state)
             pbar.update()
             if debug: print(
                 "Step #{:>2}/{:>2} : T = {:>4.3g}, state = {:>4.3g}, cost = {:>4.3g}, new_state = {:>4.3g}, new_cost = {:>4.3g} ...".format(
                     step,
-                    maxsteps,
+                    max_steps,
                     T,
                     state,
                     cost,
@@ -168,54 +94,60 @@ def tree_plan_annealing(
             if state_equal_function(new_state, state):
                 return state, cost_function(state), states, costs
 
-            if acceptance_probability(cost, new_cost, T) > rn.random():
+            if acceptance(cost, new_cost, T) > rn.random():
                 state, cost = new_state, new_cost
-                states.append(state_repr_function(state))
+                states.append(step)
                 costs.append(cost)
                 no_improve_steps = 0
             else:
                 no_improve_steps += 1
 
-
     return state, cost_function(state), states, costs
 
 
-def timed_annealing(random_start,
+def timed_annealing(patterns: List[Pattern],
+                    random_start,
                     cost_function,
                     random_neighbour,
-                    acceptance,
-                    temperature,
-                    time_limit=1000,
-                    maxsteps=1000,
-                    early_stop=8,
+                    state_equal_function,
+                    state_repr_function,
+                    acceptance=acceptance_probability,
+                    temperature=update_temperature,
+                    time_limit=5,
+                    max_steps=1000,
                     debug=True):
     """ Optimize the black-box function 'cost_function' with the simulated annealing algorithm."""
-    state = random_start()
+    state = random_start(patterns)
     cost = cost_function(state)
-    states, costs = [state], [cost]
-    start_time = time.time()
+    states, costs = [1], [cost]
+    T = 0.95
     no_improve_steps = 0
-    with tqdm.tqdm(total=maxsteps, file=sys.stdout) as pbar:
+
+    start_time = datetime.now()
+
+    with tqdm.tqdm(total=max_steps, file=sys.stdout) as pbar:
         while True:
             try:
-                for step in range(maxsteps):
-                    fraction = step / float(maxsteps)
-                    T = temperature(fraction)
-                    new_state = random_neighbour(state, fraction)
+                for step in range(2, max_steps):
+                    if (datetime.now() - start_time).seconds > time_limit or T <= 0.05:
+                        return state, cost_function(state), states, costs
+
+                    pbar.update()
+                    fraction = step / float(max_steps)
+                    T = temperature(T)
+                    new_state = random_neighbour(state)
                     new_cost = cost_function(new_state)
+
+                    if state_equal_function(new_state, state):
+                        return state, cost_function(state), states, costs
 
                     if acceptance(cost, new_cost, T) > rn.random():
                         state, cost = new_state, new_cost
-                        states.append(state)
+                        states.append(step)
                         costs.append(cost)
                         no_improve_steps = 0
                     else:
                         no_improve_steps += 1
-
-                    if time.time() - start_time > time_limit or no_improve_steps >= early_stop or T <= 0.05:
-                        return state, cost_function(state), states, costs
-
-                    pbar.update()
 
             except:
                 if state is None:
@@ -225,27 +157,17 @@ def timed_annealing(random_start,
     return state, cost_function(state), states, costs
 
 
-def visualize_annealing(cost_function):
-    state, c, states, costs = annealing(random_start=random_start,
-                                        cost_function=cost_function,
-                                        random_neighbour=random_neighbour,
-                                        acceptance=acceptance_probability,
-                                        temperature=temperature,
-                                        maxsteps=1000,
-                                        debug=False)
-    see_annealing(states, costs)
-    return state, c
-
-
-def visualize_annealing_timed(cost_function):
-    state, c, states, costs = timed_annealing(random_start=random_start,
+def visualize_annealing_timed(patterns: List[Pattern], initialize_function, state_equal_function, state_repr_function, cost_function,
+                              neighbour_function, time_limit):
+    state, c, states, costs = timed_annealing(patterns=patterns,
+                                              random_start=initialize_function,
                                               cost_function=cost_function,
-                                              random_neighbour=random_neighbour,
+                                              random_neighbour=neighbour_function,
+                                              state_equal_function=state_equal_function,
+                                              state_repr_function=state_repr_function,
                                               acceptance=acceptance_probability,
-                                              temperature=temperature,
-                                              time_limit=5,
-                                              early_stop=15,
-                                              maxsteps=1000,
+                                              time_limit=time_limit,
+                                              max_steps=1000,
                                               debug=False)
     see_annealing(states, costs, title="Evolution of states and costs of the time limited simulated annealing")
     return state, c
@@ -259,9 +181,7 @@ def tree_plan_visualize_annealing(patterns: List[Pattern], initialize_function, 
                                                   random_neighbour=neighbour_function,
                                                   state_equal_function=state_equal_function,
                                                   state_repr_function=state_repr_function,
-                                                  acceptance=acceptance_probability,
-                                                  temperature=temperature,
-                                                  maxsteps=100000,
+                                                  max_steps=100000,
                                                   debug=False)
     see_annealing(states, costs)
     return state, c
