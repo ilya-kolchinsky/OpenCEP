@@ -554,11 +554,13 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         pattern1_leaves, pattern1_events = list(zip(*list(leaves_dict.get(pattern).items())))
 
         event_indexes1 = list(map(lambda e: e.event_index, leaves_in_plan_node_1))
-        pattern1_events = list(leaves_dict.get(pattern).values())
-        names1 = {pattern1_events[event_index].name for event_index in event_indexes1}
+        plan_node_1_events = list(
+            filter(lambda i: pattern1_leaves[i].event_index in event_indexes1, range(len(pattern1_leaves))))
+        names1 = {pattern1_events[event_index].name for event_index in plan_node_1_events}
         return deepcopy(pattern.condition.get_condition_of(names1, get_kleene_closure_conditions=False,
                                                            consume_returned_conditions=False))
 
+    @staticmethod
     def replace_name_by_type_condition(condition1, condition2, pattern1_events: List[PrimitiveEventStructure],
                                        pattern2_events: List[PrimitiveEventStructure]):
 
@@ -745,7 +747,7 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         unified_builder = UnifiedTreeBuilder(tree_plan_order_approach=TreePlanBuilderOrder.LEFT_TREE)
         pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans([pattern_1, pattern_2])
         unified_tree_plan_map = unified_builder._union_tree_plans(pattern_to_tree_plan_map_ordered,
-                                                                  tree_plan_union_approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+                                                                  MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
         pattern_to_tree_plan_map[pattern_1] = unified_tree_plan_map[pattern_1]
         pattern_to_tree_plan_map[pattern_2] = unified_tree_plan_map[pattern_2]
         return pattern_to_tree_plan_map, unified_builder.trees_number_nodes_shared

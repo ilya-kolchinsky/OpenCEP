@@ -377,13 +377,10 @@ class algoA(TreePlanBuilder):
             return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
         assert len(shareable_pairs_i_j) > 0
 
-        random_idx = random.choice(range(len(shareable_pairs_i_j)))  # TODO
-        # random_idx = 0
+        random_idx = random.choice(range(len(shareable_pairs_i_j)))
         assert random_idx < len(shareable_pairs_i_j)
 
         sub_pattern, event_indexes1, names1, event_indexes2, names2 = shareable_pairs_i_j[random_idx]
-
-        # shareable_pairs_i_j[0][0].full_structure == patternj.full_structure, shareable_pairs_i_j[0][0].condition == patternj.condition
 
         alg = algoA()
         sub_pattern_data_1 = (sub_pattern, event_indexes1, names1)
@@ -406,7 +403,7 @@ class algoA(TreePlanBuilder):
         pattern_to_tree_plan_map_copy[patternj] = new_tree_plan_j
 
         del sub_pattern_shareable_array_copy[i, j][random_idx]
-        # del sub_pattern_shareable_array[j, i][random_idx]
+        # del sub_pattern_shareable_array[j, i][random_idx] # no need, same reference with [i, j]
 
         return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
 
@@ -596,7 +593,6 @@ def tree_plan_state_get_summary(state: Tuple[Dict[Pattern, TreePlan], np.array])
 
 def tree_plan_equal(state1: Tuple[Dict[Pattern, TreePlan], np.array],
                     state2: Tuple[Dict[Pattern, TreePlan], np.array]):
-    leaves_dict = {}
 
     patterns = list(state1[0].keys())
 
@@ -772,7 +768,7 @@ def Nedge_test():
 def annealing_basic_test():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
-                    PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("GOOG", "d")),
+                    PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("FB", "d")),
         AndCondition(
             GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
             GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
@@ -780,7 +776,7 @@ def annealing_basic_test():
         timedelta(minutes=5)
     )
     pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("GOOG", "d")),
+        SeqOperator(PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("FB", "d")),
         AndCondition(),
         timedelta(minutes=5)
     )
@@ -800,6 +796,7 @@ def annealing_basic_test():
                                              cost_function=tree_plan_cost_function,
                                              neighbour_function=tree_plan_neighbour)
     pattern_to_tree_plan_map, shareable_pairs = state
+    return pattern_to_tree_plan_map
 
 
 def annealing_med_test():
@@ -891,8 +888,7 @@ def Nvertex_test():
 
 if __name__ == '__main__':
     # Nedge_test()
-    pattern_to_tree_plan_map = annealing_med_test()
-
+    pattern_to_tree_plan_map = annealing_basic_test()
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters()
     unified_tree = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
                                                 eval_mechanism_params.multi_pattern_eval_params)
