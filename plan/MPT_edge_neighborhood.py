@@ -3,7 +3,75 @@ import random
 from datetime import timedelta
 from typing import List, Dict
 
-from base.PatternStructure import SeqOperator, OrOperator, AndOperator, KleeneClosureOperator, NegationOperator, \
+from base.PatternStructure import        if type(tree_plan) == TreePlanLeafNode:
+            # a special case where the top operator of the entire pattern is an unary operator
+            leaves_nodes[tree_plan] = LeafNode(sliding_window, tree_plan.event_index,
+                                               root_operator.args[tree_plan.event_index], None)
+            return leaves_nodes
+        leaves_nodes = UnifiedTreeBuilder.tree_get_leaves(root_operator, tree_plan.left_child, args, sliding_window,
+                                                          consumption_policy)
+        leaves_nodes.update(
+            UnifiedTreeBuilder.tree_get_leaves(root_operator, tree_plan.right_child, args, sliding_window,
+                                               consumption_policy))
+        return leaves_nodes
+
+    @staticmethod
+    def _tree_plans_update_leaves(pattern_to_tree_plan_map: Dict[Pattern, TreePlan], shared_leaves_dict):
+        """at this function we share same leaves in different patterns to share the same root ,
+        that says one instance of each unique leaf is created ,
+        (if a leaf exists in two trees , the leaf will have two parents)
+        """
+        for pattern, tree_plan in pattern_to_tree_plan_map.items():
+            updated_tree_plan_root = UnifiedTreeBuilder._single_tree_plan_update_leaves(tree_plan.root,
+                                                                                        shared_leaves_dict)
+            pattern_to_tree_plan_map[pattern].root = updated_tree_plan_root
+        return pattern_to_tree_plan_map
+
+    @staticmethod
+    def _single_tree_plan_update_leaves(tree_plan_root_node: TreePlanNode, shared_leaves_dict):
+
+        """
+        here we updated all the tree_plan_leaf in tree_plan_root to his matched one in shared_leaves_dict
+        """
+        if tree_plan_root_node is None:
+            return tree_plan_root_node
+
+        if type(tree_plan_root_node) == TreePlanLeafNode:
+            pattern, updated_tree_plan_leaf = shared_leaves_dict[tree_plan_root_node]
+            tree_plan_root_node = updated_tree_plan_leaf
+            return tree_plan_root_node
+
+        assert issubclass(type(tree_plan_root_node), TreePlanInternalNode)
+
+        if type(tree_plan_root_node) == TreePlanUnaryNode:
+            updated_child = UnifiedTreeBuilder._single_tree_plan_update_leaves(tree_plan_root_node.child,
+                                                                               shared_leaves_dict)
+            tree_plan_root_node.child = updated_child
+            return tree_plan_root_node
+
+        if type(tree_plan_root_node) == TreePlanBinaryNode:
+            updated_left_child = UnifiedTreeBuilder._single_tree_plan_update_leaves(tree_plan_root_node.left_child,
+                                                                                    shared_leaves_dict)
+            updated_right_child = UnifiedTreeBuilder._single_tree_plan_update_leaves(tree_plan_root_node.right_child,
+                                                                                     shared_leaves_dict)
+            tree_plan_root_node.left_child = updated_left_child
+            tree_plan_root_node.right_child = updated_right_child
+            return tree_plan_root_node
+
+        else:
+            raise Exception("Unsupported Node type")
+    @staticmethod
+    def initialize_Dict(patterns : List[Pattern]):
+            #build dict tree_plan_node
+            # state = dict, 0;
+            return state
+    @staticmethod
+    def neighbor(pattern_to_tree_plan_map: Dict[Patern, TreePlan], current_cost):
+        #pick randomly two patterns and call neighbor cost return size and dict
+        #new_cost = current_cost + size
+        #pattern_to_tree_plan_node = dict
+        #new_state = dict, new_cost
+        #return dict, new_cost SeqOperator, OrOperator, AndOperator, KleeneClosureOperator, NegationOperator, \
     PrimitiveEventStructure
 from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCondition
 from condition.CompositeCondition import AndCondition

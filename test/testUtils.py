@@ -27,9 +27,9 @@ sys.path.append(absolutePath)
 INCLUDE_BENCHMARKS = False
 INCLUDE_TWITTER = False
 
-nasdaqEventStreamTiny = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_TINY.txt"))
+nasdaqEventStreamTiny = FileInputStream(os. path.join(absolutePath, "test/EventFiles/NASDAQ_TINY.txt"))
 nasdaqEventStreamShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_SHORT.txt"))
-nasdaqEventStreamMedium = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt"))
+nasdaqEventStreamMedium = FileInputStream(os.path   .join(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt"))
 nasdaqEventStreamFrequencyTailored = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
 nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
 nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
