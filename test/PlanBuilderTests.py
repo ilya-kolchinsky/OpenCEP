@@ -662,7 +662,7 @@ from test.testUtils import *
 #     ]
 #
 #     run_tree_plan_union_test(patterns=patterns, expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-#     run_tree_plan_union_test(patterns=patterns, expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+     run_tree_plan_union_test(patterns=patterns, expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 def temp_neighbor_test():
     patterns = [

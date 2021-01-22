@@ -466,7 +466,6 @@ class algoA(TreePlanBuilder):
             sub_patterns_i_idx = np.array(patterns_i_idx_data)
             if len(sub_patterns_i_idx) > 0:  # get patterns from patterns_i_j_data (first column)
                 sub_patterns_i_idx = sub_patterns_i_idx[:, 0]
-            # sub_patterns_i_j = [patterns_i_j_data[k][0] for k in range(len(patterns_i_j_data))]
             is_j_contain_sub_pattern = len(
                 list(filter(lambda pattern: pattern.is_equivalent(sub_pattern), sub_patterns_i_idx))) > 0
             if is_j_contain_sub_pattern:
@@ -976,6 +975,7 @@ def advanced_Nvertex_no_conditions_test():
     alg = algoA()
     alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 7)
     print('Ok')
+    return pattern_to_tree_plan_map
 
 
 def advanced_Nvertex_test():
@@ -1066,6 +1066,7 @@ def advanced_Nvertex_test():
     alg = algoA()
     alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 3)
     print('Ok')
+    return pattern_to_tree_plan_map
 
 
 if __name__ == '__main__':

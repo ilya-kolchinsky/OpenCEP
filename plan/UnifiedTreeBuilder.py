@@ -68,6 +68,8 @@ class UnifiedTreeBuilder(TreePlanBuilder):
             return self.__construct_subtrees_union_tree_plan(pattern_to_tree_plan_map_copy)
         if tree_plan_union_approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION:
             return self.__construct_subtrees_change_topology_tree_plan(pattern_to_tree_plan_map_copy)
+        #if tree_plan_union_approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_LOCAL_SEARCH_ANNEALING:
+           # #### *****Need to return******
         else:
             raise Exception("Unsupported union algorithm, yet")
 
@@ -110,16 +112,10 @@ class UnifiedTreeBuilder(TreePlanBuilder):
     def find_orders_for_two_patterns(pattern1: Pattern, pattern2: Pattern):
         """
         """
-        # is_commutative1, is_commutative2 = pattern1.positive_structure.commutative(), pattern2.positive_structure.commutative()
-        # if not (is_commutative1 and is_commutative2):
-        #     order1 = list(range(len(pattern1.positive_structure.args)))
-        #     order2 = list(range(len(pattern2.positive_structure.args)))
-        #     return [order1, order2]
 
         pattern1_events = pattern1.positive_structure.get_args()
         pattern2_events = pattern2.positive_structure.get_args()
         shared = []
-        # intersected_names = sorted(set(pattern1_names) & set(pattern2_names))
 
         for event1 in pattern1_events:
             for event2 in pattern2_events:
@@ -127,9 +123,6 @@ class UnifiedTreeBuilder(TreePlanBuilder):
                                                                                           pattern2, event2.name):
                     shared += [(event1.name, event2.name, pattern1_events.index(event1), pattern2_events.index(event2))]
                     break
-        # for event_name in intersected_names:
-        #     if UnifiedTreeBuilder.are_con_equal(pattern1, pattern2, event_name):
-        #         shared += [(event_name, pattern1_names.index(event_name), pattern2_names.index(event_name))]
 
         if len(shared) == 0:
             order1 = list(range(len(pattern1.positive_structure.args)))
@@ -531,7 +524,6 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         return UnifiedTreeBuilder._tree_plans_update_leaves(pattern_to_tree_plan_map,
                                                             shared_leaves_dict)  # the unified tree
 
-    # TODO : MST
     @staticmethod
     def __get_operator_arg_list(operator: PatternStructure):
         """
