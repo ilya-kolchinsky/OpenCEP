@@ -89,39 +89,6 @@ def fileCompare_StreamTest(pathA, pathB):
 
     return list1 == list2
 
-def fileCompare1(pathA, pathB):
-    """
-    Compare expected output and actual ouput
-    :param path1: path to first file
-    :param path2: path to second file
-    :return: bool, True if the two files are equivalent
-    """
-    file1 = open(pathA)
-    file2 = open(pathB)
-
-    counter1 = numOfLinesInPattern(file1)
-    counter2 = numOfLinesInPattern(file2)
-
-    file1.seek(0)
-    file2.seek(0)
-
-    # quick check, if both files don't return the same counter, or if both files are empty
-    if counter1 != counter2:
-        closeFiles(file1, file2)
-        return False
-    elif counter1 == counter2 and counter1 == 0:
-        closeFiles(file1, file2)
-        return True
-
-    set1 = set()
-    set2 = set()
-
-    fillSet(file1, set1, counter1)
-    fillSet(file2, set2, counter2)
-    closeFiles(file1, file2)
-
-    return set1 == set2
-
 def fileCompare(pathA, pathB):
     """
     Compare expected output and actual ouput
@@ -139,7 +106,7 @@ def fileCompare(pathA, pathB):
     file2.seek(0)
 
     # quick check, if both files don't return the same counter, or if both files are empty
-    #print("in", counter1, counter2)
+    # print("in", counter1, counter2)
     if counter1 != counter2:
         closeFiles(file1, file2)
         return False
@@ -155,8 +122,13 @@ def fileCompare(pathA, pathB):
     closeFiles(file1, file2)
     list1.sort()
     list2.sort()
-
-   # print(len(list1), len(list2))
+    f1 = open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l1.txt", "w")
+    f2 = open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l2.txt", "w")
+    for item in list1:
+        f1.write('%s\n' % item.__str__())
+    for item in list2:
+        f2.write('%s\n' % item.__str__())
+    print(len(list1), len(list2))
     return list1 == list2
 
 
@@ -223,7 +195,6 @@ def runTest(testName, patterns, createTestFile=False,
     listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd"]
     listCustom2 = ["simpleNot"]
-    list_temp = ["i"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
@@ -232,8 +203,6 @@ def runTest(testName, patterns, createTestFile=False,
         events = custom.duplicate()
     elif testName in listCustom2:
         events = custom2.duplicate()
-    elif testName in list_temp:
-        events = custom_temp.duplicate()
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
 
@@ -307,23 +276,22 @@ This function runs multi-pattern CEP on the given list of patterns and prints
 success or fail output.
 """
 
-
-def runMultiTest(testName, patterns, createTestFile=False,
-                 eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                 events=None, eventStream=nasdaqEventStream,
-                 parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads= 6)
+def runMultiTest(testName, patterns, createTestFile = False,
+            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+            events = None, eventStream = nasdaqEventStream,
+            parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+            data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads= 6)
                  ):
+
     if events is None:
         events = eventStream.duplicate()
     else:
         events = events.duplicate()
 
-    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns"]
-    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
-    listCustom = ["MultipleNotBeginAndEnd"]
-    listCustom2 = ["simpleNot"]
-
+    listShort = ["multiplePatterns", "distinctPatterns", "MultipleNotBeginningShare", "multipleParentsForInternalNode"]
+    listHalfShort = ["onePatternIncludesOther", "threeSharingSubtrees"]
+    listCustom = []
+    listCustom2 = ["FirstMultiPattern", "RootAndInner"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
@@ -347,24 +315,27 @@ def runMultiTest(testName, patterns, createTestFile=False,
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
 
-    match_set = [set() for i in range(len(patterns))]
     with open(actual_matches_path) as matchFile:
         all_matches = matchFile.read()
     match_list = all_matches.split('\n\n')
-    for match in match_list:
-        if match:
-            match_set[int(match.partition(':')[0]) - 1].add(match.strip()[match.index(' ') + 1:])
-
-    exp_set = [set() for i in range(len(patterns))]
     with open(expected_matches_path) as expFile:
         all_exp_matches = expFile.read()
     exp_match_list = all_exp_matches.split('\n\n')
-    for match in exp_match_list:
-        if match:
-            exp_set[int(match.partition(':')[0]) - 1].add(match.strip()[match.index(' ') + 1:])
-    res = (exp_set == match_set)
+    match_list.sort()
+    exp_match_list.sort()
+    res = (match_list == exp_match_list)
+
+    with open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l1.txt", "w") as f1:
+        for line in match_list:
+            f1.write("%s \n" %line)
+
+    with open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l2.txt", "w") as f2:
+        for line in exp_match_list:
+            f2.write("%s \n" %line)
+
+
     print("Test %s result: %s, Time Passed: %s" % (testName,
-                                                   "Succeeded" if res else "Failed", running_time))
+          "Succeeded" if res else "Failed", running_time))
     runTest.over_all_time += running_time
     if res:
         os.remove(actual_matches_path)
@@ -387,7 +358,7 @@ def runBenchMark(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALU
         events = nasdaqEventStream.duplicate()
     else:
         events = events.duplicate()
-    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, data_parallel_params  )
+    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, data_parallel_params)
     running_time = cep.run(events, DummyOutputStream(), DEFAULT_TESTING_DATA_FORMATTER)
     print("Bench Mark %s completed, Time Passed: %s" % (testName, running_time))
     runTest.over_all_time += running_time
