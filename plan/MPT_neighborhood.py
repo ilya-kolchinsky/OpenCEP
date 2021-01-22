@@ -925,9 +925,9 @@ def advanced_Nvertex_no_conditions_test():
     )
 
     pattern5 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
-                    PrimitiveEventStructure("AMZN", "b"),
-                    PrimitiveEventStructure("FB", "e")),
+        SeqOperator(PrimitiveEventStructure("FB", "e"),
+                    PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b")),
         AndCondition(),
         timedelta(minutes=5)
     )
@@ -986,16 +986,16 @@ def advanced_Nvertex_test():
         timedelta(minutes=5)
     )
     pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
-        AndCondition(),
-        timedelta(minutes=5)
-    )
-    pattern3 = Pattern(
         SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("TONY", "b"),
                     PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
         AndCondition(),
         timedelta(minutes=5)
 
+    )
+    pattern3 = Pattern(
+        SeqOperator(PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
     )
     pattern4 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"),
@@ -1042,26 +1042,45 @@ def advanced_Nvertex_test():
         ),
         timedelta(minutes=2)
     )
-    pattern3 = Pattern(
+    pattern8 = Pattern(
         SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("TONY", "b"),
                     PrimitiveEventStructure("FB", "e")),
         AndCondition(),
         timedelta(minutes=5)
     )
+    pattern9 = Pattern(
+        SeqOperator(PrimitiveEventStructure("FB", "e"),
+                    PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("TONY", "b")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
 
-    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
-                         [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
+    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0],
+                         [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
+                         [1.0, 0.15989723367389616, 1.0, 0.9992557393942864],
+                         [1.0, 1.0, 0.9992557393942864, 1.0]]
     arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    pattern3.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    selectivityMatrix = [[1.0, 0.15989723367389616], [1.0, 1.0]]
-    arrivalRates = [0.013917884481558803, 0.012421711899791231]
     pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    patterns = [pattern1, pattern2, pattern3]
+    selectivityMatrix = [[1.0, 0.15989723367389616],
+                         [1.0, 1.0]]
+    arrivalRates = [0.013917884481558803, 0.012421711899791231]
+    pattern3.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0],
+                         [0.9457796098355941, 1.0, 0.15989723367389616],
+                         [1.0, 0.15989723367389616, 1.0]]
+    arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803]
+    pattern4.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern5.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern6.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern7.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern8.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern9.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    patterns = [pattern1, pattern2, pattern3, pattern4, pattern5, pattern6, pattern7]
     state = patterns_initialize_function(patterns)
     pattern_to_tree_plan_map, shareable_pairs = state
     alg = algoA()
-    alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 3)
+    alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 7)
     print('Ok')
 
 
@@ -1072,4 +1091,4 @@ if __name__ == '__main__':
     # unified_tree = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
     #                                             eval_mechanism_params.multi_pattern_eval_params)
     # unified_tree.visualize(title="SMT unified Tree")
-    advanced_Nvertex_no_conditions_test()
+    advanced_Nvertex_test()
