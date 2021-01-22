@@ -42,14 +42,8 @@ def update_temperature(T, fraction=0.95):
 
 
 def see_annealing(states, costs, title="Evolution of states and costs of the simulated annealing"):
-    fig = plt.figure()
-    # plt.suptitle(title, fontsize=16)
-    # plt.subplot(121)
-    # plt.xlabel("Step")
-    # plt.plot(states, 'r')
 
     plt.title("States")
-    # plt.subplot()
     plt.xlabel("Step")
     plt.plot(costs, 'b')
     plt.title("Costs")
@@ -317,17 +311,3 @@ def tree_plan_equal(pattern_to_tree_plan_map1: Dict[Pattern, Tuple[TreePlan, Lis
     return True
 
 
-if __name__ == '__main__':
-    # single_pattern_annealing_unit_test()
-
-    pattern1 = get_default_pattern()
-    pattern2 = get_default_pattern()
-    patterns = [pattern1, pattern2]
-    # pattern_to_tree_plan_map = patterns_random_initialize_function(patterns)
-    #
-    tree_plan_visualize_annealing(patterns=patterns,
-                                  initialize_function=patterns_random_initialize_function,
-                                  state_repr_function=state_get_summary,
-                                  state_equal_function=tree_plan_equal,
-                                  cost_function=tree_plan_cost_function,
-                                  neighbour_function=random_tree_plan_neighbour)
