@@ -62,7 +62,7 @@ def timed_annealing(patterns: List[Pattern],
     state = random_start(patterns)
     cost = cost_function(state)
     states, costs = [1], [cost]
-    T = 1000
+    T = 100
     no_improve_steps = 0
 
     start_time = datetime.now()
