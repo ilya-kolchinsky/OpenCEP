@@ -21,8 +21,38 @@ from plan.multi.MultiPatternUnifiedTreeLocalSearchApproaches import MultiPattern
 
 
 class algoA(TreePlanBuilder):
+    def create_tree_topology_aux(self, pattern: Pattern, items, args_num):
+        sub_trees = {frozenset({i}): (TreePlanLeafNode(i),
+                                      self._get_plan_cost(pattern, TreePlanLeafNode(i)),
+                                      items.difference({i}))
+                     for i in items}
+        # for each subset of size i, find optimal topology for these subsets according to size (i-1) subsets.
+        for i in range(2, args_num + 1):
+            for tSubset in combinations(items, i):
+                subset = frozenset(tSubset)
+                disjoint_sets_iter = get_all_disjoint_sets(subset)  # iterator for all disjoint splits of a set.
+                # use first option as speculative best.
+                set1_, set2_ = next(disjoint_sets_iter)
+                tree1_, _, _ = sub_trees[set1_]
+                tree2_, _, _ = sub_trees[set2_]
+                new_tree_ = TreePlanBuilder._instantiate_binary_node(pattern, tree1_, tree2_)
+                new_cost_ = self._get_plan_cost(pattern, new_tree_)
+                new_left_ = items.difference({subset})
+                sub_trees[subset] = new_tree_, new_cost_, new_left_
+                # find the best topology based on previous topologies for smaller subsets.
+                for set1, set2 in disjoint_sets_iter:
+                    tree1, _, _ = sub_trees[set1]
+                    tree2, _, _ = sub_trees[set2]
+                    new_tree = TreePlanBuilder._instantiate_binary_node(pattern, tree1, tree2)
+                    new_cost = self._get_plan_cost(pattern, new_tree)
+                    _, cost, left = sub_trees[subset]
+                    # if new subset's topology is better, then update to it.
+                    if new_cost < cost:
+                        sub_trees[subset] = new_tree, new_cost, left
+        # return the best topology (index 0 at tuple) for items - the set of all arguments.
+        return sub_trees[items][0]
 
-    def _create_tree_topology(self, pattern: Pattern):
+    def create_tree_topology(self, pattern: Pattern):
         """
         Description: this function returns a treePlan for the given pattern
         we do that using dynamic programming , in each iteration we calculate the sub plan cost
@@ -46,41 +76,11 @@ class algoA(TreePlanBuilder):
 
         items = frozenset(range(args_num))
         # Save subsets' optimal topologies, the cost and the left to add items.
-        sub_trees = {frozenset({i}): (TreePlanLeafNode(i),
-                                      self._get_plan_cost(pattern, TreePlanLeafNode(i)),
-                                      items.difference({i}))
-                     for i in items}
+        return TreePlan(self.create_tree_topology_aux(pattern, items, args_num))
 
-        # for each subset of size i, find optimal topology for these subsets according to size (i-1) subsets.
-        for i in range(2, args_num + 1):
-            for tSubset in combinations(items, i):
-                subset = frozenset(tSubset)
-                disjoint_sets_iter = get_all_disjoint_sets(subset)  # iterator for all disjoint splits of a set.
-                # use first option as speculative best.
-                set1_, set2_ = next(disjoint_sets_iter)
-                tree1_, _, _ = sub_trees[set1_]
-                tree2_, _, _ = sub_trees[set2_]
-                new_tree_ = TreePlanBuilder._instantiate_binary_node(pattern, tree1_, tree2_)
-                new_cost_ = self._get_plan_cost(pattern, new_tree_)
-                new_left_ = items.difference({subset})
-                sub_trees[subset] = new_tree_, new_cost_, new_left_
-                # find the best topology based on previous topologies for smaller subsets.
-                for set1, set2 in disjoint_sets_iter:
-                    tree1, _, _ = sub_trees[set1]
-                    tree2, _, _ = sub_trees[set2]
-                    new_tree = TreePlanBuilder._instantiate_binary_node(pattern, tree1, tree2)
-                    new_cost = self._get_plan_cost(pattern, new_tree)
-                    _, cost, left = sub_trees[subset]
-                    # if new subset's topology is better, then update to it.
-                    if new_cost < cost:
-                        sub_trees[subset] = new_tree, new_cost, left
-        return TreePlan(root=sub_trees[items][
-            0])  # return the best topology (index 0 at tuple) for items - the set of all arguments.
-
-    def _create_topology_with_const_sub_order(self, pattern: Pattern,
-                                              const_sub_ord: list):
+    def _create_topology_with_const_sub_order(self, pattern: Pattern, const_sub_ord: list):
         """
-        Description :the same as _create_tree_topology , only that this time we build the plan for the
+        Description :the same as create_tree_topology , only that this time we build the plan for the
         complementary pattern the complementary pattern is defined by the pattern events indexes minus
         the events indexes in const_sub_order
         """
@@ -99,34 +99,7 @@ class algoA(TreePlanBuilder):
         args_num = len(selectivity_matrix)
         items = frozenset(range(args_num)) - frozenset(const_sub_ord)
         # Save subsets' optimal topologies, the cost and the left to add items.
-        sub_trees = {frozenset({i}): (TreePlanLeafNode(i),
-                                      self._get_plan_cost(pattern, TreePlanLeafNode(i)),
-                                      items.difference({i}))
-                     for i in items}
-        # for each subset of size i, find optimal topology for these subsets according to size (i-1) subsets.
-        for i in range(2, args_num + 1):
-            for tSubset in combinations(items, i):
-                subset = frozenset(tSubset)
-                disjoint_sets_iter = get_all_disjoint_sets(subset)  # iterator for all disjoint splits of a set.
-                # use first option as speculative best.
-                set1_, set2_ = next(disjoint_sets_iter)
-                tree1_, _, _ = sub_trees[set1_]
-                tree2_, _, _ = sub_trees[set2_]
-                new_tree_ = TreePlanBuilder._instantiate_binary_node(pattern, tree1_, tree2_)
-                new_cost_ = self._get_plan_cost(pattern, new_tree_)
-                new_left_ = items.difference({subset})
-                sub_trees[subset] = new_tree_, new_cost_, new_left_
-                # find the best topology based on previous topologies for smaller subsets.
-                for set1, set2 in disjoint_sets_iter:
-                    tree1, _, _ = sub_trees[set1]
-                    tree2, _, _ = sub_trees[set2]
-                    new_tree = TreePlanBuilder._instantiate_binary_node(pattern, tree1, tree2)
-                    new_cost = self._get_plan_cost(pattern, new_tree)
-                    _, cost, left = sub_trees[subset]
-                    # if new subset's topology is better, then update to it.
-                    if new_cost < cost:
-                        sub_trees[subset] = new_tree, new_cost, left
-        return sub_trees[items][0]  # return the best topology (index 0 at tuple) for items - the set of all arguments.
+        return self.create_tree_topology_aux(pattern, items, args_num)
 
     def _create_pattern_topology(self, sub_pattern_data: Tuple):
         """
@@ -151,34 +124,7 @@ class algoA(TreePlanBuilder):
         args_num = len(sub_pattern_indexes)
         items = frozenset(sub_pattern_indexes)
         # Save subsets' optimal topologies, the cost and the left to add items.
-        sub_trees = {frozenset({i}): (TreePlanLeafNode(i),
-                                      self._get_plan_cost(pattern, TreePlanLeafNode(i)),
-                                      items.difference({i}))
-                     for i in sub_pattern_indexes}
-        # for each subset of size i, find optimal topology for these subsets according to size (i-1) subsets.
-        for i in range(2, args_num + 1):
-            for tSubset in combinations(items, i):
-                subset = frozenset(tSubset)
-                disjoint_sets_iter = get_all_disjoint_sets(subset)  # iterator for all disjoint splits of a set.
-                # use first option as speculative best.
-                set1_, set2_ = next(disjoint_sets_iter)
-                tree1_, _, _ = sub_trees[set1_]
-                tree2_, _, _ = sub_trees[set2_]
-                new_tree_ = TreePlanBuilder._instantiate_binary_node(pattern, tree1_, tree2_)
-                new_cost_ = self._get_plan_cost(pattern, new_tree_)
-                new_left_ = items.difference({subset})
-                sub_trees[subset] = new_tree_, new_cost_, new_left_
-                # find the best topology based on previous topologies for smaller subsets.
-                for set1, set2 in disjoint_sets_iter:
-                    tree1, _, _ = sub_trees[set1]
-                    tree2, _, _ = sub_trees[set2]
-                    new_tree = TreePlanBuilder._instantiate_binary_node(pattern, tree1, tree2)
-                    new_cost = self._get_plan_cost(pattern, new_tree)
-                    _, cost, left = sub_trees[subset]
-                    # if new subset's topology is better, then update to it.
-                    if new_cost < cost:
-                        sub_trees[subset] = new_tree, new_cost, left
-        return sub_trees[items][0]  # return the best topology (index 0 at tuple) for items - the set of all arguments.
+        return self.create_tree_topology_aux(pattern, items, args_num)
 
     def _create_tree_topology_shared_subpattern(self, pattern: Pattern, sub_pattern_data: Tuple):
         """this function builds the best tree topology such that the pattern starts with the subpattern order
@@ -330,26 +276,9 @@ class algoA(TreePlanBuilder):
         return shareable_pairs_array
 
     @staticmethod
-    def Nedge_neighborhood(pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
-                           sub_pattern_shareable_array: np.array):
-        """
-        the Nedge neighborhood function as explained in the article Section 4.2
-
-        :param pattern_to_tree_plan_map : dict that maps every pattern in the MPT to his TreePlan
-        :param sub_pattern_shareable_array : a [n][n] matrix (n is number of patterns in MPT ) ,
-                   where sub_pattern_shareable_array[i][j] = the list of all equal  sub patterns between patterni and patternj
-        :return: creates new tree plans where sub pattern of two patterns merged
-
-        """
-        if isinstance(pattern_to_tree_plan_map, TreePlan) or len(pattern_to_tree_plan_map) <= 1:
-            return pattern_to_tree_plan_map
-
-        pattern_to_tree_plan_map_copy = pattern_to_tree_plan_map.copy()
-        sub_pattern_shareable_array_copy = deepcopy(sub_pattern_shareable_array)
-        for p, tree in pattern_to_tree_plan_map_copy.items():
-            new_tree = TreePlan(root=tree.root.get_node_copy())
-            pattern_to_tree_plan_map_copy[p] = new_tree
-        patterns_list = list(enumerate(pattern_to_tree_plan_map_copy.keys()))
+    def get_random_patterns_with_their_common_sub_patterns(patterns_list, sub_pattern_shareable_array):
+        """ select random two patterns and all the common sub patterns between them
+         we do that to select later a random sub pattern that is sharable between them """
         random_patterns_pair = random.sample(patterns_list, k=2)
         shareable_pairs_i_j = []
         i, j, patterni, patternj = 0, 0, None, None
@@ -360,54 +289,66 @@ class algoA(TreePlanBuilder):
                 tmp = random_patterns_pair[0]
                 i, patterni = random_patterns_pair[1]
                 j, patternj = tmp
-
-            shareable_pairs_i_j = sub_pattern_shareable_array_copy[i, j]
+            shareable_pairs_i_j = sub_pattern_shareable_array[i, j]
             random_patterns_pair = random.sample(patterns_list, k=2)
+        return i, patterni, j, patternj, shareable_pairs_i_j
 
-        if len(shareable_pairs_i_j) == 0:
-            """
-            no share exist
-            """
-            return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
-        assert len(shareable_pairs_i_j) > 0
-
-        random_idx = random.choice(range(len(shareable_pairs_i_j)))  # TODO
-        # random_idx = 0
-        assert random_idx < len(shareable_pairs_i_j)
-
-        sub_pattern, event_indexes1, names1, event_indexes2, names2 = shareable_pairs_i_j[random_idx]
-
-        # shareable_pairs_i_j[0][0].full_structure == patternj.full_structure, shareable_pairs_i_j[0][0].condition == patternj.condition
-
-        alg = algoA()
-        sub_pattern_data_1 = (sub_pattern, event_indexes1, names1)
-        sub_pattern_data_2 = (sub_pattern, event_indexes2, names2)
-
-        new_tree_plan_i = alg._create_tree_topology_shared_subpattern(patterni, sub_pattern_data_1)
-        new_tree_plan_j = alg._create_tree_topology_shared_subpattern(patternj, sub_pattern_data_2)
-
-        # merge
+    @staticmethod
+    def share_tree_plans(curr_new_tree_plan, new_tree_plan_i, new_tree_plan_j, sub_pattern, patterni, patternj):
         if sub_pattern.is_equivalent(patterni) and sub_pattern.is_equivalent(patternj):
-            new_tree_plan_i.root = new_tree_plan_j.root
+            curr_new_tree_plan.root = new_tree_plan_j.root
         elif sub_pattern.is_equivalent(patterni):
-            new_tree_plan_j.root.left_child = new_tree_plan_i.root
+            curr_new_tree_plan.root.left_child = new_tree_plan_i.root
         elif sub_pattern.is_equivalent(patternj):
-            new_tree_plan_i.root.left_child = new_tree_plan_j.root
+            curr_new_tree_plan.root.left_child = new_tree_plan_j.root
         else:
             new_tree_plan_i.root.left_child = new_tree_plan_j.root.left_child
 
+    @staticmethod
+    def Nedge_neighborhood(pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
+                           sub_pattern_shareable_array: np.array):
+        """
+        the Nedge neighborhood function as explained in the article Section 4.2
+        :param pattern_to_tree_plan_map : dict that maps every pattern in the MPT to his TreePlan
+        :param sub_pattern_shareable_array : a [n][n] matrix (n is number of patterns in MPT ) ,
+                   where sub_pattern_shareable_array[i][j] = the list of all equal  sub patterns between patterni and patternj
+        :return: creates new tree plans where sub pattern of two patterns merged
+        """
+        if isinstance(pattern_to_tree_plan_map, TreePlan) or len(pattern_to_tree_plan_map) <= 1:
+            return pattern_to_tree_plan_map, sub_pattern_shareable_array
+        pattern_to_tree_plan_map_copy = pattern_to_tree_plan_map.copy()
+        for p, tree in pattern_to_tree_plan_map_copy.items():
+            new_tree = TreePlan(root=tree.root.get_node_copy())
+            pattern_to_tree_plan_map_copy[p] = new_tree
+        patterns_list = list(enumerate(pattern_to_tree_plan_map_copy.keys()))
+        sub_pattern_shareable_array_copy = deepcopy(sub_pattern_shareable_array)
+        # select random two patterns and all the common sub patterns between them
+        # we do that to select later a random sub pattern that is sharable between them
+        i, patterni, j, patternj, shareable_pairs_i_j = algoA.get_random_patterns_with_their_common_sub_patterns(
+            patterns_list, sub_pattern_shareable_array_copy)
+        if len(shareable_pairs_i_j) == 0:  # no share exists
+            return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
+        assert len(shareable_pairs_i_j) > 0
+        random_idx = random.choice(range(len(shareable_pairs_i_j)))  # TODO
+        # random_idx = 0
+        assert random_idx < len(shareable_pairs_i_j)
+        sub_pattern, event_indexes1, names1, event_indexes2, names2 = shareable_pairs_i_j[random_idx]
+        alg = algoA()
+        sub_pattern_data_1 = (sub_pattern, event_indexes1, names1)
+        sub_pattern_data_2 = (sub_pattern, event_indexes2, names2)
+        new_tree_plan_i = alg._create_tree_topology_shared_subpattern(patterni, sub_pattern_data_1)
+        new_tree_plan_j = alg._create_tree_topology_shared_subpattern(patternj, sub_pattern_data_2)
+        # merge
+        algoA.share_tree_plans(new_tree_plan_j, new_tree_plan_i, new_tree_plan_j, sub_pattern, patterni, patternj)
         pattern_to_tree_plan_map_copy[patterni] = new_tree_plan_i
         pattern_to_tree_plan_map_copy[patternj] = new_tree_plan_j
 
         del sub_pattern_shareable_array_copy[i, j][random_idx]
-        # del sub_pattern_shareable_array[j, i][random_idx]
-
         return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
 
     @staticmethod
     def Nvertex_neighborhood(pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
                              sub_pattern_shareable_array: np.array, k=DefaultConfig.SELECT_NEIGHBOR_PATTERNS):
-        # k = max(2, sub_pattern_shareable_array.shape[0] // 4)
         """
         the Nedge neighborhood function as explained in the article Section 4.2
 
@@ -425,27 +366,14 @@ class algoA(TreePlanBuilder):
         for p, tree in pattern_to_tree_plan_map_copy.items():
             new_tree = TreePlan(root=tree.root.get_node_copy())
             pattern_to_tree_plan_map_copy[p] = new_tree
-        # select random two patterns to select a random sub pattern that is sharable between the two
-        random_patterns_pair = random.sample(patterns_list, k=2)
-        shareable_pairs_i_j = []
-        i, j, patterni, patternj = 0, 0, None, None
-        while len(shareable_pairs_i_j) == 0:
-            i, patterni = random_patterns_pair[0]
-            j, patternj = random_patterns_pair[1]
-            if i > j:  # swap such that i < j
-                tmp = random_patterns_pair[0]
-                i, patterni = random_patterns_pair[1]
-                j, patternj = tmp
-            shareable_pairs_i_j = sub_pattern_shareable_array_copy[i, j]
-            random_patterns_pair = random.sample(patterns_list, k=2)
-
-        if len(shareable_pairs_i_j) == 0:
-            """ no share exist """
+        # select random two patterns and all the common sub patterns between them
+        # we do that to select later a random sub pattern that is sharable between them
+        i, patterni, j, patternj, shareable_pairs_i_j = algoA.get_random_patterns_with_their_common_sub_patterns(
+            patterns_list, sub_pattern_shareable_array_copy)
+        if len(shareable_pairs_i_j) == 0:  # no share exists
             return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
-        assert len(shareable_pairs_i_j) > 0
         # here we select the random sub pattern to share
         random_idx = random.choices(range(len(shareable_pairs_i_j)), k=1)[0]
-        assert random_idx < len(shareable_pairs_i_j)
         sub_pattern, event_indexes1, names1, event_indexes2, names2 = shareable_pairs_i_j[random_idx]
         # now we must share this sub_ pattern with all patterns containing this sub_pattern
         all_pattern_indexes_contains_sub_pattern = [i]
@@ -460,19 +388,16 @@ class algoA(TreePlanBuilder):
             if len(sub_patterns_i_idx) > 0:  # get patterns from patterns_i_j_data (first column)
                 sub_patterns_i_idx = sub_patterns_i_idx[:, 0]
             is_j_contain_sub_pattern = len(
-                list(filter(lambda pattern: pattern.is_equivalent(sub_pattern), sub_patterns_i_idx))) > 0
+                list(filter(lambda pattern1: pattern1.is_equivalent(sub_pattern), sub_patterns_i_idx))) > 0
             if is_j_contain_sub_pattern:
                 all_pattern_indexes_contains_sub_pattern.append(idx)
         all_pattern_indexes_contains_sub_pattern = np.array(sorted(all_pattern_indexes_contains_sub_pattern))
-        assert len(all_pattern_indexes_contains_sub_pattern) >= 2
-        assert i in all_pattern_indexes_contains_sub_pattern
-        assert j in all_pattern_indexes_contains_sub_pattern
         max_sharing = min(k, len(all_pattern_indexes_contains_sub_pattern))
         alg = algoA()
         sub_pattern_data_1 = (sub_pattern, event_indexes1, names1)
-        new_tree_plan1 = alg._create_tree_topology_shared_subpattern(patterni, sub_pattern_data_1)
-        pattern_to_tree_plan_map_copy[patterni] = new_tree_plan1
-
+        new_tree_plani = alg._create_tree_topology_shared_subpattern(patterni, sub_pattern_data_1)
+        new_tree_planj = alg._create_tree_topology_shared_subpattern(patternj, sub_pattern_data_1)
+        pattern_to_tree_plan_map_copy[patterni] = new_tree_plani
         for p_idx in all_pattern_indexes_contains_sub_pattern[:max_sharing]:
             if p_idx == i:
                 continue
@@ -492,15 +417,7 @@ class algoA(TreePlanBuilder):
             curr_sub_pattern_data = (sub_pattern, curr_event_indexes, curr_names)
             curr_new_plan = alg._create_tree_topology_shared_subpattern(pattern, curr_sub_pattern_data)
             # do the sharing process
-            if sub_pattern.is_equivalent(patterni) and sub_pattern.is_equivalent(patternj):
-                curr_new_plan.root = new_tree_plan1.root
-            elif sub_pattern.is_equivalent(patterni):
-                curr_new_plan.root.left_child = new_tree_plan1.root
-            elif sub_pattern.is_equivalent(patternj):
-                curr_new_plan.root.left_child = new_tree_plan1.root
-            else:
-                curr_new_plan.root.left_child = new_tree_plan1.root.left_child
-
+            algoA.share_tree_plans(curr_new_plan, new_tree_plani, new_tree_planj, sub_pattern, patterni, patternj)
             pattern_to_tree_plan_map_copy[pattern] = curr_new_plan
             del sub_pattern_shareable_array_copy[i, p_idx][sub_pattern_index]
         return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
@@ -535,9 +452,6 @@ class algoA(TreePlanBuilder):
                                                   debug=False)
         pattern_to_tree_plan_map, _ = state
         return pattern_to_tree_plan_map
-
-
-""" ======================================== Tests for all functions in MPT_edge_neighborhood ====================="""
 
 
 def single_pattern_cost(pattern: Pattern, tree_plan_root: TreePlanNode, cost_model: TreeCostModel):
@@ -594,7 +508,7 @@ def tree_plan_cost_function(state: Tuple[Dict[Pattern, TreePlan], np.array]):
 
 def patterns_initialize_function(patterns: List[Pattern]):
     alg = algoA()
-    pattern_to_tree_plan_map = {p: alg._create_tree_topology(p) for p in patterns}
+    pattern_to_tree_plan_map = {p: alg.create_tree_topology(p) for p in patterns}
     shareable_pairs = algoA.get_shareable_pairs(patterns)
     return pattern_to_tree_plan_map, shareable_pairs
 
@@ -643,3 +557,4 @@ def tree_plan_equal(state1: Tuple[Dict[Pattern, TreePlan], np.array],
         if not UnifiedTreeBuilder.is_equivalent(tree_plans1_root, pattern, tree_plans2_root, pattern, leaves_dict):
             return False
     return True
+

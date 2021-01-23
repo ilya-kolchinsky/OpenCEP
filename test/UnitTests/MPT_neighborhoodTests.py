@@ -478,11 +478,11 @@ def advanced_Nvertex_test():
     pattern7.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     pattern8.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     pattern9.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    patterns = [pattern1, pattern2, pattern3, pattern4, pattern5, pattern6, pattern7]
+    patterns = [pattern1, pattern2, pattern3, pattern4, pattern5, pattern6, pattern7,pattern8,pattern9]
     state = patterns_initialize_function(patterns)
     pattern_to_tree_plan_map, shareable_pairs = state
     alg = algoA()
-    alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 7)
+    pattern_to_tree_plan_map,_ = alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 9)
     print('Ok')
     return pattern_to_tree_plan_map
 
@@ -509,6 +509,5 @@ if __name__ == '__main__':
         basic_Nvertex_test,
         advanced_Nvertex_no_conditions_test,
         advanced_Nvertex_test,
-
     ]
     run_all(tests=tests)
