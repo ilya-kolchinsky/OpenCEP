@@ -294,13 +294,14 @@ class algoA(TreePlanBuilder):
         return i, patterni, j, patternj, shareable_pairs_i_j
 
     @staticmethod
-    def share_tree_plans(curr_new_tree_plan, new_tree_plan_i, new_tree_plan_j, sub_pattern, patterni, patternj):
+    def share_tree_plans(sub_pattern, patterni, new_tree_plan_i, patternj, new_tree_plan_j):
+        # merge
         if sub_pattern.is_equivalent(patterni) and sub_pattern.is_equivalent(patternj):
-            curr_new_tree_plan.root = new_tree_plan_j.root
+            new_tree_plan_i.root = new_tree_plan_j.root
         elif sub_pattern.is_equivalent(patterni):
-            curr_new_tree_plan.root.left_child = new_tree_plan_i.root
+            new_tree_plan_j.root.left_child = new_tree_plan_i.root
         elif sub_pattern.is_equivalent(patternj):
-            curr_new_tree_plan.root.left_child = new_tree_plan_j.root
+            new_tree_plan_i.root.left_child = new_tree_plan_j.root
         else:
             new_tree_plan_i.root.left_child = new_tree_plan_j.root.left_child
 
@@ -339,7 +340,7 @@ class algoA(TreePlanBuilder):
         new_tree_plan_i = alg._create_tree_topology_shared_subpattern(patterni, sub_pattern_data_1)
         new_tree_plan_j = alg._create_tree_topology_shared_subpattern(patternj, sub_pattern_data_2)
         # merge
-        algoA.share_tree_plans(new_tree_plan_j, new_tree_plan_i, new_tree_plan_j, sub_pattern, patterni, patternj)
+        algoA.share_tree_plans(sub_pattern, patterni, new_tree_plan_i, patternj, new_tree_plan_j)
         pattern_to_tree_plan_map_copy[patterni] = new_tree_plan_i
         pattern_to_tree_plan_map_copy[patternj] = new_tree_plan_j
 
@@ -417,7 +418,7 @@ class algoA(TreePlanBuilder):
             curr_sub_pattern_data = (sub_pattern, curr_event_indexes, curr_names)
             curr_new_plan = alg._create_tree_topology_shared_subpattern(pattern, curr_sub_pattern_data)
             # do the sharing process
-            algoA.share_tree_plans(curr_new_plan, new_tree_plani, new_tree_planj, sub_pattern, patterni, patternj)
+            algoA.share_tree_plans(sub_pattern, patterni, new_tree_plani, pattern, curr_new_plan)
             pattern_to_tree_plan_map_copy[pattern] = curr_new_plan
             del sub_pattern_shareable_array_copy[i, p_idx][sub_pattern_index]
         return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
@@ -517,6 +518,9 @@ def tree_plan_edge_neighbour(state: Tuple[Dict[Pattern, TreePlan], np.array]):
     """Move a little bit x, from the left or the right."""
     pattern_to_tree_plan_map, shareable_pairs = state
     alg = algoA()
+    count_common_pairs = lambda lst: len(lst) if lst is not None else 0
+    if np.sum([count_common_pairs(lst) for lst in shareable_pairs.reshape(-1)]) == 0:
+        return state
     neighbour = alg.Nedge_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
     return neighbour
 
@@ -525,6 +529,9 @@ def tree_plan_vertex_neighbour(state: Tuple[Dict[Pattern, TreePlan], np.array]):
     """Move a little bit x, from the left or the right."""
     pattern_to_tree_plan_map, shareable_pairs = state
     alg = algoA()
+    count_common_pairs = lambda lst: len(lst) if lst is not None else 0
+    if np.sum([count_common_pairs(lst) for lst in shareable_pairs.reshape(-1)]) == 0:
+        return state
     neighbour = alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
     return neighbour
 
@@ -557,4 +564,3 @@ def tree_plan_equal(state1: Tuple[Dict[Pattern, TreePlan], np.array],
         if not UnifiedTreeBuilder.is_equivalent(tree_plans1_root, pattern, tree_plans2_root, pattern, leaves_dict):
             return False
     return True
-

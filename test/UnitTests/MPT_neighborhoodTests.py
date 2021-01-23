@@ -62,6 +62,7 @@ def create_topology_test():
     _ = algoA_instance._create_topology_with_const_sub_order(pattern1, [0, 3])
     print('Ok')
 
+
 def create_topology_const_sub_pattern_test():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
@@ -169,6 +170,7 @@ def Nedge_test_1():
     print('Ok')
     return pattern_to_tree_plan_map
 
+
 def Nedge_test_2():
     events = ["AAPL", "AMZN", "GOOG"]
     patterns = []
@@ -205,6 +207,7 @@ def Nedge_test_2():
     print('Ok')
     return pattern_to_tree_plan_map
 
+
 def annealing_basic_test_1():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
@@ -230,23 +233,23 @@ def annealing_basic_test_1():
     pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     patterns = [pattern1, pattern2]
     state, c = visualize_annealing_timed(patterns=patterns,
-                                             initialize_function=patterns_initialize_function,
-                                             state_repr_function=tree_plan_state_get_summary,
-                                             state_equal_function=tree_plan_equal,
-                                             cost_function=tree_plan_cost_function,
-                                             neighbour_function=tree_plan_vertex_neighbour)
-
-    state, c = visualize_annealing_timed(patterns=patterns,
                                          initialize_function=patterns_initialize_function,
                                          state_repr_function=tree_plan_state_get_summary,
                                          state_equal_function=tree_plan_equal,
                                          cost_function=tree_plan_cost_function,
                                          neighbour_function=tree_plan_edge_neighbour)
+    state, c = visualize_annealing_timed(patterns=patterns,
+                                         initialize_function=patterns_initialize_function,
+                                         state_repr_function=tree_plan_state_get_summary,
+                                         state_equal_function=tree_plan_equal,
+                                         cost_function=tree_plan_cost_function,
+                                         neighbour_function=tree_plan_vertex_neighbour, time_limit=10000000)
+
     pattern_to_tree_plan_map, shareable_pairs = state
     return pattern_to_tree_plan_map
 
-def annealing_basic_test_2():
 
+def annealing_basic_test_2():
     events = ["AAPL", "AMZN", "GOOG", "FB"]
     patterns = []
     for i in range(0, 2):
@@ -272,11 +275,19 @@ def annealing_basic_test_2():
     patterns[1].set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
 
     state, c = visualize_annealing_timed(patterns=patterns,
-                                             initialize_function=patterns_initialize_function,
-                                             state_repr_function=tree_plan_state_get_summary,
-                                             state_equal_function=tree_plan_equal,
-                                             cost_function=tree_plan_cost_function,
-                                             neighbour_function=tree_plan_vertex_neighbour)
+                                         initialize_function=patterns_initialize_function,
+                                         state_repr_function=tree_plan_state_get_summary,
+                                         state_equal_function=tree_plan_equal,
+                                         cost_function=tree_plan_cost_function,
+                                         neighbour_function=tree_plan_edge_neighbour,
+                                         time_limit=10)
+    state, c = visualize_annealing_timed(patterns=patterns,
+                                         initialize_function=patterns_initialize_function,
+                                         state_repr_function=tree_plan_state_get_summary,
+                                         state_equal_function=tree_plan_equal,
+                                         cost_function=tree_plan_cost_function,
+                                         neighbour_function=tree_plan_vertex_neighbour,
+                                         time_limit=10)
     pattern_to_tree_plan_map, shareable_pairs = state
     return pattern_to_tree_plan_map
 
@@ -320,13 +331,22 @@ def annealing_med_test_1():
     pattern3.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     patterns = [pattern1, pattern2, pattern3]
     state, c = visualize_annealing_timed(patterns=patterns,
-                                             initialize_function=patterns_initialize_function,
-                                             state_repr_function=tree_plan_state_get_summary,
-                                             state_equal_function=tree_plan_equal,
-                                             cost_function=tree_plan_cost_function,
-                                             neighbour_function=tree_plan_vertex_neighbour, time_limit=100)
+                                         initialize_function=patterns_initialize_function,
+                                         state_repr_function=tree_plan_state_get_summary,
+                                         state_equal_function=tree_plan_equal,
+                                         cost_function=tree_plan_cost_function,
+                                         neighbour_function=tree_plan_edge_neighbour,
+                                         time_limit=10)
+    state, c = visualize_annealing_timed(patterns=patterns,
+                                         initialize_function=patterns_initialize_function,
+                                         state_repr_function=tree_plan_state_get_summary,
+                                         state_equal_function=tree_plan_equal,
+                                         cost_function=tree_plan_cost_function,
+                                         neighbour_function=tree_plan_vertex_neighbour,
+                                         time_limit=10)
     pattern_to_tree_plan_map, shareable_pairs = state
     return pattern_to_tree_plan_map
+
 
 def annealing_med_test_2():
     events = ["AAPL", "AMZN", "GOOG", "FB", "MIC"]
@@ -355,9 +375,11 @@ def annealing_med_test_2():
                                          state_repr_function=tree_plan_state_get_summary,
                                          state_equal_function=tree_plan_equal,
                                          cost_function=tree_plan_cost_function,
-                                         neighbour_function=tree_plan_vertex_neighbour, time_limit=2000)
+                                         neighbour_function=tree_plan_vertex_neighbour,
+                                         time_limit=10)
     pattern_to_tree_plan_map, shareable_pairs = state
     return pattern_to_tree_plan_map
+
 
 def Nvertex_test_1():
     events = ["AAPL", "AMZN", "GOOG", "FB", "MIC"]
@@ -387,6 +409,7 @@ def Nvertex_test_1():
     alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 3)
     print('Ok')
     return pattern_to_tree_plan_map
+
 
 def Nvertex_test_2():
     pattern1 = Pattern(
@@ -427,236 +450,240 @@ def Nvertex_test_2():
     print('Ok')
     return pattern_to_tree_plan_map
 
+
 def Nvertex_test_3():
-        pattern1 = Pattern(
-            SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
-                        PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
-            AndCondition(
-                GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
-                GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                                     Variable("b", lambda x: x["Opening Price"]))),
-            timedelta(minutes=5)
-        )
-        pattern2 = Pattern(
-            SeqOperator(PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
-            AndCondition(),
-            timedelta(minutes=5)
-        )
-        pattern3 = Pattern(
-            SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("TONY", "b"),
-                        PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
-            AndCondition(),
-            timedelta(minutes=5)
+    pattern1 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    pattern2 = Pattern(
+        SeqOperator(PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
+    pattern3 = Pattern(
+        SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("TONY", "b"),
+                    PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
 
-        )
+    )
 
-        selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
-                             [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
-        arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
-        pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        pattern3.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        selectivityMatrix = [[1.0, 0.15989723367389616], [1.0, 1.0]]
-        arrivalRates = [0.013917884481558803, 0.012421711899791231]
-        pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        patterns = [pattern1, pattern2, pattern3]
-        state = patterns_initialize_function(patterns)
-        pattern_to_tree_plan_map, shareable_pairs = state
-        alg = algoA()
-        alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 3)
-        print('Ok')
-        return pattern_to_tree_plan_map
+    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
+                         [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
+    arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
+    pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern3.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    selectivityMatrix = [[1.0, 0.15989723367389616], [1.0, 1.0]]
+    arrivalRates = [0.013917884481558803, 0.012421711899791231]
+    pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    patterns = [pattern1, pattern2, pattern3]
+    state = patterns_initialize_function(patterns)
+    pattern_to_tree_plan_map, shareable_pairs = state
+    alg = algoA()
+    alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 3)
+    print('Ok')
+    return pattern_to_tree_plan_map
+
 
 def advanced_Nvertex_no_conditions_test():
-        pattern1 = Pattern(
-            SeqOperator(PrimitiveEventStructure("AAPL", "a"),
-                        PrimitiveEventStructure("AMZN", "b"),
-                        PrimitiveEventStructure("GOOG", "c"),
-                        PrimitiveEventStructure("SALEH", "d")),
-            AndCondition(),
-            timedelta(minutes=5)
-        )
-        pattern2 = Pattern(
-            SeqOperator(PrimitiveEventStructure("MSFT", "a"),
-                        PrimitiveEventStructure("TONY", "b"),
-                        PrimitiveEventStructure("GOOG", "c"),
-                        PrimitiveEventStructure("SALEH", "d")),
-            AndCondition(),
-            timedelta(minutes=5)
+    pattern1 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c"),
+                    PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
+    pattern2 = Pattern(
+        SeqOperator(PrimitiveEventStructure("MSFT", "a"),
+                    PrimitiveEventStructure("TONY", "b"),
+                    PrimitiveEventStructure("GOOG", "c"),
+                    PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
 
-        )
-        pattern3 = Pattern(
-            SeqOperator(PrimitiveEventStructure("GOOG", "c"),
-                        PrimitiveEventStructure("SALEH", "d")),
-            AndCondition(),
-            timedelta(minutes=5)
-        )
-        pattern4 = Pattern(
-            SeqOperator(PrimitiveEventStructure("AAPL", "a"),
-                        PrimitiveEventStructure("AMZN", "b"),
-                        PrimitiveEventStructure("GOOG", "c")),
-            AndCondition(),
-            timedelta(minutes=5)
-        )
+    )
+    pattern3 = Pattern(
+        SeqOperator(PrimitiveEventStructure("GOOG", "c"),
+                    PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
+    pattern4 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
 
-        pattern5 = Pattern(
-            SeqOperator(PrimitiveEventStructure("AAPL", "a"),
-                        PrimitiveEventStructure("AMZN", "b"),
-                        PrimitiveEventStructure("FB", "e")),
-            AndCondition(),
-            timedelta(minutes=5)
-        )
+    pattern5 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("FB", "e")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
 
-        pattern6 = Pattern(
-            SeqOperator(PrimitiveEventStructure("AAPL", "a"),
-                        PrimitiveEventStructure("AMZN", "b"),
-                        PrimitiveEventStructure("LI", "c")),
-            AndCondition(),
-            timedelta(minutes=2)
-        )
-        pattern7 = Pattern(
-            SeqOperator(PrimitiveEventStructure("MSFT", "a"),
-                        PrimitiveEventStructure("TONY", "b"),
-                        PrimitiveEventStructure("FB", "e")),
-            AndCondition(),
-            timedelta(minutes=5)
-        )
+    pattern6 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("LI", "c")),
+        AndCondition(),
+        timedelta(minutes=2)
+    )
+    pattern7 = Pattern(
+        SeqOperator(PrimitiveEventStructure("MSFT", "a"),
+                    PrimitiveEventStructure("TONY", "b"),
+                    PrimitiveEventStructure("FB", "e")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
 
-        selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0],
-                             [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
-                             [1.0, 0.15989723367389616, 1.0, 0.9992557393942864],
-                             [1.0, 1.0, 0.9992557393942864, 1.0]]
-        arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
-        pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        selectivityMatrix = [[1.0, 0.15989723367389616],
-                             [1.0, 1.0]]
-        arrivalRates = [0.013917884481558803, 0.012421711899791231]
-        pattern3.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        selectivityMatrix = [[1.0, 0.9457796098355941, 1.0],
-                             [0.9457796098355941, 1.0, 0.15989723367389616],
-                             [1.0, 0.15989723367389616, 1.0]]
-        arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803]
-        pattern4.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        pattern5.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        pattern6.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        pattern7.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0],
+                         [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
+                         [1.0, 0.15989723367389616, 1.0, 0.9992557393942864],
+                         [1.0, 1.0, 0.9992557393942864, 1.0]]
+    arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
+    pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    selectivityMatrix = [[1.0, 0.15989723367389616],
+                         [1.0, 1.0]]
+    arrivalRates = [0.013917884481558803, 0.012421711899791231]
+    pattern3.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0],
+                         [0.9457796098355941, 1.0, 0.15989723367389616],
+                         [1.0, 0.15989723367389616, 1.0]]
+    arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803]
+    pattern4.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern5.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern6.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern7.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
 
-        patterns = [pattern1, pattern2, pattern3, pattern4, pattern5, pattern6, pattern7]
-        state = patterns_initialize_function(patterns)
-        pattern_to_tree_plan_map, shareable_pairs = state
-        alg = algoA()
-        alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 7)
-        print('Ok')
-        return pattern_to_tree_plan_map
+    patterns = [pattern1, pattern2, pattern3, pattern4, pattern5, pattern6, pattern7]
+    state = patterns_initialize_function(patterns)
+    pattern_to_tree_plan_map, shareable_pairs = state
+    alg = algoA()
+    alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 7)
+    print('Ok')
+    return pattern_to_tree_plan_map
+
 
 def advanced_Nvertex_test():
-        pattern1 = Pattern(
-            SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
-                        PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
-            AndCondition(
-                GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
-                GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                                     Variable("b", lambda x: x["Opening Price"]))),
-            timedelta(minutes=5)
-        )
-        pattern2 = Pattern(
-            SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("TONY", "b"),
-                        PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
-            AndCondition(),
-            timedelta(minutes=5)
+    pattern1 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    pattern2 = Pattern(
+        SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("TONY", "b"),
+                    PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
 
-        )
-        pattern3 = Pattern(
-            SeqOperator(PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
-            AndCondition(),
-            timedelta(minutes=5)
-        )
-        pattern4 = Pattern(
-            SeqOperator(PrimitiveEventStructure("AAPL", "a"),
-                        PrimitiveEventStructure("AMZN", "b"),
-                        PrimitiveEventStructure("GOOG", "c")),
-            AndCondition(
-                GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                                     Variable("b", lambda x: x["Opening Price"])),
-                GreaterThanCondition(Variable("c", lambda x: x["Peak Price"]), 500)
-            ),
-            timedelta(minutes=5)
-        )
+    )
+    pattern3 = Pattern(
+        SeqOperator(PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
+    pattern4 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            GreaterThanCondition(Variable("c", lambda x: x["Peak Price"]), 500)
+        ),
+        timedelta(minutes=5)
+    )
 
-        pattern5 = Pattern(
-            SeqOperator(PrimitiveEventStructure("AAPL", "a"),
-                        PrimitiveEventStructure("AMZN", "b"),
-                        PrimitiveEventStructure("GOOG", "c")),
-            AndCondition(
-                GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                                     Variable("b", lambda x: x["Opening Price"])),
-                GreaterThanCondition(Variable("c", lambda x: x["Peak Price"]), 530)
-            ),
-            timedelta(minutes=3)
-        )
+    pattern5 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            GreaterThanCondition(Variable("c", lambda x: x["Peak Price"]), 530)
+        ),
+        timedelta(minutes=3)
+    )
 
-        pattern6 = Pattern(
-            SeqOperator(PrimitiveEventStructure("AAPL", "a"),
-                        PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("FB", "e")),
-            AndCondition(
-                GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                                     Variable("b", lambda x: x["Opening Price"])),
-                GreaterThanCondition(Variable("e", lambda x: x["Peak Price"]), 520)
-            ),
-            timedelta(minutes=5)
-        )
+    pattern6 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("FB", "e")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            GreaterThanCondition(Variable("e", lambda x: x["Peak Price"]), 520)
+        ),
+        timedelta(minutes=5)
+    )
 
-        pattern7 = Pattern(
-            SeqOperator(PrimitiveEventStructure("AAPL", "a"),
-                        PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("LI", "c")),
-            AndCondition(
-                GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                                     Variable("b", lambda x: x["Opening Price"])),
-                GreaterThanCondition(Variable("c", lambda x: x["Peak Price"]), 100)
-            ),
-            timedelta(minutes=2)
-        )
-        pattern8 = Pattern(
-            SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("TONY", "b"),
-                        PrimitiveEventStructure("FB", "e")),
-            AndCondition(),
-            timedelta(minutes=5)
-        )
-        pattern9 = Pattern(
-            SeqOperator(PrimitiveEventStructure("FB", "e"),
-                        PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("TONY", "b")),
-            AndCondition(),
-            timedelta(minutes=5)
-        )
+    pattern7 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("LI", "c")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            GreaterThanCondition(Variable("c", lambda x: x["Peak Price"]), 100)
+        ),
+        timedelta(minutes=2)
+    )
+    pattern8 = Pattern(
+        SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("TONY", "b"),
+                    PrimitiveEventStructure("FB", "e")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
+    pattern9 = Pattern(
+        SeqOperator(PrimitiveEventStructure("FB", "e"),
+                    PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("TONY", "b")),
+        AndCondition(),
+        timedelta(minutes=5)
+    )
 
-        selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0],
-                             [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
-                             [1.0, 0.15989723367389616, 1.0, 0.9992557393942864],
-                             [1.0, 1.0, 0.9992557393942864, 1.0]]
-        arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
-        pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        selectivityMatrix = [[1.0, 0.15989723367389616],
-                             [1.0, 1.0]]
-        arrivalRates = [0.013917884481558803, 0.012421711899791231]
-        pattern3.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        selectivityMatrix = [[1.0, 0.9457796098355941, 1.0],
-                             [0.9457796098355941, 1.0, 0.15989723367389616],
-                             [1.0, 0.15989723367389616, 1.0]]
-        arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803]
-        pattern4.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        pattern5.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        pattern6.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        pattern7.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        pattern8.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        pattern9.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-        patterns = [pattern1, pattern2, pattern3, pattern4, pattern5, pattern6, pattern7, pattern8, pattern9]
-        state = patterns_initialize_function(patterns)
-        pattern_to_tree_plan_map, shareable_pairs = state
-        alg = algoA()
-        pattern_to_tree_plan_map, _ = alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 9)
-        print('Ok')
-        return pattern_to_tree_plan_map
+    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0],
+                         [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
+                         [1.0, 0.15989723367389616, 1.0, 0.9992557393942864],
+                         [1.0, 1.0, 0.9992557393942864, 1.0]]
+    arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
+    pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    selectivityMatrix = [[1.0, 0.15989723367389616],
+                         [1.0, 1.0]]
+    arrivalRates = [0.013917884481558803, 0.012421711899791231]
+    pattern3.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    selectivityMatrix = [[1.0, 0.9457796098355941, 1.0],
+                         [0.9457796098355941, 1.0, 0.15989723367389616],
+                         [1.0, 0.15989723367389616, 1.0]]
+    arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803]
+    pattern4.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern5.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern6.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern7.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern8.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    pattern9.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    patterns = [pattern1, pattern2, pattern3, pattern4, pattern5, pattern6, pattern7, pattern8, pattern9]
+    state = patterns_initialize_function(patterns)
+    pattern_to_tree_plan_map, shareable_pairs = state
+    alg = algoA()
+    pattern_to_tree_plan_map, _ = alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 9)
+    print('Ok')
+    return pattern_to_tree_plan_map
+
 
 def run_all(tests: List[callable]):
     for test in tests:
@@ -669,21 +696,21 @@ def run_all(tests: List[callable]):
 
 
 if __name__ == '__main__':
-
     tests = [
-        #shareable_all_pairs_unit_test,
-        #Nedge_test_1,
-        #Nedge_test_2,
-        annealing_basic_test_1,]
-        #annealing_basic_test_2,
-        #annealing_med_test_1,
-        #annealing_med_test_2,
-        # Nvertex_test_1,
-        # Nvertex_test_2,
-        # Nvertex_test_3,
-        # advanced_Nvertex_no_conditions_test,
-        # advanced_Nvertex_test,]
+        shareable_all_pairs_unit_test,
+        Nedge_test_1,
+        Nedge_test_2,
+        annealing_basic_test_1,
+        annealing_basic_test_2,
+        annealing_med_test_1,
+        annealing_med_test_2,
+        Nvertex_test_1,
+        Nvertex_test_2,
+        Nvertex_test_3,
+        advanced_Nvertex_no_conditions_test,
+        advanced_Nvertex_test,
+    ]
     run_all(tests=tests)
-    # create_topology_test()
-    # create_topology_const_sub_pattern_test()
-    # create_topology_sub_pattern_eq_pattern_test()
+    create_topology_test()
+    create_topology_const_sub_pattern_test()
+    create_topology_sub_pattern_eq_pattern_test()
