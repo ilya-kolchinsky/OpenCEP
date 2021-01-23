@@ -5,9 +5,10 @@ could be added in the future.
 """
 from abc import ABC
 from typing import List
+from misc.DefaultConfig import KC_MIN_SIZE, KC_MAX_SIZE
 
-KC_MIN_SIZE = 1
-KC_MAX_SIZE = None
+# KC_MIN_SIZE = 1
+# KC_MAX_SIZE = None
 
 
 class PatternStructure(ABC):
@@ -87,6 +88,13 @@ class CompositeStructure(PatternStructure, ABC):
     def duplicate_top_operator(self):
         raise NotImplementedError()
 
+    def add_args(self, args):
+        if type(args) == list:
+            for arg in args:
+                self.args.append(arg)
+        else:
+            self.args.append(args)
+
     def __eq__(self, other):
         if type(self) != type(other) or len(self.args) != len(other.args):
             return False
@@ -108,6 +116,7 @@ class AndOperator(CompositeStructure):
 
     def __repr__(self):
         return "AND(%s)" % (self.args,)
+
 
 
 class OrOperator(CompositeStructure):
