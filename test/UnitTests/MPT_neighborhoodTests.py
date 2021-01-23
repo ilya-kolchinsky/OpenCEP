@@ -2,16 +2,15 @@ import random
 import string
 from datetime import timedelta
 
-from SimulatedAnnealing import tree_plan_visualize_annealing
-from base.PatternStructure import SeqOperator, PrimitiveEventStructure, NegationOperator, AndOperator
-from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCondition, SmallerThanEqCondition, \
-    GreaterThanEqCondition
+from SimulatedAnnealing import visualize_annealing_timed
+from base.PatternStructure import SeqOperator, PrimitiveEventStructure
+from condition.BaseRelationCondition import GreaterThanCondition
 from condition.CompositeCondition import AndCondition
 from condition.Condition import Variable
 from misc.StatisticsTypes import StatisticsTypes
-from test.testUtils import *
 from plan.MPT_neighborhood import algoA, patterns_initialize_function, tree_plan_state_get_summary, tree_plan_equal, \
-    tree_plan_cost_function, tree_plan_neighbour
+    tree_plan_cost_function, tree_plan_edge_neighbour
+from test.testUtils import *
 
 
 # -------------------------------------------- Tests for MPT_neighborhood --------------------------------------------
@@ -196,12 +195,12 @@ def annealing_basic_test():
     arrivalRates = [0.013917884481558803, 0.012421711899791231]
     pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     patterns = [pattern1, pattern2]
-    state, c = tree_plan_visualize_annealing(patterns=patterns,
+    state, c = visualize_annealing_timed(patterns=patterns,
                                              initialize_function=patterns_initialize_function,
                                              state_repr_function=tree_plan_state_get_summary,
                                              state_equal_function=tree_plan_equal,
                                              cost_function=tree_plan_cost_function,
-                                             neighbour_function=tree_plan_neighbour)
+                                             neighbour_function=tree_plan_edge_neighbour)
     pattern_to_tree_plan_map, shareable_pairs = state
     return pattern_to_tree_plan_map
 
@@ -244,12 +243,12 @@ def annealing_med_test():
 
     pattern3.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     patterns = [pattern1, pattern2, pattern3]
-    state, c = tree_plan_visualize_annealing(patterns=patterns,
+    state, c = visualize_annealing_timed(patterns=patterns,
                                              initialize_function=patterns_initialize_function,
                                              state_repr_function=tree_plan_state_get_summary,
                                              state_equal_function=tree_plan_equal,
                                              cost_function=tree_plan_cost_function,
-                                             neighbour_function=tree_plan_neighbour)
+                                             neighbour_function=tree_plan_edge_neighbour)
     pattern_to_tree_plan_map, shareable_pairs = state
     return pattern_to_tree_plan_map
 
@@ -501,9 +500,9 @@ def run_all(tests: List[callable]):
 if __name__ == '__main__':
     # annealing_basic_test()
     # annealing_med_test()
-    create_topology_test()
-    create_topology_const_sub_pattern_test()
-    create_topology_sub_pattern_eq_pattern_test()
+    # create_topology_test()
+    # create_topology_const_sub_pattern_test()
+    # create_topology_sub_pattern_eq_pattern_test()
     tests = [
         shareable_all_pairs_unit_test,
         Nedge_test,

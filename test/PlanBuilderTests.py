@@ -664,49 +664,6 @@ def events_type_test_1():
     run_tree_plan_union_test(patterns=patterns, expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
     run_tree_plan_union_test(patterns=patterns, expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
-def temp_neighbor_test():
-    patterns = [
-        Pattern(
-            AndOperator(PrimitiveEventStructure("AAPL", "a"),
-                        PrimitiveEventStructure("AMZN", "b"),
-                        PrimitiveEventStructure("GOOG", "c")),
-            AndCondition(
-                SmallerThanCondition(Variable("a", get_peak_price), Variable("b", get_peak_price)),
-                SmallerThanCondition(Variable("c", get_peak_price), 135)
-            ),
-            timedelta(minutes=3)
-        ),
-
-        Pattern(
-            AndOperator(PrimitiveEventStructure("AAPL", "d"),
-                        PrimitiveEventStructure("AMZN", "e"),
-                        PrimitiveEventStructure("GOOG", "f")),
-            AndCondition(
-                SmallerThanCondition(Variable("d", get_peak_price), Variable("e", get_peak_price)),
-                SmallerThanCondition(Variable("f", get_peak_price), 135)
-            ),
-            timedelta(minutes=3)
-        ),
-        Pattern(
-            AndOperator(PrimitiveEventStructure("AAPL", "x"),
-                        PrimitiveEventStructure("AMZN", "y"),
-                        PrimitiveEventStructure("GOOG", "z")),
-            AndCondition(
-                SmallerThanCondition(Variable("x", get_peak_price), Variable("y", get_peak_price)),
-                SmallerThanCondition(Variable("z", get_peak_price), 135)
-            ),
-            timedelta(minutes=3)
-        ),
-    ]
-
-    state = UnifiedTreeBuilder.initialize_Dict(patterns)
-    new_state = UnifiedTreeBuilder.neighbor(state[0], state[1])
-    new_state = UnifiedTreeBuilder.neighbor(new_state[0], new_state[1])
-    cost = new_state[1]
-
-
-
-
 
 if __name__ == '__main__':
     print_result("TEST", "UNION APPROACH", "RESULT")
@@ -734,4 +691,3 @@ if __name__ == '__main__':
     # negation operators
     negation_operators_test()
     events_type_test_1()
-    temp_neighbor_test()

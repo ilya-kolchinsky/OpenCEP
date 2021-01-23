@@ -8,10 +8,10 @@ from parallel.ParallelExecutionModes import ParallelExecutionModes
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType
 from plan.multi.MultiPatternEvaluationApproaches import MultiPatternEvaluationApproaches
+from plan.multi.MultiPatternUnifiedTreeLocalSearchApproaches import MultiPatternUnifiedTreeLocalSearchApproaches
 from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-
 
 # general settings
 
@@ -43,6 +43,10 @@ SELECT_NEIGHBOR_PATTERNS = 3
 # multi-pattern visualization defaults
 VISUALIZATION = True
 
+# local search defaults
+LOCAL_SEARCH_APPROACH = MultiPatternTreePlanUnionApproaches.TREE_PLAN_LOCAL_SEARCH_ANNEALING
+NEIGHBOR_FUNC = MultiPatternUnifiedTreeLocalSearchApproaches.EDGE_NEIGHBOR
+LOCAL_SEARCH_TIME_LIMIT = 20  # seconds
 
 # parallel execution settings
 DEFAULT_PARALLEL_EXECUTION_MODE = ParallelExecutionModes.SEQUENTIAL

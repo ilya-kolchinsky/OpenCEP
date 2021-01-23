@@ -6,6 +6,7 @@ from typing import List, Dict, Tuple
 
 import numpy as np
 
+from SimulatedAnnealing import timed_annealing, acceptance_probability
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, OrOperator, AndOperator, KleeneClosureOperator, NegationOperator, \
     PrimitiveEventStructure
@@ -16,6 +17,7 @@ from plan.TreePlan import *
 from plan.TreePlanBuilder import TreePlanBuilder
 from plan.TreePlanBuilderOrders import TreePlanBuilderOrder
 from plan.UnifiedTreeBuilder import UnifiedTreeBuilder
+from plan.multi.MultiPatternUnifiedTreeLocalSearchApproaches import MultiPatternUnifiedTreeLocalSearchApproaches
 
 
 class algoA(TreePlanBuilder):
@@ -273,7 +275,7 @@ class algoA(TreePlanBuilder):
         leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(pattern_to_tree_plan_map)
 
         for node1, node2 in itertools.product(tree1_subtrees, tree2_subtrees):
-            if UnifiedTreeBuilder.is_equivalent(node1, pattern1, node2, pattern2, leaves_dict):
+            if TreePlanBuilder.is_equivalent(node1, pattern1, node2, pattern2, leaves_dict):
                 leaves_in_plan_node_1 = node1.get_leaves()
                 leaves_in_plan_node_2 = node2.get_leaves()
                 if leaves_in_plan_node_1 is None or leaves_in_plan_node_2 is None:
@@ -320,7 +322,7 @@ class algoA(TreePlanBuilder):
                 tree_plan_i = unified_builder.build_tree_plan(patterni)
                 tree_plan_j = unified_builder.build_tree_plan(patternj)
                 """
-                pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans([patterni,patternj])
+                pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans([patterni, patternj])
                 tree_plan1 = pattern_to_tree_plan_map_ordered[patterni]
                 tree_plan2 = pattern_to_tree_plan_map_ordered[patternj]
                 sharable_sub_patterns = algoA.get_all_sharable_sub_patterns(tree_plan1, patterni, tree_plan2, patternj)
@@ -503,6 +505,37 @@ class algoA(TreePlanBuilder):
             del sub_pattern_shareable_array_copy[i, p_idx][sub_pattern_index]
         return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
 
+    @staticmethod
+    def construct_subtrees_local_search_tree_plan(pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
+                                                  tree_plan_local_search_params: Tuple[MultiPatternUnifiedTreeLocalSearchApproaches, int]
+                                                  ):
+        """
+        This method gets patterns, builds a single-pattern tree to each one of them,
+        and merges equivalent subtrees from different trees using simulated annealing local search algorithm.
+        """
+        local_search_neighbor_approach, time_limit = tree_plan_local_search_params
+        patterns = list(pattern_to_tree_plan_map.keys())
+        neighbour_function = None
+        if local_search_neighbor_approach == MultiPatternUnifiedTreeLocalSearchApproaches.EDGE_NEIGHBOR:
+            neighbour_function = tree_plan_edge_neighbour
+        elif local_search_neighbor_approach == MultiPatternUnifiedTreeLocalSearchApproaches.VERTEX_NEIGHBOR:
+            neighbour_function = tree_plan_vertex_neighbour
+        elif local_search_neighbor_approach == MultiPatternUnifiedTreeLocalSearchApproaches.VERTEX_NEIGHBOR:
+            raise Exception("Unsupported local search successor function")
+
+        state, c, states, costs = timed_annealing(patterns=patterns,
+                                                  random_start=patterns_initialize_function,
+                                                  cost_function=tree_plan_cost_function,
+                                                  random_neighbour=neighbour_function,
+                                                  state_equal_function=tree_plan_equal,
+                                                  state_repr_function=tree_plan_state_get_summary,
+                                                  acceptance=acceptance_probability,
+                                                  time_limit=time_limit,
+                                                  max_steps=1000,
+                                                  debug=False)
+        pattern_to_tree_plan_map, _ = state
+        return pattern_to_tree_plan_map
+
 
 """ ======================================== Tests for all functions in MPT_edge_neighborhood ====================="""
 
@@ -566,11 +599,19 @@ def patterns_initialize_function(patterns: List[Pattern]):
     return pattern_to_tree_plan_map, shareable_pairs
 
 
-def tree_plan_neighbour(state: Tuple[Dict[Pattern, TreePlan], np.array]):
+def tree_plan_edge_neighbour(state: Tuple[Dict[Pattern, TreePlan], np.array]):
     """Move a little bit x, from the left or the right."""
     pattern_to_tree_plan_map, shareable_pairs = state
     alg = algoA()
     neighbour = alg.Nedge_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
+    return neighbour
+
+
+def tree_plan_vertex_neighbour(state: Tuple[Dict[Pattern, TreePlan], np.array]):
+    """Move a little bit x, from the left or the right."""
+    pattern_to_tree_plan_map, shareable_pairs = state
+    alg = algoA()
+    neighbour = alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
     return neighbour
 
 
@@ -589,8 +630,6 @@ def tree_plan_state_get_summary(state: Tuple[Dict[Pattern, TreePlan], np.array])
 
 def tree_plan_equal(state1: Tuple[Dict[Pattern, TreePlan], np.array],
                     state2: Tuple[Dict[Pattern, TreePlan], np.array]):
-    leaves_dict = {}
-
     patterns = list(state1[0].keys())
 
     leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(state1[0])
@@ -604,4 +643,3 @@ def tree_plan_equal(state1: Tuple[Dict[Pattern, TreePlan], np.array],
         if not UnifiedTreeBuilder.is_equivalent(tree_plans1_root, pattern, tree_plans2_root, pattern, leaves_dict):
             return False
     return True
-
