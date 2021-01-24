@@ -6,7 +6,9 @@ from condition.Condition import TrueCondition
 from condition.BaseRelationCondition import GreaterThanEqCondition
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, NegationOperator, OrOperator
 
-from base.RuleTransformation import RuleTransformation
+import unittest
+from base.RuleTransformation import pattern_transformation
+
 
 def tmpWorkTest(createTestFile=False):
     pattern = Pattern(
@@ -72,9 +74,7 @@ def tmpWorkTest(createTestFile=False):
         timedelta(minutes=5)
     )
 
-    # print(pattern2.extract_flat_sequences())
-    trans_patterns = RuleTransformation.pattern_transformation(pattern4)
-    # RuleTransformation.print_rule_transformation(trans_pattern)
+    trans_patterns = pattern_transformation(pattern4)
 
     print()
     print("########")
@@ -84,11 +84,6 @@ def tmpWorkTest(createTestFile=False):
         print(trans_pattern.full_structure)
     print("########")
     print()
-
-    # priority_list = RuleTransformation.get_priority_list()
-    # for item in priority_list:
-    #     print (item)
-    # print()
 
     # runTest("one", [pattern], createTestFile)
 
@@ -110,7 +105,7 @@ def andAndPatternTransformationTest(createTestFile=False):
         # GreaterThanEqCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
-    transformed_patterns = RuleTransformation.pattern_transformation(pattern)
+    transformed_patterns = pattern_transformation(pattern)
     print (pattern.full_structure)
     for trans in transformed_patterns:
         print (trans.full_structure)
@@ -125,7 +120,7 @@ def seqOrPatternTransformationTest(createTestFile=False):
         GreaterThanEqCondition(Variable("g", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
-    transformed_patterns = RuleTransformation.pattern_transformation(pattern)
+    transformed_patterns = pattern_transformation(pattern)
     print(pattern.full_structure)
     for trans in transformed_patterns:
         print (trans.full_structure)
