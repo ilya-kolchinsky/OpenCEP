@@ -114,6 +114,9 @@ notInTheBeginningShare()
 multipleParentsForInternalNode()
 
 test.EventProbabilityTests.oneArgumentsearchTest()
+test.EventProbabilityTests.oneArgumentsearchTestKleeneClosure()
+test.EventProbabilityTests.simpleNotTest()
+test.EventProbabilityTests.threePatternsTest()
 
 # benchmarks
 if INCLUDE_BENCHMARKS:
