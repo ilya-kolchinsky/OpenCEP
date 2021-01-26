@@ -96,8 +96,7 @@ def seqOrPatternTransformationTest():
     # print()
     i = 0
     for transformed_pattern in transformed_patterns:
-        assert transformed_pattern.full_structure == pattern_list[
-            i].full_structure, "Test seqOrPatternTransformation Failed"
+        assert transformed_pattern.full_structure == pattern_list[i].full_structure, "Test seqOrPatternTransformation Failed"
         i = i + 1
 
 def seqNotAndPatternTransformationTest():

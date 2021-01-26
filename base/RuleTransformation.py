@@ -142,8 +142,7 @@ def expand_not_and_operator(pattern_structure : PatternStructure):
     """
     new_args_lists = []
     for seq_arg in pattern_structure.get_args():
-        if type(seq_arg) == NegationOperator:
-            if type(seq_arg.get_arg() == AndOperator):
+        if type(seq_arg) == NegationOperator and type(seq_arg.get_arg()) == AndOperator:
                 and_args = seq_arg.get_arg().get_args()
                 tmp_args_lists = deepcopy(new_args_lists)
                 new_args_lists.clear()
