@@ -99,7 +99,7 @@ class Algorithm1(DataParallelAlgorithm):
 class Algorithm2(DataParallelAlgorithm):
 
     def __init__(self, numthreads, patterns: Pattern or List[Pattern],
-                 eval_mechanism_params: EvaluationMechanismParameters, platform):
+                 eval_mechanism_params: EvaluationMechanismParameters, platform, mult):
 
         super().__init__(numthreads, patterns, eval_mechanism_params, platform)
         self._eval_mechanism_params = eval_mechanism_params
@@ -112,7 +112,7 @@ class Algorithm2(DataParallelAlgorithm):
         for k in range(1, len(patterns)):
             if patterns[k].window > max_window:
                 max_window = patterns[k].window
-        self.time_slot = 3 * max_window
+        self.time_slot = mult * max_window
         self.shared_time = max_window
         self.start_list = [Stream() for j in range(self._numThreads - 1)]
         self.start_queue = Queue()
@@ -125,18 +125,7 @@ class Algorithm2(DataParallelAlgorithm):
 
         self._mutex = Queue()
 
-
-        ##
-
-
-    # def _threads_divide_date(self):
-
     def _stream_divide(self):
-
-        count1 = 0
-        count_total = 0
-        count_shared = 0
-        count_used = 0
         try:
             event_raw = self._events.get_item()
             cur_event = Event(event_raw, self._data_formatter)
@@ -149,7 +138,6 @@ class Algorithm2(DataParallelAlgorithm):
         check_data = True
 
         while check_data:
-            count_shared += stream_s.count()
             stream = stream_s.duplicate()
             stream_s = Stream()
             while curr_time <= end_time and check_data:
@@ -174,6 +162,7 @@ class Algorithm2(DataParallelAlgorithm):
                 self._events_list[id] = self.streams_queue.get_nowait().duplicate()  # stream of input data
                 self.start_list[id].add_item(self.start_queue.get_nowait())
 
+
         while not self.streams_queue.empty():
             id = self.thread_pool.get()
             self._events_list[id] = self.streams_queue.get_nowait().duplicate()  # stream of input data
@@ -191,6 +180,7 @@ class Algorithm2(DataParallelAlgorithm):
 
 
     def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
+
 
         for start_time in self.start_list[thread_id]:
             shared_time1 = start_time + self.shared_time
@@ -213,17 +203,6 @@ class Algorithm2(DataParallelAlgorithm):
 
             self.thread_pool.put(thread_id)
 
-    def _match_to_output(self):
-        duplicated = set()
-        for match, flag in self._matches_handler:
-            if flag:
-                if match in duplicated:
-                    duplicated.remove(match)
-                else:
-                    self._matches.add_item(match)
-                    duplicated.add(match)
-            else:
-                self._matches.add_item(match)
 
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
@@ -233,19 +212,30 @@ class Algorithm2(DataParallelAlgorithm):
         #     t.wait()
         count = 0
         check_duplicated = list()
-
+        countm=0
 
         for match, is_duplicated in self._matches_handler:
-            count+=1
             if is_duplicated: #duplicated
                 if match.__str__() in check_duplicated:
-                    check_duplicated.remove(match.__str__())
+                    count+=1
+                    #check_duplicated.remove(match.__str__())
+
                 else:
                     self._matches.add_item(match)
                     check_duplicated.append(match.__str__())
+                    countm+=1
             else:
                 self._matches.add_item(match)
+                countm+=1
+        # for match in self._matches_handler:
+        #     if match.__str__() in check_duplicated:
+        #         check_duplicated.remove(match.__str__())
+        #     else:
+        #         self._matches.add_item(match)
+        #         check_duplicated.append(match.__str__())
+        #         countm+=1
 
+        # print("in ", count, countm)
         self._matches.close()
 
 

@@ -27,9 +27,9 @@ class PlatformFactory:
         if data_parallel_params is None:
             data_parallel_params = DataParallelExecutionParameters()
         if data_parallel_params.algorithm == DataParallelExecutionModes.ALGORITHM1:
-           return Algorithm1(data_parallel_params.numThreads, patterns, eval_mechanism_params, platform,data_parallel_params.algorithm1_key )
+           return Algorithm1(data_parallel_params.numThreads, patterns, eval_mechanism_params, platform, data_parallel_params.algorithm1_key)
         if data_parallel_params.algorithm == DataParallelExecutionModes.ALGORITHM2:
-            return Algorithm2(data_parallel_params.numThreads, patterns, eval_mechanism_params, platform)
+            return Algorithm2(data_parallel_params.numThreads, patterns, eval_mechanism_params, platform, data_parallel_params.algorithm2_mult)
         if data_parallel_params.algorithm == DataParallelExecutionModes.ALGORITHM3:
             return Algorithm3(data_parallel_params.numThreads, patterns, eval_mechanism_params, platform)
         raise Exception("Unknown parallel execution Algorithm: %s" % (data_parallel_params.algorithen,))

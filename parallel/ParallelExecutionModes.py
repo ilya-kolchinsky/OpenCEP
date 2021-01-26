@@ -16,6 +16,6 @@ class ParallelExecutionModes(Enum):
 
 class DataParallelExecutionModes(Enum):
 
-    ALGORITHM1 = 1
-    ALGORITHM2 = 2
-    ALGORITHM3 = 3
+    ALGORITHM1 = 1  # Hizel
+    ALGORITHM2 = 2  # Rip
+    ALGORITHM3 = 3  #

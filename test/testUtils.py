@@ -122,13 +122,13 @@ def fileCompare(pathA, pathB):
     closeFiles(file1, file2)
     list1.sort()
     list2.sort()
-    f1 = open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l1.txt", "w")
-    f2 = open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l2.txt", "w")
-    for item in list1:
-        f1.write('%s\n' % item.__str__())
-    for item in list2:
-        f2.write('%s\n' % item.__str__())
-    print(len(list1), len(list2))
+    # f1 = open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l1.txt", "w")
+    # f2 = open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l2.txt", "w")
+    # for item in list1:
+    #     f1.write('%s\n' % item.__str__())
+    # for item in list2:
+    #     f2.write('%s\n' % item.__str__())
+    # print(len(list1), len(list2))
     return list1 == list2
 
 
@@ -181,9 +181,7 @@ def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
 def runTest(testName, patterns, createTestFile=False,
             eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
             events=None, eventStream=nasdaqEventStream,
-            parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads= 6)
-            ):
+            parallel_execution_params: ParallelExecutionParameters = None, data_parallel_params: DataParallelExecutionParameters = None):
     if createTestFile:
         createTest(testName, patterns, events, eventStream=eventStream)
     if events is None:
@@ -279,8 +277,8 @@ success or fail output.
 def runMultiTest(testName, patterns, createTestFile = False,
             eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
             events = None, eventStream = nasdaqEventStream,
-            parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads= 6)
+            parallel_execution_params: ParallelExecutionParameters = None,
+            data_parallel_params: DataParallelExecutionParameters = None
                  ):
 
     if events is None:
@@ -347,8 +345,8 @@ class DummyOutputStream(OutputStream):
 
 
 def runBenchMark(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS, events=None,
-                 parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads=6)
+                 parallel_execution_params: ParallelExecutionParameters = None,
+                 data_parallel_params: DataParallelExecutionParameters = None
                  ):
     """
     this runs a bench mark ,since some outputs for benchmarks are very large,
@@ -366,8 +364,8 @@ def runBenchMark(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALU
 
 def runStructuralTest(testName, patterns, expected_result,
                       eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                      parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                      data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads=6)
+                      parallel_execution_params: ParallelExecutionParameters =  None,
+                      data_parallel_params: DataParallelExecutionParameters = None
                       ):
     # print('{} is a test to check the tree structure, without actually running a test'.format(testName))
     # print('place a breakpoint after creating the CEP object to debug it.\n')

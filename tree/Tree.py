@@ -22,8 +22,10 @@ class Tree:
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     The pattern_id parameter is used in multi-pattern mode.
     """
+
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
                  pattern_id: int = None):
+
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
                                             Tree.__get_operator_arg_list(pattern.positive_structure),
                                             pattern.window, None, pattern.consumption_policy)
@@ -38,7 +40,6 @@ class Tree:
             self.__add_negative_tree_structure(pattern)
 
         self.__apply_condition(pattern)
-
         self.__root.create_storage_unit(storage_params)
 
         self.__root.create_parent_to_info_dict()
@@ -90,7 +91,7 @@ class Tree:
                                            is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
             else:
                 raise Exception("Unsupported operator for negation: %s" % (top_operator,))
-            negative_event = negation_operator.arg
+            negative_event = negation_operator.args
             leaf_index = pattern.get_index_by_event_name(negative_event.name)
             negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root)
             new_root.set_subtrees(current_root, negative_leaf)
@@ -120,7 +121,7 @@ class Tree:
         if isinstance(operator, CompositeStructure):
             return operator.args
         if isinstance(operator, UnaryStructure):
-            return [operator.arg]
+            return [operator.args]
         # a PrimitiveEventStructure
         return [operator]
 
@@ -158,7 +159,7 @@ class Tree:
         if isinstance(current_operator, UnaryStructure):
             # the current operator is a unary operator hiding a nested pattern structure
             unary_node = self.__create_internal_node_by_operator(current_operator, sliding_window, parent)
-            nested_operator = current_operator.arg
+            nested_operator = current_operator.args
             child = self.__construct_tree(nested_operator, Tree.__create_nested_structure(nested_operator),
                                           Tree.__get_operator_arg_list(nested_operator), sliding_window, unary_node,
                                           consumption_policy)
@@ -251,3 +252,6 @@ class Tree:
         Returns the root node of the tree.
         """
         return self.__root
+
+    def is_neg_Operator(self):
+        return self.__is_neg
