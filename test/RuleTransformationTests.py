@@ -1,9 +1,6 @@
-from test.testUtils import *
 from datetime import timedelta
 from base.Pattern import Pattern
-from condition.Condition import Variable
 from condition.Condition import TrueCondition
-from condition.BaseRelationCondition import GreaterThanEqCondition
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, NegationOperator, OrOperator
 
 from base.RuleTransformation import pattern_transformation
@@ -45,10 +42,6 @@ def andAndPatternTransformationTest():
         timedelta(minutes=5)
     )
     transformed_patterns = pattern_transformation(pattern)
-    # print (pattern.full_structure)
-    # for transformed_pattern in transformed_patterns:
-    #     print (transformed_pattern.full_structure)
-    # print()
     assert pattern2.full_structure == transformed_patterns[0].full_structure, "Test andAndPatternTransformation Failed"
 
 def seqOrPatternTransformationTest():
@@ -90,10 +83,6 @@ def seqOrPatternTransformationTest():
             timedelta(minutes=5)
         )
     ]
-    # print(pattern.full_structure)
-    # for transformed_pattern in transformed_patterns:
-    #     print (transformed_pattern.full_structure)
-    # print()
     i = 0
     for transformed_pattern in transformed_patterns:
         assert transformed_pattern.full_structure == pattern_list[i].full_structure, "Test seqOrPatternTransformation Failed"
@@ -127,10 +116,6 @@ def seqNotAndPatternTransformationTest():
             timedelta(minutes=5)
         )
     ]
-    # print(pattern.full_structure)
-    # for transformed_pattern in transformed_patterns:
-    #     print (transformed_pattern.full_structure)
-    # print()
     i = 0
     for transformed_pattern in transformed_patterns:
         assert transformed_pattern.full_structure == pattern_list[i].full_structure, "Test seqNotAndPatternTransformation Failed"

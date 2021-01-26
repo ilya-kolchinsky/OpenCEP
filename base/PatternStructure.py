@@ -7,9 +7,6 @@ from abc import ABC
 from typing import List
 from misc.DefaultConfig import KC_MIN_SIZE, KC_MAX_SIZE
 
-# KC_MIN_SIZE = 1
-# KC_MAX_SIZE = None
-
 
 class PatternStructure(ABC):
     """
