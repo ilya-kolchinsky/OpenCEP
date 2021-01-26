@@ -1,14 +1,13 @@
 from copy import deepcopy
 from base.Pattern import Pattern
 from misc.DefaultConfig import *
-from base.PatternStructure import PatternStructure, AndOperator, OrOperator, SeqOperator
+from base.PatternStructure import PatternStructure, AndOperator, OrOperator, SeqOperator, NegationOperator
 
 """
 The Rule Transformation class consists of a few rules intended to simplify the pattern structure.
 Each rule can be enabled or disabled, and each has a set priority (in configuration file).
 """
 
-# class RuleTransformation:
 def pattern_transformation(pattern : Pattern):
     """
     Method recieves a single pattern and transforms it to a list of patterns according to the enabled rules.
@@ -22,8 +21,8 @@ def pattern_transformation(pattern : Pattern):
             transformed_pattern_structures_list = transform_and_and(transformed_pattern_structures_list)
         elif rule_name == "SEQ_OR":
             transformed_pattern_structures_list = transform_seq_or(transformed_pattern_structures_list)
-        # elif rule_name == "SEQ_NOT_AND":
-        #     pass
+        elif rule_name == "SEQ_NOT_AND":
+            transformed_pattern_structures_list = transform_seq_not_and(transformed_pattern_structures_list)
 
     pattern_list = []
     for transformed_pattern_structure in transformed_pattern_structures_list:
@@ -89,6 +88,19 @@ def transform_seq_not_and(pattern_structures_list : list):
     Returns modified pattern structures applying only the SEQ(NOT(AND())) rule
     """
     pattern_structures_list_copy = deepcopy(pattern_structures_list)
+    # expand NOT(AND()) Operators (nested inside SEQ)
+    if EXPAND_PATTERN_SEQ_NOT_AND:
+        for i in range(len(pattern_structures_list)):
+            old_pattern_structure = pattern_structures_list_copy.pop(0)
+            if old_pattern_structure.get_top_operator() == SeqOperator:
+                new_args_list = expand_not_and_operator(old_pattern_structure)
+                for new_args in new_args_list:
+                    tmp_pattern_structure = type(old_pattern_structure)()
+                    tmp_pattern_structure.add_args(new_args)
+                    pattern_structures_list_copy.append(tmp_pattern_structure)
+            else:
+                pattern_structures_list_copy.append(old_pattern_structure)
+    return pattern_structures_list_copy
 
 def expand_and_operator(pattern_structure : PatternStructure):
     """
@@ -106,17 +118,45 @@ def expand_or_operator(pattern_structure : PatternStructure):
     """
     Apply the OR rule on a single pattern structure and return args only
     """
-    new_args = []
-    for arg in pattern_structure.get_args():
-        if type(arg) == OrOperator:
-            tmp_args_list = deepcopy(new_args)
-            new_args.clear()
-            for or_arg in arg.get_args():
-                tmp_args_list.append(or_arg)
-                new_args.append(deepcopy(tmp_args_list))
-                tmp_args_list.pop()
+    new_args_lists = []
+    for seq_arg in pattern_structure.get_args():
+        if type(seq_arg) == OrOperator:
+            tmp_args_lists = deepcopy(new_args_lists)
+            new_args_lists.clear()
+            for or_arg in seq_arg.get_args():
+                for tmp_args_list in tmp_args_lists:
+                    tmp_args_list.append(or_arg)
+                    new_args_lists.append(deepcopy(tmp_args_list))
+                    tmp_args_list.pop()
         else:
-            new_args.append(arg)
-    return new_args
+            if not new_args_lists:
+                new_args_lists.append([seq_arg])
+            else:
+                for new_arg_list in new_args_lists:
+                    new_arg_list.append(seq_arg)
+    return new_args_lists
 
-
+def expand_not_and_operator(pattern_structure : PatternStructure):
+    """
+    Apply the NOT(AND()) rule on a single pattern structure and return args only
+    """
+    new_args_lists = []
+    for seq_arg in pattern_structure.get_args():
+        if type(seq_arg) == NegationOperator:
+            if type(seq_arg.get_arg() == AndOperator):
+                and_args = seq_arg.get_arg().get_args()
+                tmp_args_lists = deepcopy(new_args_lists)
+                new_args_lists.clear()
+                for and_arg in and_args:
+                    for tmp_args_list in tmp_args_lists:
+                        tmp_pattern_structure = NegationOperator(and_arg)
+                        tmp_args_list.append(tmp_pattern_structure)
+                        new_args_lists.append(deepcopy(tmp_args_list))
+                        tmp_args_list.pop()
+        else:
+            if not new_args_lists:
+                new_args_lists.append([seq_arg])
+            else:
+                for new_arg_list in new_args_lists:
+                    new_arg_list.append(seq_arg)
+    return new_args_lists

@@ -6,6 +6,7 @@ from test.PolicyTests import *
 from test.MultiPattern_tests import *
 from test.StorageTests import *
 from test.UnitTests.test_storage import run_storage_tests
+from test.RuleTransformationTests import *
 
 
 runTest.over_all_time = 0
@@ -112,10 +113,12 @@ severalPatternShareSubtree()
 notInTheBeginningShare()
 multipleParentsForInternalNode()
 
+# rule transformation unit tests
+ruleTransformationTests()
+
 # benchmarks
 if INCLUDE_BENCHMARKS:
     sortedStorageBenchMarkTest()
-
 
 # Twitter tests
 if INCLUDE_TWITTER:

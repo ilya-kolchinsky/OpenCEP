@@ -6,124 +6,133 @@ from condition.Condition import TrueCondition
 from condition.BaseRelationCondition import GreaterThanEqCondition
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, NegationOperator, OrOperator
 
-import unittest
 from base.RuleTransformation import pattern_transformation
 
 
-def tmpWorkTest(createTestFile=False):
-    pattern = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a")),
-        TrueCondition(),
-        timedelta(minutes=120)
-    )
+def ruleTransformationTests():
+    andAndPatternTransformationTest()
+    seqOrPatternTransformationTest()
+    seqNotAndPatternTransformationTest()
+    print ("Rule Transformation unit tests executed successfully.")
 
+def andAndPatternTransformationTest():
+    pattern = Pattern(
+        AndOperator(PrimitiveEventStructure("AAPL", "a"),
+                    NegationOperator(PrimitiveEventStructure("AMZN", "z")),
+                    PrimitiveEventStructure("GOOG", "g"),
+                    AndOperator(
+                        PrimitiveEventStructure("AMZN", "zz"),
+                        NegationOperator(PrimitiveEventStructure("GOOG", "gg")),
+                        AndOperator(
+                            PrimitiveEventStructure("AMZN", "zzz"),
+                            NegationOperator(PrimitiveEventStructure("GOOG", "ggg"))
+                        )
+                    )
+                    ),
+        TrueCondition(),
+        timedelta(minutes=5)
+    )
     pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
-                    NegationOperator(PrimitiveEventStructure("AMZN", "z")),
-                    PrimitiveEventStructure("GOOG", "g"),
-                    AndOperator(
-                        PrimitiveEventStructure("AMZN", "z"), NegationOperator(PrimitiveEventStructure("GOOG", "g"))
-                        )
-                    ),
-        TrueCondition(),
-        timedelta(minutes=5)
-    )
-
-    pattern22 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
-                    NegationOperator(PrimitiveEventStructure("AMZN", "z")),
-                    PrimitiveEventStructure("GOOG", "g"),
-                    AndOperator(
-                        PrimitiveEventStructure("AMZN", "z"), NegationOperator(PrimitiveEventStructure("GOOG", "g")),
-                        AndOperator(
-                            PrimitiveEventStructure("AMZN", "zz"), PrimitiveEventStructure("GOOG", "gg")
-                        )
-                    )
-                    ),
-        TrueCondition(),
-        timedelta(minutes=5)
-    )
-
-    pattern3 = Pattern(
-        AndOperator(NegationOperator(PrimitiveEventStructure("AMZN", "z")), OrOperator(PrimitiveEventStructure("GOOG", "g"),PrimitiveEventStructure("AAPL", "a"))),
-        TrueCondition(),
-        timedelta(minutes=5)
-    )
-
-    pattern4 = Pattern(
         AndOperator(PrimitiveEventStructure("AAPL", "a"),
                     NegationOperator(PrimitiveEventStructure("AMZN", "z")),
                     PrimitiveEventStructure("GOOG", "g"),
-                    AndOperator(
-                        PrimitiveEventStructure("AMZN", "zz"),
-                        NegationOperator(PrimitiveEventStructure("GOOG", "gg")),
-                        AndOperator(
-                            PrimitiveEventStructure("AMZN", "zzz"),
-                            NegationOperator(PrimitiveEventStructure("GOOG", "ggg"))
-                        )
-                    )
+                    PrimitiveEventStructure("AMZN", "zz"),
+                    NegationOperator(PrimitiveEventStructure("GOOG", "gg")),
+                    PrimitiveEventStructure("AMZN", "zzz"),
+                    NegationOperator(PrimitiveEventStructure("GOOG", "ggg"))
                     ),
         TrueCondition(),
         timedelta(minutes=5)
     )
+    transformed_patterns = pattern_transformation(pattern)
+    # print (pattern.full_structure)
+    # for transformed_pattern in transformed_patterns:
+    #     print (transformed_pattern.full_structure)
+    # print()
+    assert pattern2.full_structure == transformed_patterns[0].full_structure, "Test andAndPatternTransformation Failed"
 
-    pattern5 = Pattern(
+def seqOrPatternTransformationTest():
+    pattern = Pattern(
         SeqOperator(NegationOperator(PrimitiveEventStructure("AMZN", "z")),
-                    OrOperator(PrimitiveEventStructure("GOOG", "g"), PrimitiveEventStructure("AAPL", "a"))),
+                    OrOperator(PrimitiveEventStructure("GOOG", "g"), PrimitiveEventStructure("AAPL", "a")),
+                    OrOperator(PrimitiveEventStructure("GOOG", "gg"), PrimitiveEventStructure("AAPL", "aa"))),
         TrueCondition(),
         timedelta(minutes=5)
     )
+    transformed_patterns = pattern_transformation(pattern)
+    pattern_list = [
+        Pattern(
+            SeqOperator(NegationOperator(PrimitiveEventStructure("AMZN", "z")),
+                        PrimitiveEventStructure("GOOG", "g"),
+                        PrimitiveEventStructure("GOOG", "gg")),
+            TrueCondition(),
+            timedelta(minutes=5)
+        ),
+        Pattern(
+            SeqOperator(NegationOperator(PrimitiveEventStructure("AMZN", "z")),
+                        PrimitiveEventStructure("AAPL", "a"),
+                        PrimitiveEventStructure("AAPL", "gg")),
+            TrueCondition(),
+            timedelta(minutes=5)
+        ),
+        Pattern(
+            SeqOperator(NegationOperator(PrimitiveEventStructure("AMZN", "z")),
+                        PrimitiveEventStructure("GOOG", "g"),
+                        PrimitiveEventStructure("AAPL", "aa")),
+            TrueCondition(),
+            timedelta(minutes=5)
+        ),
+        Pattern(
+            SeqOperator(NegationOperator(PrimitiveEventStructure("AMZN", "z")),
+                        PrimitiveEventStructure("AAPL", "a"),
+                        PrimitiveEventStructure("AAPL", "aa")),
+            TrueCondition(),
+            timedelta(minutes=5)
+        )
+    ]
+    # print(pattern.full_structure)
+    # for transformed_pattern in transformed_patterns:
+    #     print (transformed_pattern.full_structure)
+    # print()
+    i = 0
+    for transformed_pattern in transformed_patterns:
+        assert transformed_pattern.full_structure == pattern_list[
+            i].full_structure, "Test seqOrPatternTransformation Failed"
+        i = i + 1
 
-    trans_patterns = pattern_transformation(pattern4)
-
-    print()
-    print("########")
-    print(pattern4.full_structure)
-
-    for trans_pattern in trans_patterns:
-        print(trans_pattern.full_structure)
-    print("########")
-    print()
-
-    # runTest("one", [pattern], createTestFile)
-
-def andAndPatternTransformationTest(createTestFile=False):
+def seqNotAndPatternTransformationTest():
     pattern = Pattern(
-        AndOperator(PrimitiveEventStructure("AAPL", "a"),
-                    NegationOperator(PrimitiveEventStructure("AMZN", "z")),
-                    PrimitiveEventStructure("GOOG", "g"),
-                    AndOperator(
-                        PrimitiveEventStructure("AMZN", "zz"),
-                        NegationOperator(PrimitiveEventStructure("GOOG", "gg")),
-                        AndOperator(
-                            PrimitiveEventStructure("AMZN", "zzz"),
-                            NegationOperator(PrimitiveEventStructure("GOOG", "ggg"))
-                        )
-                    )
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                    NegationOperator(AndOperator(
+                        PrimitiveEventStructure("AMZN", "z"),
+                        PrimitiveEventStructure("GOOG", "g"))),
+                    PrimitiveEventStructure("MSFT", "m")
                     ),
         TrueCondition(),
-        # GreaterThanEqCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
     transformed_patterns = pattern_transformation(pattern)
-    print (pattern.full_structure)
-    for trans in transformed_patterns:
-        print (trans.full_structure)
-    print()
-    # runTest("andAndPatternTransformation", transformed_patterns, createTestFile)
-    # createExpectedOutput("andAndPatternTransformation", transformed_patterns)
-
-def seqOrPatternTransformationTest(createTestFile=False):
-    pattern = Pattern(
-        SeqOperator(NegationOperator(PrimitiveEventStructure("AMZN", "z")),
-                    OrOperator(PrimitiveEventStructure("GOOG", "g"), PrimitiveEventStructure("AAPL", "a"))),
-        GreaterThanEqCondition(Variable("g", lambda x: x["Peak Price"]), 135),
-        timedelta(minutes=5)
-    )
-    transformed_patterns = pattern_transformation(pattern)
-    print(pattern.full_structure)
-    for trans in transformed_patterns:
-        print (trans.full_structure)
-    print()
-    # runTest("seqOrPatternTransformation", transformed_patterns, createTestFile)
-    # createExpectedOutput("seqOrPatternTransformation", transformed_patterns)
+    pattern_list = [
+        Pattern(
+            SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                        NegationOperator(PrimitiveEventStructure("AMZN", "z")),
+                        PrimitiveEventStructure("MSFT", "m")),
+            TrueCondition(),
+            timedelta(minutes=5)
+        ),
+        Pattern(
+            SeqOperator(PrimitiveEventStructure("AAPL", "a"),
+                        NegationOperator(PrimitiveEventStructure("GOOG", "g")),
+                        PrimitiveEventStructure("MSFT", "m")),
+            TrueCondition(),
+            timedelta(minutes=5)
+        )
+    ]
+    # print(pattern.full_structure)
+    # for transformed_pattern in transformed_patterns:
+    #     print (transformed_pattern.full_structure)
+    # print()
+    i = 0
+    for transformed_pattern in transformed_patterns:
+        assert transformed_pattern.full_structure == pattern_list[i].full_structure, "Test seqNotAndPatternTransformation Failed"
+        i = i + 1
