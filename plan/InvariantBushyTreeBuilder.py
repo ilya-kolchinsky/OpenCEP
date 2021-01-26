@@ -42,7 +42,7 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
             for i in items
         }
 
-        map_tree_to_second_min_tree = {}
+        tree_to_second_min_tree_map = {}
         cost_model = self.get_cost_model()
         invariants = ZStreamTreeInvariants(cost_model)
         all_sub_trees = []
@@ -85,14 +85,14 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
                         second_min_tree = new_tree
 
                 if i != 2:
-                    map_tree_to_second_min_tree[suborders[suborder][0]] = second_min_tree
+                    tree_to_second_min_tree_map[suborders[suborder][0]] = second_min_tree
 
         # Eliminate from trees in map_tree_to_second_min_tree that are not exist in the best tree
         InvariantAwareZStreamTreeBuilder.get_all_sub_trees(suborders[items][0],
-                                                           map_tree_to_second_min_tree, all_sub_trees)
+                                                           tree_to_second_min_tree_map, all_sub_trees)
 
         for tree in all_sub_trees:
-            invariants.add(Invariant(tree, map_tree_to_second_min_tree[tree]))
+            invariants.add(Invariant(tree, tree_to_second_min_tree_map[tree]))
 
         # return the topology (index 0 at tuple) of the entire order, indexed to 'items'
         return suborders[items][0], invariants
@@ -102,7 +102,7 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
         return list(range(len(selectivity_matrix)))
 
     @staticmethod
-    def get_all_sub_trees(tree, map_tree_to_second_min_tree, all_sub_trees):
+    def get_all_sub_trees(tree, tree_to_second_min_tree_map, all_sub_trees):
         """
         We care about trees with at least 3 leaf node
         """
@@ -112,6 +112,6 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
 
         all_sub_trees.append(tree)
 
-        InvariantAwareZStreamTreeBuilder.get_all_sub_trees(tree.left_child, map_tree_to_second_min_tree, all_sub_trees)
+        InvariantAwareZStreamTreeBuilder.get_all_sub_trees(tree.left_child, tree_to_second_min_tree_map, all_sub_trees)
 
-        InvariantAwareZStreamTreeBuilder.get_all_sub_trees(tree.right_child, map_tree_to_second_min_tree, all_sub_trees)
+        InvariantAwareZStreamTreeBuilder.get_all_sub_trees(tree.right_child, tree_to_second_min_tree_map, all_sub_trees)

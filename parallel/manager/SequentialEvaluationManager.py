@@ -7,10 +7,7 @@ from evaluation.EvaluationMechanismFactory import (
 )
 from optimizer.OptimizerFactory import OptimizerFactory, OptimizerParameters
 from statistics_collector import NewStatisticsFactory
-from statistics_collector.statisticsCollectorFactory import (
-    StatisticsCollectorParameters,
 
-)
 from parallel.manager.EvaluationManager import EvaluationManager
 from stream.Stream import InputStream, OutputStream
 from base.Pattern import Pattern
@@ -24,20 +21,15 @@ class SequentialEvaluationManager(EvaluationManager):
     A trivial implementation of an evaluation manager with no parallelization capabilities.
     Initializes a single evaluation mechanism and delegates to it the entire workload.
     """
-    def __init__(self, patterns: Pattern or List[Pattern], eval_mechanism_params: EvaluationMechanismParameters,
-                 statistics_collector_params: StatCollectorParameters, optimizer_parameters: OptimizerParameters):
+    def __init__(self, patterns: Pattern or List[Pattern], eval_mechanism_params: EvaluationMechanismParameters):
         if isinstance(patterns, Pattern):
             patterns = [patterns]
         if len(patterns) > 1:
             self.__eval_mechanism = EvaluationMechanismFactory.build_multi_pattern_eval_mechanism(eval_mechanism_params,
                                                                                                   patterns)
         else:
-            statistics_collector = StatCollectorFactory.build_statistics_collector(statistics_collector_params, patterns)
-            optimizer = OptimizerFactory.build_optimizer(optimizer_parameters)
             self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_params,
-                                                                                                   patterns[0],
-                                                                                                   statistics_collector,
-                                                                                                   optimizer)
+                                                                                                   patterns[0])
         self.__pattern_matches = None
 
     def eval(self, event_stream: InputStream, pattern_matches: OutputStream, data_formatter: DataFormatter):

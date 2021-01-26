@@ -12,7 +12,7 @@ class StatisticsParameters:
     Parameters required for statistics creation.
     """
 
-    def __init__(self, time_window: timedelta, stat_type: StatisticsTypes = DefaultConfig.DEFAULT_STATISTICS_TYPE):
+    def __init__(self, time_window: timedelta = timedelta(seconds=30), stat_type: StatisticsTypes = DefaultConfig.DEFAULT_STATISTICS_TYPE):
         self.stat_type = stat_type
         self.time_window = time_window
 
@@ -39,7 +39,7 @@ class StatisticsFactory:
     def create_statistics(pattern: Pattern, statistics_params: StatisticsParameters):
         if statistics_params.stat_type == StatisticsTypes.ARRIVAL_RATES:
             return ArrivalRatesStatistics(statistics_params.time_window, pattern)
-        if statistics_params.stat_type == StatisticsTypes.SELECTIVITY_MATRI:
+        if statistics_params.stat_type == StatisticsTypes.SELECTIVITY_MATRIX:
             return SelectivityStatistics(pattern)
         if statistics_params.stat_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             return SelectivityAndArrivalRatesStatistics(ArrivalRatesStatistics(statistics_params.time_window, pattern),

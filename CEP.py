@@ -30,9 +30,7 @@ class CEP:
             raise Exception("No patterns are provided")
         self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(patterns,
                                                                                        eval_mechanism_params,
-                                                                                       parallel_execution_params,
-                                                                                       statistics_collector_params,
-                                                                                       optimizer_params)
+                                                                                       parallel_execution_params)
 
     def run(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """

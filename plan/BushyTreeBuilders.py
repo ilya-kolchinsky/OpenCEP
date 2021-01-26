@@ -69,7 +69,7 @@ class ZStreamTreeBuilder(TreePlanBuilder):
     """
     def _create_tree_topology(self, statistics: StatisticsObject, pattern: Pattern):
         if isinstance(statistics, SelectivityMatrixAndArrivalRates):
-            (selectivity_matrix, arrival_rates) = pattern.statistics
+            (selectivity_matrix, arrival_rates) = statistics.statistics
         else:
             raise MissingStatisticsException()
 

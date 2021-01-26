@@ -4,7 +4,9 @@ from base.Pattern import Pattern
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc import DefaultConfig
 from misc.Tree_Evaluation_Mechanism_Types import TreeEvaluationMechanismTypes
+from optimizer.OptimizerFactory import OptimizerParameters, OptimizerFactory
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
+from statistics_collector.NewStatCollectorFactory import StatCollectorParameters, StatCollectorFactory
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism, TrivialEvaluation, SimultaneousEvaluation
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
@@ -16,8 +18,12 @@ class EvaluationMechanismParameters:
     """
     Parameters required for evaluation mechanism creation.
     """
-    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes = DefaultConfig.DEFAULT_EVALUATION_MECHANISM_TYPE):
+    def __init__(self, eval_mechanism_type: EvaluationMechanismTypes = DefaultConfig.DEFAULT_EVALUATION_MECHANISM_TYPE,
+                 statistics_collector_params: StatCollectorParameters = StatCollectorParameters(),
+                 optimizer_params: OptimizerParameters = DefaultConfig.DEFAULT_OPTIMIZER_TYPE):
         self.type = eval_mechanism_type
+        self.statistics_collector_params = statistics_collector_params
+        self.optimizer_params = optimizer_params
 
 
 class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
@@ -28,8 +34,10 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
                  tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
                  storage_params: TreeStorageParameters = TreeStorageParameters(),
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters(),
-                 evaluation_type: TreeEvaluationMechanismTypes = DefaultConfig.DEFAULT_TREE_EVALUATION_MECHANISM_TYPE):
-        super().__init__(EvaluationMechanismTypes.TREE_BASED)
+                 evaluation_type: TreeEvaluationMechanismTypes = DefaultConfig.DEFAULT_TREE_EVALUATION_MECHANISM_TYPE,
+                 statistics_collector_params: StatCollectorParameters = StatCollectorParameters(),
+                 optimizer_params: OptimizerParameters = OptimizerParameters()):
+        super().__init__(EvaluationMechanismTypes.TREE_BASED, statistics_collector_params, optimizer_params)
         self.statistics_updates_time_window = statistics_updates_time_window
         self.tree_plan_params = tree_plan_params
         self.storage_params = storage_params
@@ -44,14 +52,11 @@ class EvaluationMechanismFactory:
 
     @staticmethod
     def build_single_pattern_eval_mechanism(eval_mechanism_params: EvaluationMechanismParameters,
-                                            pattern: Pattern, statistics_collector: StatisticsCollector,
-                                            optimizer: Optimizer):
+                                            pattern: Pattern):
         if eval_mechanism_params is None:
             eval_mechanism_params = EvaluationMechanismFactory.__create_default_eval_parameters()
         if eval_mechanism_params.type == EvaluationMechanismTypes.TREE_BASED:
-            return EvaluationMechanismFactory.__create_tree_based_eval_mechanism(eval_mechanism_params, pattern,
-                                                                                 statistics_collector,
-                                                                                 optimizer)
+            return EvaluationMechanismFactory.__create_tree_based_eval_mechanism(eval_mechanism_params, pattern)
         raise Exception("Unknown evaluation mechanism type: %s" % (eval_mechanism_params.type,))
 
     @staticmethod
@@ -65,24 +70,17 @@ class EvaluationMechanismFactory:
 
     @staticmethod
     def __create_tree_based_eval_mechanism(eval_mechanism_params: TreeBasedEvaluationMechanismParameters,
-                                           patterns: Pattern or List[Pattern], statistics_collector: StatisticsCollector,
-                                           optimizer: Optimizer):
+                                           patterns: Pattern or List[Pattern]):
         """
         Instantiates a tree-based CEP evaluation mechanism according to the given configuration.
         """
         if isinstance(patterns, Pattern):
             patterns = [patterns]
 
-        # This row is for create the tree builder
-        tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
-        pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(statistics_collector.get_statistics(), pattern) for pattern in patterns}
-
-        # Before, was that:
-        # return TreeBasedEvaluationMechanism(eval_mechanism_params.updates_time_window, pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
-        #                                     statistics_collector,
-        #                                     optimizer,
-        #                                     tree_manager,
-        #                                     eval_mechanism_params.multi_pattern_eval_params)
+        statistics_collector = StatCollectorFactory.build_statistics_collector(eval_mechanism_params.statistics_collector_params, patterns)
+        optimizer = OptimizerFactory.build_optimizer(eval_mechanism_params.optimizer_params)
+        # tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
+        pattern_to_tree_plan_map = {pattern: optimizer.build_new_tree_plan(statistics_collector.get_statistics(), pattern) for pattern in patterns}
 
         if eval_mechanism_params.evaluation_type == TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION:
             return TrivialEvaluation(pattern_to_tree_plan_map,
@@ -91,6 +89,7 @@ class EvaluationMechanismFactory:
                                      optimizer,
                                      eval_mechanism_params.statistics_updates_time_window,
                                      eval_mechanism_params.multi_pattern_eval_params)
+
         if eval_mechanism_params.evaluation_type == TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION:
             return SimultaneousEvaluation(pattern_to_tree_plan_map,
                                           eval_mechanism_params.storage_params,

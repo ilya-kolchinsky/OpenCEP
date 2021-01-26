@@ -5,7 +5,7 @@ from misc.Statistics import MissingStatisticsException
 from plan.TreeCostModel import TreeCostModelFactory, TreeCostModel, IntermediateResultsTreeCostModel
 from plan.TreeCostModels import TreeCostModels
 from statistics_collector.NewStatistics import Statistics, SelectivityAndArrivalRatesStatistics
-from statistics_collector.StatisticsObjects import StatisticsObject
+from statistics_collector.StatisticsObjects import StatisticsObject, SelectivityMatrixAndArrivalRates
 
 
 class Invariant:
@@ -43,8 +43,8 @@ class GreedyTreeInvariants(Invariants):
 
     def is_invariants_violated(self, new_statistics: StatisticsObject, pattern: Pattern):
 
-        if isinstance(new_statistics, SelectivityAndArrivalRatesStatistics):
-            (selectivity_matrix, arrival_rates) = new_statistics.get_statistics()
+        if isinstance(new_statistics, SelectivityMatrixAndArrivalRates):
+            (selectivity_matrix, arrival_rates) = new_statistics.statistics
         else:
             raise MissingStatisticsException()
 

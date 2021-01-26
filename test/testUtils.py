@@ -1,9 +1,13 @@
 import os
 import pathlib
 import sys
+from datetime import timedelta
 
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
+from misc.OptimizerTypes import OptimizerTypes
+from misc.Tree_Evaluation_Mechanism_Types import TreeEvaluationMechanismTypes
+from optimizer.OptimizerFactory import OptimizerParameters
 from stream.Stream import OutputStream
 from stream.FileStream import FileInputStream, FileOutputStream
 from misc.Utils import generate_matches
@@ -23,8 +27,10 @@ INCLUDE_TWITTER = False
 nasdaqEventStreamTiny = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_TINY.txt"))
 nasdaqEventStreamShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_SHORT.txt"))
 nasdaqEventStreamMedium = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt"))
-nasdaqEventStreamFrequencyTailored = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
-nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
+nasdaqEventStreamFrequencyTailored = FileInputStream(
+    os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
+nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(
+    os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
 nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
 
 nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt"))
@@ -35,12 +41,18 @@ custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.tx
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
 DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
-    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+    TreeBasedEvaluationMechanismParameters(timedelta(seconds=30),
+                                           TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                                      TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
                                            TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True))
+
+"""
+Default testing Data formatters
+"""
 DEFAULT_TESTING_DATA_FORMATTER = MetastockDataFormatter()
+
 
 def numOfLinesInPattern(file):
     """
@@ -130,7 +142,7 @@ def outputTestFile(base_path: str, matches: list, output_file_name: str = 'match
             f.write("\n")
 
 
-def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream):
+def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -141,11 +153,11 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
     print("Finished creating test %s" % testName)
 
 
-def runTest(testName, patterns, createTestFile = False,
-            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events = None, eventStream = nasdaqEventStream):
+def runTest(testName, patterns, createTestFile=False,
+            eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+            events=None, eventStream=nasdaqEventStream):
     if createTestFile:
-        createTest(testName, patterns, events, eventStream = eventStream)
+        createTest(testName, patterns, events, eventStream=eventStream)
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -182,6 +194,7 @@ def runTest(testName, patterns, createTestFile = False,
     if is_test_successful:
         os.remove(actual_matches_path)
 
+
 """
 Input:
 testName- name of the test
@@ -189,6 +202,8 @@ patterns- list of patterns
 Output:
 expected output file for the test.
 """
+
+
 def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                          events=None, eventStream=nasdaqEventStream):
     curr_events = events
@@ -208,6 +223,7 @@ def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTI
         single_pattern_path = os.path.join(expected_directory, filename)
         os.remove(single_pattern_path)
 
+
 def uniteFiles(testName, numOfPatterns):
     base_matches_directory = os.path.join(absolutePath, 'test', 'TestsExpected')
     output_file_name = "%sMatches.txt" % testName
@@ -226,14 +242,17 @@ def uniteFiles(testName, numOfPatterns):
             for line in setexp:
                 f.write(line)
                 f.write('\n\n')
+
+
 """
 This function runs multi-pattern CEP on the given list of patterns and prints
 success or fail output.
 """
-def runMultiTest(testName, patterns, createTestFile = False,
-            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events = None, eventStream = nasdaqEventStream):
 
+
+def runMultiTest(testName, patterns, createTestFile=False,
+                 eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                 events=None, eventStream=nasdaqEventStream):
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -284,7 +303,7 @@ def runMultiTest(testName, patterns, createTestFile = False,
 
     res = (exp_set == match_set)
     print("Test %s result: %s, Time Passed: %s" % (testName,
-          "Succeeded" if res else "Failed", running_time))
+                                                   "Succeeded" if res else "Failed", running_time))
     runTest.over_all_time += running_time
     if res:
         os.remove(actual_matches_path)
@@ -316,4 +335,4 @@ def runStructuralTest(testName, patterns, expected_result,
     # print('place a breakpoint after creating the CEP object to debug it.\n')
     cep = CEP(patterns, eval_mechanism_params)
     structure_summary = cep.get_evaluation_mechanism_structure_summary()
-    print("Test %s result: %s" % (testName,"Succeeded" if structure_summary == expected_result else "Failed"))
+    print("Test %s result: %s" % (testName, "Succeeded" if structure_summary == expected_result else "Failed"))

@@ -3,6 +3,7 @@ from abc import ABC
 from base.Pattern import Pattern
 from misc.OptimizerTypes import OptimizerTypes
 from misc import DefaultConfig
+from misc.StatisticsTypes import StatisticsTypes
 from optimizer import Optimizer
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
@@ -27,7 +28,6 @@ class NaiveOptimizerParameters(OptimizerParameters):
 
     def __init__(self, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters):
         super().__init__(opt_type, tree_plan_params)
-    # before was also pattern
 
 
 class StatisticChangesAwareOptimizerParameters(OptimizerParameters):
@@ -36,9 +36,10 @@ class StatisticChangesAwareOptimizerParameters(OptimizerParameters):
     """
 
     def __init__(self, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters,
-                 t: int):
+                 t: float, stat_type: StatisticsTypes):
         super().__init__(opt_type, tree_plan_params)
         self.t = t
+        self.stat_type = stat_type
 
 
 class InvariantsAwareOptimizerParameters(OptimizerParameters):
@@ -48,7 +49,6 @@ class InvariantsAwareOptimizerParameters(OptimizerParameters):
 
     def __init__(self, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters):
         super().__init__(opt_type, tree_plan_params)
-    # wa before also current_plan
 
 
 class OptimizerFactory:
@@ -69,8 +69,13 @@ class OptimizerFactory:
         if optimizer_parameters.type == OptimizerTypes.TRIVIAL:
             return Optimizer.NaiveOptimizer(tree_plan_builder)
 
-        if optimizer_parameters.type == OptimizerTypes.GREATER_THEN_T:
-            return Optimizer.StatisticChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
+        if optimizer_parameters.type == OptimizerTypes.CHANGED_BY_T:
+            if optimizer_parameters.stat_type == StatisticsTypes.ARRIVAL_RATES:
+                return Optimizer.ArrivalStatisticChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
+            if optimizer_parameters.stat_type == StatisticsTypes.SELECTIVITY_MATRIX:
+                return Optimizer.SelectivityStatisticChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
+            if optimizer_parameters.stat_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+                return Optimizer.SelectivityAndArrivalStatisticChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
 
         if optimizer_parameters.type == OptimizerTypes.USING_INVARIANT:
             return Optimizer.InvariantAwareOptimizer(tree_plan_builder)

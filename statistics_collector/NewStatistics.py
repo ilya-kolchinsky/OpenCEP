@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from datetime import timedelta
+from datetime import datetime, timedelta
 from base.Event import Event
 from base.Pattern import Pattern
 from statistics_collector.StatisticsObjects import ArrivalRates, SelectivityMatrix, SelectivityMatrixAndArrivalRates
@@ -25,21 +25,41 @@ class ArrivalRatesStatistics(Statistics):
                                         for i, e in enumerate(pattern.positive_structure.args)}
         self.events_arrival_time = []
         self.time_window = time_window
+        self.count = 0
 
     def update(self, event: Event):
         event_type = event.type
+        time = datetime.now()
         if event_type in self.event_type_to_index_map:
             self.arrival_rates[self.event_type_to_index_map[event_type]] += 1
-            self.events_arrival_time.append(EventTime(event.timestamp, event_type))
-        self.__remove_expired_events(event.timestamp)
+            # self.events_arrival_time.append(EventTime(event.timestamp, event_type))
+            self.events_arrival_time.append(EventTime(time, event_type))
 
-    def __remove_expired_events(self, timestamp: timedelta):
+        self.__remove_expired_events(time)
+
+    def __remove_expired_events(self, last_timestamp: datetime):
+        """
+        This method is efficient if we call this function every time we update statistics and
+        our assumption that is more efficient then binary search because we know that ther is
+        a little mount of expired event in the beginning.
+        In addition, if we use this function not every time we update statistics but rather when
+        the evaluation want get statistics the efficient method to implement this function is
+        probably by binary search.
+        """
+        is_removed_elements = False
         for i, event_time in enumerate(self.events_arrival_time):
-            if timestamp - event_time.timestamp > self.window:
+            if last_timestamp - event_time.timestamp > self.time_window:
+                # print(last_timestamp - event_time.timestamp)
                 self.arrival_rates[self.event_type_to_index_map[event_time.event_type]] -= 1
+                self.count += 1
+                # print(self.count)
             else:
+                is_removed_elements = True
                 self.events_arrival_time = self.events_arrival_time[i:]
                 break
+
+        if not is_removed_elements:
+            self.events_arrival_time = []
 
     def get_statistics(self):
         return ArrivalRates(self.arrival_rates)
@@ -55,7 +75,10 @@ class SelectivityStatistics(Statistics):
         self.pattern = pattern
         self.args = pattern.positive_structure.args
         self.args_num = len(self.args)
-        self.selectivity_matrix = [[0.0 for _ in range(self.args)] for _ in range(self.args)]
+        """
+        Need to change from 1.0 to 0.0
+        """
+        self.selectivity_matrix = [[1.0 for _ in range(self.args_num)] for _ in range(self.args_num)]
         self.success_counter = {}
         self.total_counter = {}
         self.event_type_to_index_map = {e.type: i
