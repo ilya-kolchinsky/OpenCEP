@@ -83,7 +83,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     new_statistics = self.__statistics_collector.get_statistics()
                     if self.__optimizer.is_need_reoptimize(new_statistics, self._pattern):
                         new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
-                        # optimizer_prev_statistics = self.__optimizer.prev_statistics
                         new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
                         self.update(new_tree)
                         count += 1
@@ -221,19 +220,20 @@ class TrivialEvaluation(TreeBasedEvaluationMechanism):
 
     def get_all_old_events(self):
         old_events = []
+        leaf_types = set()
         leaves = self._tree.get_leaves()
         for leaf in leaves:
-            partial_matches = leaf.get_storage_unit()
-            for pm in partial_matches:
-                event = pm.events[0]
-                if event not in old_events:
-                    old_events.append(event)
+            leaf_type = leaf.get_event_type()
+            if leaf_type not in leaf_types:
+                leaf_types.add(leaf_type)
+                partial_matches = leaf.get_storage_unit()
+                old_events.extend([pm.events[0] for pm in partial_matches])
 
         return old_events
 
     def play_old_events_on_tree(self, events):
         """
-        These events are not need to ask about freeze
+        These events dont need to ask about freeze
         """
         for event in events:
             for leaf in self._event_types_listeners[event.type]:

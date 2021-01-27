@@ -143,7 +143,7 @@ runTest.over_all_time = 0
 
 # Evaluation tests
 # simple_1()
-simple_2()
+# simple_2()
 # simple_3()
 # simple_4()
 # simple_5()
@@ -158,7 +158,7 @@ simple_2()
 # googleAscendPatternSearchTest_6()
 # googleAscendPatternSearchTest_7()
 # googleAscendPatternSearchTest_8()
-# amazonInstablePatternSearchTest_1()
+amazonInstablePatternSearchTest_1()
 # amazonInstablePatternSearchTest_2()
 # amazonInstablePatternSearchTest_3()
 # amazonInstablePatternSearchTest_4()

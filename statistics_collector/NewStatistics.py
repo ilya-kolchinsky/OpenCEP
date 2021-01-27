@@ -21,8 +21,14 @@ class ArrivalRatesStatistics(Statistics):
 
     def __init__(self, time_window: timedelta, pattern: Pattern):
         self.arrival_rates = [0.0] * len(pattern.positive_structure.args)
-        self.event_type_to_index_map = {e.type: i
-                                        for i, e in enumerate(pattern.positive_structure.args)}
+
+        self.event_type_to_indexes_map = {}
+        for i, e in enumerate(pattern.positive_structure.args):
+            if e.type in self.event_type_to_indexes_map:
+                self.event_type_to_indexes_map[e.type].append(i)
+            else:
+                self.event_type_to_indexes_map[e.type] = [i]
+
         self.events_arrival_time = []
         self.time_window = time_window
         self.count = 0
@@ -30,10 +36,13 @@ class ArrivalRatesStatistics(Statistics):
     def update(self, event: Event):
         event_type = event.type
         time = datetime.now()
-        if event_type in self.event_type_to_index_map:
-            self.arrival_rates[self.event_type_to_index_map[event_type]] += 1
-            # self.events_arrival_time.append(EventTime(event.timestamp, event_type))
-            self.events_arrival_time.append(EventTime(time, event_type))
+
+        if event_type in self.event_type_to_indexes_map:
+            indexes = self.event_type_to_indexes_map[event_type]
+            for index in indexes:
+                self.arrival_rates[index] += 1
+                # self.events_arrival_time.append(EventTime(event.timestamp, event_type))
+                self.events_arrival_time.append(EventTime(time, event_type))
 
         self.__remove_expired_events(time)
 
@@ -49,10 +58,10 @@ class ArrivalRatesStatistics(Statistics):
         is_removed_elements = False
         for i, event_time in enumerate(self.events_arrival_time):
             if last_timestamp - event_time.timestamp > self.time_window:
-                # print(last_timestamp - event_time.timestamp)
-                self.arrival_rates[self.event_type_to_index_map[event_time.event_type]] -= 1
-                self.count += 1
-                # print(self.count)
+                indexes = self.event_type_to_indexes_map[event_time.event_type]
+                for index in indexes:
+                    self.arrival_rates[index] -= 1
+
             else:
                 is_removed_elements = True
                 self.events_arrival_time = self.events_arrival_time[i:]

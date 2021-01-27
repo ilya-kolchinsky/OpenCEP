@@ -91,7 +91,7 @@ class InvariantAwareGreedyTreeBuilder(InvariantLeftDeepTreeBuilder):
         """
         size = len(selectivity_matrix)
         if size == 1:
-            return [0]
+            return [0], None
 
         invariants = GreedyTreeInvariants()
 
