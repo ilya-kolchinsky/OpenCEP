@@ -8,7 +8,7 @@ from parallel.ParallelExecutionModes import ParallelExecutionModes
 from parallel.ParallelExecutionParameters import ParallelExecutionParameters
 from parallel.manager.SequentialEvaluationManager import SequentialEvaluationManager
 from optimizer.OptimizerFactory import OptimizerParameters
-from statistics_collector.NewStatCollectorFactory import StatCollectorParameters
+from statistics_collector.StatisticsCollectorFactory import StatCollectorParameters
 
 
 class EvaluationManagerFactory:

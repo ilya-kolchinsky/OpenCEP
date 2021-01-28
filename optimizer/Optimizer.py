@@ -3,10 +3,10 @@ from base import Pattern
 from misc.Statistics import MissingStatisticsException
 from plan import TreePlanBuilder, TreePlan
 from misc.StatisticsTypes import StatisticsTypes
-from statistics_collector.NewStatistics import Statistics, ArrivalRatesStatistics, SelectivityStatistics, \
+from statistics_collector.Statistics import Statistics, ArrivalRatesStatistics, SelectivityStatistics, \
     SelectivityAndArrivalRatesStatistics
-from statistics_collector.StatisticsObjects import StatisticsObject, ArrivalRates, SelectivityMatrix, \
-    SelectivityMatrixAndArrivalRates
+from statistics_collector.StatisticsWrapper import StatisticsWrapper, ArrivalRatesWrapper, SelectivityWrapper, \
+    SelectivityAndArrivalRatesWrapper
 import copy
 
 
@@ -22,14 +22,14 @@ class Optimizer(ABC):
         pass
 
     @abstractmethod
-    def is_need_optimize(self, new_statistics: StatisticsObject, pattern: Pattern):
+    def is_need_optimize(self, new_statistics: StatisticsWrapper, pattern: Pattern):
         """
         Asks if it's necessary to optimize the tree based on the new statistics.
         """
         pass
 
     @abstractmethod
-    def build_new_tree_plan(self, new_statistics: StatisticsObject, pattern: Pattern):
+    def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
         pass
 
 
@@ -38,10 +38,10 @@ class TrivialOptimizer(Optimizer):
     Represents the trivial optimizer that always says to re-optimize the tree, ignoring the statistics.
     """
 
-    def is_need_optimize(self, new_statistics: StatisticsObject, pattern: Pattern):
+    def is_need_optimize(self, new_statistics: StatisticsWrapper, pattern: Pattern):
         return True
 
-    def build_new_tree_plan(self, new_statistics: StatisticsObject, pattern: Pattern):
+    def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
         tree_plan = self.tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
 
@@ -57,10 +57,10 @@ class StatisticChangesAwareOptimizer(Optimizer):
         self.t = t
         self.prev_statistics = None
 
-    def is_need_optimize(self, new_statistics: StatisticsObject, pattern: Pattern):
+    def is_need_optimize(self, new_statistics: StatisticsWrapper, pattern: Pattern):
         return self.prev_statistics is None or self.is_changed_by_t(new_statistics.statistics, self.prev_statistics)
 
-    def build_new_tree_plan(self, new_statistics: StatisticsObject, pattern: Pattern):
+    def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
         self.prev_statistics = copy.deepcopy(new_statistics.statistics)
         tree_plan = self.tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
@@ -123,9 +123,9 @@ class InvariantsAwareOptimizer(Optimizer):
         super().__init__(tree_plan_builder)
         self.invariants = None
 
-    def is_need_optimize(self, new_statistics: StatisticsObject, pattern: Pattern):
+    def is_need_optimize(self, new_statistics: StatisticsWrapper, pattern: Pattern):
         return self.invariants is None or self.invariants.is_invariants_violated(new_statistics, pattern)
 
-    def build_new_tree_plan(self, new_statistics: StatisticsObject, pattern: Pattern):
+    def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
         tree_plan, self.invariants = self.tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan

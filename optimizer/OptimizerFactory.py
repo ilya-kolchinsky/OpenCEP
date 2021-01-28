@@ -18,12 +18,11 @@ class OptimizerParameters:
                  tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters()):
         self.type = opt_type
         self.tree_plan_params = tree_plan_params
-        # was before in the constructor - pattern
 
 
 class TrivialOptimizerParameters(OptimizerParameters):
     """
-    Parameters for the creation of the trivial optimizer algorithm.
+    Parameters for the creation of the trivial optimizer class.
     """
 
     def __init__(self, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters):
@@ -32,7 +31,7 @@ class TrivialOptimizerParameters(OptimizerParameters):
 
 class StatisticChangesAwareOptimizerParameters(OptimizerParameters):
     """
-    Parameters for the creation of optimizer2 algorithm.
+    Parameters for the creation of StatisticChangesAwareOptimizer class.
     """
 
     def __init__(self, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters,
@@ -44,7 +43,7 @@ class StatisticChangesAwareOptimizerParameters(OptimizerParameters):
 
 class InvariantsAwareOptimizerParameters(OptimizerParameters):
     """
-    Parameters for the creation of optimizer3 algorithm.
+    Parameters for the creation of InvariantsAwareOptimizer class.
     """
 
     def __init__(self, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters):
@@ -85,7 +84,7 @@ class OptimizerFactory:
     @staticmethod
     def __create_default_optimizer_parameters():
         """
-        Uses the default configuration to create optimizer parameters.
+        Uses default configurations to create optimizer parameters.
         """
         if DefaultConfig.DEFAULT_OPTIMIZER_TYPE == OptimizerTypes.TRIVIAL:
             return OptimizerParameters()

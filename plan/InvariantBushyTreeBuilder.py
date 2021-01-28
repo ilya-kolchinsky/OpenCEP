@@ -13,23 +13,23 @@ from misc.StatisticsTypes import StatisticsTypes
 from plan.LeftDeepTreeBuilders import GreedyLeftDeepTreeBuilder
 from itertools import combinations
 
-from statistics_collector.NewStatistics import Statistics, SelectivityAndArrivalRatesStatistics
-from statistics_collector.StatisticsObjects import StatisticsObject, SelectivityMatrixAndArrivalRates
+from statistics_collector.Statistics import Statistics, SelectivityAndArrivalRatesStatistics
+from statistics_collector.StatisticsWrapper import StatisticsWrapper, SelectivityAndArrivalRatesWrapper
 
 
 class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
     """
     Creates a bushy tree using ZStream algorithm.
     """
-    def build_tree_plan(self, statistics: StatisticsObject, pattern: Pattern):
+    def build_tree_plan(self, statistics: StatisticsWrapper, pattern: Pattern):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
         tree_topology, invariants = self._create_tree_topology(statistics, pattern)
         return TreePlan(tree_topology), invariants
 
-    def _create_tree_topology(self, statistics: StatisticsObject, pattern: Pattern):
-        if isinstance(statistics, SelectivityMatrixAndArrivalRates):
+    def _create_tree_topology(self, statistics: StatisticsWrapper, pattern: Pattern):
+        if isinstance(statistics, SelectivityAndArrivalRatesWrapper):
             (selectivity_matrix, arrival_rates) = statistics.statistics
         else:
             raise MissingStatisticsException()

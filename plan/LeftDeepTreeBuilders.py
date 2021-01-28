@@ -15,8 +15,8 @@ from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
-from statistics_collector.NewStatistics import Statistics, SelectivityStatistics, FrequencyDict, ArrivalRatesStatistics
-from statistics_collector.StatisticsObjects import StatisticsObject, Frequency, ArrivalRates, SelectivityMatrix
+from statistics_collector.Statistics import Statistics, SelectivityStatistics, FrequencyDict, ArrivalRatesStatistics
+from statistics_collector.StatisticsWrapper import StatisticsWrapper, FrequencyDictWrapper, ArrivalRatesWrapper, SelectivityWrapper
 
 
 class LeftDeepTreeBuilder(TreePlanBuilder):
@@ -43,7 +43,7 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
             tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(order[i]))
         return tree_topology
 
-    def _get_order_cost(self, statistics: StatisticsObject, pattern: Pattern, order: List[int]):
+    def _get_order_cost(self, statistics: StatisticsWrapper, pattern: Pattern, order: List[int]):
         """
         Returns the cost of a given order of event processing.
         """
@@ -62,7 +62,7 @@ class TrivialLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree following the pattern-specified order.
     """
 
-    def _create_evaluation_order(self, statistics: StatisticsObject, pattern: Pattern):
+    def _create_evaluation_order(self, statistics: StatisticsWrapper, pattern: Pattern):
         args_num = len(pattern.positive_structure.args)
         return list(range(args_num))
 
@@ -72,11 +72,11 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree following the order of ascending arrival rates of the event types.
     """
 
-    def _create_evaluation_order(self, statistics: StatisticsObject, pattern: Pattern):
-        if isinstance(statistics, Frequency):
+    def _create_evaluation_order(self, statistics: StatisticsWrapper, pattern: Pattern):
+        if isinstance(statistics, FrequencyDictWrapper):
             frequency_dict = statistics.statistics
             order = get_order_by_occurrences(pattern.positive_structure.args, frequency_dict)
-        elif isinstance(statistics, ArrivalRates):
+        elif isinstance(statistics, ArrivalRatesWrapper):
             arrival_rates = statistics.statistics
             # create an index-arrival rate binding and sort according to arrival rate.
             sorted_order = sorted([(i, arrival_rates[i]) for i in range(len(arrival_rates))], key=lambda x: x[1])
@@ -92,8 +92,8 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     function.
     """
 
-    def _create_evaluation_order(self, statistics: StatisticsObject, pattern: Pattern):
-        if isinstance(statistics, SelectivityMatrix):
+    def _create_evaluation_order(self, statistics: StatisticsWrapper, pattern: Pattern):
+        if isinstance(statistics, SelectivityWrapper):
             (selectivityMatrix, arrivalRates) = statistics.statistics
         else:
             raise MissingStatisticsException()
@@ -152,8 +152,8 @@ class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
         self.__initType = init_type
         self.__step_limit = step_limit
 
-    def _create_evaluation_order(self, statistics: StatisticsObject, pattern: Pattern):
-        if isinstance(statistics, SelectivityMatrix):
+    def _create_evaluation_order(self, statistics: StatisticsWrapper, pattern: Pattern):
+        if isinstance(statistics, SelectivityWrapper):
             (selectivityMatrix, arrivalRates) = statistics.statistics
         else:
             raise MissingStatisticsException()
@@ -184,8 +184,8 @@ class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree using a dynamic programming algorithm.
     """
 
-    def _create_evaluation_order(self, statistics: StatisticsObject, pattern: Pattern):
-        if isinstance(statistics, SelectivityMatrix):
+    def _create_evaluation_order(self, statistics: StatisticsWrapper, pattern: Pattern):
+        if isinstance(statistics, SelectivityWrapper):
             (selectivity_matrix, arrival_rates) = statistics.statistics
         else:
             raise MissingStatisticsException()
