@@ -84,43 +84,68 @@ class SelectivityStatistics(Statistics):
         self.pattern = pattern
         self.args = pattern.positive_structure.args
         self.args_num = len(self.args)
-        """
-        Need to change from 1.0 to 0.0
-        """
+
         self.selectivity_matrix = [[1.0 for _ in range(self.args_num)] for _ in range(self.args_num)]
         self.success_counter = {}
         self.total_counter = {}
-        self.event_type_to_index_map = {e.type: i
-                                        for i, e in enumerate(pattern.positive_structure.args)}
-        self.event_type_to_name_and_condition_map = {}
-        self.event_type_to_selectivity_indexes_matrix = {}
 
-    def update(self, event: Event):
-        pass
-        """
-        event_type = event.type
-        index = self.event_type_to_index_map[event_type]
-        structure_name = self.args[index]
-        for e_type,d in self.event_type_to_name_and_condition_map[event_type]:
-            for name,condition in d:
-                self.total_counter[event_type] += 1
-                if condition.eval({structure_name: event, name: event2.event}):
-                    self.success_counter[event_type] += 1
-                 self.selectivity_matrix[index][] = self.success_counter[event_type] / self.total_counter[event_type]
-        """
+        self.event_type_to_arg_indexes_map = {}
+        for i, e in enumerate(pattern.positive_structure.args):
+            if e.type in self.event_type_to_arg_indexes_map:
+                self.event_type_to_arg_indexes_map[e.type].append(i)
+            else:
+                self.event_type_to_arg_indexes_map[e.type] = [i]
+
+        self.args_index_to_events_common_conditions_indexes_map = {}
+
+        self.i_j_to_condition_map = {}
+        self.condition_to_total_map = {}
+        self.condition_to_success_count_map = {}
+        self.events = {event.type: [] for event in pattern.positive_structure.args}
+        self.is_sequence = True
+
+        self.init()
+
+    def update(self, event1: Event):
+        event_type = event1.type
+        self.events[event_type].append(event1)
+        arg_indexes = self.event_type_to_arg_indexes_map[event_type]
+        for arg_index in arg_indexes:
+            for events_common_conditions_index in self.args_index_to_events_common_conditions_indexes_map[arg_index]:
+                condition = self.i_j_to_condition_map[(arg_index, events_common_conditions_index)]
+                e_type = self.args[self.args_index_to_events_common_conditions_indexes_map[events_common_conditions_index]].type
+                self.condition_to_total_map[condition] += 1
+                for event2 in self.events[e_type]:
+                    if arg_index == events_common_conditions_index:
+                        if condition.eval({self.args[arg_index].name: event2}):
+                            self.condition_to_success_count_map[condition] += 1
+
+                    else:
+                        if condition.eval({self.args[arg_index].name: event1, self.args[events_common_conditions_index].name: event2}):
+                            self.condition_to_success_count_map[condition] += 1
+
+                sel = self.condition_to_success_count_map[condition] / self.condition_to_total_map[condition]
+                self.selectivity_matrix[arg_index][events_common_conditions_index] = sel
 
     def get_statistics(self):
         return SelectivityMatrix(self.selectivity_matrix)
 
-    def init_maps(self):
-        for event in self.args:
-            name_to_condition_map = {}
-            for i in range(self.args_num):
-                condition = self.pattern.condition.get_condition_of({self.args[self.event_type_to_index_map[event]].name,
-                                                                     self.args[i].name})
+    def init(self):
+        for i in range(self.args_num):
+            for j in range(i + 1):
+                condition = self.pattern.condition.get_condition_of({self.args[i].name, self.args[j].name})
                 if condition is not None:
-                    name_to_condition_map[self.args[i].name] = condition
-            self.event_type_to_name_and_condition_map[event.type] = name_to_condition_map
+                    if i in self.args_index_to_events_common_conditions_indexes_map:
+                        self.args_index_to_events_common_conditions_indexes_map[i].append(j)
+                    else:
+                        self.args_index_to_events_common_conditions_indexes_map[i] = [j]
+
+                    if j in self.args_index_to_events_common_conditions_indexes_map:
+                        self.args_index_to_events_common_conditions_indexes_map[j].append(i)
+                    else:
+                        self.args_index_to_events_common_conditions_indexes_map[j] = [i]
+
+                    self.i_j_to_condition_map[(i, j)] = self.i_j_to_condition_map[(j, i)] = condition
 
 
 class SelectivityAndArrivalRatesStatistics(Statistics):
