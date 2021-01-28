@@ -1,21 +1,5 @@
 from test.BasicTests import *
-from test.EvaluationTests import simple_1, simple_2, simple_3, simple_5, simple_4, simple_6, simple_7, simple_8, \
-    googleAscendPatternSearchTest_1, googleAscendPatternSearchTest_2, googleAscendPatternSearchTest_3, \
-    googleAscendPatternSearchTest_4, googleAscendPatternSearchTest_5, googleAscendPatternSearchTest_6, \
-    googleAscendPatternSearchTest_7, googleAscendPatternSearchTest_8, amazonInstablePatternSearchTest_1, \
-    amazonInstablePatternSearchTest_2, amazonInstablePatternSearchTest_3, amazonInstablePatternSearchTest_4, \
-    amazonInstablePatternSearchTest_5, amazonInstablePatternSearchTest_6, amazonInstablePatternSearchTest_7, \
-    amazonInstablePatternSearchTest_8, msftDrivRacePatternSearchTest_1, msftDrivRacePatternSearchTest_3, \
-    msftDrivRacePatternSearchTest_2, msftDrivRacePatternSearchTest_4, msftDrivRacePatternSearchTest_5, \
-    msftDrivRacePatternSearchTest_6, msftDrivRacePatternSearchTest_7, msftDrivRacePatternSearchTest_8, \
-    googleIncreasePatternSearchTest_1, googleIncreasePatternSearchTest_2, googleIncreasePatternSearchTest_3, \
-    googleIncreasePatternSearchTest_5, googleIncreasePatternSearchTest_4, googleIncreasePatternSearchTest_6, \
-    googleIncreasePatternSearchTest_7, googleIncreasePatternSearchTest_8, amazonSpecificPatternSearchTest_8, \
-    amazonSpecificPatternSearchTest_7, amazonSpecificPatternSearchTest_6, amazonSpecificPatternSearchTest_5, \
-    amazonSpecificPatternSearchTest_4, amazonSpecificPatternSearchTest_3, amazonSpecificPatternSearchTest_2, \
-    amazonSpecificPatternSearchTest_1, googleAmazonLowPatternSearchTest_1, googleAmazonLowPatternSearchTest_2, \
-    googleAmazonLowPatternSearchTest_3, googleAmazonLowPatternSearchTest_4, googleAmazonLowPatternSearchTest_5, \
-    googleAmazonLowPatternSearchTest_6, googleAmazonLowPatternSearchTest_7, googleAmazonLowPatternSearchTest_8
+from test.EvaluationTests import *
 from test.OptimizerTests import *
 from test.TreeConstructionTests import *
 from test.KC_tests import *
@@ -142,62 +126,62 @@ runTest.over_all_time = 0
 # zstream_invariant_optimizer_doesnt_change_the_tree3()
 
 # Evaluation tests
-# simple_1()
-# simple_2()
-# simple_3()
-# simple_4()
-# simple_5()
-# simple_6()
-# simple_7()
-# simple_8()
-# googleAscendPatternSearchTest_1()
-# googleAscendPatternSearchTest_2()
-# googleAscendPatternSearchTest_3()
-# googleAscendPatternSearchTest_4()
-# googleAscendPatternSearchTest_5()
-# googleAscendPatternSearchTest_6()
-# googleAscendPatternSearchTest_7()
-# googleAscendPatternSearchTest_8()
+simple_1()
+simple_2()
+simple_3()
+simple_4()
+simple_5()
+simple_6()
+simple_7()
+simple_8()
+googleAscendPatternSearchTest_1()
+googleAscendPatternSearchTest_2()
+googleAscendPatternSearchTest_3()
+googleAscendPatternSearchTest_4()
+googleAscendPatternSearchTest_5()
+googleAscendPatternSearchTest_6()
+googleAscendPatternSearchTest_7()
+googleAscendPatternSearchTest_8()
 amazonInstablePatternSearchTest_1()
-# amazonInstablePatternSearchTest_2()
-# amazonInstablePatternSearchTest_3()
-# amazonInstablePatternSearchTest_4()
-# amazonInstablePatternSearchTest_5()
-# amazonInstablePatternSearchTest_6()
-# amazonInstablePatternSearchTest_7()
-# amazonInstablePatternSearchTest_8()
-# msftDrivRacePatternSearchTest_1()
-# msftDrivRacePatternSearchTest_2()
-# msftDrivRacePatternSearchTest_3()
-# msftDrivRacePatternSearchTest_4()
-# msftDrivRacePatternSearchTest_5()
-# msftDrivRacePatternSearchTest_6()
-# msftDrivRacePatternSearchTest_7()
-# msftDrivRacePatternSearchTest_8()
-# googleIncreasePatternSearchTest_1()
-# googleIncreasePatternSearchTest_2()
-# googleIncreasePatternSearchTest_3()
-# googleIncreasePatternSearchTest_4()
-# googleIncreasePatternSearchTest_5()
-# googleIncreasePatternSearchTest_6()
-# googleIncreasePatternSearchTest_7()
-# googleIncreasePatternSearchTest_8()
-# amazonSpecificPatternSearchTest_1()
-# amazonSpecificPatternSearchTest_2()
-# amazonSpecificPatternSearchTest_3()
-# amazonSpecificPatternSearchTest_4()
-# amazonSpecificPatternSearchTest_5()
-# amazonSpecificPatternSearchTest_6()
-# amazonSpecificPatternSearchTest_7()
-# amazonSpecificPatternSearchTest_8()
-# googleAmazonLowPatternSearchTest_1()
-# googleAmazonLowPatternSearchTest_2()
-# googleAmazonLowPatternSearchTest_3()
-# googleAmazonLowPatternSearchTest_4()
-# googleAmazonLowPatternSearchTest_5()
-# googleAmazonLowPatternSearchTest_6()
-# googleAmazonLowPatternSearchTest_7()
-# googleAmazonLowPatternSearchTest_8()
+amazonInstablePatternSearchTest_2()
+amazonInstablePatternSearchTest_3()
+amazonInstablePatternSearchTest_4()
+amazonInstablePatternSearchTest_5()
+amazonInstablePatternSearchTest_6()
+amazonInstablePatternSearchTest_7()
+amazonInstablePatternSearchTest_8()
+msftDrivRacePatternSearchTest_1()
+msftDrivRacePatternSearchTest_2()
+msftDrivRacePatternSearchTest_3()
+msftDrivRacePatternSearchTest_4()
+msftDrivRacePatternSearchTest_5()
+msftDrivRacePatternSearchTest_6()
+msftDrivRacePatternSearchTest_7()
+msftDrivRacePatternSearchTest_8()
+googleIncreasePatternSearchTest_1()
+googleIncreasePatternSearchTest_2()
+googleIncreasePatternSearchTest_3()
+googleIncreasePatternSearchTest_4()
+googleIncreasePatternSearchTest_5()
+googleIncreasePatternSearchTest_6()
+googleIncreasePatternSearchTest_7()
+googleIncreasePatternSearchTest_8()
+amazonSpecificPatternSearchTest_1()
+amazonSpecificPatternSearchTest_2()
+amazonSpecificPatternSearchTest_3()
+amazonSpecificPatternSearchTest_4()
+amazonSpecificPatternSearchTest_5()
+amazonSpecificPatternSearchTest_6()
+amazonSpecificPatternSearchTest_7()
+amazonSpecificPatternSearchTest_8()
+googleAmazonLowPatternSearchTest_1()
+googleAmazonLowPatternSearchTest_2()
+googleAmazonLowPatternSearchTest_3()
+googleAmazonLowPatternSearchTest_4()
+googleAmazonLowPatternSearchTest_5()
+googleAmazonLowPatternSearchTest_6()
+googleAmazonLowPatternSearchTest_7()
+googleAmazonLowPatternSearchTest_8()
 
 
 # benchmarks

@@ -194,10 +194,10 @@ def optimizer_behavior_test_function(old_statistics: StatisticsObject, new_stati
 
     pattern = get_pattern_test()
 
-    if optimizer.is_need_reoptimize(old_statistics, pattern):
+    if optimizer.is_need_optimize(old_statistics, pattern):
         tree_plan = optimizer.build_new_tree_plan(old_statistics, pattern)
 
-    if optimizer.is_need_reoptimize(new_statistics, pattern):
+    if optimizer.is_need_optimize(new_statistics, pattern):
         tree_plan = optimizer.build_new_tree_plan(new_statistics, pattern)
         return True
 

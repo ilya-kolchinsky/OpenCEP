@@ -82,7 +82,7 @@ DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS_AND_T_OPTIMIZER = \
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION,
                                            optimizer_params=DEFAULT_TESTING_CHANGED_BY_T_OPTIMIZER_SETTINGS,
-                                           statistics_collector_params=StatCollectorParameters(StatisticsParameters(stat_type=StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES)))
+                                           statistics_collector_params=StatCollectorParameters(StatisticsParameters(time_window=timedelta(seconds=2), stat_type=StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES)))
 
 # trivial evaluation mechanism
 # greedy invariant optimizer

@@ -21,9 +21,9 @@ class OptimizerParameters:
         # was before in the constructor - pattern
 
 
-class NaiveOptimizerParameters(OptimizerParameters):
+class TrivialOptimizerParameters(OptimizerParameters):
     """
-    Parameters for the creation of optimizer1 algorithm.
+    Parameters for the creation of the trivial optimizer algorithm.
     """
 
     def __init__(self, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters):
@@ -67,18 +67,18 @@ class OptimizerFactory:
 
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(optimizer_parameters.tree_plan_params)
         if optimizer_parameters.type == OptimizerTypes.TRIVIAL:
-            return Optimizer.NaiveOptimizer(tree_plan_builder)
+            return Optimizer.TrivialOptimizer(tree_plan_builder)
 
         if optimizer_parameters.type == OptimizerTypes.CHANGED_BY_T:
             if optimizer_parameters.stat_type == StatisticsTypes.ARRIVAL_RATES:
-                return Optimizer.ArrivalStatisticChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
+                return Optimizer.ArrivalRatesChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
             if optimizer_parameters.stat_type == StatisticsTypes.SELECTIVITY_MATRIX:
-                return Optimizer.SelectivityStatisticChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
+                return Optimizer.SelectivityChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
             if optimizer_parameters.stat_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-                return Optimizer.SelectivityAndArrivalStatisticChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
+                return Optimizer.SelectivityAndArrivalRatesChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
 
         if optimizer_parameters.type == OptimizerTypes.USING_INVARIANT:
-            return Optimizer.InvariantAwareOptimizer(tree_plan_builder)
+            return Optimizer.InvariantsAwareOptimizer(tree_plan_builder)
 
         raise Exception("Unknown optimizer type: %s" % (optimizer_parameters.type,))
 

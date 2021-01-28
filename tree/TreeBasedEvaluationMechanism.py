@@ -81,7 +81,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 is_first_time = False
                 if self.is_need_get_new_statistics():
                     new_statistics = self.__statistics_collector.get_statistics()
-                    if self.__optimizer.is_need_reoptimize(new_statistics, self._pattern):
+                    if self.__optimizer.is_need_optimize(new_statistics, self._pattern):
                         new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
                         new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
                         self.update(new_tree)
