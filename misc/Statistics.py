@@ -29,16 +29,20 @@ def get_condition_selectivity(arg1: PrimitiveEventStructure, arg2: PrimitiveEven
         events2 = []
         for raw_event in stream:
             event = Event(raw_event, MetastockDataFormatter())
+            # if event.payload is {'Stock Ticker': 'AMZN', 'Date': 200802011119, 'Opening Price': 74.99, 'Peak Price': 75, 'Lowest Price': 74.6612, 'Close Price': 74.73, 'Volume': 59891, 'InternalIndexAttributeName': 699607}:
+            #     b = 1
             if event.type == arg1.type:
                 events1.append(event)
             if event.type == arg2.type:
                 events2.append(event)
         for event1 in events1:
             for event2 in events2:
-                # if (not is_sequence) or event1.date < event2.date:
-                count += 1
-                if condition.eval({arg1.name: event1.payload, arg2.name: event2.payload}):
-                    match_count += 1
+                if (not is_sequence) or event1.timestamp < event2.timestamp:
+                # if event1.payload == event2.payload and event1.payload == {'Stock Ticker': 'AMZN', 'Date': 200802011119, 'Opening Price': 74.99, 'Peak Price': 75, 'Lowest Price': 74.6612, 'Close Price': 74.73, 'Volume': 59891, 'InternalIndexAttributeName': 699607}:
+                #     a = 1
+                    count += 1
+                    if condition.eval({arg1.name: event1.payload, arg2.name: event2.payload}):
+                        match_count += 1
     if count == 0:
         return 1.0
 

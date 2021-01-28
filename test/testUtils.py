@@ -1,14 +1,10 @@
 import os
 import pathlib
 import sys
-from datetime import timedelta
 
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
-from misc.OptimizerTypes import OptimizerTypes
 from misc.Statistics import calculate_selectivity_matrix
-from misc.Tree_Evaluation_Mechanism_Types import TreeEvaluationMechanismTypes
-from optimizer.OptimizerFactory import OptimizerParameters
 from stream.Stream import OutputStream
 from stream.FileStream import FileInputStream, FileOutputStream
 from misc.Utils import generate_matches
@@ -178,7 +174,7 @@ def runTest(testName, patterns, createTestFile=False,
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
 
-    selectivity = calculate_selectivity_matrix(patterns[0], events)
+    # selectivity = calculate_selectivity_matrix(patterns[0], events)
 
     cep = CEP(patterns, eval_mechanism_params)
 

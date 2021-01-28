@@ -1,6 +1,7 @@
 from typing import Dict, Set
 from base.DataFormatter import DataFormatter
 from base.Event import Event
+from misc.Statistics import calculate_selectivity_matrix
 from plan.TreePlan import TreePlan
 from stream.Stream import InputStream, OutputStream
 from misc.Utils import *
@@ -64,6 +65,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         is_first_time = True
         count = 0
 
+        selectivity = calculate_selectivity_matrix(self._pattern, events.duplicate())
+
         for raw_event in events:
             event = Event(raw_event, data_formatter)
             if event.type not in self._event_types_listeners.keys():
@@ -98,6 +101,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             matches.add_item(match)
         # print(self.cnt_in_optimize)
         # print(self.cnt_in_statistics)
+        my_selectivity = self.__statistics_collector.get_statistics()
         matches.close()
 
     def play_new_event(self, event: Event, event_types_listeners):
