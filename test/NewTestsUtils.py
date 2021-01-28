@@ -54,7 +54,6 @@ DEFAULT_TESTING_ZSTREAM_INVARIANT_OPTIMIZER_SETTINGS = \
 DEFAULT_TESTING_TRIVIAL_OPTIMIZER_SETTINGS_WITH_ZSTREAM = \
     OptimizerParameters(OptimizerTypes.TRIVIAL, DEFAULT_TESTING_ZSTREAM_BUSHY_TREE_BUILDER)
 
-
 """
 Default testing Evaluation mechanism settings
 """
@@ -62,116 +61,113 @@ Default testing Evaluation mechanism settings
 # trivial optimizer
 # trivial left tree builder
 DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS = \
-    TreeBasedEvaluationMechanismParameters(timedelta(seconds=0.001),
-                                           TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                                      TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
                                            TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
-                                           evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION)
+                                           evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION,
+                                           statistics_updates_time_window=timedelta(seconds=0.001))
 
 # trivial evaluation mechanism
 # t optimizer
 # trivial left tree builder
 DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS_AND_T_OPTIMIZER = \
-    TreeBasedEvaluationMechanismParameters(timedelta(seconds=0.01),
-                                           TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                                      TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
                                            TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION,
                                            optimizer_params=DEFAULT_TESTING_CHANGED_BY_T_OPTIMIZER_SETTINGS,
-                                           statistics_collector_params=StatCollectorParameters(StatisticsParameters(time_window=timedelta(seconds=2), stat_type=StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES)))
+                                           statistics_collector_params=StatCollectorParameters(
+                                               StatisticsParameters(time_window=timedelta(seconds=2),
+                                                                    stat_type=StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES)),
+                                           statistics_updates_time_window=timedelta(seconds=0.01))
 
 # trivial evaluation mechanism
 # greedy invariant optimizer
 # trivial left tree builder
 # selectivity and arrival rates statistics collector
 DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS_AND_GREEDY_INVARIANT_OPTIMIZER = \
-    TreeBasedEvaluationMechanismParameters(timedelta(seconds=0.001),
-                                           TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                                      TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
                                            TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION,
                                            statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
-                                           optimizer_params=DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS)
-
+                                           optimizer_params=DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS,
+                                           statistics_updates_time_window=timedelta(seconds=0.001))
 
 # trivial evaluation mechanism
 # zstream invariant optimizer
 # zstream tree builder
 # selectivity and arrival rates statistics collector
 DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS_AND_ZSTREAM_INVARIANT_OPTIMIZER = \
-    TreeBasedEvaluationMechanismParameters(timedelta(seconds=0.05),
-                                           TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                                      TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
                                            TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION,
                                            statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
-                                           optimizer_params=DEFAULT_TESTING_ZSTREAM_INVARIANT_OPTIMIZER_SETTINGS)
-
-
+                                           optimizer_params=DEFAULT_TESTING_ZSTREAM_INVARIANT_OPTIMIZER_SETTINGS,
+                                           statistics_updates_time_window=timedelta(seconds=0.001))
 # simultaneous evaluation mechanism
 # trivial optimizer
 # trivial left tree builder
 DEFAULT_TESTING_SIMULTANEOUS_EVALUATION_MECHANISM_SETTINGS = \
-    TreeBasedEvaluationMechanismParameters(timedelta(seconds=0.05),
+    TreeBasedEvaluationMechanismParameters(
                                            TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                                      TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
                                            TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
-                                           evaluation_type=TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION)
-
+                                           evaluation_type=TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION,
+                                           statistics_updates_time_window=timedelta(seconds=0.05))
 
 # simultaneous evaluation mechanism
 # t optimizer
 # trivial left tree builder
 DEFAULT_TESTING_SIMULTANEOUS_EVALUATION_MECHANISM_SETTINGS_AND_T_OPTIMIZER = \
-    TreeBasedEvaluationMechanismParameters(timedelta(seconds=0.05),
-                                           TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                                      TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
                                            TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION,
                                            optimizer_params=DEFAULT_TESTING_CHANGED_BY_T_OPTIMIZER_SETTINGS,
-                                           statistics_collector_params=StatCollectorParameters(StatisticsParameters(stat_type=StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES)))
-
+                                           statistics_collector_params=StatCollectorParameters(StatisticsParameters(
+                                               stat_type=StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES)),
+                                           statistics_updates_time_window=timedelta(seconds=0.05))
 
 # simultaneous evaluation mechanism
 # greedy invariant optimizer
 # greedy tree builder
 # selectivity and arrival rates statistics collector
 DEFAULT_TESTING_SIMULTANEOUS_EVALUATION_MECHANISM_SETTINGS_AND_GREEDY_INVARIANT_OPTIMIZER = \
-    TreeBasedEvaluationMechanismParameters(timedelta(seconds=0.001),
-                                           TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                                      TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
                                            TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION,
                                            statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
-                                           optimizer_params=DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS)
-
+                                           optimizer_params=DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS,
+                                           statistics_updates_time_window=timedelta(seconds=0.001))
 
 # simultaneous evaluation mechanism
 # greedy invariant optimizer
 # greedy tree builder
 # selectivity and arrival rates statistics collector
 DEFAULT_TESTING_SIMULTANEOUS_EVALUATION_MECHANISM_SETTINGS_AND_ZSTRREAM_INVARIANT_OPTIMIZER = \
-    TreeBasedEvaluationMechanismParameters(timedelta(seconds=0.01),
-                                           TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                                      TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
                                            TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION,
                                            statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
-                                           optimizer_params=DEFAULT_TESTING_ZSTREAM_INVARIANT_OPTIMIZER_SETTINGS)
-
+                                           optimizer_params=DEFAULT_TESTING_ZSTREAM_INVARIANT_OPTIMIZER_SETTINGS,
+                                           statistics_updates_time_window=timedelta(seconds=0.01))

@@ -6,6 +6,7 @@ from datetime import timedelta
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
 from misc.OptimizerTypes import OptimizerTypes
+from misc.Statistics import calculate_selectivity_matrix
 from misc.Tree_Evaluation_Mechanism_Types import TreeEvaluationMechanismTypes
 from optimizer.OptimizerFactory import OptimizerParameters
 from stream.Stream import OutputStream
@@ -41,8 +42,7 @@ custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.tx
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
 DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
-    TreeBasedEvaluationMechanismParameters(timedelta(seconds=30),
-                                           TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                                      TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
                                            TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
@@ -178,12 +178,15 @@ def runTest(testName, patterns, createTestFile=False,
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
 
+    selectivity = calculate_selectivity_matrix(patterns[0], events)
+
     cep = CEP(patterns, eval_mechanism_params)
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
+
 
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)

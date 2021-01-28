@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from base.Event import Event
 from base.Pattern import Pattern
+from misc.Statistics import calculate_selectivity_matrix
 from statistics_collector.StatisticsWrapper import ArrivalRatesWrapper, SelectivityWrapper, SelectivityAndArrivalRatesWrapper
 from statistics_collector.StatisticEventData import StatisticEventData
 
@@ -118,25 +119,26 @@ class SelectivityStatistics(Statistics):
         self.init()
 
     def update(self, event1: Event):
-        event_type = event1.type
-        self.events[event_type].append(event1)
-        arg_indexes = self.event_type_to_arg_indexes_map[event_type]
-        for arg_index in arg_indexes:
-            for events_common_conditions_index in self.args_index_to_events_common_conditions_indexes_map[arg_index]:
-                condition = self.i_j_to_condition_map[(arg_index, events_common_conditions_index)]
-                e_type = self.args[self.args_index_to_events_common_conditions_indexes_map[events_common_conditions_index]].type
-                self.condition_to_total_map[condition] += 1
-                for event2 in self.events[e_type]:
-                    if arg_index == events_common_conditions_index:
-                        if condition.eval({self.args[arg_index].name: event2}):
-                            self.condition_to_success_count_map[condition] += 1
-
-                    else:
-                        if condition.eval({self.args[arg_index].name: event1, self.args[events_common_conditions_index].name: event2}):
-                            self.condition_to_success_count_map[condition] += 1
-
-                sel = self.condition_to_success_count_map[condition] / self.condition_to_total_map[condition]
-                self.selectivity_matrix[arg_index][events_common_conditions_index] = sel
+        pass
+        # event1_type = event1.type
+        # self.events[event1_type].append(event1)
+        # arg_indexes = self.event_type_to_arg_indexes_map[event1_type]
+        # for arg_index in arg_indexes:
+        #     for events_common_conditions_index in self.args_index_to_events_common_conditions_indexes_map[arg_index]:
+        #         condition = self.i_j_to_condition_map[(arg_index, events_common_conditions_index)]
+        #         e_type = self.args[events_common_conditions_index].type
+        #         self.condition_to_total_map[condition] += 1
+        #         for event2 in self.events[e_type]:
+        #             if arg_index == events_common_conditions_index:
+        #                 if condition.eval({self.args[arg_index].name: event2}):
+        #                     self.condition_to_success_count_map[condition] += 1
+        #
+        #             else:
+        #                 if condition.eval({self.args[arg_index].name: event1.payload, self.args[events_common_conditions_index].name: event2.payload}):
+        #                     self.condition_to_success_count_map[condition] += 1
+        #
+        #         sel = self.condition_to_success_count_map[condition] / self.condition_to_total_map[condition]
+        #         self.selectivity_matrix[arg_index][events_common_conditions_index] = sel
 
     def get_statistics(self):
         return SelectivityWrapper(self.selectivity_matrix)
@@ -157,6 +159,8 @@ class SelectivityStatistics(Statistics):
                         self.args_index_to_events_common_conditions_indexes_map[j] = [i]
 
                     self.i_j_to_condition_map[(i, j)] = self.i_j_to_condition_map[(j, i)] = condition
+                    # self.condition_to_total_map[condition] = 0
+                    # self.condition_to_success_count_map[condition] = 0
 
 
 class SelectivityAndArrivalRatesStatistics(Statistics):

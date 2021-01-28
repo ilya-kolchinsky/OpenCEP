@@ -1,7 +1,9 @@
+from base.Event import Event
 from condition.Condition import Condition
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure
-from stream.Stream import Stream
+from plugin.stocks.Stocks import MetastockDataFormatter
+from stream.Stream import Stream, InputStream
 
 
 def get_condition_selectivity(arg1: PrimitiveEventStructure, arg2: PrimitiveEventStructure, condition: Condition,
@@ -16,25 +18,30 @@ def get_condition_selectivity(arg1: PrimitiveEventStructure, arg2: PrimitiveEven
     match_count = 0
 
     if arg1 == arg2:
-        for event in stream:
-            if event.eventType == arg1.type:
+        for raw_event in stream:
+            event = Event(raw_event, MetastockDataFormatter())
+            if event.type == arg1.type:
                 count += 1
-                if condition.eval({arg1.name: event.event}):
+                if condition.eval({arg1.name: event.payload}):
                     match_count += 1
     else:
         events1 = []
         events2 = []
-        for event in stream:
-            if event.eventType == arg1.type:
+        for raw_event in stream:
+            event = Event(raw_event, MetastockDataFormatter())
+            if event.type == arg1.type:
                 events1.append(event)
-            elif event.eventType == arg2.type:
+            if event.type == arg2.type:
                 events2.append(event)
         for event1 in events1:
             for event2 in events2:
-                if (not is_sequence) or event1.date < event2.date:
-                    count += 1
-                    if condition.eval({arg1.name: event1.event, arg2.name: event2.event}):
-                        match_count += 1
+                # if (not is_sequence) or event1.date < event2.date:
+                count += 1
+                if condition.eval({arg1.name: event1.payload, arg2.name: event2.payload}):
+                    match_count += 1
+    if count == 0:
+        return 1.0
+
     return match_count / count
 
 

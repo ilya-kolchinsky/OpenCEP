@@ -50,11 +50,9 @@ def arrivalRatesPatternSearchTest(createTestFile=False):
         timedelta(minutes=5)
     )
     pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0159, 0.0153, 0.0076])
-    eval_params = TreeBasedEvaluationMechanismParameters(timedelta(seconds=30),
-                                                         TreePlanBuilderParameters(
+    eval_params = TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(
                                                              TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
-                                                         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
-                                                         )
+                                                         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
     runTest("arrivalRates", [pattern], createTestFile, eval_params)
 
 
@@ -208,8 +206,8 @@ def greedyPatternSearchTest(createTestFile=False):
     arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE),
-        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+        tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE),
+        storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
     runTest('greedy1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
