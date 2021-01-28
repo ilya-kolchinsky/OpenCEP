@@ -6,13 +6,13 @@ from evaluation.EvaluationMechanismFactory import (
     EvaluationMechanismFactory,
 )
 from optimizer.OptimizerFactory import OptimizerFactory, OptimizerParameters
-from statistics_collector import NewStatisticsFactory
+from statistics_collector import StatisticsFactory
 
 from parallel.manager.EvaluationManager import EvaluationManager
 from stream.Stream import InputStream, OutputStream
 from base.Pattern import Pattern
 from base.DataFormatter import DataFormatter
-from statistics_collector.NewStatCollectorFactory import StatCollectorFactory, StatCollectorParameters
+from statistics_collector.StatisticsCollectorFactory import StatCollectorFactory, StatCollectorParameters
 from typing import List
 
 

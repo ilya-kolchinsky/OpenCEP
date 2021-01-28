@@ -12,16 +12,16 @@ from misc.StatisticsTypes import StatisticsTypes
 from plan.LeftDeepTreeBuilders import GreedyLeftDeepTreeBuilder
 from itertools import combinations
 
-from statistics_collector.NewStatistics import Statistics, SelectivityAndArrivalRatesStatistics
-from statistics_collector.StatisticsObjects import StatisticsObject, SelectivityMatrixAndArrivalRates
+from statistics_collector.Statistics import Statistics, SelectivityAndArrivalRatesStatistics
+from statistics_collector.StatisticsWrapper import StatisticsWrapper, SelectivityAndArrivalRatesWrapper
 
 
 class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
     """
     Creates a bushy tree using a dynamic programming algorithm.
     """
-    def _create_tree_topology(self, statistics: StatisticsObject, pattern: Pattern):
-        if isinstance(statistics, SelectivityMatrixAndArrivalRates):
+    def _create_tree_topology(self, statistics: StatisticsWrapper, pattern: Pattern):
+        if isinstance(statistics, SelectivityAndArrivalRatesWrapper):
             (selectivity_matrix, arrival_rates) = statistics.statistics
         else:
             raise MissingStatisticsException()
@@ -67,8 +67,8 @@ class ZStreamTreeBuilder(TreePlanBuilder):
     """
     Creates a bushy tree using ZStream algorithm.
     """
-    def _create_tree_topology(self, statistics: StatisticsObject, pattern: Pattern):
-        if isinstance(statistics, SelectivityMatrixAndArrivalRates):
+    def _create_tree_topology(self, statistics: StatisticsWrapper, pattern: Pattern):
+        if isinstance(statistics, SelectivityAndArrivalRatesWrapper):
             (selectivity_matrix, arrival_rates) = statistics.statistics
         else:
             raise MissingStatisticsException()

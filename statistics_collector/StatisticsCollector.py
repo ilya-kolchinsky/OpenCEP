@@ -2,7 +2,7 @@ from typing import List
 
 from base.Event import Event
 from base.Pattern import Pattern
-from statistics_collector.NewStatistics import Statistics
+from statistics_collector.Statistics import Statistics
 
 
 class StatisticsCollector:

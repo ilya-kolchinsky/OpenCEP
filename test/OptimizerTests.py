@@ -9,7 +9,7 @@ from optimizer.Optimizer import Optimizer
 from optimizer.OptimizerFactory import OptimizerFactory, InvariantsAwareOptimizerParameters
 
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, SelectivityMatrixAndArrivalRates, StatisticsObject
+from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, SelectivityAndArrivalRatesWrapper, StatisticsWrapper
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 from test.NewTestsUtils import DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS, \
     DEFAULT_TESTING_ZSTREAM_INVARIANT_OPTIMIZER_SETTINGS, DEFAULT_TESTING_TRIVIAL_OPTIMIZER_SETTINGS_WITH_ZSTREAM
@@ -41,12 +41,12 @@ def greedy_invariant_optimizer_doesnt_change_the_tree():
     old_arrival_rates = [1, 5, 8, 2]
     old_selectivity_matrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
                           [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
-    old_statistics = SelectivityMatrixAndArrivalRates(old_arrival_rates, old_selectivity_matrix)
+    old_statistics = SelectivityAndArrivalRatesWrapper(old_arrival_rates, old_selectivity_matrix)
 
     new_arrival_rates = [1, 5, 8, 2]
     new_selectivity_matrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
                           [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
-    new_statistics = SelectivityMatrixAndArrivalRates(new_arrival_rates, new_selectivity_matrix)
+    new_statistics = SelectivityAndArrivalRatesWrapper(new_arrival_rates, new_selectivity_matrix)
 
     is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
     if not is_changed:
@@ -68,12 +68,12 @@ def greedy_invariant_optimizer_doesnt_change_the_tree_2():
     old_arrival_rates = [1, 5, 8, 2]
     old_selectivity_matrix = [[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0],
                           [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]]
-    old_statistics = SelectivityMatrixAndArrivalRates(old_arrival_rates, old_selectivity_matrix)
+    old_statistics = SelectivityAndArrivalRatesWrapper(old_arrival_rates, old_selectivity_matrix)
 
     new_arrival_rates = [1, 7, 8, 2]
     new_selectivity_matrix = [[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0],
                           [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]]
-    new_statistics = SelectivityMatrixAndArrivalRates(new_arrival_rates, new_selectivity_matrix)
+    new_statistics = SelectivityAndArrivalRatesWrapper(new_arrival_rates, new_selectivity_matrix)
 
     is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
     if not is_changed:
@@ -95,12 +95,12 @@ def greedy_invariant_optimizer_doesnt_change_the_tree_3():
     old_arrival_rates = [1, 5, 8, 2]
     old_selectivity_matrix = [[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0],
                           [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]]
-    old_statistics = SelectivityMatrixAndArrivalRates(old_arrival_rates, old_selectivity_matrix)
+    old_statistics = SelectivityAndArrivalRatesWrapper(old_arrival_rates, old_selectivity_matrix)
 
     new_arrival_rates = [2, 5, 8, 1]
     new_selectivity_matrix = [[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0],
                           [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]]
-    new_statistics = SelectivityMatrixAndArrivalRates(new_arrival_rates, new_selectivity_matrix)
+    new_statistics = SelectivityAndArrivalRatesWrapper(new_arrival_rates, new_selectivity_matrix)
 
     is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
     if not is_changed:
@@ -122,12 +122,12 @@ def zstream_invariant_optimizer_doesnt_change_the_tree():
     old_arrival_rates = [5, 1, 8, 2]
     old_selectivity_matrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
                       [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
-    old_statistics = SelectivityMatrixAndArrivalRates(old_arrival_rates, old_selectivity_matrix)
+    old_statistics = SelectivityAndArrivalRatesWrapper(old_arrival_rates, old_selectivity_matrix)
 
     new_arrival_rates = [1, 5, 8, 2]
     new_selectivity_matrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0],
                       [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
-    new_statistics = SelectivityMatrixAndArrivalRates(new_arrival_rates, new_selectivity_matrix)
+    new_statistics = SelectivityAndArrivalRatesWrapper(new_arrival_rates, new_selectivity_matrix)
 
     is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
     if not is_changed:
@@ -149,12 +149,12 @@ def zstream_invariant_optimizer_doesnt_change_the_tree2():
     old_arrival_rates = [8, 5, 1, 2, 3]
     old_selectivity_matrix = [[1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0],
                       [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0]]
-    old_statistics = SelectivityMatrixAndArrivalRates(old_arrival_rates, old_selectivity_matrix)
+    old_statistics = SelectivityAndArrivalRatesWrapper(old_arrival_rates, old_selectivity_matrix)
 
     new_arrival_rates = [1, 5, 3, 2, 1]
     new_selectivity_matrix = [[1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0],
                       [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0]]
-    new_statistics = SelectivityMatrixAndArrivalRates(new_arrival_rates, new_selectivity_matrix)
+    new_statistics = SelectivityAndArrivalRatesWrapper(new_arrival_rates, new_selectivity_matrix)
 
     is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
     if not is_changed:
@@ -176,12 +176,12 @@ def zstream_invariant_optimizer_doesnt_change_the_tree3():
     old_arrival_rates = [8, 5, 1, 2, 3]
     old_selectivity_matrix = [[1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0],
                       [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0]]
-    old_statistics = SelectivityMatrixAndArrivalRates(old_arrival_rates, old_selectivity_matrix)
+    old_statistics = SelectivityAndArrivalRatesWrapper(old_arrival_rates, old_selectivity_matrix)
 
     new_arrival_rates = [8, 5, 9, 2, 3]
     new_selectivity_matrix = [[1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0],
                       [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0]]
-    new_statistics = SelectivityMatrixAndArrivalRates(new_arrival_rates, new_selectivity_matrix)
+    new_statistics = SelectivityAndArrivalRatesWrapper(new_arrival_rates, new_selectivity_matrix)
 
     is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
     if not is_changed:
@@ -190,7 +190,7 @@ def zstream_invariant_optimizer_doesnt_change_the_tree3():
         print("Failed")
 
 
-def optimizer_behavior_test_function(old_statistics: StatisticsObject, new_statistics: StatisticsObject, optimizer: Optimizer):
+def optimizer_behavior_test_function(old_statistics: StatisticsWrapper, new_statistics: StatisticsWrapper, optimizer: Optimizer):
 
     pattern = get_pattern_test()
 

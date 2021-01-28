@@ -2,32 +2,42 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from base.Event import Event
 from base.Pattern import Pattern
-from statistics_collector.StatisticsObjects import ArrivalRates, SelectivityMatrix, SelectivityMatrixAndArrivalRates
-from statistics_collector.EventTime import EventTime
+from statistics_collector.StatisticsWrapper import ArrivalRatesWrapper, SelectivityWrapper, SelectivityAndArrivalRatesWrapper
+from statistics_collector.StatisticEventData import StatisticEventData
 
 
 class Statistics(ABC):
-
+    """
+    An abstract class for statistics.
+    """
     @abstractmethod
     def update(self, event: Event):
+        """
+        Given the newly arrived event, update the statistics.
+        """
         pass
 
     @abstractmethod
     def get_statistics(self):
+        """
+        Return the current statistics.
+        """
         pass
 
 
 class ArrivalRatesStatistics(Statistics):
-
+    """
+    Represents the the arrival rates statistics.
+    """
     def __init__(self, time_window: timedelta, pattern: Pattern):
         self.arrival_rates = [0.0] * len(pattern.positive_structure.args)
 
         self.event_type_to_indexes_map = {}
-        for i, e in enumerate(pattern.positive_structure.args):
-            if e.type in self.event_type_to_indexes_map:
-                self.event_type_to_indexes_map[e.type].append(i)
+        for i, event in enumerate(pattern.positive_structure.args):
+            if event.type in self.event_type_to_indexes_map:
+                self.event_type_to_indexes_map[event.type].append(i)
             else:
-                self.event_type_to_indexes_map[e.type] = [i]
+                self.event_type_to_indexes_map[event.type] = [i]
 
         self.events_arrival_time = []
         self.time_window = time_window
@@ -42,7 +52,7 @@ class ArrivalRatesStatistics(Statistics):
             for index in indexes:
                 self.arrival_rates[index] += 1
                 # self.events_arrival_time.append(EventTime(event.timestamp, event_type))
-                self.events_arrival_time.append(EventTime(time, event_type))
+                self.events_arrival_time.append(StatisticEventData(time, event_type))
 
         self.__remove_expired_events(time)
 
@@ -71,14 +81,15 @@ class ArrivalRatesStatistics(Statistics):
             self.events_arrival_time = []
 
     def get_statistics(self):
-        return ArrivalRates(self.arrival_rates)
+        return ArrivalRatesWrapper(self.arrival_rates)
 
 
 class SelectivityStatistics(Statistics):
     """
-    Note: currently, this statistics  ignore time window
+    Represents the the arrival rates statistics.
+    NOTE: Currently, this statistic ignores time window
     """
-    # todo Implement selectivity that also takes into account a time window
+    # TODO: Implement selectivity that also takes into account a time window
 
     def __init__(self, pattern: Pattern):
         self.pattern = pattern
@@ -110,7 +121,7 @@ class SelectivityStatistics(Statistics):
         """
 
     def get_statistics(self):
-        return SelectivityMatrix(self.selectivity_matrix)
+        return SelectivityWrapper(self.selectivity_matrix)
 
     def init_maps(self):
         for event in self.args:
@@ -124,7 +135,9 @@ class SelectivityStatistics(Statistics):
 
 
 class SelectivityAndArrivalRatesStatistics(Statistics):
-
+    """
+    Represents both the arrival rates and selectivity statistics.
+    """
     def __init__(self, arrival_rates: ArrivalRatesStatistics, selectivity_matrix: SelectivityStatistics):
         self.arrival_rates = arrival_rates
         self.selectivity_matrix = selectivity_matrix
@@ -136,11 +149,13 @@ class SelectivityAndArrivalRatesStatistics(Statistics):
     def get_statistics(self):
         arrival_rates = self.arrival_rates.arrival_rates
         selectivity_matrix = self.selectivity_matrix.selectivity_matrix
-        return SelectivityMatrixAndArrivalRates(arrival_rates, selectivity_matrix)
+        return SelectivityAndArrivalRatesWrapper(arrival_rates, selectivity_matrix)
 
 
 class FrequencyDict(Statistics):
-
+    """
+    Not implemented
+    """
     def __init__(self):
         self.frequency_dict = {}
 

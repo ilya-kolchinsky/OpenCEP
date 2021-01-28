@@ -3,7 +3,7 @@ from typing import List
 from base.Pattern import Pattern
 from misc import DefaultConfig
 from statistics_collector.StatisticsCollector import StatisticsCollector
-from statistics_collector.NewStatisticsFactory import StatisticsParameters, StatisticsFactory
+from statistics_collector.StatisticsFactory import StatisticsParameters, StatisticsFactory
 
 
 class StatCollectorParameters:
@@ -24,7 +24,8 @@ class StatCollectorFactory:
         return StatCollectorFactory.__create_statistics_collector(statistics_collector_parameters, patterns)
 
     @staticmethod
-    def __create_statistics_collector(statistics_collector_parameters: StatCollectorParameters, patterns: List[Pattern]):
+    def __create_statistics_collector(statistics_collector_parameters: StatCollectorParameters,
+                                      patterns: List[Pattern]):
         """
         Currently, we only maintain one pattern.
         Next you will need to go through a loop and for each pattern create statistics.
@@ -41,5 +42,3 @@ class StatCollectorFactory:
         Uses the default configuration to create statistics collector parameters.
         """
         return StatCollectorParameters()
-
-

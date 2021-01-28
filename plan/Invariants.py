@@ -4,8 +4,8 @@ from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
 from plan.TreeCostModel import TreeCostModelFactory, TreeCostModel, IntermediateResultsTreeCostModel
 from plan.TreeCostModels import TreeCostModels
-from statistics_collector.NewStatistics import Statistics, SelectivityAndArrivalRatesStatistics
-from statistics_collector.StatisticsObjects import StatisticsObject, SelectivityMatrixAndArrivalRates
+from statistics_collector.Statistics import Statistics, SelectivityAndArrivalRatesStatistics
+from statistics_collector.StatisticsWrapper import StatisticsWrapper, SelectivityAndArrivalRatesWrapper
 
 
 class Invariant:
@@ -41,9 +41,9 @@ class GreedyTreeInvariants(Invariants):
     The verification proceeds in a bottom up order
     """
 
-    def is_invariants_violated(self, new_statistics: StatisticsObject, pattern: Pattern):
+    def is_invariants_violated(self, new_statistics: StatisticsWrapper, pattern: Pattern):
 
-        if isinstance(new_statistics, SelectivityMatrixAndArrivalRates):
+        if isinstance(new_statistics, SelectivityAndArrivalRatesWrapper):
             (selectivity_matrix, arrival_rates) = new_statistics.statistics
         else:
             raise MissingStatisticsException()
@@ -80,7 +80,7 @@ class ZStreamTreeInvariants(Invariants):
         super().__init__()
         self.__cost_model = cost_model
 
-    def is_invariants_violated(self, new_statistics: StatisticsObject, pattern: Pattern):
+    def is_invariants_violated(self, new_statistics: StatisticsWrapper, pattern: Pattern):
         """
         Check every invariant in invariants with next condition:
         cost(invariant.left) < cost(invariant.right).

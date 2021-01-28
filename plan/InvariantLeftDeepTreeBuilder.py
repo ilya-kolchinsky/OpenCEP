@@ -16,8 +16,8 @@ from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
-from statistics_collector.NewStatistics import Statistics, SelectivityAndArrivalRatesStatistics
-from statistics_collector.StatisticsObjects import StatisticsObject, SelectivityMatrixAndArrivalRates
+from statistics_collector.Statistics import Statistics, SelectivityAndArrivalRatesStatistics
+from statistics_collector.StatisticsWrapper import StatisticsWrapper, SelectivityAndArrivalRatesWrapper
 
 
 class InvariantLeftDeepTreeBuilder(TreePlanBuilder):
@@ -25,14 +25,14 @@ class InvariantLeftDeepTreeBuilder(TreePlanBuilder):
     An abstract class for left-deep tree builders.
     """
 
-    def build_tree_plan(self, statistics: StatisticsObject, pattern: Pattern):
+    def build_tree_plan(self, statistics: StatisticsWrapper, pattern: Pattern):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
         tree_topology, invariants = self._create_tree_topology(statistics, pattern)
         return TreePlan(tree_topology), invariants
 
-    def _create_tree_topology(self, statistics: StatisticsObject, pattern: Pattern):
+    def _create_tree_topology(self, statistics: StatisticsWrapper, pattern: Pattern):
         """
         Invokes an algorithm (to be implemented by subclasses) that builds an evaluation order of the operands, and
         converts it into a left-deep tree topology.
@@ -51,14 +51,14 @@ class InvariantLeftDeepTreeBuilder(TreePlanBuilder):
             tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(order[i]))
         return tree_topology
 
-    def _get_order_cost(self, statistics: StatisticsObject, pattern: Pattern, order: List[int]):
+    def _get_order_cost(self, statistics: StatisticsWrapper, pattern: Pattern, order: List[int]):
         """
         Returns the cost of a given order of event processing.
         """
         tree_plan = InvariantLeftDeepTreeBuilder._order_to_tree_topology(order, pattern)
         return self._get_plan_cost(statistics, pattern, tree_plan)
 
-    def _create_evaluation_order(self, statistics: StatisticsObject):
+    def _create_evaluation_order(self, statistics: StatisticsWrapper):
         """
         Creates an evaluation order to serve as a basis for the left-deep tree topology.
         """
@@ -71,8 +71,8 @@ class InvariantAwareGreedyTreeBuilder(InvariantLeftDeepTreeBuilder):
     function.
     """
 
-    def _create_evaluation_order(self, statistics: StatisticsObject):
-        if isinstance(statistics, SelectivityMatrixAndArrivalRates):
+    def _create_evaluation_order(self, statistics: StatisticsWrapper):
+        if isinstance(statistics, SelectivityAndArrivalRatesWrapper):
             (selectivityMatrix, arrivalRates) = statistics.statistics
         else:
             raise MissingStatisticsException()

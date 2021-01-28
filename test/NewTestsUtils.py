@@ -5,8 +5,8 @@ from misc.Tree_Evaluation_Mechanism_Types import TreeEvaluationMechanismTypes
 from optimizer.OptimizerFactory import OptimizerParameters, StatisticChangesAwareOptimizerParameters
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreeCostModels, StatisticsTypes
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-from statistics_collector.NewStatCollectorFactory import StatCollectorParameters
-from statistics_collector.NewStatisticsFactory import StatisticsParameters
+from statistics_collector.StatisticsCollectorFactory import StatCollectorParameters
+from statistics_collector.StatisticsFactory import StatisticsParameters
 from tree.PatternMatchStorage import TreeStorageParameters
 
 """
