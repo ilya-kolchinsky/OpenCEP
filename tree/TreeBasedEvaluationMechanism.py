@@ -26,7 +26,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                  storage_params: TreeStorageParameters,
                  statistics_collector: StatisticsCollector,
                  optimizer: Optimizer,
-                 statistics_updates_time_window: timedelta = timedelta(seconds=30),
+                 statistics_update_time_window: timedelta = timedelta(seconds=30),
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
 
         is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
@@ -37,19 +37,18 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                               list(pattern_to_tree_plan_map)[0], storage_params)
 
         self.__storage_params = storage_params
-        self.cnt_in_optimize = 0
-        self.cnt_in_statistics = 0
         self.__statistics_collector = statistics_collector
         self.__optimizer = optimizer
 
         self._event_types_listeners = {}
-        self.statistics_updates_time_window = statistics_updates_time_window
+        self.statistics_update_time_window = statistics_update_time_window
 
         # The remainder of the initialization process is only relevant for the freeze map feature. This feature can
         # only be enabled in single-pattern mode.
         self._pattern = list(pattern_to_tree_plan_map)[0] if not is_multi_pattern_mode else None
         self.__freeze_map = {}
         self.__active_freezers = []
+
         if not is_multi_pattern_mode and self._pattern.consumption_policy is not None and \
                 self._pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
@@ -60,51 +59,44 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         given output stream.
         """
         self._event_types_listeners = self.register_event_listeners(self._tree)
-
-        start_time = datetime.now()
+        statistics_update_start_time = datetime.now()
         is_first_time = True
-        count = 0
 
-        selectivity = calculate_selectivity_matrix(self._pattern, events.duplicate())
 
+        # selectivity = calculate_selectivity_matrix(self._pattern, events.duplicate())
         for raw_event in events:
             event = Event(raw_event, data_formatter)
+            event.arrival_time = datetime.now()
             if event.type not in self._event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
 
             self.__statistics_collector.event_handler(event)
-
-            # new_statistics = self.__statistics_collector.get_statistics()
-            # new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
-            # new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
-            # self.update(new_tree)
-
-            if datetime.now() - start_time >= self.statistics_updates_time_window or is_first_time:
+            if datetime.now() - statistics_update_start_time >= self.statistics_update_time_window or is_first_time:
                 is_first_time = False
-                if self.is_need_get_new_statistics():
+                if self.is_need_new_statistics():
                     new_statistics = self.__statistics_collector.get_statistics()
                     if self.__optimizer.is_need_optimize(new_statistics, self._pattern):
                         new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
                         new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
-                        self.update(new_tree)
-                        count += 1
-                # initialize start time
-                start_time = datetime.now()
+                        self.tree_update(new_tree)
+                        event.arrival_time = datetime.now()
+                # re-initialize statistics window start time
+                statistics_update_start_time = datetime.now()
 
             self.play_new_event_on_tree(event, matches)
             self.get_matches(matches)
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
-        print(count)
         for match in self._tree.get_last_matches():
             matches.add_item(match)
-        # print(self.cnt_in_optimize)
-        # print(self.cnt_in_statistics)
         my_selectivity = self.__statistics_collector.get_statistics()
         matches.close()
 
     def play_new_event(self, event: Event, event_types_listeners):
+        """
+        Lets the tree handle the event
+        """
         for leaf in event_types_listeners[event.type]:
             if self.__should_ignore_events_on_leaf(leaf, event_types_listeners):
                 continue
@@ -116,10 +108,10 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             matches.add_item(match)
             self._remove_matched_freezers(match.events)
 
-    def update(self, new_tree: Tree):
+    def tree_update(self, new_tree: Tree):
         raise NotImplementedError("Must override")
 
-    def is_need_get_new_statistics(self):
+    def is_need_new_statistics(self):
         raise NotImplementedError("Must override")
 
     def play_new_event_on_tree(self, event: Event, matches: OutputStream):
@@ -210,15 +202,15 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
 class TrivialEvaluation(TreeBasedEvaluationMechanism):
 
-    def update(self, new_tree: Tree):
+    def tree_update(self, new_tree: Tree):
         old_events = self.get_all_old_events()
         self._tree = new_tree
         self._event_types_listeners = self.register_event_listeners(new_tree)
         self.play_old_events_on_tree(old_events)
         """
-        If there are new matches then inevitably they have already been written 
-        to a file everything we want to avoid duplications.
-        the method self._tree.get_matches() actually takes out the duplicate matches
+        If there are new matches that have already been written 
+        to a file then all we want is to avoid duplications.
+        the method self._tree.get_matches() actually takes out the duplicate matches.
         """
         self._tree.get_matches()
 
@@ -232,7 +224,6 @@ class TrivialEvaluation(TreeBasedEvaluationMechanism):
                 leaf_types.add(leaf_type)
                 partial_matches = leaf.get_storage_unit()
                 old_events.extend([pm.events[0] for pm in partial_matches])
-
         return old_events
 
     def play_old_events_on_tree(self, events):
@@ -243,7 +234,10 @@ class TrivialEvaluation(TreeBasedEvaluationMechanism):
             for leaf in self._event_types_listeners[event.type]:
                 leaf.handle_event(event)
 
-    def is_need_get_new_statistics(self):
+    def is_need_new_statistics(self):
+        """
+        The Definition of trivial evaluation
+        """
         return True
 
     def play_new_event_on_tree(self, event: Event, matches: OutputStream):
@@ -256,40 +250,43 @@ class SimultaneousEvaluation(TreeBasedEvaluationMechanism):
                  storage_params: TreeStorageParameters,
                  statistics_collector: StatisticsCollector,
                  optimizer: Optimizer,
-                 updates_time_window: timedelta,
+                 statistics_update_time_window: timedelta,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
         super().__init__(pattern_to_tree_plan_map, storage_params,
                          statistics_collector,
                          optimizer,
-                         updates_time_window,
+                         statistics_update_time_window,
                          multi_pattern_eval_params)
         self.new_tree = None
         self.new_event_types_listeners = None
-        self.is_Simultaneous_state = False
+        self.is_simultaneous_state = False
         self.tree_update_time = None
 
-    def update(self, new_tree: Tree):
+    def tree_update(self, new_tree: Tree):
         self.tree_update_time = datetime.now()
         self.new_tree = new_tree
         self.new_event_types_listeners = self.register_event_listeners(self.new_tree)
-        self.is_Simultaneous_state = True
+        self.is_simultaneous_state = True
 
-    def is_need_get_new_statistics(self):
-        return not self.is_Simultaneous_state
+    def is_need_new_statistics(self):
+        return not self.is_simultaneous_state
 
     def play_new_event_on_tree(self, event: Event, matches: OutputStream):
         self.play_new_event(event, self._event_types_listeners)
-        if self.is_Simultaneous_state:
+        if self.is_simultaneous_state:
             self.play_new_event(event, self.new_event_types_listeners)
-            # after this round, we ask if the simultaneous running is move on or stop
-            # after time window is finished we can back to run event only on one tree
+            """
+            After this round we ask if we are in a simultaneous state. 
+            If the time window is over then we want to return to a state that is not simultaneous, 
+            i.e. a single tree
+            """
             if datetime.now() - self.tree_update_time > self._pattern.window:
                 self._tree, self.new_tree = self.new_tree, None
                 self._event_types_listeners, self.new_event_types_listeners = self.new_event_types_listeners, None
-                self.is_Simultaneous_state = False
+                self.is_simultaneous_state = False
 
     def get_matches(self, matches: OutputStream):
-        if self.is_Simultaneous_state:
+        if self.is_simultaneous_state:
             for match in self._tree.get_matches():
                 if not self.is_all_new_event(match):
                     matches.add_item(match)
@@ -301,8 +298,10 @@ class SimultaneousEvaluation(TreeBasedEvaluationMechanism):
             super().get_matches(matches)
 
     def is_all_new_event(self, match: PatternMatch):
+        """
+        Checks whether all the events in the match are new
+        """
         for event in match.events:
-            if event.timestamp < self.tree_update_time:
+            if event.arrival_time < self.tree_update_time:
                 return False
-
         return True
