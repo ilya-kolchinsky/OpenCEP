@@ -68,7 +68,7 @@ class OptimizerFactory:
         if optimizer_parameters.type == OptimizerTypes.TRIVIAL:
             return Optimizer.TrivialOptimizer(tree_plan_builder)
 
-        if optimizer_parameters.type == OptimizerTypes.CHANGED_BY_T:
+        if optimizer_parameters.type == OptimizerTypes.CHANGES_AWARE:
             if optimizer_parameters.stat_type == StatisticsTypes.ARRIVAL_RATES:
                 return Optimizer.ArrivalRatesChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
             if optimizer_parameters.stat_type == StatisticsTypes.SELECTIVITY_MATRIX:
