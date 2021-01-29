@@ -19,6 +19,7 @@ class Event:
         self.type = data_formatter.get_event_type(self.payload)
         self.timestamp = data_formatter.get_event_timestamp(self.payload)
         self.payload[Event.INDEX_ATTRIBUTE_NAME] = Event.counter
+        self.arrival_time = None  # event arrival time into the stream
         Event.counter += 1
 
     def __eq__(self, other):
