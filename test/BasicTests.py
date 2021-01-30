@@ -32,7 +32,7 @@ def simplePatternSearchTest(createTestFile=False):
                             Variable("c", lambda x: x["Opening Price"]),
                             relation_op=lambda x, y: x > y)
         ),
-        timedelta(seconds=0.5)#5
+        timedelta(minutes=5)
     )
     runTest("simple", [pattern], createTestFile)
 
