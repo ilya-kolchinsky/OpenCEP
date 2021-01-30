@@ -112,6 +112,9 @@ class Algorithm2(DataParallelAlgorithm):
         for k in range(1, len(patterns)):
             if patterns[k].window > max_window:
                 max_window = patterns[k].window
+        if mult < 2:
+            raise Exception("Multiplication parameter smaller then 2")
+
         self.time_slot = mult * max_window
         self.shared_time = max_window
         self.start_list = [Stream() for j in range(self._numThreads - 1)]
