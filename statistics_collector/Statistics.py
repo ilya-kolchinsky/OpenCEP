@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 from base.Event import Event
 from base.Pattern import Pattern
 from misc.Statistics import calculate_selectivity_matrix
-from statistics_collector.StatisticsWrapper import ArrivalRatesWrapper, SelectivityWrapper, SelectivityAndArrivalRatesWrapper
+from statistics_collector.StatisticsWrapper import ArrivalRatesWrapper, SelectivityWrapper, \
+    SelectivityAndArrivalRatesWrapper
 from statistics_collector.StatisticEventData import StatisticEventData
 
 
@@ -11,6 +12,7 @@ class Statistics(ABC):
     """
     An abstract class for statistics.
     """
+
     @abstractmethod
     def update(self, event: Event):
         """
@@ -30,15 +32,17 @@ class ArrivalRatesStatistics(Statistics):
     """
     Represents the the arrival rates statistics.
     """
+
     def __init__(self, time_window: timedelta, pattern: Pattern):
-        self.arrival_rates = [0.0] * len(pattern.positive_structure.args)
+        primitive_events = pattern.get_primitive_events()
+        self.arrival_rates = [0.0] * len(primitive_events)
 
         self.event_type_to_indexes_map = {}
-        for i, event in enumerate(pattern.positive_structure.args):
-            if event.type in self.event_type_to_indexes_map:
-                self.event_type_to_indexes_map[event.type].append(i)
+        for i, arg in enumerate(primitive_events):
+            if arg.get_type() in self.event_type_to_indexes_map:
+                self.event_type_to_indexes_map[arg.get_type()].append(i)
             else:
-                self.event_type_to_indexes_map[event.type] = [i]
+                self.event_type_to_indexes_map[arg.get_type()] = [i]
 
         self.events_arrival_time = []
         self.time_window = time_window
@@ -90,11 +94,12 @@ class SelectivityStatistics(Statistics):
     Represents the the arrival rates statistics.
     NOTE: Currently, this statistic ignores time window
     """
+
     # TODO: Implement selectivity that also takes into account a time window
 
     def __init__(self, pattern: Pattern):
         self.pattern = pattern
-        self.args = pattern.positive_structure.args
+        self.args = pattern.get_primitive_events()
         self.args_num = len(self.args)
 
         self.selectivity_matrix = [[1.0 for _ in range(self.args_num)] for _ in range(self.args_num)]
@@ -102,18 +107,18 @@ class SelectivityStatistics(Statistics):
         self.total_counter = {}
 
         self.event_type_to_arg_indexes_map = {}
-        for i, e in enumerate(pattern.positive_structure.args):
-            if e.type in self.event_type_to_arg_indexes_map:
-                self.event_type_to_arg_indexes_map[e.type].append(i)
+        for i, arg in enumerate(self.args):
+            if arg.get_type() in self.event_type_to_arg_indexes_map:
+                self.event_type_to_arg_indexes_map[arg.get_type()].append(i)
             else:
-                self.event_type_to_arg_indexes_map[e.type] = [i]
+                self.event_type_to_arg_indexes_map[arg.get_type()] = [i]
 
         self.args_index_to_events_common_conditions_indexes_map = {}
 
         self.i_j_to_condition_map = {}
         self.condition_to_total_map = {}
         self.condition_to_success_count_map = {}
-        self.events = {event.type: [] for event in pattern.positive_structure.args}
+        self.events = {arg.get_type(): [] for arg in self.args}
         self.is_sequence = True
         self.flag = {}
 
@@ -134,23 +139,24 @@ class SelectivityStatistics(Statistics):
                     continue
                 used_conditions[str(condition)] = [arg_index, events_common_conditions_index]
 
-                e_type = self.args[events_common_conditions_index].type
+                arg_type = self.args[events_common_conditions_index].get_type()
 
                 if arg_index == events_common_conditions_index:
                     self.condition_to_total_map[str(condition)] += 1
-                    if condition.eval({self.args[arg_index].name: event1.payload}):
+                    if condition.eval({self.args[arg_index].get_name(): event1.payload}):
                         self.condition_to_success_count_map[str(condition)] += 1
 
                 else:
-                    for event2 in self.events[e_type]:
+                    for event2 in self.events[arg_type]:
                         self.condition_to_total_map[str(condition)] += 1
-                        if condition.eval({self.args[arg_index].name: event1.payload, self.args[events_common_conditions_index].name: event2.payload}):
+                        if condition.eval({self.args[arg_index].name: event1.payload,
+                                           self.args[events_common_conditions_index].name: event2.payload}):
                             self.condition_to_success_count_map[str(condition)] += 1
                 if self.condition_to_total_map[str(condition)] == 0:
                     continue
-                sel = self.condition_to_success_count_map[str(condition)] / self.condition_to_total_map[str(condition)]
+                sel = self.condition_to_success_count_map[str(condition)] / self.condition_to_total_map[
+                    str(condition)] if self.condition_to_total_map[str(condition)] else 1.0
                 self.selectivity_matrix[arg_index][events_common_conditions_index] = sel
-
 
     def get_statistics(self):
         return SelectivityWrapper(self.selectivity_matrix)
@@ -158,7 +164,7 @@ class SelectivityStatistics(Statistics):
     def init(self):
         for i in range(self.args_num):
             for j in range(i + 1):
-                condition = self.pattern.condition.get_condition_of({self.args[i].name, self.args[j].name})
+                condition = self.pattern.condition.get_condition_of({self.args[i].get_name(), self.args[j].get_name()})
                 if condition is not None:
                     if i in self.args_index_to_events_common_conditions_indexes_map:
                         self.args_index_to_events_common_conditions_indexes_map[i].append(j)
@@ -180,6 +186,7 @@ class SelectivityAndArrivalRatesStatistics(Statistics):
     """
     Represents both the arrival rates and selectivity statistics.
     """
+
     def __init__(self, arrival_rates: ArrivalRatesStatistics, selectivity_matrix: SelectivityStatistics):
         self.arrival_rates = arrival_rates
         self.selectivity_matrix = selectivity_matrix
@@ -198,6 +205,7 @@ class FrequencyDict(Statistics):
     """
     Not implemented
     """
+
     def __init__(self):
         self.frequency_dict = {}
 
@@ -206,4 +214,3 @@ class FrequencyDict(Statistics):
 
     def get_statistics(self):
         return self.frequency_dict
-
