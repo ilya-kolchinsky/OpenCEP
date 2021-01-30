@@ -113,6 +113,31 @@ class Pattern:
             return [structure.type]
         return reduce(lambda x, y: x+y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
 
+    def get_primitive_events(self) -> List[PrimitiveEventStructure]:
+        """
+        Returns a list of primitive events composing the pattern structure.
+        """
+        primitive_events = self.__get_primitive_events_aux(self.positive_structure.get_args())
+        # a hack to remove unhashable duplicates from a list of primitive events
+        return list({str(x): x for x in primitive_events}.values())
+
+    def __get_primitive_events_aux(self, pattern_args) -> List[PrimitiveEventStructure]:
+        """
+        An auxiliary method for returning a list of primitive events composing the pattern structure.
+        """
+        primitive_events = []
+        while not isinstance(pattern_args, List) and not isinstance(pattern_args, PrimitiveEventStructure):
+            pattern_args = pattern_args.get_args()
+        if isinstance(pattern_args, PrimitiveEventStructure):
+            primitive_events.append(pattern_args)
+        else:
+            for event in pattern_args:
+                if isinstance(event, PrimitiveEventStructure):
+                    primitive_events.append(event)
+                else:
+                    primitive_events.extend(self.__get_primitive_events_aux(event))
+        return primitive_events
+
     def __init_strict_conditions(self, pattern_structure: PatternStructure):
         """
         Augment the pattern with the contiguity constraints specified as a part of the consumption policy.

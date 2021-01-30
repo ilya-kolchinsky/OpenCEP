@@ -54,6 +54,12 @@ class PrimitiveEventStructure(PatternStructure):
     def __repr__(self):
         return "%s %s" % (self.type, self.name)
 
+    def get_type(self):
+        return self.type
+
+    def get_name(self):
+        return self.name
+
 
 class UnaryStructure(PatternStructure, ABC):
     """
@@ -67,6 +73,9 @@ class UnaryStructure(PatternStructure, ABC):
 
     def contains_event(self, event_name: str):
         return self.arg.contains_event(event_name)
+
+    def get_args(self):
+        return self.arg
 
 
 class CompositeStructure(PatternStructure, ABC):
