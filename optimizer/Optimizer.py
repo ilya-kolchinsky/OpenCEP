@@ -61,7 +61,7 @@ class StatisticChangesAwareOptimizer(Optimizer):
         return self.prev_statistics is None or self.is_changed_by_t(new_statistics.statistics, self.prev_statistics)
 
     def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
-        self.prev_statistics = copy.deepcopy(new_statistics.statistics)
+        self.prev_statistics = new_statistics.statistics
         tree_plan = self.tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
 
