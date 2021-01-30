@@ -62,11 +62,9 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         statistics_update_start_time = datetime.now()
         is_first_time = True
 
-
         # selectivity = calculate_selectivity_matrix(self._pattern, events.duplicate())
         for raw_event in events:
             event = Event(raw_event, data_formatter)
-            event.arrival_time = datetime.now()
             if event.type not in self._event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
@@ -80,9 +78,10 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                         new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
                         new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
                         self.tree_update(new_tree)
-                        event.arrival_time = datetime.now()
                 # re-initialize statistics window start time
                 statistics_update_start_time = datetime.now()
+
+            event.arrival_time = datetime.now()
 
             self.play_new_event_on_tree(event, matches)
             self.get_matches(matches)
