@@ -116,16 +116,15 @@ runTest.over_all_time = 0
 
 
 # Optimizer tests
-# create_InvariantAwareGreedyTreeBuilder()
-# create_InvariantAwareZStreamTreeBuilder()
-# greedy_invariant_optimizer_doesnt_change_the_tree()
-# zstream_invariant_optimizer_doesnt_change_the_tree()
+# greedy_invariant_optimizer_doesnt_change_the_tree_1()
 # greedy_invariant_optimizer_doesnt_change_the_tree_2()
-# greedy_invariant_optimizer_doesnt_change_the_tree_3()
-# zstream_invariant_optimizer_doesnt_change_the_tree2()
-# zstream_invariant_optimizer_doesnt_change_the_tree3()
+# greedy_invariant_optimizer_change_the_tree_1()
+# zstream_invariant_optimizer_doesnt_change_the_tree_1()
+# zstream_invariant_optimizer_change_the_tree_1()
+# zstream_invariant_optimizer_change_the_tree_2()
 
-# Tree change tests
+
+# Adaptivity tests
 simple_1()
 simple_2()
 simple_3()

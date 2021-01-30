@@ -1,5 +1,5 @@
 """
-This file contains the implementations of algorithms constructing a left-deep tree-based evaluation mechanism.
+This file contains the implementations of algorithms constructing invariant-aware left-deep tree-based evaluation mechanism.
 """
 import random
 from typing import List
@@ -33,10 +33,6 @@ class InvariantLeftDeepTreeBuilder(TreePlanBuilder):
         return TreePlan(tree_topology), invariants
 
     def _create_tree_topology(self, statistics: StatisticsWrapper, pattern: Pattern):
-        """
-        Invokes an algorithm (to be implemented by subclasses) that builds an evaluation order of the operands, and
-        converts it into a left-deep tree topology.
-        """
         order, invariants = self._create_evaluation_order(statistics) if isinstance(pattern.positive_structure,
                                                                                     CompositeStructure) else [0]
         return self._order_to_tree_topology(order, pattern), invariants
@@ -60,7 +56,7 @@ class InvariantLeftDeepTreeBuilder(TreePlanBuilder):
 
     def _create_evaluation_order(self, statistics: StatisticsWrapper):
         """
-        Creates an evaluation order to serve as a basis for the left-deep tree topology.
+        Creates an evaluation order to serve as a basis for the invariant aware left-deep tree topology.
         """
         raise NotImplementedError()
 
@@ -107,7 +103,7 @@ class InvariantAwareGreedyTreeBuilder(InvariantLeftDeepTreeBuilder):
             second_min_change_factor = min_change_factor
             second_min_index = to_add
 
-            # find minimum change factor and its according index.
+            # finds the minimum change factor and its corresponding index.
             for i in left_to_add:
                 change_factor = selectivity_matrix[i][i] * arrival_rates[i]
                 for j in new_order:
@@ -121,10 +117,10 @@ class InvariantAwareGreedyTreeBuilder(InvariantLeftDeepTreeBuilder):
                     to_add = i
 
                 # The second condition "second_min_index == to_add"
-                # handle the case that in the current while loop,
-                # the first index that popped from set is the minimum.
+                # handles the case that in the current for loop,
+                # the first index that popped from the "left_to_add" set is the minimum.
                 # Hence we need to save the second minimum for the invariants
-                # because in this case we never change the second_min_index
+                # because in this case we never change the second_min_index.
                 elif change_factor < second_min_change_factor or second_min_index == to_add:
                     second_min_change_factor = change_factor
                     second_min_index = i
@@ -132,7 +128,7 @@ class InvariantAwareGreedyTreeBuilder(InvariantLeftDeepTreeBuilder):
             new_order.append(to_add)
             invariants.add(Invariant(to_add, second_min_index))
 
-            # if it wasn't the first nominee, then we need to fix the starting speculation we did.
+            # if it wasn't the first nominee, we need to fix the starting speculation we did.
             if to_add != to_add_start:
                 left_to_add.remove(to_add)
                 left_to_add.add(to_add_start)

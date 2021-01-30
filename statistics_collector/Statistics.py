@@ -18,14 +18,14 @@ class Statistics(ABC):
         """
         Given the newly arrived event, update the statistics.
         """
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def get_statistics(self):
         """
         Return the current statistics.
         """
-        pass
+        raise NotImplementedError()
 
 
 class ArrivalRatesStatistics(Statistics):
@@ -33,11 +33,11 @@ class ArrivalRatesStatistics(Statistics):
     Represents the the arrival rates statistics.
     """
     def __init__(self, time_window: timedelta, pattern: Pattern):
-        primitive_events = pattern.get_primitive_events()
-        self.arrival_rates = [0.0] * len(primitive_events)
+        args = pattern.get_primitive_events()
+        self.arrival_rates = [0.0] * len(args)
 
         self.event_type_to_indexes_map = {}
-        for i, arg in enumerate(primitive_events):
+        for i, arg in enumerate(args):
             if arg.get_type() in self.event_type_to_indexes_map:
                 self.event_type_to_indexes_map[arg.get_type()].append(i)
             else:
@@ -59,14 +59,6 @@ class ArrivalRatesStatistics(Statistics):
         self.__remove_expired_events(time)
 
     def __remove_expired_events(self, last_timestamp: datetime):
-        """
-        This method is efficient if we call this function every time we update statistics and
-        our assumption that is more efficient then binary search because we know that ther is
-        a little mount of expired event in the beginning.
-        In addition, if we use this function not every time we update statistics but rather when
-        the evaluation want get statistics the efficient method to implement this function is
-        probably by binary search.
-        """
         is_removed_elements = False
         for i, event_time in enumerate(self.events_arrival_time):
             if last_timestamp - event_time.timestamp > self.time_window:
@@ -199,7 +191,7 @@ class FrequencyDict(Statistics):
         self.frequency_dict = {}
 
     def update(self, event):
-        pass
+        raise NotImplementedError()
 
     def get_statistics(self):
         return self.frequency_dict

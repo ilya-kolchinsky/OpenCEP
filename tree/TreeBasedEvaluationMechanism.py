@@ -70,7 +70,9 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             if event.type not in self._event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
-            if not self.is_multi_pattern_mode:
+            if not self.is_multi_pattern_mode:  # Note: multi-pattern does not yet support adaptive-CEP,
+                # this condition is necessary for the multi-pattern tests and nothing more
+                # TODO: evaluation mechanism factory needs to support multi-pattern mode
                 self.__statistics_collector.event_handler(event)
                 if datetime.now() - statistics_update_start_time >= self.statistics_update_time_window or is_first_time:
                     is_first_time = False
