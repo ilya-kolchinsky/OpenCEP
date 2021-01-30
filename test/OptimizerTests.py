@@ -28,7 +28,7 @@ def get_pattern_test():
     return pattern
 
 
-def greedy_invariant_optimizer_doesnt_change_the_tree():
+def greedy_invariant_optimizer_doesnt_change_the_tree_1():
     """
     Basic test, check if greedy invariant aware optimizer say that
     need to generate new tree in the case that statistics doesnt change
@@ -82,7 +82,7 @@ def greedy_invariant_optimizer_doesnt_change_the_tree_2():
         print("Failed")
 
 
-def greedy_invariant_optimizer_doesnt_change_the_tree_3():
+def greedy_invariant_optimizer_change_the_tree_1():
     """
     In this test:
     We change the statistics so that the conditions in invariants should be change.
@@ -104,12 +104,12 @@ def greedy_invariant_optimizer_doesnt_change_the_tree_3():
 
     is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
     if not is_changed:
-        print("Success")
-    else:
         print("Failed")
+    else:
+        print("Success")
 
 
-def zstream_invariant_optimizer_doesnt_change_the_tree():
+def zstream_invariant_optimizer_doesnt_change_the_tree_1():
     """
     Basic test, check if zstream invariant aware optimizer say that
     need to generate new tree in the case that statistics doesnt change
@@ -136,7 +136,7 @@ def zstream_invariant_optimizer_doesnt_change_the_tree():
         print("Failed")
 
 
-def zstream_invariant_optimizer_doesnt_change_the_tree2():
+def zstream_invariant_optimizer_change_the_tree_1():
     """
     Basic test, check if zstream invariant aware optimizer say that
     need to generate new tree in the case that statistics doesnt change
@@ -157,13 +157,13 @@ def zstream_invariant_optimizer_doesnt_change_the_tree2():
     new_statistics = SelectivityAndArrivalRatesWrapper(new_arrival_rates, new_selectivity_matrix)
 
     is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
-    if not is_changed:
+    if is_changed:
         print("Success")
     else:
         print("Failed")
 
 
-def zstream_invariant_optimizer_doesnt_change_the_tree3():
+def zstream_invariant_optimizer_change_the_tree_2():
     """
     Basic test, check if zstream invariant aware optimizer say that
     need to generate new tree in the case that statistics doesnt change
@@ -184,7 +184,7 @@ def zstream_invariant_optimizer_doesnt_change_the_tree3():
     new_statistics = SelectivityAndArrivalRatesWrapper(new_arrival_rates, new_selectivity_matrix)
 
     is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
-    if not is_changed:
+    if is_changed:
         print("Success")
     else:
         print("Failed")
