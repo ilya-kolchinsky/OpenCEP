@@ -9,20 +9,6 @@ from parallel.ParallelExecutionParameters import *
 
 
 
-
-def oneArgumentsearchTestParallel(createTestFile=False):
-    pattern = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a")),
-        GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), 135),
-        timedelta(minutes=120)
-    )
-    runTest(testName="one", patterns=[pattern], createTestFile=createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM),
-            data_parallel_params=DataParallelExecutionParameters(num_threads= 2))
-
-
-
-
 def oneArgumentsearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
