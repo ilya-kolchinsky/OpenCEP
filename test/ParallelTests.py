@@ -10,8 +10,45 @@ from condition.KCCondition import KCIndexCondition, KCValueCondition
 from plan.multi.MultiPatternEvaluationParameters import *
 from misc.ConsumptionPolicy import *
 
+# Algorithm 1
+def oneArgumentsearchTestAlgorithm1(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a")),
+        GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), 135),
+        timedelta(minutes=120)
+    )
+    runTest("one", [pattern], createTestFile,
+            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key = "Opening Price"))
+
+def amazonSpecificPatternSearchTestAlgoritm1(createTestFile=False):
+    """
+    This pattern is looking for an amazon stock in peak price of 73.
+    """
+    amazonSpecificPattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AMZN", "a")),
+        EqCondition(Variable("a", lambda x: x["Peak Price"]), 73),
+        timedelta(minutes=120)
+    )
+    runTest('amazonSpecific', [amazonSpecificPattern], createTestFile,
+            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
+
+def amazonSpecificPatternSearchTest(createTestFile=False):
+    """
+    This pattern is looking for an amazon stock in peak price of 73.
+    """
+    amazonSpecificPattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AMZN", "a")),
+        NotEqCondition(Variable("a", lambda x: x["Peak Price"]), 73),
+        timedelta(minutes=120)
+    )
+    runTest('amazonSpecific', [amazonSpecificPattern], createTestFile)
 
 
+
+
+# Algorithm 2
 def oneArgumentsearchTestAlgorithm2(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
