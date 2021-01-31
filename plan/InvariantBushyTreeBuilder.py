@@ -1,5 +1,5 @@
 """
-This file contains the implementations of algorithms constructing a generic (bushy) tree-based evaluation mechanism.
+This file contains the implementations of algorithms constructing an invariant aware (bushy) tree-based evaluation mechanism.
 """
 from typing import List
 
@@ -19,8 +19,9 @@ from statistics_collector.StatisticsWrapper import StatisticsWrapper, Selectivit
 
 class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
     """
-    Creates a bushy tree using ZStream algorithm.
+    Creates an invariant aware bushy tree using ZStream algorithm.
     """
+
     def build_tree_plan(self, statistics: StatisticsWrapper, pattern: Pattern):
         """
         Creates a tree-based evaluation plan for the given pattern.
@@ -47,7 +48,7 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
         invariants = ZStreamTreeInvariants(cost_model)
         all_sub_trees = []
 
-        # iterate over suborders' sizes
+        # iterate over suborders sizes
         for i in range(2, args_num + 1):
             # iterate over suborders of size i
             for j in range(args_num - i + 1):
@@ -87,9 +88,8 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
                 if i != 2:
                     tree_to_second_min_tree_map[suborders[suborder][0]] = second_min_tree
 
-        # Eliminate from trees in map_tree_to_second_min_tree that are not exist in the best tree
-        InvariantAwareZStreamTreeBuilder.get_all_sub_trees(suborders[items][0],
-                                                           tree_to_second_min_tree_map, all_sub_trees)
+        # Eliminates all trees that are not in best tree from map_tree_to_second_min_tree
+        InvariantAwareZStreamTreeBuilder.get_relevant_sub_trees(suborders[items][0], all_sub_trees)
 
         for tree in all_sub_trees:
             invariants.add(Invariant(tree, tree_to_second_min_tree_map[tree]))
@@ -102,9 +102,11 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
         return list(range(len(selectivity_matrix)))
 
     @staticmethod
-    def get_all_sub_trees(tree, tree_to_second_min_tree_map, all_sub_trees):
+    def get_relevant_sub_trees(tree, all_sub_trees):
         """
-        We care about trees with at least 3 leaf node
+        Unlike the invariant aware greedy tree builder,
+        here we want to eliminate all trees that are not in the best tree.
+        We only care about trees that have at least 3 leaf nodes.
         """
         if isinstance(tree, TreePlanLeafNode) or \
                 (isinstance(tree.left_child, TreePlanLeafNode) and isinstance(tree.right_child, TreePlanLeafNode)):
@@ -112,6 +114,5 @@ class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
 
         all_sub_trees.append(tree)
 
-        InvariantAwareZStreamTreeBuilder.get_all_sub_trees(tree.left_child, tree_to_second_min_tree_map, all_sub_trees)
-
-        InvariantAwareZStreamTreeBuilder.get_all_sub_trees(tree.right_child, tree_to_second_min_tree_map, all_sub_trees)
+        InvariantAwareZStreamTreeBuilder.get_relevant_sub_trees(tree.left_child, all_sub_trees)
+        InvariantAwareZStreamTreeBuilder.get_relevant_sub_trees(tree.right_child, all_sub_trees)
