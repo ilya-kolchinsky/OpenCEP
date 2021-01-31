@@ -25,8 +25,8 @@ class TrivialOptimizerParameters(OptimizerParameters):
     Parameters for the creation of the trivial optimizer class.
     """
 
-    def __init__(self, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters):
-        super().__init__(opt_type, tree_plan_params)
+    def __init__(self, tree_plan_params: TreePlanBuilderParameters):
+        super().__init__(OptimizerTypes.TRIVIAL, tree_plan_params)
 
 
 class StatisticChangesAwareOptimizerParameters(OptimizerParameters):
@@ -34,9 +34,9 @@ class StatisticChangesAwareOptimizerParameters(OptimizerParameters):
     Parameters for the creation of StatisticChangesAwareOptimizer class.
     """
 
-    def __init__(self, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters,
+    def __init__(self, tree_plan_params: TreePlanBuilderParameters,
                  t: float, stat_type: StatisticsTypes):
-        super().__init__(opt_type, tree_plan_params)
+        super().__init__(OptimizerTypes.CHANGES_AWARE, tree_plan_params)
         self.t = t
         self.stat_type = stat_type
 
@@ -46,8 +46,8 @@ class InvariantsAwareOptimizerParameters(OptimizerParameters):
     Parameters for the creation of InvariantsAwareOptimizer class.
     """
 
-    def __init__(self, opt_type: OptimizerTypes, tree_plan_params: TreePlanBuilderParameters):
-        super().__init__(opt_type, tree_plan_params)
+    def __init__(self, tree_plan_params: TreePlanBuilderParameters):
+        super().__init__(OptimizerTypes.USING_INVARIANT, tree_plan_params)
 
 
 class OptimizerFactory:
