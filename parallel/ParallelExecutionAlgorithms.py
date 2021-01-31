@@ -354,12 +354,10 @@ class Algorithm1(DataParallelAlgorithm):
     def __init__(self, numthreads, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform, key: str):
         super().__init__(numthreads, patterns, eval_mechanism_params, platform)
-        print(type(platform))
         self.key = key
         print(self.key)
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
-
         event = Event(events.first(),data_formatter)
         key_val = event.payload[self.key]
         if not isinstance(key_val, (int, float)):
@@ -373,12 +371,13 @@ class Algorithm1(DataParallelAlgorithm):
 
 
     def _stream_divide(self):
-        print("chen")
         file = open("C:/Users/tomer/Desktop/CEPproject/OpenCEP/test/strems.txt", 'w')
+
         for event_raw in self._events:
             event = Event(event_raw, self._data_formatter)
             index = int(event.payload[self.key] % (self._numThreads - 1))
             self._events_list[index].add_item(event_raw)
+
             file.write("%s " %index)
             file.write("%s\n" %event.payload[self.key])
 

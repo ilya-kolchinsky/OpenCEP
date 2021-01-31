@@ -27,6 +27,7 @@ nasdaqEventStreamShort = FileInputStream(os.path.join(absolutePath, "test/EventF
 nasdaqEventStreamMedium = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt"))
 nasdaqEventStreamFrequencyTailored = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
 nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
+#nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/tomerrrrrrrrrrr.txt"))
 nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
 
 nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt"))
@@ -34,6 +35,7 @@ custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"
 custom2 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom2.txt"))
 custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.txt"))
 custom_temp = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom_temp.txt"))
+nasdaq_equals = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_EQUALS.txt"))
 
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
@@ -206,11 +208,12 @@ def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
     print("Finished creating test %s" % testName)
 
 
+
+
 def runTest(testName, patterns, createTestFile=False,
             eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events=None, eventStream=nasdaqEventStream,
-            parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads= 6)
+            events=None, eventStream=nasdaqEventStream,parallel_execution_params=None,
+            data_parallel_params=None
             ):
     if createTestFile:
         createTest(testName, patterns, events, eventStream=eventStream)
@@ -238,19 +241,21 @@ def runTest(testName, patterns, createTestFile=False,
         events = custom3.duplicate()
 
     cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, data_parallel_params)
-
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
+
+    print(actual_matches_path)
+    print(expected_matches_path)
     is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
-    if is_test_successful:
-        os.remove(actual_matches_path)
+    #if is_test_successful:
+     #   os.remove(actual_matches_path)
 
 
 """

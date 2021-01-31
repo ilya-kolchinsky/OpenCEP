@@ -8,10 +8,19 @@ from test.StorageTests import *
 from test.internal_tests import *
 from test.UnitTests.test_storage import run_storage_tests
 from stream.Stream import *
+from test.Algorithm1Tests import *
 
 
+
+
+#Alogrithm1 Tests
 runTest.over_all_time = 0
+EqualOver2Events()
 
+
+
+
+'''
 #basic functionality tests
 oneArgumentsearchTest()
 simplePatternSearchTest()
@@ -127,6 +136,6 @@ if INCLUDE_TWITTER:
         run_twitter_sanity_check()
     except ImportError:  # tweepy might not be installed
         pass
-
+'''
 
 print("Finished running all tests, overall time: %s" % runTest.over_all_time)

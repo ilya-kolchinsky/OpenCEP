@@ -3,9 +3,10 @@ from datetime import timedelta
 from condition.Condition import Variable, TrueCondition, BinaryCondition, SimpleCondition
 from condition.CompositeCondition import AndCondition
 from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, GreaterThanEqCondition, SmallerThanEqCondition
-from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure
+from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure,KleeneClosureOperator
 from base.Pattern import Pattern
 from parallel.ParallelExecutionParameters import *
+from condition.KCCondition import KCIndexCondition, KCValueCondition
 
 def stream_test():
     pattern = Pattern(
@@ -16,3 +17,5 @@ def stream_test():
     runTest(testName="stream", patterns=[pattern], createTestFile=False,
             parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM),
             data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+
+
