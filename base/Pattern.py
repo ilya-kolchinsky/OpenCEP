@@ -115,16 +115,18 @@ class Pattern:
 
     def get_primitive_events(self) -> List[PrimitiveEventStructure]:
         """
-        Returns a list of primitive events composing the pattern structure.
+        Returns a list of primitive events that make up the pattern structure.
         """
+
         primitive_events = self.__get_primitive_events_aux(self.positive_structure.get_args())
-        # a hack to remove unhashable duplicates from a list of primitive events
+        # a hack to remove unhashable duplicates from a list.
         return list({str(x): x for x in primitive_events}.values())
 
     def __get_primitive_events_aux(self, pattern_args) -> List[PrimitiveEventStructure]:
         """
         An auxiliary method for returning a list of primitive events composing the pattern structure.
         """
+
         primitive_events = []
         while not isinstance(pattern_args, List) and not isinstance(pattern_args, PrimitiveEventStructure):
             pattern_args = pattern_args.get_args()
