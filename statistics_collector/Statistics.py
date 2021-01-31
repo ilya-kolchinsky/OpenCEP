@@ -93,36 +93,36 @@ class SelectivityStatistics(Statistics):
     # TODO: Implement selectivity that also takes into account a time window
 
     def __init__(self, pattern: Pattern):
-        self.pattern = pattern
-        self.args = pattern.get_primitive_events()
-        self.args_len = len(self.args)
-        self.args_index_to_events_common_conditions_indexes_map = {}
+        self.__pattern = pattern
+        self.__args = pattern.get_primitive_events()
+        self.__args_len = len(self.__args)
+        self.__args_index_to_events_common_conditions_indexes_map = {}
         self.i_j_to_condition_map = {}
         self.total_map = {}
         self.success_map = {}
-        self.event_type_to_arg_indexes_map = {}
-        self.event_type_to_events_map = {primitive_event.type: [] for primitive_event in self.args}
-        self.selectivity_matrix = [[1.0 for _ in range(self.args_len)] for _ in range(self.args_len)]
+        self.__event_type_to_arg_indexes_map = {}
+        self.event_type_to_events_map = {primitive_event.type: [] for primitive_event in self.__args}
+        self.selectivity_matrix = [[1.0 for _ in range(self.__args_len)] for _ in range(self.__args_len)]
 
         self.init()
 
     def update(self, event1: Event):
         event_type = event1.type
-        event_arg_1_indexes = self.event_type_to_arg_indexes_map[event_type]
+        event_arg_1_indexes = self.__event_type_to_arg_indexes_map[event_type]
         for arg_1_index in event_arg_1_indexes:
-            for arg_2_index in self.args_index_to_events_common_conditions_indexes_map[arg_1_index]:
+            for arg_2_index in self.__args_index_to_events_common_conditions_indexes_map[arg_1_index]:
                 condition = self.i_j_to_condition_map[(arg_1_index, arg_2_index)]
-                arg_2_type = self.args[arg_2_index].type
+                arg_2_type = self.__args[arg_2_index].type
                 if arg_1_index == arg_2_index:
                     self.total_map[(arg_1_index, arg_2_index)] += 1
-                    if condition.eval({self.args[arg_1_index].name: event1.payload}):
+                    if condition.eval({self.__args[arg_1_index].name: event1.payload}):
                         self.success_map[(arg_1_index, arg_2_index)] += 1
                 else:
                     for event2 in self.event_type_to_events_map[arg_2_type]:
                         self.total_map[(arg_1_index, arg_2_index)] += 1
                         self.total_map[(arg_2_index, arg_1_index)] += 1
-                        if condition.eval({self.args[arg_1_index].name: event1.payload,
-                                           self.args[arg_2_index].name: event2.payload}):
+                        if condition.eval({self.__args[arg_1_index].name: event1.payload,
+                                           self.__args[arg_2_index].name: event2.payload}):
                             self.success_map[(arg_1_index, arg_2_index)] += 1
                             self.success_map[(arg_2_index, arg_1_index)] += 1
                 if self.total_map[(arg_1_index, arg_2_index)] == 0:
