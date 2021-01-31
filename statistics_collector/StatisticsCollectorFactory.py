@@ -1,7 +1,5 @@
 from typing import List
-
 from base.Pattern import Pattern
-from misc import DefaultConfig
 from statistics_collector.StatisticsCollector import StatisticsCollector
 from statistics_collector.StatisticsFactory import StatisticsParameters, StatisticsFactory
 

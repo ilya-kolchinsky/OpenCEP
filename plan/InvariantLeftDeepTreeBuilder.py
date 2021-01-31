@@ -1,22 +1,13 @@
 """
 This file contains the implementations of algorithms constructing invariant-aware left-deep tree-based evaluation mechanism.
 """
-import random
 from typing import List
-
 from base.PatternStructure import CompositeStructure
-from misc import DefaultConfig
 from plan.Invariants import Invariant, GreedyTreeInvariants
-from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType, \
-    IterativeImprovementAlgorithmBuilder
-from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlanLeafNode, TreePlan
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
-from misc.StatisticsTypes import StatisticsTypes
-from misc.Utils import get_order_by_occurrences
-from statistics_collector.Statistics import Statistics, SelectivityAndArrivalRatesStatistics
 from statistics_collector.StatisticsWrapper import StatisticsWrapper, SelectivityAndArrivalRatesWrapper
 
 

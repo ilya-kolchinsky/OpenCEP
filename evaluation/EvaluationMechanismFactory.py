@@ -5,13 +5,11 @@ from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc import DefaultConfig
 from misc.Tree_Evaluation_Mechanism_Types import TreeEvaluationMechanismTypes
 from optimizer.OptimizerFactory import OptimizerParameters, OptimizerFactory
-from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
+from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from statistics_collector.StatisticsCollectorFactory import StatCollectorParameters, StatCollectorFactory
 from tree.PatternMatchStorage import TreeStorageParameters
-from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism, TrivialEvaluation, SimultaneousEvaluation
+from tree.TreeBasedEvaluationMechanism import TrivialEvaluation, SimultaneousEvaluation
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
-from statistics_collector.StatisticsCollector import StatisticsCollector
-from optimizer import Optimizer
 
 
 class EvaluationMechanismParameters:
@@ -80,7 +78,6 @@ class EvaluationMechanismFactory:
 
         statistics_collector = StatCollectorFactory.build_statistics_collector(eval_mechanism_params.statistics_collector_params, patterns)
         optimizer = OptimizerFactory.build_optimizer(eval_mechanism_params.optimizer_params)
-        # tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
         pattern_to_tree_plan_map = {pattern: optimizer.build_new_tree_plan(statistics_collector.get_statistics(), pattern) for pattern in patterns}
 
         if eval_mechanism_params.evaluation_type == TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION:

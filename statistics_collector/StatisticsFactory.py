@@ -1,5 +1,4 @@
 from datetime import timedelta
-
 from base.Pattern import Pattern
 from misc import DefaultConfig
 from misc.StatisticsTypes import StatisticsTypes

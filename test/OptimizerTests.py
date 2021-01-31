@@ -48,7 +48,7 @@ def greedy_invariant_optimizer_doesnt_change_the_tree_1():
                           [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
     new_statistics = SelectivityAndArrivalRatesWrapper(new_arrival_rates, new_selectivity_matrix)
 
-    is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
+    is_changed = optimizer_test(old_statistics, new_statistics, optimizer)
     if not is_changed:
         print("Success")
     else:
@@ -75,7 +75,7 @@ def greedy_invariant_optimizer_doesnt_change_the_tree_2():
                           [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]]
     new_statistics = SelectivityAndArrivalRatesWrapper(new_arrival_rates, new_selectivity_matrix)
 
-    is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
+    is_changed = optimizer_test(old_statistics, new_statistics, optimizer)
     if not is_changed:
         print("Success")
     else:
@@ -102,7 +102,7 @@ def greedy_invariant_optimizer_change_the_tree_1():
                           [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]]
     new_statistics = SelectivityAndArrivalRatesWrapper(new_arrival_rates, new_selectivity_matrix)
 
-    is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
+    is_changed = optimizer_test(old_statistics, new_statistics, optimizer)
     if not is_changed:
         print("Failed")
     else:
@@ -129,7 +129,7 @@ def zstream_invariant_optimizer_doesnt_change_the_tree_1():
                       [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
     new_statistics = SelectivityAndArrivalRatesWrapper(new_arrival_rates, new_selectivity_matrix)
 
-    is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
+    is_changed = optimizer_test(old_statistics, new_statistics, optimizer)
     if not is_changed:
         print("Success")
     else:
@@ -156,7 +156,7 @@ def zstream_invariant_optimizer_change_the_tree_1():
                       [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0]]
     new_statistics = SelectivityAndArrivalRatesWrapper(new_arrival_rates, new_selectivity_matrix)
 
-    is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
+    is_changed = optimizer_test(old_statistics, new_statistics, optimizer)
     if is_changed:
         print("Success")
     else:
@@ -183,15 +183,18 @@ def zstream_invariant_optimizer_change_the_tree_2():
                       [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0]]
     new_statistics = SelectivityAndArrivalRatesWrapper(new_arrival_rates, new_selectivity_matrix)
 
-    is_changed = optimizer_behavior_test_function(old_statistics, new_statistics, optimizer)
+    is_changed = optimizer_test(old_statistics, new_statistics, optimizer)
     if is_changed:
         print("Success")
     else:
         print("Failed")
 
 
-def optimizer_behavior_test_function(old_statistics: StatisticsWrapper, new_statistics: StatisticsWrapper, optimizer: Optimizer):
-
+def optimizer_test(old_statistics: StatisticsWrapper, new_statistics: StatisticsWrapper, optimizer: Optimizer):
+    """
+    Given old_statistics and new_statistics, the Optimizer decide if need to re-optimize.
+    If so, return True, else return False
+    """
     pattern = get_pattern_test()
 
     if optimizer.is_need_optimize(old_statistics, pattern):

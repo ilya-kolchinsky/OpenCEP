@@ -2,18 +2,11 @@
 This file contains the implementations of algorithms constructing an invariant aware (bushy) tree-based evaluation mechanism.
 """
 from typing import List
-
 from plan.Invariants import Invariant, ZStreamTreeInvariants
 from plan.TreePlan import TreePlanLeafNode, TreePlan
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
-from misc.Utils import get_all_disjoint_sets
 from misc.Statistics import MissingStatisticsException
-from misc.StatisticsTypes import StatisticsTypes
-from plan.LeftDeepTreeBuilders import GreedyLeftDeepTreeBuilder
-from itertools import combinations
-
-from statistics_collector.Statistics import Statistics, SelectivityAndArrivalRatesStatistics
 from statistics_collector.StatisticsWrapper import StatisticsWrapper, SelectivityAndArrivalRatesWrapper
 
 
