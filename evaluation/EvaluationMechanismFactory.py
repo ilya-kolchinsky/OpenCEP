@@ -6,7 +6,7 @@ from misc import DefaultConfig
 from misc.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
 from optimizer.OptimizerFactory import OptimizerParameters, OptimizerFactory
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
-from statistics_collector.StatisticsCollectorFactory import StatCollectorParameters, StatCollectorFactory
+from statistics_collector.StatisticsCollectorFactory import StatisticsCollectorParameters, StatisticsCollectorFactory
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TrivialEvaluation, SimultaneousEvaluation
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
@@ -17,7 +17,7 @@ class EvaluationMechanismParameters:
     Parameters required for evaluation mechanism creation.
     """
     def __init__(self, eval_mechanism_type: EvaluationMechanismTypes = DefaultConfig.DEFAULT_EVALUATION_MECHANISM_TYPE,
-                 statistics_collector_params: StatCollectorParameters = StatCollectorParameters(),
+                 statistics_collector_params: StatisticsCollectorParameters = StatisticsCollectorParameters(),
                  optimizer_params: OptimizerParameters = DefaultConfig.DEFAULT_OPTIMIZER_TYPE):
         self.type = eval_mechanism_type
         self.statistics_collector_params = statistics_collector_params
@@ -33,7 +33,7 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
                  storage_params: TreeStorageParameters = TreeStorageParameters(),
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters(),
                  evaluation_type: TreeEvaluationMechanismTypes = DefaultConfig.DEFAULT_TREE_EVALUATION_MECHANISM_TYPE,
-                 statistics_collector_params: StatCollectorParameters = StatCollectorParameters(),
+                 statistics_collector_params: StatisticsCollectorParameters = StatisticsCollectorParameters(),
                  optimizer_params: OptimizerParameters = OptimizerParameters(),
                  statistics_updates_time_window: timedelta = timedelta(seconds=30)):
         super().__init__(EvaluationMechanismTypes.TREE_BASED, statistics_collector_params, optimizer_params)
@@ -76,7 +76,7 @@ class EvaluationMechanismFactory:
         if isinstance(patterns, Pattern):
             patterns = [patterns]
 
-        statistics_collector = StatCollectorFactory.build_statistics_collector(eval_mechanism_params.statistics_collector_params, patterns)
+        statistics_collector = StatisticsCollectorFactory.build_statistics_collector(eval_mechanism_params.statistics_collector_params, patterns)
         optimizer = OptimizerFactory.build_optimizer(eval_mechanism_params.optimizer_params)
         pattern_to_tree_plan_map = {pattern: optimizer.build_new_tree_plan(statistics_collector.get_statistics(), pattern) for pattern in patterns}
 
