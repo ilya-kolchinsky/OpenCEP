@@ -1,13 +1,7 @@
 from abc import ABC, abstractmethod
 from base import Pattern
-from misc.Statistics import MissingStatisticsException
 from plan import TreePlanBuilder, TreePlan
-from misc.StatisticsTypes import StatisticsTypes
-from statistics_collector.Statistics import Statistics, ArrivalRatesStatistics, SelectivityStatistics, \
-    SelectivityAndArrivalRatesStatistics
-from statistics_collector.StatisticsWrapper import StatisticsWrapper, ArrivalRatesWrapper, SelectivityWrapper, \
-    SelectivityAndArrivalRatesWrapper
-import copy
+from statistics_collector.StatisticsWrapper import StatisticsWrapper
 
 
 class Optimizer(ABC):

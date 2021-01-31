@@ -1,11 +1,8 @@
-from abc import ABC
 
-from base.Pattern import Pattern
 from misc.OptimizerTypes import OptimizerTypes
 from misc import DefaultConfig
 from misc.StatisticsTypes import StatisticsTypes
 from optimizer import Optimizer
-from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
 
 

@@ -4,8 +4,7 @@ from datetime import datetime, timedelta
 from base.Event import Event
 from base.Pattern import Pattern
 from misc.Statistics import calculate_selectivity_matrix
-from statistics_collector.StatisticsWrapper import ArrivalRatesWrapper, SelectivityWrapper, \
-    SelectivityAndArrivalRatesWrapper
+from statistics_collector.StatisticsWrapper import ArrivalRatesWrapper, SelectivityWrapper, SelectivityAndArrivalRatesWrapper
 from statistics_collector.StatisticEventData import StatisticEventData
 
 
@@ -30,49 +29,57 @@ class Statistics(ABC):
 
 class ArrivalRatesStatistics(Statistics):
     """
-    Represents the the arrival rates statistics.
+    Represents the arrival rates statistics.
     """
     def __init__(self, time_window: timedelta, pattern: Pattern):
         args = pattern.get_primitive_events()
         self.arrival_rates = [0.0] * len(args)
 
-        self.event_type_to_indexes_map = {}
+        self.__event_type_to_indexes_map = {}
         for i, arg in enumerate(args):
-            if arg.get_type() in self.event_type_to_indexes_map:
-                self.event_type_to_indexes_map[arg.get_type()].append(i)
+            if arg.get_type() in self.__event_type_to_indexes_map:
+                self.__event_type_to_indexes_map[arg.type].append(i)
             else:
-                self.event_type_to_indexes_map[arg.get_type()] = [i]
+                self.__event_type_to_indexes_map[arg.type] = [i]
 
-        self.events_arrival_time = []
-        self.time_window = time_window
+        self.__events_arrival_time = []
+        self.__time_window = time_window
 
     def update(self, event: Event):
         event_type = event.type
         time = datetime.now()
 
-        if event_type in self.event_type_to_indexes_map:
-            indexes = self.event_type_to_indexes_map[event_type]
+        if event_type in self.__event_type_to_indexes_map:
+            indexes = self.__event_type_to_indexes_map[event_type]
             for index in indexes:
                 self.arrival_rates[index] += 1
-                self.events_arrival_time.append(StatisticEventData(time, event_type))
+                self.__events_arrival_time.append(StatisticEventData(time, event_type))
 
         self.__remove_expired_events(time)
 
     def __remove_expired_events(self, last_timestamp: datetime):
+        """
+        This method is efficient if we call this function every time we update statistics and
+        our assumption that is more efficient then binary search because we know that ther is
+        a little mount of expired event in the beginning.
+        In addition, if we use this function not every time we update statistics but rather when
+        the evaluation want get statistics the efficient method to implement this function is
+        probably by binary search.
+        """
         is_removed_elements = False
-        for i, event_time in enumerate(self.events_arrival_time):
-            if last_timestamp - event_time.timestamp > self.time_window:
-                indexes = self.event_type_to_indexes_map[event_time.event_type]
+        for i, event_time in enumerate(self.__events_arrival_time):
+            if last_timestamp - event_time.timestamp > self.__time_window:
+                indexes = self.__event_type_to_indexes_map[event_time.event_type]
                 for index in indexes:
                     self.arrival_rates[index] -= 1
 
             else:
                 is_removed_elements = True
-                self.events_arrival_time = self.events_arrival_time[i:]
+                self.__events_arrival_time = self.__events_arrival_time[i:]
                 break
 
         if not is_removed_elements:
-            self.events_arrival_time = []
+            self.__events_arrival_time = []
 
     def get_statistics(self):
         return copy.deepcopy(ArrivalRatesWrapper(self.arrival_rates))
@@ -86,36 +93,36 @@ class SelectivityStatistics(Statistics):
     # TODO: Implement selectivity that also takes into account a time window
 
     def __init__(self, pattern: Pattern):
-        self.pattern = pattern
-        self.args = pattern.get_primitive_events()
-        self.args_len = len(self.args)
-        self.args_index_to_events_common_conditions_indexes_map = {}
+        self.__pattern = pattern
+        self.__args = pattern.get_primitive_events()
+        self.__args_len = len(self.__args)
+        self.__args_index_to_events_common_conditions_indexes_map = {}
         self.i_j_to_condition_map = {}
         self.total_map = {}
         self.success_map = {}
-        self.event_type_to_arg_indexes_map = {}
-        self.event_type_to_events_map = {primitive_event.type: [] for primitive_event in self.args}
-        self.selectivity_matrix = [[1.0 for _ in range(self.args_len)] for _ in range(self.args_len)]
+        self.__event_type_to_arg_indexes_map = {}
+        self.event_type_to_events_map = {primitive_event.type: [] for primitive_event in self.__args}
+        self.selectivity_matrix = [[1.0 for _ in range(self.__args_len)] for _ in range(self.__args_len)]
 
         self.init()
 
     def update(self, event1: Event):
         event_type = event1.type
-        event_arg_1_indexes = self.event_type_to_arg_indexes_map[event_type]
+        event_arg_1_indexes = self.__event_type_to_arg_indexes_map[event_type]
         for arg_1_index in event_arg_1_indexes:
-            for arg_2_index in self.args_index_to_events_common_conditions_indexes_map[arg_1_index]:
+            for arg_2_index in self.__args_index_to_events_common_conditions_indexes_map[arg_1_index]:
                 condition = self.i_j_to_condition_map[(arg_1_index, arg_2_index)]
-                arg_2_type = self.args[arg_2_index].type
+                arg_2_type = self.__args[arg_2_index].type
                 if arg_1_index == arg_2_index:
                     self.total_map[(arg_1_index, arg_2_index)] += 1
-                    if condition.eval({self.args[arg_1_index].name: event1.payload}):
+                    if condition.eval({self.__args[arg_1_index].name: event1.payload}):
                         self.success_map[(arg_1_index, arg_2_index)] += 1
                 else:
                     for event2 in self.event_type_to_events_map[arg_2_type]:
                         self.total_map[(arg_1_index, arg_2_index)] += 1
                         self.total_map[(arg_2_index, arg_1_index)] += 1
-                        if condition.eval({self.args[arg_1_index].name: event1.payload,
-                                           self.args[arg_2_index].name: event2.payload}):
+                        if condition.eval({self.__args[arg_1_index].name: event1.payload,
+                                           self.__args[arg_2_index].name: event2.payload}):
                             self.success_map[(arg_1_index, arg_2_index)] += 1
                             self.success_map[(arg_2_index, arg_1_index)] += 1
                 if self.total_map[(arg_1_index, arg_2_index)] == 0:
@@ -133,26 +140,26 @@ class SelectivityStatistics(Statistics):
         self.init_condition_maps()
 
     def init_event_type_to_arg_indexes_map(self):
-        for i, primitive_event in enumerate(self.args):
-            if primitive_event.type in self.event_type_to_arg_indexes_map:
-                self.event_type_to_arg_indexes_map[primitive_event.type].append(i)
+        for i, primitive_event in enumerate(self.__args):
+            if primitive_event.type in self.__event_type_to_arg_indexes_map:
+                self.__event_type_to_arg_indexes_map[primitive_event.type].append(i)
             else:
-                self.event_type_to_arg_indexes_map[primitive_event.type] = [i]
+                self.__event_type_to_arg_indexes_map[primitive_event.type] = [i]
 
     def init_condition_maps(self):
-        for i in range(self.args_len):
+        for i in range(self.__args_len):
             for j in range(i + 1):
-                condition = self.pattern.condition.get_condition_of({self.args[i].name, self.args[j].name})
+                condition = self.__pattern.condition.get_condition_of({self.__args[i].name, self.__args[j].name})
                 if condition is not None:
-                    if i in self.args_index_to_events_common_conditions_indexes_map:
-                        self.args_index_to_events_common_conditions_indexes_map[i].append(j)
+                    if i in self.__args_index_to_events_common_conditions_indexes_map:
+                        self.__args_index_to_events_common_conditions_indexes_map[i].append(j)
                     else:
-                        self.args_index_to_events_common_conditions_indexes_map[i] = [j]
+                        self.__args_index_to_events_common_conditions_indexes_map[i] = [j]
                     if i != j:
-                        if j in self.args_index_to_events_common_conditions_indexes_map:
-                            self.args_index_to_events_common_conditions_indexes_map[j].append(i)
+                        if j in self.__args_index_to_events_common_conditions_indexes_map:
+                            self.__args_index_to_events_common_conditions_indexes_map[j].append(i)
                         else:
-                            self.args_index_to_events_common_conditions_indexes_map[j] = [i]
+                            self.__args_index_to_events_common_conditions_indexes_map[j] = [i]
 
                     self.i_j_to_condition_map[(i, j)] = self.i_j_to_condition_map[(j, i)] = condition
                     self.total_map[(i, j)] = 0

@@ -13,8 +13,8 @@ class Invariant:
     This class represent single invariant.
     invariant will be defined as an inequality of the following form:
     f1 (stat1) < f2 (stat2)
-    Hence, we save the index corresponding to stat1 in the left side of the inequality
-    and the index corresponding to stat2 in the right side of the inequality
+    Hence we save the index corresponding to stat1 in left side of the inequality
+    and index corresponding to stat2 in right side of the inequality
     """
 
     def __init__(self, left, right):
@@ -36,9 +36,9 @@ class Invariants(ABC):
 
 class GreedyTreeInvariants(Invariants):
     """
-    Checks the following condition for every invariant:
+    Check every invariant in invariants with next condition:
     change_factor(invariant.left) < change_factor(invariant.right).
-    The verification proceeds is in a bottom up order
+    The verification proceeds in a bottom up order
     """
 
     def is_invariants_violated(self, new_statistics: StatisticsWrapper, pattern: Pattern):
@@ -48,26 +48,19 @@ class GreedyTreeInvariants(Invariants):
         else:
             raise MissingStatisticsException()
 
-        left_index, right_index = self.invariants[0].left, self.invariants[0].right
+        for i in range(len(self.invariants)-1):
 
-        left_change_factor = selectivity_matrix[left_index][left_index] * arrival_rates[left_index]
-        right_change_factor = selectivity_matrix[right_index][right_index] * arrival_rates[right_index]
-        if left_change_factor > right_change_factor:
-            return True
+            left_index, right_index = self.invariants[i].left, self.invariants[i].right
 
-        for i in range(1, len(self.invariants)-1):
-
-            left_change_factor = right_change_factor
-            left_change_factor *= selectivity_matrix[right_index][left_index]
-
-            left_index = right_index
-            right_index = self.invariants[i].right
-
-            # computes the right change factor
+            # computes the change factor for both left and right
+            left_change_factor = selectivity_matrix[left_index][left_index] * arrival_rates[left_index]
             right_change_factor = selectivity_matrix[right_index][right_index] * arrival_rates[right_index]
-            for j in range(0, i):
+
+            for j in range(i):
+                left_change_factor *= selectivity_matrix[left_index][self.invariants[j].left]
                 right_change_factor *= selectivity_matrix[right_index][self.invariants[j].left]
 
+            # check if current invariant was violated
             if left_change_factor > right_change_factor:
                 return True
 
@@ -82,7 +75,7 @@ class ZStreamTreeInvariants(Invariants):
 
     def is_invariants_violated(self, new_statistics: StatisticsWrapper, pattern: Pattern):
         """
-        Checks the following condition for every invariant:
+        Check every invariant in invariants with next condition:
         cost(invariant.left) < cost(invariant.right).
         """
         for invariant in self.invariants:

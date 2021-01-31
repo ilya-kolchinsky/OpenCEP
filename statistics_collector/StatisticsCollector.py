@@ -1,5 +1,3 @@
-from typing import List
-
 from base.Event import Event
 from base.Pattern import Pattern
 from statistics_collector.Statistics import Statistics

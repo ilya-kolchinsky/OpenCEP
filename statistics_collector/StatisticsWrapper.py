@@ -1,7 +1,5 @@
 from abc import ABC
 
-from misc.StatisticsTypes import StatisticsTypes
-
 
 class StatisticsWrapper(ABC):
     """
