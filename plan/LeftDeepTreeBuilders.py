@@ -16,7 +16,8 @@ from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
 from statistics_collector.Statistics import Statistics, SelectivityStatistics, FrequencyDict, ArrivalRatesStatistics
-from statistics_collector.StatisticsWrapper import StatisticsWrapper, FrequencyDictWrapper, ArrivalRatesWrapper, SelectivityWrapper
+from statistics_collector.StatisticsWrapper import StatisticsWrapper, FrequencyDictWrapper, ArrivalRatesWrapper, \
+    SelectivityWrapper, SelectivityAndArrivalRatesWrapper
 
 
 class LeftDeepTreeBuilder(TreePlanBuilder):
@@ -93,7 +94,7 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
 
     def _create_evaluation_order(self, statistics: StatisticsWrapper, pattern: Pattern):
-        if isinstance(statistics, SelectivityWrapper):
+        if isinstance(statistics, SelectivityAndArrivalRatesWrapper):
             (selectivityMatrix, arrivalRates) = statistics.statistics
         else:
             raise MissingStatisticsException()
@@ -153,7 +154,7 @@ class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
         self.__step_limit = step_limit
 
     def _create_evaluation_order(self, statistics: StatisticsWrapper, pattern: Pattern):
-        if isinstance(statistics, SelectivityWrapper):
+        if isinstance(statistics, SelectivityAndArrivalRatesWrapper):
             (selectivityMatrix, arrivalRates) = statistics.statistics
         else:
             raise MissingStatisticsException()
@@ -185,7 +186,7 @@ class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
 
     def _create_evaluation_order(self, statistics: StatisticsWrapper, pattern: Pattern):
-        if isinstance(statistics, SelectivityWrapper):
+        if isinstance(statistics, SelectivityAndArrivalRatesWrapper):
             (selectivity_matrix, arrival_rates) = statistics.statistics
         else:
             raise MissingStatisticsException()
