@@ -5,7 +5,6 @@ from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc import DefaultConfig
 from misc.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
 from optimizer.OptimizerFactory import OptimizerParameters, OptimizerFactory
-from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from statistics_collector.StatisticsCollectorFactory import StatCollectorParameters, StatCollectorFactory
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TrivialEvaluation, SimultaneousEvaluation
@@ -29,7 +28,6 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
     Parameters for the creation of a tree-based evaluation mechanism.
     """
     def __init__(self,
-                 # tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
                  storage_params: TreeStorageParameters = TreeStorageParameters(),
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters(),
                  evaluation_type: TreeEvaluationMechanismTypes = DefaultConfig.DEFAULT_TREE_EVALUATION_MECHANISM_TYPE,
@@ -37,7 +35,6 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
                  optimizer_params: OptimizerParameters = OptimizerParameters(),
                  statistics_updates_time_window: timedelta = timedelta(seconds=30)):
         super().__init__(EvaluationMechanismTypes.TREE_BASED, statistics_collector_params, optimizer_params)
-        # self.tree_plan_params = tree_plan_params
         self.storage_params = storage_params
         self.multi_pattern_eval_params = multi_pattern_eval_params
         self.evaluation_type = evaluation_type
