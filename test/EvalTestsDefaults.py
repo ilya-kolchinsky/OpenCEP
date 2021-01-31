@@ -1,7 +1,7 @@
 from datetime import timedelta
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
 from misc.OptimizerTypes import OptimizerTypes
-from misc.Tree_Evaluation_Mechanism_Types import TreeEvaluationMechanismTypes
+from misc.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
 from optimizer.OptimizerFactory import OptimizerParameters, StatisticChangesAwareOptimizerParameters
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreeCostModels, StatisticsTypes
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
@@ -42,7 +42,7 @@ DEFAULT_TESTING_TRIVIAL_OPTIMIZER_SETTINGS = \
     OptimizerParameters(OptimizerTypes.TRIVIAL, TreePlanBuilderParameters())
 
 DEFAULT_TESTING_CHANGES_AWARE_OPTIMIZER_SETTINGS = \
-    StatisticChangesAwareOptimizerParameters(OptimizerTypes.CHANGES_AWARE, TreePlanBuilderParameters(), t=0.5,
+    StatisticChangesAwareOptimizerParameters(TreePlanBuilderParameters(), t=0.5,
                                              stat_type=StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES)
 
 DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS = \
@@ -65,9 +65,7 @@ optimizer: trivial
 tree builder: trivial left tree builder
 """
 DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS = \
-    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                                                     TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
-                                           TreeStorageParameters(sort_storage=False,
+    TreeBasedEvaluationMechanismParameters(TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION,
@@ -80,9 +78,7 @@ optimizer: changes aware optimizer
 tree builder: trivial left tree builder
 """
 DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS_AND_T_OPTIMIZER = \
-    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                                                     TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
-                                           TreeStorageParameters(sort_storage=False,
+    TreeBasedEvaluationMechanismParameters(TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION,
@@ -100,9 +96,7 @@ optimizer: greedy invariant
 tree builder: trivial left tree builder
 """
 DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS_AND_GREEDY_INVARIANT_OPTIMIZER = \
-    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                                                     TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
-                                           TreeStorageParameters(sort_storage=False,
+    TreeBasedEvaluationMechanismParameters(TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION,
@@ -117,9 +111,7 @@ optimizer: zstream invariant
 tree builder: trivial left tree builder
 """
 DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS_AND_ZSTREAM_INVARIANT_OPTIMIZER = \
-    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                                                     TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
-                                           TreeStorageParameters(sort_storage=False,
+    TreeBasedEvaluationMechanismParameters(TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION,
@@ -134,10 +126,7 @@ optimizer: trivial
 tree builder: trivial left tree builder
 """
 DEFAULT_TESTING_SIMULTANEOUS_EVALUATION_MECHANISM_SETTINGS = \
-    TreeBasedEvaluationMechanismParameters(
-                                           TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                                                     TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
-                                           TreeStorageParameters(sort_storage=False,
+    TreeBasedEvaluationMechanismParameters(TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION,
@@ -151,9 +140,7 @@ optimizer: changes aware
 tree builder: trivial left tree builder
 """
 DEFAULT_TESTING_SIMULTANEOUS_EVALUATION_MECHANISM_SETTINGS_AND_T_OPTIMIZER = \
-    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                                                     TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
-                                           TreeStorageParameters(sort_storage=False,
+    TreeBasedEvaluationMechanismParameters(TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION,
@@ -170,9 +157,7 @@ optimizer: greedy invariant
 tree builder: trivial left tree builder
 """
 DEFAULT_TESTING_SIMULTANEOUS_EVALUATION_MECHANISM_SETTINGS_AND_GREEDY_INVARIANT_OPTIMIZER = \
-    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                                                     TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
-                                           TreeStorageParameters(sort_storage=False,
+    TreeBasedEvaluationMechanismParameters(TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION,
@@ -188,9 +173,7 @@ optimizer: greedy invariant
 tree builder: greedy tree builder
 """
 DEFAULT_TESTING_SIMULTANEOUS_EVALUATION_MECHANISM_SETTINGS_AND_ZSTRREAM_INVARIANT_OPTIMIZER = \
-    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                                                     TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
-                                           TreeStorageParameters(sort_storage=False,
+    TreeBasedEvaluationMechanismParameters(TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION,
