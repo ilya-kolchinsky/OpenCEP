@@ -37,10 +37,12 @@ def get_condition_selectivity(arg1: PrimitiveEventStructure, arg2: PrimitiveEven
                 events2.append(event)
 
         if arg1.get_type() == arg2.get_type():
+            print('in')
             for i in range(len(events1)-1):
                 for j in range(i, len(events1)):
                     count += 1
-                    if condition.eval({arg1.get_name(): events1[i].payload, arg2.get_name(): events1[j].payload}):
+                    if condition.eval({arg1.get_name(): events1[i].payload, arg2.get_name(): events1[j].payload}) and not condition.eval({arg2.get_name(): events1[j].payload, arg1.get_name(): events1[i].payload}):
+                        print('ERRRORR')
                         match_count += 1
         else:
             for event1 in events1:

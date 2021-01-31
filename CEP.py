@@ -12,6 +12,7 @@ from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from typing import List
 from datetime import datetime
 from optimizer.OptimizerFactory import OptimizerParameters
+import warnings
 
 class CEP:
     """
@@ -20,14 +21,14 @@ class CEP:
     be optimized and parallelized.
     """
     def __init__(self, patterns: Pattern or List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None,
-                 parallel_execution_params: ParallelExecutionParameters = None,
-                 statistics_collector_params: StatCollectorParameters = None,
-                 optimizer_params: OptimizerParameters = None):
+                 parallel_execution_params: ParallelExecutionParameters = None):
         """
         Constructor of the class.
         """
         if patterns is None or len(patterns) == 0:
             raise Exception("No patterns are provided")
+        if len(patterns) > 1:
+            warnings.warn("Multi-pattern does not yet support adaptive-CEP")
         self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(patterns,
                                                                                        eval_mechanism_params,
                                                                                        parallel_execution_params)

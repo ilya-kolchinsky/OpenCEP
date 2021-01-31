@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 from base.Event import Event
 from base.Pattern import Pattern
 from misc.Statistics import calculate_selectivity_matrix
-from statistics_collector.StatisticsWrapper import ArrivalRatesWrapper, SelectivityWrapper, SelectivityAndArrivalRatesWrapper
+from statistics_collector.StatisticsWrapper import ArrivalRatesWrapper, SelectivityWrapper, \
+    SelectivityAndArrivalRatesWrapper
 from statistics_collector.StatisticEventData import StatisticEventData
 
 
@@ -17,14 +18,14 @@ class Statistics(ABC):
         """
         Given the newly arrived event, update the statistics.
         """
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def get_statistics(self):
         """
         Return the current statistics.
         """
-        pass
+        raise NotImplementedError()
 
 
 class ArrivalRatesStatistics(Statistics):
@@ -36,11 +37,11 @@ class ArrivalRatesStatistics(Statistics):
         self.arrival_rates = [0.0] * len(args)
 
         self.event_type_to_indexes_map = {}
-        for i, event in enumerate(args):
-            if event.type in self.event_type_to_indexes_map:
-                self.event_type_to_indexes_map[event.type].append(i)
+        for i, arg in enumerate(args):
+            if arg.get_type() in self.event_type_to_indexes_map:
+                self.event_type_to_indexes_map[arg.get_type()].append(i)
             else:
-                self.event_type_to_indexes_map[event.type] = [i]
+                self.event_type_to_indexes_map[arg.get_type()] = [i]
 
         self.events_arrival_time = []
         self.time_window = time_window
@@ -58,14 +59,6 @@ class ArrivalRatesStatistics(Statistics):
         self.__remove_expired_events(time)
 
     def __remove_expired_events(self, last_timestamp: datetime):
-        """
-        This method is efficient if we call this function every time we update statistics and
-        our assumption that is more efficient then binary search because we know that ther is
-        a little mount of expired event in the beginning.
-        In addition, if we use this function not every time we update statistics but rather when
-        the evaluation want get statistics the efficient method to implement this function is
-        probably by binary search.
-        """
         is_removed_elements = False
         for i, event_time in enumerate(self.events_arrival_time):
             if last_timestamp - event_time.timestamp > self.time_window:
@@ -98,8 +91,8 @@ class SelectivityStatistics(Statistics):
         self.args_len = len(self.args)
         self.args_index_to_events_common_conditions_indexes_map = {}
         self.i_j_to_condition_map = {}
-        self.condition_to_total_map = {}
-        self.condition_to_success_count_map = {}
+        self.total_map = {}
+        self.success_map = {}
         self.event_type_to_arg_indexes_map = {}
         self.event_type_to_events_map = {primitive_event.type: [] for primitive_event in self.args}
         self.selectivity_matrix = [[1.0 for _ in range(self.args_len)] for _ in range(self.args_len)]
@@ -107,36 +100,30 @@ class SelectivityStatistics(Statistics):
         self.init()
 
     def update(self, event1: Event):
-        event1_type = event1.type
-        self.event_type_to_events_map[event1_type].append(event1)
-        event1_arg_indexes = self.event_type_to_arg_indexes_map[event1_type]
-        used_conditions = {}
-        for event1_arg_index in event1_arg_indexes:
-            for events_common_conditions_index in self.args_index_to_events_common_conditions_indexes_map[event1_arg_index]:
-                condition = self.i_j_to_condition_map[(event1_arg_index, events_common_conditions_index)]
-                if str(condition) in used_conditions:
-                    i, j = used_conditions[str(condition)]
-                    self.selectivity_matrix[event1_arg_index][events_common_conditions_index] = \
-                        self.selectivity_matrix[i][j]
-                    continue
-                used_conditions[str(condition)] = [event1_arg_index, events_common_conditions_index]
-
-                e_type = self.args[events_common_conditions_index].type
-
-                if event1_arg_index == events_common_conditions_index:
-                    self.condition_to_total_map[str(condition)] += 1
-                    if condition.eval({self.args[event1_arg_index].name: event1.payload}):
-                        self.condition_to_success_count_map[str(condition)] += 1
-
+        event_type = event1.type
+        event_arg_1_indexes = self.event_type_to_arg_indexes_map[event_type]
+        for arg_1_index in event_arg_1_indexes:
+            for arg_2_index in self.args_index_to_events_common_conditions_indexes_map[arg_1_index]:
+                condition = self.i_j_to_condition_map[(arg_1_index, arg_2_index)]
+                arg_2_type = self.args[arg_2_index].type
+                if arg_1_index == arg_2_index:
+                    self.total_map[(arg_1_index, arg_2_index)] += 1
+                    if condition.eval({self.args[arg_1_index].name: event1.payload}):
+                        self.success_map[(arg_1_index, arg_2_index)] += 1
                 else:
-                    for event2 in self.event_type_to_events_map[e_type]:
-                        self.condition_to_total_map[str(condition)] += 1
-                        if condition.eval({self.args[event1_arg_index].name: event1.payload, self.args[events_common_conditions_index].name: event2.payload}):
-                            self.condition_to_success_count_map[str(condition)] += 1
-                if self.condition_to_total_map[str(condition)] == 0:
+                    for event2 in self.event_type_to_events_map[arg_2_type]:
+                        self.total_map[(arg_1_index, arg_2_index)] += 1
+                        self.total_map[(arg_2_index, arg_1_index)] += 1
+                        if condition.eval({self.args[arg_1_index].name: event1.payload,
+                                           self.args[arg_2_index].name: event2.payload}):
+                            self.success_map[(arg_1_index, arg_2_index)] += 1
+                            self.success_map[(arg_2_index, arg_1_index)] += 1
+                if self.total_map[(arg_1_index, arg_2_index)] == 0:
                     continue
-                sel = self.condition_to_success_count_map[str(condition)] / self.condition_to_total_map[str(condition)]
-                self.selectivity_matrix[event1_arg_index][events_common_conditions_index] = sel
+                sel = self.success_map[(arg_1_index, arg_2_index)] / self.total_map[(arg_1_index, arg_2_index)]
+                self.selectivity_matrix[arg_1_index][arg_2_index] = sel
+                self.selectivity_matrix[arg_2_index][arg_1_index] = sel
+        self.event_type_to_events_map[event_type].append(event1)
 
     def get_statistics(self):
         return copy.deepcopy(SelectivityWrapper(self.selectivity_matrix))
@@ -168,8 +155,10 @@ class SelectivityStatistics(Statistics):
                             self.args_index_to_events_common_conditions_indexes_map[j] = [i]
 
                     self.i_j_to_condition_map[(i, j)] = self.i_j_to_condition_map[(j, i)] = condition
-                    self.condition_to_total_map[str(condition)] = 0
-                    self.condition_to_success_count_map[str(condition)] = 0
+                    self.total_map[(i, j)] = 0
+                    self.total_map[(j, i)] = 0
+                    self.success_map[(i, j)] = 0
+                    self.success_map[(j, i)] = 0
 
 
 class SelectivityAndArrivalRatesStatistics(Statistics):
@@ -198,7 +187,7 @@ class FrequencyDict(Statistics):
         self.frequency_dict = {}
 
     def update(self, event):
-        pass
+        raise NotImplementedError()
 
     def get_statistics(self):
         return self.frequency_dict

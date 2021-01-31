@@ -29,8 +29,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                  statistics_update_time_window: timedelta = timedelta(seconds=30),
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
 
-        is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
-        if is_multi_pattern_mode:
+        self.is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
+        if self.is_multi_pattern_mode:
             self._tree = MultiPatternTree(pattern_to_tree_plan_map, storage_params, multi_pattern_eval_params)
         else:
             self._tree = Tree(list(pattern_to_tree_plan_map.values())[0],
@@ -45,11 +45,11 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
         # The remainder of the initialization process is only relevant for the freeze map feature. This feature can
         # only be enabled in single-pattern mode.
-        self._pattern = list(pattern_to_tree_plan_map)[0] if not is_multi_pattern_mode else None
+        self._pattern = list(pattern_to_tree_plan_map)[0] if not self.is_multi_pattern_mode else None
         self.__freeze_map = {}
         self.__active_freezers = []
 
-        if not is_multi_pattern_mode and self._pattern.consumption_policy is not None and \
+        if not self.is_multi_pattern_mode and self._pattern.consumption_policy is not None and \
                 self._pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
 
@@ -62,24 +62,28 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         statistics_update_start_time = datetime.now()
         is_first_time = True
 
+
         # selectivity = calculate_selectivity_matrix(self._pattern, events.duplicate())
         for raw_event in events:
             event = Event(raw_event, data_formatter)
+            event.arrival_time = datetime.now()
             if event.type not in self._event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
-
-            self.__statistics_collector.event_handler(event)
-            if datetime.now() - statistics_update_start_time >= self.statistics_update_time_window or is_first_time:
-                is_first_time = False
-                if self.is_need_new_statistics():
-                    new_statistics = self.__statistics_collector.get_statistics()
-                    if self.__optimizer.is_need_optimize(new_statistics, self._pattern):
-                        new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
-                        new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
-                        self.tree_update(new_tree)
-                # re-initialize statistics window start time
-                statistics_update_start_time = datetime.now()
+            if not self.is_multi_pattern_mode:  # Note: multi-pattern does not yet support adaptive-CEP,
+                # this condition is necessary for the multi-pattern tests and nothing more
+                # TODO: evaluation mechanism factory needs to support multi-pattern mode
+                self.__statistics_collector.event_handler(event)
+                if datetime.now() - statistics_update_start_time >= self.statistics_update_time_window or is_first_time:
+                    is_first_time = False
+                    if self.is_need_new_statistics():
+                        new_statistics = self.__statistics_collector.get_statistics()
+                        if self.__optimizer.is_need_optimize(new_statistics, self._pattern):
+                            new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
+                            new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
+                            self.tree_update(new_tree)
+                    # re-initialize statistics window start time
+                    statistics_update_start_time = datetime.now()
 
             event.arrival_time = datetime.now()
 

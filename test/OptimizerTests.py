@@ -11,7 +11,7 @@ from optimizer.OptimizerFactory import OptimizerFactory, InvariantsAwareOptimize
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, SelectivityAndArrivalRatesWrapper, StatisticsWrapper
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-from test.NewTestsUtils import DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS, \
+from test.EvalTestsDefaults import DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS, \
     DEFAULT_TESTING_ZSTREAM_INVARIANT_OPTIMIZER_SETTINGS, DEFAULT_TESTING_TRIVIAL_OPTIMIZER_SETTINGS_WITH_ZSTREAM
 
 

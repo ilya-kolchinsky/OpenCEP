@@ -19,18 +19,18 @@ class Optimizer(ABC):
         self.tree_plan_builder = tree_plan_builder
 
     def send_to_evaluation_mechanism(self, tree_plan: TreePlan):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def is_need_optimize(self, new_statistics: StatisticsWrapper, pattern: Pattern):
         """
         Asks if it's necessary to optimize the tree based on the new statistics.
         """
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
-        pass
+        raise NotImplementedError()
 
 
 class TrivialOptimizer(Optimizer):
@@ -69,7 +69,7 @@ class StatisticChangesAwareOptimizer(Optimizer):
         """
         Checks if there was a changes in one of the statistics by a factor of t.
         """
-        pass
+        raise NotImplementedError()
 
 
 class ArrivalRatesChangesAwareOptimizer(StatisticChangesAwareOptimizer):

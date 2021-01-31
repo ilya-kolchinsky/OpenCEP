@@ -237,12 +237,42 @@ pattern = Pattern(
 )
 ```
 
-#### Optimizing evaluation performance with custom TreeStorageParameters
+### Optimizing evaluation performance with custom TreeStorageParameters
 ```
 storage_params = TreeStorageParameters(sort_storage=True,
                                        attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
 eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params)
 cep = CEP(pattern, eval_mechanism_params)
+```
+
+### Optimizing evaluation performance with the use of Adaptive CEP
+
+OpenCEP supports timely evaluation plan replacement according to statistics from the stream. the CEP object mainantains a statistics collector that supports serveral types of statistics. In addition, it supports serveral types of optimization algorithms that decide when to create a new plan. The following example shows how to create a CEP object that supports adaptive evaluation plan replacement based on event arrival rates.
+
+We will first define parameters of the statistic collecotor that will keep arrival rate statistics and a certain time window:
+```
+stat_type = StatisticsTypes.ARRIVAL_RATES
+
+time_window = timedelta(seconds=2)
+# the statistics are kept for a 2 seconds time interval
+
+statistics_collector_params = StatisticsParameters(stat_type=stat_type ,time_window=time_window)
+```
+
+In order to make use of the statistics, we define an optimizer. The following example shows how to initialize the optimizer parameters:
+```
+# There are different types of optimizers, here we define an optimizer that 
+# calls for a new evaluation plan if a particular statistic has changed by a 
+# a factor of t.
+
+stat_type = StatisticsTypes.ARRIVAL_RATES
+optimizer_params = StatisticChangesAwareOptimizerParameters(t = 0.5, stat_type = stat_type)
+```
+
+After defining the parameters of the statistic collector and the optimizer, we create a CEP object that support adaptivity:
+```
+eval_mechanism_params = TreeBasedEvaluationMechanismParameters(statistics_collector_params=statistics_collector_params, optimizer_params=optimizer_params)
+CEP = CEP(pattern, eval_mechanism_params)
 ```
 
 ## Twitter API support
