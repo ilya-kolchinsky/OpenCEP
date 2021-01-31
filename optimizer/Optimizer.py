@@ -10,10 +10,7 @@ class Optimizer(ABC):
     """
 
     def __init__(self, tree_plan_builder: TreePlanBuilder):
-        self.tree_plan_builder = tree_plan_builder
-
-    def send_to_evaluation_mechanism(self, tree_plan: TreePlan):
-        raise NotImplementedError()
+        self._tree_plan_builder = tree_plan_builder
 
     @abstractmethod
     def is_need_optimize(self, new_statistics: StatisticsWrapper, pattern: Pattern):
@@ -36,7 +33,7 @@ class TrivialOptimizer(Optimizer):
         return True
 
     def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
-        tree_plan = self.tree_plan_builder.build_tree_plan(new_statistics, pattern)
+        tree_plan = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
 
 
@@ -48,15 +45,15 @@ class StatisticChangesAwareOptimizer(Optimizer):
 
     def __init__(self, tree_plan_builder: TreePlanBuilder, t):
         super().__init__(tree_plan_builder)
-        self.t = t
-        self.prev_statistics = None
+        self._t = t
+        self._prev_statistics = None
 
     def is_need_optimize(self, new_statistics: StatisticsWrapper, pattern: Pattern):
-        return self.prev_statistics is None or self.is_changed_by_t(new_statistics.statistics, self.prev_statistics)
+        return self._prev_statistics is None or self.is_changed_by_t(new_statistics.statistics, self._prev_statistics)
 
     def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
-        self.prev_statistics = new_statistics.statistics
-        tree_plan = self.tree_plan_builder.build_tree_plan(new_statistics, pattern)
+        self._prev_statistics = new_statistics.statistics
+        tree_plan = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
 
     def is_changed_by_t(self, new_statistics, old_statistics):
@@ -74,8 +71,8 @@ class ArrivalRatesChangesAwareOptimizer(StatisticChangesAwareOptimizer):
     def is_changed_by_t(self, new_arrival_rates, old_arrival_rates):
 
         for i in range(len(new_arrival_rates)):
-            if old_arrival_rates[i] * (1 + self.t) < new_arrival_rates[i] or \
-                    old_arrival_rates[i] * (1 - self.t) > new_arrival_rates[i]:
+            if old_arrival_rates[i] * (1 + self._t) < new_arrival_rates[i] or \
+                    old_arrival_rates[i] * (1 - self._t) > new_arrival_rates[i]:
                 return True
         return False
 
@@ -89,8 +86,8 @@ class SelectivityChangesAwareOptimizer(StatisticChangesAwareOptimizer):
 
         for i in range(len(new_selectivity)):
             for j in range(len(new_selectivity[i])):
-                if old_selectivity[i][j] * (1 + self.t) < new_selectivity[i][j] or \
-                        old_selectivity[i][j] * (1 - self.t) > new_selectivity[i][j]:
+                if old_selectivity[i][j] * (1 + self._t) < new_selectivity[i][j] or \
+                        old_selectivity[i][j] * (1 - self._t) > new_selectivity[i][j]:
                     return True
         return False
 
@@ -115,11 +112,11 @@ class InvariantsAwareOptimizer(Optimizer):
 
     def __init__(self, tree_plan_builder: TreePlanBuilder):
         super().__init__(tree_plan_builder)
-        self.invariants = None
+        self._invariants = None
 
     def is_need_optimize(self, new_statistics: StatisticsWrapper, pattern: Pattern):
-        return self.invariants is None or self.invariants.is_invariants_violated(new_statistics, pattern)
+        return self._invariants is None or self._invariants.is_invariants_violated(new_statistics, pattern)
 
     def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
-        tree_plan, self.invariants = self.tree_plan_builder.build_tree_plan(new_statistics, pattern)
+        tree_plan, self._invariants = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
