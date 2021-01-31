@@ -6,7 +6,7 @@ from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc.SelectionStrategies import SelectionStrategies
 from misc.StatisticsTypes import StatisticsTypes
 from misc.OptimizerTypes import OptimizerTypes
-from misc.Tree_Evaluation_Mechanism_Types import TreeEvaluationMechanismTypes
+from misc.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
 from parallel.ParallelExecutionModes import ParallelExecutionModes
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType
