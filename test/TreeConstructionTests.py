@@ -1,6 +1,7 @@
 from plan.TreePlanBuilderFactory import IterativeImprovementTreePlanBuilderParameters
 from test.testUtils import *
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
+from optimizer.OptimizerFactory import OptimizerParameters
 from plan.LeftDeepTreeBuilders import *
 from plan.BushyTreeBuilders import *
 from datetime import timedelta
@@ -50,9 +51,11 @@ def arrivalRatesPatternSearchTest(createTestFile=False):
         timedelta(minutes=5)
     )
     pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0159, 0.0153, 0.0076])
-    eval_params = TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(
-                                                             TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
-                                                         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        optimizer_params=OptimizerParameters(tree_plan_params=TreePlanBuilderParameters(
+            TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)),
+            storage_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
+
     runTest("arrivalRates", [pattern], createTestFile, eval_params)
 
 
