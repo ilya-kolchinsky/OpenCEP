@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from condition.BaseRelationCondition import GreaterThanCondition, GreaterThanEqCondition
+from optimizer.OptimizerFactory import OptimizerParameters
 from test.testUtils import *
 from condition.Condition import Variable
 from condition.CompositeCondition import AndCondition
@@ -22,8 +23,8 @@ def sortedStorageTest(createTestFile=False):
     )
     storage_params = TreeStorageParameters(True, clean_up_interval=500)
     eval_params = TreeBasedEvaluationMechanismParameters(
-        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.tree_plan_params, storage_params
-    )
+        optimizer_params=OptimizerParameters(tree_plan_params=TreePlanBuilderParameters()),
+        storage_params=storage_params)
     runTest("sortedStorageTest", [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
@@ -47,6 +48,7 @@ def sortedStorageBenchMarkTest(createTestFile=False):
     runBenchMark("sortedStorageBenchMark - unsorted storage", [pattern])
     storage_params = TreeStorageParameters(sort_storage=True, attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
     eval_params = TreeBasedEvaluationMechanismParameters(
-        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.tree_plan_params, storage_params
-    )
+        optimizer_params=OptimizerParameters(tree_plan_params=TreePlanBuilderParameters()),
+        storage_params=storage_params)
+
     runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], eval_mechanism_params=eval_params)

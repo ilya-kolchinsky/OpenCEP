@@ -1,3 +1,4 @@
+from optimizer.OptimizerFactory import OptimizerParameters
 from test.testUtils import *
 from datetime import timedelta
 from condition.Condition import Variable
@@ -15,14 +16,17 @@ sys.path.append(absolutePath)
 """
 Simple multi-pattern test with 2 patterns
 """
-def leafIsRoot(createTestFile = False):
+
+
+def leafIsRoot(createTestFile=False):
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
         GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
     pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), NegationOperator(PrimitiveEventStructure("AMZN", "b")), PrimitiveEventStructure("GOOG", "c")),
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), NegationOperator(PrimitiveEventStructure("AMZN", "b")),
+                    PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
             GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
                                  Variable("b", lambda x: x["Opening Price"])),
@@ -33,12 +37,16 @@ def leafIsRoot(createTestFile = False):
 
     runMultiTest("FirstMultiPattern", [pattern1, pattern2], createTestFile)
 
+
 """
 multi-pattern test 2 completely distinct patterns
 """
-def distinctPatterns(createTestFile = False):
+
+
+def distinctPatterns(createTestFile=False):
     pattern1 = Pattern(
-        SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"), PrimitiveEventStructure("GOOG", "c")),
+        SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
             SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]),
                                  Variable("b", lambda x: x["Peak Price"])),
@@ -48,7 +56,8 @@ def distinctPatterns(createTestFile = False):
         timedelta(minutes=3)
     )
     pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AMZN", "x1"), PrimitiveEventStructure("AMZN", "x2"), PrimitiveEventStructure("AMZN", "x3")),
+        SeqOperator(PrimitiveEventStructure("AMZN", "x1"), PrimitiveEventStructure("AMZN", "x2"),
+                    PrimitiveEventStructure("AMZN", "x3")),
         AndCondition(
             SmallerThanEqCondition(Variable("x1", lambda x: x["Lowest Price"]), 75),
             GreaterThanEqCondition(Variable("x2", lambda x: x["Peak Price"]), 78),
@@ -60,13 +69,16 @@ def distinctPatterns(createTestFile = False):
 
     runMultiTest("BigMultiPattern", [pattern1, pattern2], createTestFile)
 
+
 """
 multi-pattern test with 3 patterns and leaf sharing
 """
-def threePatternsTest(createTestFile = False):
+
+
+def threePatternsTest(createTestFile=False):
     pattern1 = Pattern(
         AndOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
-                     PrimitiveEventStructure("GOOG", "c")),
+                    PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
             SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]),
                                  Variable("b", lambda x: x["Peak Price"])),
@@ -80,39 +92,46 @@ def threePatternsTest(createTestFile = False):
                     PrimitiveEventStructure("MSFT", "c"), PrimitiveEventStructure("DRIV", "d"),
                     PrimitiveEventStructure("MSFT", "e")),
         AndCondition(
-                SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]),
-                                     Variable("b", lambda x: x["Peak Price"])),
-                SmallerThanCondition(Variable("b", lambda x: x["Peak Price"]),
-                                     Variable("c", lambda x: x["Peak Price"])),
-                SmallerThanCondition(Variable("c", lambda x: x["Peak Price"]),
-                                     Variable("d", lambda x: x["Peak Price"])),
-                SmallerThanCondition(Variable("d", lambda x: x["Peak Price"]),
-                                     Variable("e", lambda x: x["Peak Price"]))
+            SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]),
+                                 Variable("b", lambda x: x["Peak Price"])),
+            SmallerThanCondition(Variable("b", lambda x: x["Peak Price"]),
+                                 Variable("c", lambda x: x["Peak Price"])),
+            SmallerThanCondition(Variable("c", lambda x: x["Peak Price"]),
+                                 Variable("d", lambda x: x["Peak Price"])),
+            SmallerThanCondition(Variable("d", lambda x: x["Peak Price"]),
+                                 Variable("e", lambda x: x["Peak Price"]))
         ),
         timedelta(minutes=10)
     )
     pattern3 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
-            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), Variable("c", lambda x: x["Opening Price"])),
-            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))),
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("c", lambda x: x["Opening Price"])),
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
 
     runMultiTest("ThreePatternTest", [pattern1, pattern2, pattern3], createTestFile)
 
+
 """
 multi-pattern test checking case where output node is not a root
 """
-def rootAndInner(createTestFile = False):
-    #similar to leafIsRoot, but the time windows are different
+
+
+def rootAndInner(createTestFile=False):
+    # similar to leafIsRoot, but the time windows are different
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
         GreaterThanEqCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
     pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
             GreaterThanEqCondition(Variable("a", lambda x: x["Peak Price"]), 135),
             SmallerThanCondition(Variable("b", lambda x: x["Peak Price"]),
@@ -123,12 +142,16 @@ def rootAndInner(createTestFile = False):
 
     runMultiTest("RootAndInner", [pattern1, pattern2], createTestFile)
 
+
 """
 multi-pattern test 2 identical patterns with different time stamp
 """
-def samePatternDifferentTimeStamps(createTestFile = False):
+
+
+def samePatternDifferentTimeStamps(createTestFile=False):
     pattern1 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
             GreaterThanEqCondition(Variable("a", lambda x: x["Peak Price"]), 135),
             SmallerThanCondition(Variable("b", lambda x: x["Peak Price"]),
@@ -137,7 +160,8 @@ def samePatternDifferentTimeStamps(createTestFile = False):
         timedelta(minutes=5)
     )
     pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
             GreaterThanEqCondition(Variable("a", lambda x: x["Peak Price"]), 135),
             SmallerThanCondition(Variable("b", lambda x: x["Peak Price"]),
@@ -148,13 +172,16 @@ def samePatternDifferentTimeStamps(createTestFile = False):
 
     runMultiTest("DifferentTimeStamp", [pattern1, pattern2], createTestFile)
 
+
 """
 multi-pattern test sharing equivalent subtrees
 """
-def onePatternIncludesOther(createTestFile = False):
+
+
+def onePatternIncludesOther(createTestFile=False):
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"),
-                     PrimitiveEventStructure("AAPL", "c")),
+                    PrimitiveEventStructure("AAPL", "c")),
         AndCondition(
             SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]),
                                  Variable("b", lambda x: x["Peak Price"])),
@@ -172,18 +199,23 @@ def onePatternIncludesOther(createTestFile = False):
         timedelta(minutes=3)
     )
 
-    eval_mechanism_params = TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                                                     TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
-                                                                   TreeStorageParameters(sort_storage=False,
-                                                                 clean_up_interval=10,
-                                                                 prioritize_sorting_by_timestamp=True),
-                                                                   MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.SUBTREES_UNION))
+    eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
+        optimizer_params=OptimizerParameters(
+            tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                                       TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL)),
+        storage_params=TreeStorageParameters(sort_storage=False,
+                                             clean_up_interval=10,
+                                             prioritize_sorting_by_timestamp=True),
+        multi_pattern_eval_params=MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.SUBTREES_UNION))
     runMultiTest("onePatternIncludesOther", [pattern1, pattern2], createTestFile, eval_mechanism_params)
+
 
 """
 multi-pattern test multiple patterns share the same output node
 """
-def samePatternSharingRoot(createTestFile = False):
+
+
+def samePatternSharingRoot(createTestFile=False):
     hierarchyPattern = Pattern(
         AndOperator(PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("AAPL", "b"),
                     PrimitiveEventStructure("GOOG", "c")),
@@ -221,19 +253,24 @@ def samePatternSharingRoot(createTestFile = False):
     )
 
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
-        TreeStorageParameters(sort_storage=False,
-                              clean_up_interval=10,
-                              prioritize_sorting_by_timestamp=True),
-        MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.SUBTREES_UNION))
+        optimizer_params=OptimizerParameters(
+            tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                                       TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL)),
+        storage_params=TreeStorageParameters(sort_storage=False,
+                                             clean_up_interval=10,
+                                             prioritize_sorting_by_timestamp=True),
+        multi_pattern_eval_params=MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.SUBTREES_UNION))
 
-    runMultiTest('hierarchyMultiPattern', [hierarchyPattern, hierarchyPattern2, hierarchyPattern3], createTestFile, eval_mechanism_params)
+    runMultiTest('hierarchyMultiPattern', [hierarchyPattern, hierarchyPattern2, hierarchyPattern3], createTestFile,
+                 eval_mechanism_params)
+
 
 """
 multi-pattern test several patterns sharing the same subtree
 """
-def severalPatternShareSubtree(createTestFile = False):
+
+
+def severalPatternShareSubtree(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
                     PrimitiveEventStructure("GOOG", "c"), NegationOperator(PrimitiveEventStructure("TYP1", "x")),
@@ -261,19 +298,23 @@ def severalPatternShareSubtree(createTestFile = False):
                        )
 
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
-        TreeStorageParameters(sort_storage=False,
-                              clean_up_interval=10,
-                              prioritize_sorting_by_timestamp=True),
-        MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.SUBTREES_UNION))
+        optimizer_params=OptimizerParameters(
+            tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                                       TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL)),
+        storage_params=TreeStorageParameters(sort_storage=False,
+                                             clean_up_interval=10,
+                                             prioritize_sorting_by_timestamp=True),
+        multi_pattern_eval_params=MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.SUBTREES_UNION))
 
     runMultiTest("threeSharingSubtrees", [pattern, pattern2, pattern3], createTestFile, eval_mechanism_params)
+
 
 """
 multi-pattern test patterns sharing inner nodes and not leaves
 """
-def notInTheBeginningShare(createTestFile = False):
+
+
+def notInTheBeginningShare(createTestFile=False):
     getattr_func = lambda x: x["Opening Price"]
 
     pattern1 = Pattern(
@@ -313,20 +354,23 @@ def notInTheBeginningShare(createTestFile = False):
     )
 
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
-        TreeStorageParameters(sort_storage=False,
-                              clean_up_interval=10,
-                              prioritize_sorting_by_timestamp=True),
-        MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.SUBTREES_UNION))
-
+        optimizer_params=OptimizerParameters(
+            tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                                       TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL)),
+        storage_params=TreeStorageParameters(sort_storage=False,
+                                             clean_up_interval=10,
+                                             prioritize_sorting_by_timestamp=True),
+        multi_pattern_eval_params=MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.SUBTREES_UNION))
 
     runMultiTest("MultipleNotBeginningShare", [pattern1, pattern2, pattern3], createTestFile, eval_mechanism_params)
+
 
 """
 multi-pattern test sharing internal node between patterns
 """
-def multipleParentsForInternalNode(createTestFile = False):
+
+
+def multipleParentsForInternalNode(createTestFile=False):
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"),
                     PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
@@ -341,12 +385,12 @@ def multipleParentsForInternalNode(createTestFile = False):
     pattern2 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"),
                     PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
-            AndCondition(
-                GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                                     Variable("b", lambda x: x["Opening Price"])),
-                GreaterThanCondition(Variable("c", lambda x: x["Peak Price"]), 530)
-            ),
-            timedelta(minutes=3)
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            GreaterThanCondition(Variable("c", lambda x: x["Peak Price"]), 530)
+        ),
+        timedelta(minutes=3)
     )
 
     pattern3 = Pattern(
@@ -372,11 +416,13 @@ def multipleParentsForInternalNode(createTestFile = False):
     )
 
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
-        TreeStorageParameters(sort_storage=False,
-                              clean_up_interval=10,
-                              prioritize_sorting_by_timestamp=True),
-        MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.SUBTREES_UNION))
+        optimizer_params=OptimizerParameters(
+            tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                                       TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL)),
+        storage_params=TreeStorageParameters(sort_storage=False,
+                                             clean_up_interval=10,
+                                             prioritize_sorting_by_timestamp=True),
+        multi_pattern_eval_params=MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.SUBTREES_UNION))
 
-    runMultiTest("multipleParentsForInternalNode", [pattern1, pattern2, pattern3, pattern4], createTestFile, eval_mechanism_params)
+    runMultiTest("multipleParentsForInternalNode", [pattern1, pattern2, pattern3, pattern4], createTestFile,
+                 eval_mechanism_params)
