@@ -90,7 +90,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         matches.close()
 
     def get_last_matches(self, matches):
-        pass
+        raise NotImplementedError("Must override")
 
     @staticmethod
     def collect_pending_matches(tree, matches):
@@ -215,11 +215,10 @@ class TrivialEvaluation(TreeBasedEvaluationMechanism):
         self._tree = new_tree
         self._event_types_listeners = self.register_event_listeners(new_tree)
         self.play_old_events_on_tree(old_events)
-        """
-        If there are new matches that have already been written 
-        to a file then all we want is to avoid duplications.
-        the method self._tree.get_matches() actually takes out the duplicate matches.
-        """
+
+        # If there are new matches that have already been written
+        # to a file then all we want is to avoid duplications.
+        # the method self._tree.get_matches() actually takes out the duplicate matches.
         self._tree.get_matches()
 
     def get_all_old_events(self):
@@ -286,11 +285,10 @@ class SimultaneousEvaluation(TreeBasedEvaluationMechanism):
         self.play_new_event(event, self._event_types_listeners)
         if self.__is_simultaneous_state:
             self.play_new_event(event, self.__new_event_types_listeners)
-            """
-            After this round we ask if we are in a simultaneous state. 
-            If the time window is over then we want to return to a state that is not simultaneous, 
-            i.e. a single tree
-            """
+
+            # After this round we ask if we are in a simultaneous state.
+            # If the time window is over then we want to return to a state that is not simultaneous,
+            # i.e. a single tree
             if datetime.now() - self.__tree_update_time > self._pattern.window:
                 self._tree, self.__new_tree = self.__new_tree, None
                 self._event_types_listeners, self.__new_event_types_listeners = self.__new_event_types_listeners, None
