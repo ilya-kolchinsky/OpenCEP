@@ -4,31 +4,29 @@ from statistics_collector.StatisticsCollector import StatisticsCollector
 from statistics_collector.StatisticsFactory import StatisticsParameters, StatisticsFactory
 
 
-class StatCollectorParameters:
+class StatisticsCollectorParameters:
 
     def __init__(self, statistics_params: StatisticsParameters = StatisticsParameters()):
         self.statistics_params = statistics_params
 
 
-class StatCollectorFactory:
+class StatisticsCollectorFactory:
     """
     Creates an Statistic Collector given its specification.
     """
 
     @staticmethod
-    def build_statistics_collector(statistics_collector_parameters: StatCollectorParameters, patterns: List[Pattern]):
+    def build_statistics_collector(statistics_collector_parameters: StatisticsCollectorParameters, patterns: List[Pattern]):
         if statistics_collector_parameters is None:
-            statistics_collector_parameters = StatCollectorFactory.__create_default_statistics_collector_parameters()
-        return StatCollectorFactory.__create_statistics_collector(statistics_collector_parameters, patterns)
+            statistics_collector_parameters = StatisticsCollectorFactory.__create_default_statistics_collector_parameters()
+        return StatisticsCollectorFactory.__create_statistics_collector(statistics_collector_parameters, patterns)
 
     @staticmethod
-    def __create_statistics_collector(statistics_collector_parameters: StatCollectorParameters,
+    def __create_statistics_collector(statistics_collector_parameters: StatisticsCollectorParameters,
                                       patterns: List[Pattern]):
         """
-        Currently, we only maintain one pattern.
-        Next you will need to go through a loop and for each pattern create statistics.
-        after that, send dictionary[key: pattern, value: statistics] to statistic collector
-        Note: nested patterns are not yet supported.
+        Currently, multi-pattern os not supported.
+        TODO: To support multi-pattern it will need to go through a loop and create statistics for each pattern.
         """
         pattern = patterns[0]
         statistics = StatisticsFactory.create_statistics(pattern, statistics_collector_parameters.statistics_params)
@@ -39,4 +37,4 @@ class StatCollectorFactory:
         """
         Uses the default configuration to create statistics collector parameters.
         """
-        return StatCollectorParameters()
+        return StatisticsCollectorParameters()
