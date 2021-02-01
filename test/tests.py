@@ -12,6 +12,12 @@ from stream.Stream import *
 
 
 runTest.over_all_time = 0
+#amazonSpecificPatternSearchTestAlgoritm1()
+amazonSpecificPatternSearchTestAlgoritm3()
+
+
+
+
 #
 # # basic functionality tests
 # oneArgumentsearchTest()
@@ -27,7 +33,7 @@ runTest.over_all_time = 0
 # duplicateEventTypeTest()
 #
 # # tree plan generation algorithms
-# arrivalRatesPatternSearchTest()
+#arrivalRatesPatternSearchTest()
 # nonFrequencyPatternSearchTest()
 # frequencyPatternSearchTest()
 # nonFrequencyPatternSearch2Test()
@@ -130,7 +136,7 @@ runTest.over_all_time = 0
 # Data parallel tests
 # Algorithm 1 - Hizel
 #oneArgumentsearchTestAlgorithm1()
-amazonSpecificPatternSearchTestAlgoritm1()
+#amazonSpecificPatternSearchTestAlgoritm1()
 
 # Algorithm 2 - Rip
 # oneArgumentsearchTestAlgorithm2()

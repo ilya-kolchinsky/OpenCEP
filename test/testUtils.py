@@ -27,8 +27,8 @@ nasdaqEventStreamShort = FileInputStream(os.path.join(absolutePath, "test/EventF
 nasdaqEventStreamMedium = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt"))
 nasdaqEventStreamFrequencyTailored = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
 nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
-#nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/tomerrrrrrrrrrr.txt"))
-nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
+nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/algo3test.txt"))
+#nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
 
 nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt"))
 custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"))
@@ -212,7 +212,7 @@ def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
 
 def runTest(testName, patterns, createTestFile=False,
             eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events=None, eventStream=nasdaqEventStream,parallel_execution_params=None,
+            events=None, eventStream = nasdaqEventStream,parallel_execution_params=None,
             data_parallel_params=None
             ):
     if createTestFile:
@@ -239,7 +239,6 @@ def runTest(testName, patterns, createTestFile=False,
         events = custom_temp.duplicate()
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
-
     cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, data_parallel_params)
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
@@ -248,12 +247,12 @@ def runTest(testName, patterns, createTestFile=False,
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
 
-    print(actual_matches_path)
     print(expected_matches_path)
+    print(actual_matches_path)
     is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
-    print("Test %s result: %s, Time Passed: %s" % (testName,
-                                                   "Succeeded" if is_test_successful else "Failed", running_time))
-    runTest.over_all_time += running_time
+    #print("Test %s result: %s, Time Passed: %s" % (testName,
+     #                                              "Succeeded" if is_test_successful else "Failed", running_time))
+    #runTest.over_all_time += running_time
     #if is_test_successful:
      #   os.remove(actual_matches_path)
 

@@ -43,7 +43,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
 
-    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter, to_close=True):
+    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter,matches_handler:OutputStream=None,to_close=True):
         """
         Activates the tree evaluation mechanism on the input event stream and reports all found pattern matches to the
         given output stream.
@@ -51,7 +51,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         self.__register_event_listeners()
         for raw_event in events:
             event = Event(raw_event, data_formatter)
-            #print(event)
             if event.type not in self.__event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
@@ -61,7 +60,10 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__try_register_freezer(event, leaf)
                 leaf.handle_event(event)
             for match in self.__tree.get_matches():
-                matches.add_item(match)
+                if not matches_handler or match not in matches_handler:
+                    matches.add_item(match)
+                if matches_handler:
+                    matches_handler.add_item(match)
                 self.__remove_matched_freezers(match.events)
 
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
@@ -139,6 +141,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     flag = True
                     for event in match_event:
                         if event.timestamp > time1:  # not need to check if duplicated
+                            flag = False
                             flag = False
                             break
                     matches.add_item([match, flag])
