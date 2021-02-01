@@ -129,8 +129,11 @@ runTest.over_all_time = 0
 
 # Data parallel tests
 # Algorithm 1 - Hizel
-#oneArgumentsearchTestAlgorithm1()
+oneArgumentsearchTestAlgorithm1()
 amazonSpecificPatternSearchTestAlgoritm1()
+fbNegPatternSearchTestAlgorithm1()
+fbEqualToApple1PatternSearchTestAlgorithm1()
+fbEqualToApple2PatternSearchTestAlgorithm1()
 
 # Algorithm 2 - Rip
 # oneArgumentsearchTestAlgorithm2()

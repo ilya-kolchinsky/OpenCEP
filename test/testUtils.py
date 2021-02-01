@@ -35,7 +35,7 @@ custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"
 custom2 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom2.txt"))
 custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.txt"))
 custom_temp = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom_temp.txt"))
-nasdaq_equals = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_EQUALS.txt"))
+
 
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
@@ -80,7 +80,6 @@ def fileCompare_StreamTest(pathA, pathB):
 
     for line in file2:
         list2.append(line)
-    print(len(list1), len(list2))
     if len(list1) != len(list2):
         return False
 
@@ -141,7 +140,6 @@ def fileCompare(pathA, pathB):
     file2.seek(0)
 
     # quick check, if both files don't return the same counter, or if both files are empty
-    #print("in", counter1, counter2)
     if counter1 != counter2:
         closeFiles(file1, file2)
         return False
@@ -158,7 +156,6 @@ def fileCompare(pathA, pathB):
     list1.sort()
     list2.sort()
 
-   # print(len(list1), len(list2))
     return list1 == list2
 
 
@@ -225,8 +222,7 @@ def runTest(testName, patterns, createTestFile=False,
     listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns"]
     listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd"]
-    listCustom2 = ["simpleNot"]
-    list_temp = ["i"]
+    listCustom2 = ["simpleNot", "fbNegOpeningPrice", "fbEqualToApple", "fbEqualToApple2"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
@@ -235,8 +231,6 @@ def runTest(testName, patterns, createTestFile=False,
         events = custom.duplicate()
     elif testName in listCustom2:
         events = custom2.duplicate()
-    elif testName in list_temp:
-        events = custom_temp.duplicate()
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
 
@@ -247,9 +241,6 @@ def runTest(testName, patterns, createTestFile=False,
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
-
-    print(actual_matches_path)
-    print(expected_matches_path)
     is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))

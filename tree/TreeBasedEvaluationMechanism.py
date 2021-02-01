@@ -51,7 +51,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         self.__register_event_listeners()
         for raw_event in events:
             event = Event(raw_event, data_formatter)
-            #print(event)
             if event.type not in self.__event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
@@ -162,19 +161,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         for match in self.__tree.get_last_matches():
             matches.add_item([match, True])
 
-
-
-        #     for match in self.__tree.get_matches():
-        #         matches.add_item(match)
-        #         self.__remove_matched_freezers(match.events)
-        #
-        #     # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
-        #     # collect them now<class 'tree.nodes.NegationNod
-        # for match in self.__tree.get_last_matches():
-        #     matches.add_item(match)
-        #     countM += 1
-
-        # print("m ", countM)
 
     def __register_event_listeners(self):
         """

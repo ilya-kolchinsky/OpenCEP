@@ -155,7 +155,7 @@ def googleAmazonLowPatternSearchTest(createTestFile=False):
             SimpleCondition(Variable("a", lambda x: x["Peak Price"]),
                             relation_op=lambda x: x <= 73),
             SimpleCondition(Variable("g", lambda x: x["Peak Price"]),
-                            relation_op=lambda x: x <= 525)
+                            relation_op=lambda x: x <= 120)
         ),
         timedelta(minutes=1)
     )

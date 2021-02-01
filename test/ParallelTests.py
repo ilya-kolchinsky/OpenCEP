@@ -2,7 +2,7 @@ from test.testUtils import *
 from datetime import timedelta
 from condition.Condition import Variable, TrueCondition, BinaryCondition, SimpleCondition
 from condition.CompositeCondition import AndCondition
-from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, GreaterThanEqCondition, SmallerThanEqCondition, SmallerThanCondition
+from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, GreaterThanEqCondition, SmallerThanEqCondition, SmallerThanCondition, NotEqCondition
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, KleeneClosureOperator, NegationOperator
 from base.Pattern import Pattern
 from parallel.ParallelExecutionParameters import *
@@ -34,17 +34,50 @@ def amazonSpecificPatternSearchTestAlgoritm1(createTestFile=False):
             parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
             data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
 
-def amazonSpecificPatternSearchTest(createTestFile=False):
-    """
-    This pattern is looking for an amazon stock in peak price of 73.
-    """
-    amazonSpecificPattern = Pattern(
-        SeqOperator(PrimitiveEventStructure("AMZN", "a")),
-        NotEqCondition(Variable("a", lambda x: x["Peak Price"]), 73),
+
+def fbNegPatternSearchTestAlgorithm1(createTestFile=False):
+
+    fbNegPattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("FB", "a")),
+        NotEqCondition(Variable("a", lambda x: x["Opening Price"]), 16),
         timedelta(minutes=120)
     )
-    runTest('amazonSpecific', [amazonSpecificPattern], createTestFile)
+    runTest('fbNegOpeningPrice', [fbNegPattern], createTestFile,
+            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
 
+
+
+def fbEqualToApple1PatternSearchTestAlgorithm1(createTestFile=False):
+
+    fbAndAaplPattern = Pattern(
+        AndOperator(PrimitiveEventStructure("FB", "f"), PrimitiveEventStructure("AAPL", "a")),
+        AndCondition(
+            EqCondition(Variable("a", lambda x: x["Opening Price"]), Variable("f", lambda x: x["Opening Price"])),
+            EqCondition(Variable("a", lambda x: x["Opening Price"]), 16),
+        ),
+    timedelta(minutes=9)
+    )
+    runTest('fbEqualToApple', [fbAndAaplPattern], createTestFile,
+            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
+
+
+###################################################################
+def fbEqualToApple2PatternSearchTestAlgorithm1(createTestFile=False):
+
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("FB", "f"), PrimitiveEventStructure("AAPL", "a")),
+        AndCondition(
+            EqCondition(Variable("a", lambda x: x["Opening Price"]), Variable("f", lambda x: x["Opening Price"])),
+            SimpleCondition(Variable("a", lambda x: x["Peak Price"]),
+                            relation_op=lambda x: x <= 100)
+        ),
+        timedelta(minutes=9)
+    )
+    runTest('fbEqualToApple2', [pattern], createTestFile,
+            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
 
 
 
