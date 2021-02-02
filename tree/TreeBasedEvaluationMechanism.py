@@ -11,14 +11,16 @@ from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from tree.MultiPatternTree import MultiPatternTree
-
 from tree.Tree import Tree
+
+from base.PatternStructure import NegationOperator
 
 
 class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
+
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                  storage_params: TreeStorageParameters,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
@@ -41,16 +43,15 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
 
-    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+    def eval(self, events: InputStream, matches: OutputStream,
+             data_formatter: DataFormatter, matches_handler:List=None, to_close=True):
         """
         Activates the tree evaluation mechanism on the input event stream and reports all found pattern matches to the
         given output stream.
         """
         self.__register_event_listeners()
-        print("first:", events.first())
         for raw_event in events:
             event = Event(raw_event, data_formatter)
-            print(type(event.payload["Opening Price"]))
             if event.type not in self.__event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
@@ -60,18 +61,25 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__try_register_freezer(event, leaf)
                 leaf.handle_event(event)
             for match in self.__tree.get_matches():
-                matches.add_item(match)
+                if not matches_handler or match not in matches_handler:
+                    matches.add_item(match)
+                if matches_handler and match not in matches_handler:
+                    matches_handler.append(match)
                 self.__remove_matched_freezers(match.events)
 
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         for match in self.__tree.get_last_matches():
-            matches.add_item(match)
-        matches.close()
+            if not matches_handler or match not in matches_handler:
+                matches.add_item(match)
+            if matches_handler and match not in matches_handler:
+                matches_handler.append(match)
+        if to_close:
+            matches.close()
+
 
     def eval_parallel(self, events: InputStream, matches: Stream, data_formatter: DataFormatter, time1, time2):
         self.__register_event_listeners()
-
         for raw_event in events:
             event = Event(raw_event, data_formatter)
             if event.type not in self.__event_types_listeners.keys():
@@ -82,18 +90,67 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     continue
                 self.__try_register_freezer(event, leaf)
                 leaf.handle_event(event)
-
-            if event.timestamp <= time1: #begin
+            ######
+            # if event.timestamp <= time1:  # begin
+            #     for match in self.__tree.get_matches():
+            #         match_event = match.events
+            #         flag = True
+            #         for event in match_event:
+            #             if event.timestamp > time1:  # not need to check if duplicated
+            #                 flag = False
+            #                 break
+            #         if flag == True and first_neg == True and isfirst == False:
+            #             continue
+            #         matches.add_item([match, flag])
+            #         self.__remove_matched_freezers(match.events)
+            #         #print("*", match)
+            # elif event.timestamp >= time2:  # end
+            #     for match in self.__tree.get_matches():
+            #         match_event = match.events
+            #         flag = True
+            #         for event in match_event:
+            #             if event.timestamp < time2:  # not need to check if duplicated
+            #                 flag = False
+            #                 break
+            #         if flag == True and last_neg == True and islast == False:
+            #             continue
+            #         matches.add_item([match, flag])
+            #         self.__remove_matched_freezers(match.events)
+            #         countM += 1
+            #        # print("***", match)
+            # else:  # middle
+            #
+            #     for match in self.__tree.get_matches():
+            #
+            #         flag1 = flag2 =False
+            #         if last_neg == True:
+            #             match_event = match.events
+            #             for event in match_event:
+            #                 if event.timestamp <=time1:
+            #                     flag1 = True
+            #                     break
+            #         if first_neg ==True:
+            #
+            #             match_event = match.events
+            #             for event in match_event:
+            #                 if event.timestamp >= time2:
+            #                     flag2 = True
+            #                     break
+            #         #print( flag1 or flag2)
+            #        # print("**", match)
+            #         matches.add_item([match, flag1 or flag2])
+            #         self.__remove_matched_freezers(match.events)
+            if event.timestamp <= time1:  # begin
                 for match in self.__tree.get_matches():
                     match_event = match.events
                     flag = True
                     for event in match_event:
-                        if event.timestamp > time1: #not need to check if duplicated
+                        if event.timestamp > time1:  # not need to check if duplicated
                             flag = False
                             break
                     matches.add_item([match, flag])
                     self.__remove_matched_freezers(match.events)
-            elif event.timestamp >= time2:# end
+            elif event.timestamp >= time2:  # end
                 for match in self.__tree.get_matches():
                     match_event = match.events
                     flag = True
@@ -103,16 +160,28 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                             break
                     matches.add_item([match, flag])
                     self.__remove_matched_freezers(match.events)
-            else: #middle
+            else:  # middle
                 for match in self.__tree.get_matches():
                     matches.add_item([match, False])
                     self.__remove_matched_freezers(match.events)
-
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         for match in self.__tree.get_last_matches():
             matches.add_item([match, True])
-        matches.close()
+
+
+
+        #     for match in self.__tree.get_matches():
+        #         matches.add_item(match)
+        #         self.__remove_matched_freezers(match.events)
+        #
+        #     # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
+        #     # collect them now<class 'tree.nodes.NegationNod
+        # for match in self.__tree.get_last_matches():
+        #     matches.add_item(match)
+        #     countM += 1
+
+        # print("m ", countM)
 
     def __register_event_listeners(self):
         """

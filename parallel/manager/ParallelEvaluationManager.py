@@ -49,10 +49,9 @@ class DataParallelEvaluationManager(ParallelEvaluationManager):
     def get_pattern_match_stream(self):
         return self.__pattern_matches
 
-"""
     def get_structure_summary(self):
-        return self.__eval_mechanism.get_structure_summary()
-"""
+        return self.__algorithm.get_structure_summary()
+
 
 
 

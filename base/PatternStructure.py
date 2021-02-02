@@ -60,13 +60,13 @@ class UnaryStructure(PatternStructure, ABC):
     Represents a pattern structure with an unary operator at the top level.
     """
     def __init__(self, arg):
-        self.arg = arg
+        self.args = arg
 
     def __eq__(self, other):
-        return type(self) == type(other) and self.arg == other.arg
+        return type(self) == type(other) and self.args == other.args
 
     def contains_event(self, event_name: str):
-        return self.arg.contains_event(event_name)
+        return self.args.contains_event(event_name)
 
 
 class CompositeStructure(PatternStructure, ABC):
@@ -138,15 +138,15 @@ class KleeneClosureOperator(UnaryStructure):
         self.max_size = max_size
 
     def duplicate(self):
-        return KleeneClosureOperator(self.arg.duplicate(), self.min_size, self.max_size)
+        return KleeneClosureOperator(self.args.duplicate(), self.min_size, self.max_size)
 
     def __repr__(self):
-        return "(%s)+" % (self.arg,)
+        return "(%s)+" % (self.args,)
 
 
 class NegationOperator(UnaryStructure):
     def duplicate(self):
-        return NegationOperator(self.arg.duplicate())
+        return NegationOperator(self.args.duplicate())
 
     def __repr__(self):
-        return "NOT(%s)" % (self.arg,)
+        return "NOT(%s)" % (self.args,)
