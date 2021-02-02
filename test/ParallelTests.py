@@ -1100,4 +1100,4 @@ def amazonSpecificPatternSearchTestAlgoritm3(createTestFile=False):
     attributes_dict = {'AMZN': "Opening Price", 'AAPL' : "Peak Price", 'GOOG':"Lowest Price"}
     runTest('amazonSpecific', [amazonSpecificPattern], createTestFile,
             parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=27,attributes_dict=attributes_dict))
+            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=28,attributes_dict=attributes_dict))

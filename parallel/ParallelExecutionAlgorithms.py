@@ -262,7 +262,7 @@ class Algorithm3(DataParallelAlgorithm):
         super().__init__(threadsNum, patterns, eval_mechanism_params, platform)
         self.attributes_dict = attributes_dict
         self.keys_list = list(self.attributes_dict.keys())
-        self.groups_num = math.ceil(self._numThreads**(1/len(attributes_dict)))
+        self.groups_num = math.ceil((self._numThreads-1)**(1/len(attributes_dict)))
         self._matches_handler = Stream()
 
 
@@ -285,25 +285,21 @@ class Algorithm3(DataParallelAlgorithm):
 
 
     def _stream_divide(self):
-        print("here")
         file = open("C:/Users/tomer/Desktop/CEPproject/OpenCEP/test/strems.txt", 'w')
-
+        i=0
         for event_raw in self._events:
+            i+=1
             event = Event(event_raw, self._data_formatter)
             event_type = event.type
             event_attribute = self.attributes_dict[event_type]
             attribute_val = event.payload[event_attribute]
             group_index = int(attribute_val % (self.groups_num))
             leg_size = self.groups_num**self.keys_list.index(event_type)
-            print(leg_size)
             new_start = (group_index)*leg_size
             jump = leg_size*(self.groups_num-1)+1
             j = new_start
 
-            while j < self._numThreads:
-                if j==26:
-                    self._events_list[1].add_item(event_raw)
-                    print(event_raw)
+            while j < (self._numThreads-1):
                 self._events_list[j].add_item(event_raw)
                 file.write("%s " % j)
                 file.write("%s " % event.type)
@@ -316,7 +312,6 @@ class Algorithm3(DataParallelAlgorithm):
                     leg_size = self.groups_num ** self.keys_list.index(event_type)
                 else:
                     j+=1
-
 
         for stream in self._events_list:
             stream.close()
