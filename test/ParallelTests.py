@@ -10,6 +10,9 @@ from condition.KCCondition import KCIndexCondition, KCValueCondition
 from plan.multi.MultiPatternEvaluationParameters import *
 from misc.ConsumptionPolicy import *
 
+
+import random
+
 # Algorithm 1
 def oneArgumentsearchTestAlgorithm1(createTestFile=False):
     pattern = Pattern(
@@ -1101,3 +1104,54 @@ def amazonSpecificPatternSearchTestAlgoritm3(createTestFile=False):
     runTest('amazonSpecific', [amazonSpecificPattern], createTestFile,
             parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
             data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=28,attributes_dict=attributes_dict))
+
+
+
+
+def duplicateEventTypeTestAlgo3(createTestFile=False):
+    """
+    PATTERN SEQ(AmazonStockPriceUpdate a, AmazonStockPriceUpdate b, AmazonStockPriceUpdate c)
+    WHERE   TRUE
+    WITHIN 10 minutes
+    """
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AMZN", "c")),
+        TrueCondition(),
+        timedelta(minutes=10)
+    )
+    attributes_dict = {'AMZN': "Opening Price", 'AAPL' : "Peak Price", 'AVID':"Lowest Price"}
+    runTest("duplicateEventType", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny,
+            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
+                                                                  ParallelExecutionPlatforms.THREADING),
+            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=9,
+                                                                 attributes_dict=attributes_dict)
+            )
+
+
+
+
+
+def oneArgumentsearchTestAlgo3(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a")),
+        GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), 135),
+        timedelta(minutes=120)
+    )
+    elements = ["Opening Price" ,"Peak Price", "Lowest Price","Close Price","Volume"]
+    data = open("C:/Users/tomer/Desktop/CEPproject/OpenCEP/test/EventFiles/NASDAQ_LONG.txt")
+    helper = {}
+    lines = data.readlines()
+    for line in lines:
+        splited = line.split(",")
+        helper[splited[0]] = random.choice(elements)
+    print(helper)
+    print(len(helper))
+    runTest("one", [pattern], createTestFile,
+            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
+                                                                  ParallelExecutionPlatforms.THREADING),
+            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=9,
+                                                                 attributes_dict=helper)
+            )
+
+
+

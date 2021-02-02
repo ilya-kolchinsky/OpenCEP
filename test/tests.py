@@ -13,12 +13,12 @@ from stream.Stream import *
 
 runTest.over_all_time = 0
 #amazonSpecificPatternSearchTestAlgoritm1()
-amazonSpecificPatternSearchTestAlgoritm3()
+#amazonSpecificPatternSearchTestAlgoritm3()
+oneArgumentsearchTestAlgo3()
+#duplicateEventTypeTestAlgo3()
 
 
 
-
-#
 # # basic functionality tests
 # oneArgumentsearchTest()
 # simplePatternSearchTest()

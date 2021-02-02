@@ -263,7 +263,9 @@ class Algorithm3(DataParallelAlgorithm):
         self.attributes_dict = attributes_dict
         self.keys_list = list(self.attributes_dict.keys())
         self.groups_num = math.ceil((self._numThreads-1)**(1/len(attributes_dict)))
-        self._matches_handler = Stream()
+        self._matches_handler = []
+
+
 
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
@@ -282,6 +284,8 @@ class Algorithm3(DataParallelAlgorithm):
         for t in self._threads:
             t.wait()
         self._matches.close()
+        #if self._matches_handler:
+         #   self._matches_handler.close()
 
 
     def _stream_divide(self):
@@ -316,5 +320,8 @@ class Algorithm3(DataParallelAlgorithm):
         for stream in self._events_list:
             stream.close()
 
+        #self._matches_handler.close()
+
+
     def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
-        self._trees[thread_id].eval(self._events_list[thread_id], self._matches,self._matches_handler,data_formatter, False)
+        self._trees[thread_id].eval(self._events_list[thread_id], self._matches,data_formatter,self._matches_handler, False)

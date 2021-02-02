@@ -27,8 +27,8 @@ nasdaqEventStreamShort = FileInputStream(os.path.join(absolutePath, "test/EventF
 nasdaqEventStreamMedium = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt"))
 nasdaqEventStreamFrequencyTailored = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
 nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
-nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/algo3test.txt"))
-#nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
+#nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/algo3test.txt"))
+nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
 
 nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt"))
 custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"))
@@ -243,18 +243,21 @@ def runTest(testName, patterns, createTestFile=False,
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
+    print("here")
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
+    print("here")
+
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
 
     print(expected_matches_path)
     print(actual_matches_path)
     is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
-    #print("Test %s result: %s, Time Passed: %s" % (testName,
-     #                                              "Succeeded" if is_test_successful else "Failed", running_time))
-    #runTest.over_all_time += running_time
-    #if is_test_successful:
-     #   os.remove(actual_matches_path)
+    print("Test %s result: %s, Time Passed: %s" % (testName,
+                                                   "Succeeded" if is_test_successful else "Failed", running_time))
+    runTest.over_all_time += running_time
+    if is_test_successful:
+        os.remove(actual_matches_path)
 
 
 """
