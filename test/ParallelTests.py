@@ -77,6 +77,30 @@ def fbEqualToApple2PatternSearchTestAlgorithm1(createTestFile=False):
             parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
             data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
 
+def KCgoogleTestAlgorithm1():
+    pattern = Pattern(
+        KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a")),
+        SimpleCondition(Variable("a", lambda x: x["Lowest Price"]), relation_op=lambda x: x == 530),
+        timedelta(minutes=3)
+    )
+    runTest("KCgoogle", [pattern])
+
+
+def KCequalsPatternSearchTestAlgorithm1(createTestFile=False):
+
+    pattern = Pattern(
+        KleeneClosureOperator(
+            SeqOperator(PrimitiveEventStructure("FB", "f"), PrimitiveEventStructure("AAPL", "a")),
+        ),
+        AndCondition(
+            EqCondition(Variable("a", lambda x: x["Opening Price"]), Variable("f", lambda x: x["Opening Price"])),
+            EqCondition(Variable("a", lambda x: x["Opening Price"]), 16)
+        ),
+        timedelta(minutes=9)
+    )
+    runTest('KCequals', [pattern], createTestFile,
+            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
 
 
 # Algorithm 2

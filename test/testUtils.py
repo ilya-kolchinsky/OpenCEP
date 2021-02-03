@@ -219,10 +219,10 @@ def runTest(testName, patterns, createTestFile=False,
     else:
         events = events.duplicate()
 
-    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns", "LiOrGoog"]
+    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns", "KCgoogle"]
     listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd"]
-    listCustom2 = ["simpleNot", "fbNegOpeningPrice", "fbEqualToApple", "fbEqualToApple2"]
+    listCustom2 = ["simpleNot", "fbNegOpeningPrice", "fbEqualToApple", "fbEqualToApple2", "KCequals"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
@@ -245,8 +245,8 @@ def runTest(testName, patterns, createTestFile=False,
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
-    #if is_test_successful:
-     #   os.remove(actual_matches_path)
+    if is_test_successful:
+       os.remove(actual_matches_path)
 
 
 """
