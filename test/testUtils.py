@@ -80,6 +80,7 @@ def fileCompare_StreamTest(pathA, pathB):
 
     for line in file2:
         list2.append(line)
+    print(len(list1), len(list2))
     if len(list1) != len(list2):
         return False
 
@@ -209,7 +210,7 @@ def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
 
 def runTest(testName, patterns, createTestFile=False,
             eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events=None, eventStream=nasdaqEventStream,parallel_execution_params=None,
+            events=None, eventStream = nasdaqEventStream,parallel_execution_params=None,
             data_parallel_params=None
             ):
     if createTestFile:
@@ -245,8 +246,8 @@ def runTest(testName, patterns, createTestFile=False,
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
-    #if is_test_successful:
-     #   os.remove(actual_matches_path)
+    if is_test_successful:
+        os.remove(actual_matches_path)
 
 
 """

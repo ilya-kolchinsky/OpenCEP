@@ -43,7 +43,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
 
-    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter, to_close=True):
+    def eval(self, events: InputStream, matches: OutputStream,
+             data_formatter: DataFormatter, matches_handler:List=None, to_close=True):
         """
         Activates the tree evaluation mechanism on the input event stream and reports all found pattern matches to the
         given output stream.
@@ -60,15 +61,22 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__try_register_freezer(event, leaf)
                 leaf.handle_event(event)
             for match in self.__tree.get_matches():
-                matches.add_item(match)
+                if not matches_handler or match not in matches_handler:
+                    matches.add_item(match)
+                if matches_handler and match not in matches_handler:
+                    matches_handler.append(match)
                 self.__remove_matched_freezers(match.events)
 
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         for match in self.__tree.get_last_matches():
-            matches.add_item(match)
+            if not matches_handler or match not in matches_handler:
+                matches.add_item(match)
+            if matches_handler and match not in matches_handler:
+                matches_handler.append(match)
         if to_close:
             matches.close()
+
 
     def eval_parallel(self, events: InputStream, matches: Stream, data_formatter: DataFormatter, time1, time2):
         self.__register_event_listeners()
