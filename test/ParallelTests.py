@@ -2,7 +2,7 @@ from test.testUtils import *
 from datetime import timedelta
 from condition.Condition import Variable, TrueCondition, BinaryCondition, SimpleCondition
 from condition.CompositeCondition import AndCondition
-from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, GreaterThanEqCondition, SmallerThanEqCondition, SmallerThanCondition
+from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, GreaterThanEqCondition, SmallerThanEqCondition, SmallerThanCondition, NotEqCondition
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, KleeneClosureOperator, NegationOperator
 from base.Pattern import Pattern
 from parallel.ParallelExecutionParameters import *
@@ -47,7 +47,6 @@ def fbNegPatternSearchTestAlgorithm1(createTestFile=False):
             data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
 
 
-
 def fbEqualToApple1PatternSearchTestAlgorithm1(createTestFile=False):
 
     fbAndAaplPattern = Pattern(
@@ -63,7 +62,6 @@ def fbEqualToApple1PatternSearchTestAlgorithm1(createTestFile=False):
             data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
 
 
-###################################################################
 def fbEqualToApple2PatternSearchTestAlgorithm1(createTestFile=False):
 
     pattern = Pattern(
