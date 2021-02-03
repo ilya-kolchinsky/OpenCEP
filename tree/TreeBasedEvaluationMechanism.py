@@ -44,7 +44,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             self.__init_freeze_map()
 
     def eval(self, events: InputStream, matches: OutputStream,
-             data_formatter: DataFormatter, matches_handler:List=None, to_close=True):
+             data_formatter: DataFormatter, to_close=True,  matches_handler:List=None):
         """
         Activates the tree evaluation mechanism on the input event stream and reports all found pattern matches to the
         given output stream.
