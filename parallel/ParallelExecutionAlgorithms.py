@@ -6,7 +6,6 @@ from abc import ABC
 from stream.Stream import InputStream, OutputStream
 from stream.DataParallelStream import *
 from stream.Stream import Stream
-import math
 
 from typing import List
 from base.Pattern import Pattern
@@ -35,8 +34,6 @@ def _make_tree(patterns: Pattern or List[Pattern],
             patterns[0])
 
     return tree
-
-
 
 
 class DataParallelAlgorithm(ABC):
@@ -81,12 +78,13 @@ class DataParallelAlgorithm(ABC):
         return self._trees[0].get_structure_summary()
 
 class Algorithm1(DataParallelAlgorithm):
-    def __init__(self, threadsNum, patterns: Pattern or List[Pattern],
+    def __init__(self, numthreads, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform, key: str):
-        super().__init__(threadsNum, patterns, eval_mechanism_params, platform)
+        super().__init__(numthreads, patterns, eval_mechanism_params, platform)
         self.key = key
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+
         event = Event(events.first(),data_formatter)
         key_val = event.payload[self.key]
         if not isinstance(key_val, (int, float)):
@@ -100,22 +98,16 @@ class Algorithm1(DataParallelAlgorithm):
 
 
     def _stream_divide(self):
-        file = open("C:/Users/tomer/Desktop/CEPproject/OpenCEP/test/strems.txt", 'w')
-
         for event_raw in self._events:
             event = Event(event_raw, self._data_formatter)
             index = int(event.payload[self.key] % (self._numThreads - 1))
             self._events_list[index].add_item(event_raw)
 
-            file.write("%s " %index)
-            file.write("%s\n" %event.payload[self.key])
-
         for stream in self._events_list:
             stream.close()
+
     def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
-
         self._trees[thread_id].eval(self._events_list[thread_id], self._matches, data_formatter, False)
-
 
 class Algorithm2(DataParallelAlgorithm):
 
@@ -209,7 +201,6 @@ class Algorithm2(DataParallelAlgorithm):
         for start_time in self.start_list[thread_id]:
             shared_time1 = start_time + self.shared_time
             shared_time2 = start_time + self.time_slot - self.shared_time
-            #print(start_time, shared_time1, shared_time2)
             self._trees[thread_id].eval_parallel(self._events_list[thread_id], self._matches_handler, data_formatter, shared_time1, shared_time2)
             self._trees[thread_id] = _make_tree(self._patterns, self._eval_mechanism_params)
             self.thread_pool.put(thread_id)
@@ -250,10 +241,6 @@ class Algorithm2(DataParallelAlgorithm):
                 self._matches.add_item(match)
 
         self._matches.close()
-
-
-
-
 
 
 class Algorithm3(DataParallelAlgorithm):

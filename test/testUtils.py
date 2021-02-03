@@ -27,7 +27,7 @@ nasdaqEventStreamShort = FileInputStream(os.path.join(absolutePath, "test/EventF
 nasdaqEventStreamMedium = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt"))
 nasdaqEventStreamFrequencyTailored = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
 nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
-#nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/algo3test.txt"))
+#nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/tomerrrrrrrrrrr.txt"))
 nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
 
 nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt"))
@@ -35,7 +35,7 @@ custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"
 custom2 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom2.txt"))
 custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.txt"))
 custom_temp = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom_temp.txt"))
-nasdaq_equals = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_EQUALS.txt"))
+
 
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
@@ -80,7 +80,6 @@ def fileCompare_StreamTest(pathA, pathB):
 
     for line in file2:
         list2.append(line)
-    print(len(list1), len(list2))
     if len(list1) != len(list2):
         return False
 
@@ -141,7 +140,6 @@ def fileCompare(pathA, pathB):
     file2.seek(0)
 
     # quick check, if both files don't return the same counter, or if both files are empty
-    #print("in", counter1, counter2)
     if counter1 != counter2:
         closeFiles(file1, file2)
         return False
@@ -158,7 +156,6 @@ def fileCompare(pathA, pathB):
     list1.sort()
     list2.sort()
 
-   # print(len(list1), len(list2))
     return list1 == list2
 
 
@@ -212,7 +209,7 @@ def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
 
 def runTest(testName, patterns, createTestFile=False,
             eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events=None, eventStream = nasdaqEventStream,parallel_execution_params=None,
+            events=None, eventStream = nasdaqEventStream, parallel_execution_params=None,
             data_parallel_params=None
             ):
     if createTestFile:
@@ -222,11 +219,10 @@ def runTest(testName, patterns, createTestFile=False,
     else:
         events = events.duplicate()
 
-    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns"]
+    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns", "LiOrGoog"]
     listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd"]
-    listCustom2 = ["simpleNot"]
-    list_temp = ["i"]
+    listCustom2 = ["simpleNot", "fbNegOpeningPrice", "fbEqualToApple", "fbEqualToApple2"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
@@ -235,29 +231,22 @@ def runTest(testName, patterns, createTestFile=False,
         events = custom.duplicate()
     elif testName in listCustom2:
         events = custom2.duplicate()
-    elif testName in list_temp:
-        events = custom_temp.duplicate()
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
+
     cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, data_parallel_params)
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
-    print("here")
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
-    print("here")
-
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
-
-    print(expected_matches_path)
-    print(actual_matches_path)
     is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
-    if is_test_successful:
-        os.remove(actual_matches_path)
+    #if is_test_successful:
+     #   os.remove(actual_matches_path)
 
 
 """
@@ -354,22 +343,18 @@ def runMultiTest(testName, patterns, createTestFile=False,
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
 
-    match_set = [set() for i in range(len(patterns))]
     with open(actual_matches_path) as matchFile:
         all_matches = matchFile.read()
     match_list = all_matches.split('\n\n')
-    for match in match_list:
-        if match:
-            match_set[int(match.partition(':')[0]) - 1].add(match.strip()[match.index(' ') + 1:])
 
-    exp_set = [set() for i in range(len(patterns))]
     with open(expected_matches_path) as expFile:
         all_exp_matches = expFile.read()
     exp_match_list = all_exp_matches.split('\n\n')
-    for match in exp_match_list:
-        if match:
-            exp_set[int(match.partition(':')[0]) - 1].add(match.strip()[match.index(' ') + 1:])
-    res = (exp_set == match_set)
+
+    match_list.sort()
+    exp_match_list.sort()
+    res = (match_list == exp_match_list)
+
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if res else "Failed", running_time))
     runTest.over_all_time += running_time
