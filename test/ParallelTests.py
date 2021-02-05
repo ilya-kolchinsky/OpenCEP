@@ -106,6 +106,8 @@ def applePeakToOpenTestAlgoritm1(createTestFile=False):
     runTest('applePeakToOpen', [pattern], createTestFile,
             parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
             data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
+
+
 def KCgoogleTestAlgorithm1():
     pattern = Pattern(
         KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a")),

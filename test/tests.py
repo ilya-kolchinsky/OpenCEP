@@ -136,6 +136,8 @@ runTest.over_all_time = 0
 #fbEqualToApple2PatternSearchTestAlgorithm1()
 #appleOpenToCloseTestAlgoritm1()
 applePeakToOpenTestAlgoritm1()
+KCgoogleTestAlgorithm1()
+KCequalsPatternSearchTestAlgorithm1()
 
 # Algorithm 2 - Rip
 # oneArgumentsearchTestAlgorithm2()

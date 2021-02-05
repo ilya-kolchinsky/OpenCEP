@@ -218,10 +218,10 @@ def runTest(testName, patterns, createTestFile=False,
     else:
         events = events.duplicate()
 
-    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns", "LiOrGoog"]
+    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns", "LiOrGoog", "KCgoogle"]
     listHalfShort = ["OneNotEnd", "MultipleNotEnd", "appleOpenToClose", "applePeakToOpen"]
     listCustom = ["MultipleNotBeginAndEnd"]
-    listCustom2 = ["simpleNot", "fbNegOpeningPrice", "fbEqualToApple", "fbEqualToApple2"]
+    listCustom2 = ["simpleNot", "fbNegOpeningPrice", "fbEqualToApple", "fbEqualToApple2", "KCequals"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
