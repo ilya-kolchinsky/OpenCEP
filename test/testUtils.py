@@ -34,7 +34,6 @@ nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/Ev
 custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"))
 custom2 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom2.txt"))
 custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.txt"))
-custom_temp = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom_temp.txt"))
 
 
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
@@ -220,7 +219,7 @@ def runTest(testName, patterns, createTestFile=False,
         events = events.duplicate()
 
     listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns", "LiOrGoog"]
-    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
+    listHalfShort = ["OneNotEnd", "MultipleNotEnd", "appleOpenToClose", "applePeakToOpen"]
     listCustom = ["MultipleNotBeginAndEnd"]
     listCustom2 = ["simpleNot", "fbNegOpeningPrice", "fbEqualToApple", "fbEqualToApple2"]
     if testName in listShort:

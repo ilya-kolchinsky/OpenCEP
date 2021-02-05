@@ -77,6 +77,35 @@ def fbEqualToApple2PatternSearchTestAlgorithm1(createTestFile=False):
             parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
             data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
 
+def appleOpenToCloseTestAlgoritm1(createTestFile=False):
+
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a")),
+        AndCondition(
+        EqCondition(Variable("a", lambda x: x["Opening Price"]), Variable("a", lambda y: y["Close Price"])),
+        NotEqCondition(Variable("a", lambda x: x["Peak Price"]), Variable("a", lambda y: y["Lowest Price"])),
+        ),
+        timedelta(minutes=9)
+    )
+    runTest('appleOpenToClose', [pattern], createTestFile,
+            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
+
+
+def applePeakToOpenTestAlgoritm1(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a")),
+        AndCondition(
+            NotEqCondition(Variable("a", lambda x: x["Opening Price"]),
+                        Variable("a", lambda y: y["Lowest Price"])),
+            EqCondition(Variable("a", lambda x: x["Peak Price"]),
+                           Variable("a", lambda y: y["Opening Price"])),
+        ),
+        timedelta(minutes=9)
+    )
+    runTest('applePeakToOpen', [pattern], createTestFile,
+            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
+            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
 
 
 # Algorithm 2

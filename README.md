@@ -256,3 +256,24 @@ event_stream = TwitterInputStream(['corona'])
 ```
 ### Tweet formation in CEP
 The format of a tweet is defined in Tweets.py (see documentation). The tweet keys are described there based on the overview of a tweet in https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object
+
+#Data Parallel Algorithms
+
+In order to run the program in parallel, it is required from the user to give inputs: 
+1. Number of the desired algorithm 
+2. Number of threads
+
+For each algorithm there is a unique additional input and certain Terms on the inputs or on the pattern.
+Please note that there is no input test. It is the responsibility of the user.
+
+Algorithm 1-
+Additional input: An attribute for which the data will be divided into threads.
+Terms on the pattern: The pattern will only contain equations (for example: equations between attributes of different types, equality of a certain value to the attribute of a specific type).
+
+Algorithm 2-
+Additional input: multipation of timedelta
+Terms on the pattern: The pattern will not contain unblocked negation.
+
+Algorithm 3-
+Additional input: a dictionary that contains the attribute and the suitable type for which the data will be divided into threads.
+Terms on the input of threads number': the threads number' minus one should be square number of the types' number of the given patter
