@@ -64,7 +64,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__try_register_freezer(event, leaf)
                 leaf.handle_event(event)
             for match in self.__tree.get_matches():
-                if to_close:
+                if mutex == None:
                     matches.add_item(match)
                     self.__remove_matched_freezers(match.events)
 
@@ -74,7 +74,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         for match in self.__tree.get_last_matches():
-            if to_close:
+            if mutex == None:
                 matches.add_item(match)
                 self.__remove_matched_freezers(match.events)
             elif self._check_duplicates_in_match(match) == False:
