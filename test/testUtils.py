@@ -155,7 +155,6 @@ def fileCompare(pathA, pathB):
     closeFiles(file1, file2)
     list1.sort()
     list2.sort()
-
     return list1 == list2
 
 
@@ -219,7 +218,7 @@ def runTest(testName, patterns, createTestFile=False,
     else:
         events = events.duplicate()
 
-    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns", "LiOrGoog", "KCgoogle"]
+    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns", "KCgoogle"]
     listHalfShort = ["OneNotEnd", "MultipleNotEnd", "appleOpenToClose", "applePeakToOpen"]
     listCustom = ["MultipleNotBeginAndEnd"]
     listCustom2 = ["simpleNot", "fbNegOpeningPrice", "fbEqualToApple", "fbEqualToApple2", "KCequals"]
