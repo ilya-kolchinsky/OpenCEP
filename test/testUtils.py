@@ -153,7 +153,6 @@ def fileCompare(pathA, pathB):
     closeFiles(file1, file2)
     list1.sort()
     list2.sort()
-
     return list1 == list2
 
 
