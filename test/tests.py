@@ -15,11 +15,7 @@ from stream.Stream import *
 runTest.over_all_time = 0
 #amazonSpecificPatternSearchTestAlgoritm1()
 
-
-
-
-#
-# # basic functionality tests
+# basic functionality tests
 # oneArgumentsearchTest()
 # simplePatternSearchTest()
 # googleAscendPatternSearchTest()
@@ -107,33 +103,34 @@ runTest.over_all_time = 0
 #
 # # multi-pattern tests
 # # first approach: sharing leaves
-# leafIsRoot()
-# distinctPatterns()
-# threePatternsTest()
-# samePatternDifferentTimeStamps()
-# rootAndInner()
+leafIsRoot()
+distinctPatterns()
+threePatternsTest()
+samePatternDifferentTimeStamps()
+rootAndInner()
 #
-# # second approach: sharing equivalent subtrees
-# onePatternIncludesOther()
-# samePatternSharingRoot()
-# severalPatternShareSubtree()
-# notInTheBeginningShare()
+# second approach: sharing equivalent subtrees
+onePatternIncludesOther()
+samePatternSharingRoot()
+severalPatternShareSubtree()
+notInTheBeginningShare()
 multipleParentsForInternalNode()
 
-# benchmarks
-if INCLUDE_BENCHMARKS:
-    sortedStorageBenchMarkTest()
 
-
-# Twitter tests
-if INCLUDE_TWITTER:
-    try:
-        from TwitterTest import run_twitter_sanity_check
-        run_twitter_sanity_check()
-    except ImportError:  # tweepy might not be installed
-        pass
 #
-# print("#######Algorithm1 tests#######")
+# # benchmarks
+# if INCLUDE_BENCHMARKS:
+#     sortedStorageBenchMarkTest()
+#
+#
+# # Twitter tests
+# if INCLUDE_TWITTER:
+#     try:
+#         from TwitterTest import run_twitter_sanity_check
+#         run_twitter_sanity_check()
+#     except ImportError:  # tweepy might not be installed
+#         pass
+#
 # # Data parallel tests
 # # Algorithm 1 - Hizel
 # oneArgumentsearchTestAlgorithm1()
@@ -146,7 +143,6 @@ if INCLUDE_TWITTER:
 # KCgoogleTestAlgorithm1()
 # KCequalsPatternSearchTestAlgorithm1()
 #
-# print("##########Algorithm2 tests########")
 # # Algorithm 2 - Rip
 # oneArgumentsearchTestAlgorithm2()
 # simplePatternSearchTestAlgorithm2()
@@ -194,8 +190,7 @@ if INCLUDE_TWITTER:
 # sortedStorageTestAlgorithm2()
 #
 #
-# print("######Algorithm3 tests########")
-# ######Basic functionality tests for Algorithm3
+# # ######Basic functionality tests for Algorithm3
 # oneArgumentsearchTestAlgorithm3()
 # simplePatternSearchTestAlgorithm3()
 # googleAmazonLowPatternSearchTestAlgorithm3()
@@ -207,8 +202,8 @@ if INCLUDE_TWITTER:
 # msftDrivRacePatternSearchTestAlgorithm3()
 # googleIncreasePatternSearchTestAlgorithm3()
 # hierarchyPatternSearchTestAlgorithm3()
-#
-#
+
+
 # # tree plan generation algorithms for Algorithm3
 # arrivalRatesPatternSearchTestAlgorithm3()
 # frequencyPatternSearchTestAlgorithm3()
@@ -258,22 +253,16 @@ if INCLUDE_TWITTER:
 #
 # # storage tests
 # sortedStorageTestAlgorithm3()
-#
-#TODO:check all the tests below
-# # multi-pattern tests
-# # first approach: sharing leaves
+# #
+# # # multi-pattern tests
 # distinctPatternsAlgorithm3()
 # samePatternDifferentTimeStampsAlgorithm3()
 # rootAndInnerAlgorithm3()
-#
-# # second approach: sharing equivalent subtrees
 # onePatternIncludesOtherAlgorithm3()
-# samePatternSharingRootAlgorithm3()
-# multipleParentsForInternalNodeAlgorithm3()
-#TODO:CHECK THE BUG OF "SAME" TEST
-
-
-
-
-
-print("Finished running all tests, overall time: %s" % runTest.over_all_time)
+# #TODO:CHECK THE BUG OF "SAME" TEST
+#
+#
+#
+#
+#
+# print("Finished running all tests, overall time: %s" % runTest.over_all_time)

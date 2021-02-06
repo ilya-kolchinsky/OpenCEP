@@ -354,7 +354,7 @@ def runMultiTest(testName, patterns, createTestFile=False,
     match_list.sort()
     exp_match_list.sort()
     res = (match_list == exp_match_list)
-    print(len(match_list)," ", len(exp_match_list))
+
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if res else "Failed", running_time))
     runTest.over_all_time += running_time
