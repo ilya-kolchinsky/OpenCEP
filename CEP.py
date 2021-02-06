@@ -23,7 +23,7 @@ class CEP:
         """
         Constructor of the class.
         """
-        if patterns is None or len(patterns) == 0:
+        if patterns is None or (isinstance(patterns, List) and len(patterns) == 0):
             raise Exception("No patterns are provided")
         self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(patterns,
                                                                                        eval_mechanism_params,

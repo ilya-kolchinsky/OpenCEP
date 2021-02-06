@@ -91,7 +91,7 @@ class Tree:
                                            is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
             else:
                 raise Exception("Unsupported operator for negation: %s" % (top_operator,))
-            negative_event = negation_operator.args
+            negative_event = negation_operator.arg
             leaf_index = pattern.get_index_by_event_name(negative_event.name)
             negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root)
             new_root.set_subtrees(current_root, negative_leaf)

@@ -4,8 +4,8 @@ from typing import List
 from base.Event import Event
 from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
 from condition.CompositeCondition import CompositeCondition, AndCondition
-from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
-    SeqOperator, NegationOperator,KleeneClosureOperator,AndOperator
+from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, UnaryStructure,  \
+    SeqOperator, NegationOperator, KleeneClosureOperator, AndOperator
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
 from misc.ConsumptionPolicy import ConsumptionPolicy
@@ -131,7 +131,7 @@ class Pattern:
         An auxiliary method for returning all event types in the pattern.
         """
         if isinstance(structure,KleeneClosureOperator):
-            if isinstance(structure.args,PrimitiveEventStructure):
+            if isinstance(structure.args, PrimitiveEventStructure):
                 if structure.max_size == None:
                     return [structure.args.type]
                 else:
@@ -140,17 +140,19 @@ class Pattern:
                 types=[]
                 for i in range(structure.max_size):
                     types.extend(reduce(lambda x, y: x + y,[self.__get_all_event_types_with_duplicates_aux(arg) for arg in structure.args.args]))
-                return  types
+                return types
 
-        if isinstance(structure,NegationOperator):
-            return [structure.args.type]
+        if isinstance(structure, NegationOperator):
+            return [structure.arg.type]
 
         if isinstance(structure, PrimitiveEventStructure):
             return [structure.type]
 
 
-
-        return reduce(lambda x, y: x+y, [self.__get_all_event_types_with_duplicates_aux(arg) for arg in structure.args])
+        if isinstance(structure,UnaryStructure):
+            return reduce(lambda x, y: x+y, [self.__get_all_event_types_with_duplicates_aux(arg) for arg in structure.arg])
+        else:
+            return reduce(lambda x, y: x + y, [self.__get_all_event_types_with_duplicates_aux(arg) for arg in structure.args])
 
     def __init_strict_conditions(self, pattern_structure: PatternStructure):
         """

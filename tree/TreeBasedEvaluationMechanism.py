@@ -84,6 +84,10 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
 
     def eval_parallel(self, events: InputStream, matches: Stream, data_formatter: DataFormatter, time1, time2):
+        """
+            Activates the tree evaluation mechanism on the input event stream and reports all found pattern matches to the
+            given output buffer stream. used for data parallel algorithm2
+        """
         self.__register_event_listeners()
         for raw_event in events:
             event = Event(raw_event, data_formatter)
@@ -125,19 +129,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         for match in self.__tree.get_last_matches():
             matches.add_item([match, True])
 
-
-
-        #     for match in self.__tree.get_matches():
-        #         matches.add_item(match)
-        #         self.__remove_matched_freezers(match.events)
-        #
-        #     # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
-        #     # collect them now<class 'tree.nodes.NegationNod
-        # for match in self.__tree.get_last_matches():
-        #     matches.add_item(match)
-        #     countM += 1
-
-        # print("m ", countM)
 
     def __register_event_listeners(self):
         """

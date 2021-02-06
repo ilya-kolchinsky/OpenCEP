@@ -20,17 +20,17 @@ runTest.over_all_time = 0
 
 
 # # basic functionality tests
-oneArgumentsearchTest()
-simplePatternSearchTest()
-googleAscendPatternSearchTest()
-amazonInstablePatternSearchTest()
-msftDrivRacePatternSearchTest()
-googleIncreasePatternSearchTest()
-amazonSpecificPatternSearchTest()
-googleAmazonLowPatternSearchTest()
-nonsensePatternSearchTest()
-hierarchyPatternSearchTest()
-duplicateEventTypeTest()
+# oneArgumentsearchTest()
+# simplePatternSearchTest()
+# googleAscendPatternSearchTest()
+# amazonInstablePatternSearchTest()
+# msftDrivRacePatternSearchTest()
+# googleIncreasePatternSearchTest()
+# amazonSpecificPatternSearchTest()
+# googleAmazonLowPatternSearchTest()
+# nonsensePatternSearchTest()
+# hierarchyPatternSearchTest()
+# duplicateEventTypeTest()
 #
 # # tree plan generation algorithms
 #arrivalRatesPatternSearchTest()
@@ -193,17 +193,17 @@ duplicateEventTypeTest()
 
 
 #######Basic functionality tests for Algorithm3
-oneArgumentsearchTestAlgorithm3()
-simplePatternSearchTestAlgorithm3()
-googleAmazonLowPatternSearchTestAlgorithm3()
-nonsensePatternSearchTestAlgorithm3()
-duplicateEventTypeTestAlgorithm3()
-amazonSpecificPatternSearchTestAlgorithm3()
-googleAscendPatternSearchTestAlgorithm3()
-amazonInstablePatternSearchTestAlgorithm3()
-msftDrivRacePatternSearchTestAlgorithm3()
-googleIncreasePatternSearchTestAlgorithm3()
-hierarchyPatternSearchTestAlgorithm3()
+# oneArgumentsearchTestAlgorithm3()
+# simplePatternSearchTestAlgorithm3()
+# googleAmazonLowPatternSearchTestAlgorithm3()
+# nonsensePatternSearchTestAlgorithm3()
+# duplicateEventTypeTestAlgorithm3()
+# amazonSpecificPatternSearchTestAlgorithm3()
+# googleAscendPatternSearchTestAlgorithm3()
+# amazonInstablePatternSearchTestAlgorithm3()
+# msftDrivRacePatternSearchTestAlgorithm3()
+# googleIncreasePatternSearchTestAlgorithm3()
+# hierarchyPatternSearchTestAlgorithm3()
 
 
 # tree plan generation algorithms for Algorithm3
@@ -259,15 +259,14 @@ hierarchyPatternSearchTestAlgorithm3()
 #TODO:check all the tests below
 # # multi-pattern tests
 # # first approach: sharing leaves
-leafIsRootAlgorithm3()
-distinctPatternsAlgorithm3()
-samePatternDifferentTimeStampsAlgorithm3()
+# distinctPatternsAlgorithm3()
+# samePatternDifferentTimeStampsAlgorithm3()
 rootAndInnerAlgorithm3()
-# #
+#
 # # second approach: sharing equivalent subtrees
-onePatternIncludesOtherAlgorithm3()
-samePatternSharingRootAlgorithm3()
-multipleParentsForInternalNodeAlgorithm3()
+# onePatternIncludesOtherAlgorithm3()
+# samePatternSharingRootAlgorithm3()
+# multipleParentsForInternalNodeAlgorithm3()
 #TODO:CHECK THE BUG OF "SAME" TEST
 
 

@@ -1539,37 +1539,6 @@ def sortedStorageTestAlgorithm3(createTestFile=False):
 """
 multi-pattern tests
 """
-def leafIsRootAlgorithm3(createTestFile = False):
-    pattern1 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a")),
-        GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
-        timedelta(minutes=5)
-    )
-    pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), NegationOperator(PrimitiveEventStructure("AMZN", "b")), PrimitiveEventStructure("GOOG", "c")),
-        AndCondition(
-            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                                 Variable("b", lambda x: x["Opening Price"])),
-            SmallerThanCondition(Variable("b", lambda x: x["Opening Price"]),
-                                 Variable("c", lambda x: x["Opening Price"]))),
-        timedelta(minutes=5)
-    )
-
-    attributes = ["Opening Price", "Peak Price", "Lowest Price", "Close Price", "Volume"]
-    attribute_dict = {}
-    types = pattern1.get_all_event_types_with_duplicates()
-    types.extend(pattern2.get_all_event_types_with_duplicates())
-    for type in types:
-        if type in attribute_dict.keys():
-            attribute_dict[type].append(random.choice(attributes))
-        else:
-            attribute_dict[type] = [random.choice(attributes)]
-    runMultiTest("FirstMultiPattern", [pattern1, pattern2], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=10,
-                                                                 attributes_dict=attribute_dict))
-
 def distinctPatternsAlgorithm3(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"), PrimitiveEventStructure("GOOG", "c")),
@@ -1640,7 +1609,7 @@ def rootAndInnerAlgorithm3(createTestFile = False):
                  parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
                                                                        ParallelExecutionPlatforms.THREADING),
                  data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3,
-                                                                      num_threads=9,
+                                                                      num_threads=17,
                                                                       attributes_dict=attribute_dict))
 
 
@@ -1727,7 +1696,7 @@ def onePatternIncludesOtherAlgorithm3(createTestFile = False):
                  parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
                                                                        ParallelExecutionPlatforms.THREADING),
                  data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3,
-                                                                      num_threads=9,
+                                                                      num_threads=33,
                                                                       attributes_dict=attribute_dict))
 
 

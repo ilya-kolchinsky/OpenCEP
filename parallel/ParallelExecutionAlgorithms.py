@@ -44,7 +44,7 @@ def _make_tree(patterns: Pattern or List[Pattern],
 class DataParallelAlgorithm(ABC):
     """
         An abstract base class for all  data parallel evaluation algorithms.
-        """
+    """
 
     def __init__(self, numthreads, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform):
@@ -65,6 +65,9 @@ class DataParallelAlgorithm(ABC):
 
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+        """
+            Activates the algorithm evaluation mechanism
+        """
         self._events = events
         self._data_formatter = data_formatter
         self._matches = matches
@@ -74,10 +77,25 @@ class DataParallelAlgorithm(ABC):
             self._threads.append(t)
             t.start()
 
+    def _eval_tread(self):
+        """
+            Activates the tread evaluation mechanism
+        """
+        raise NotImplementedError()
+
+    def _stream_divide(self):
+        """
+            Divide the input stream into the appropriate threads
+        """
+        raise NotImplementedError()
+
     def get_structure_summary(self):
         return self._trees[0].get_structure_summary()
 
 class Algorithm1(DataParallelAlgorithm):
+    """
+        A class for data parallel evaluation algorithm1 - Hizel
+    """
     def __init__(self, numthreads, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform, key: str):
         super().__init__(numthreads, patterns, eval_mechanism_params, platform)
@@ -98,7 +116,6 @@ class Algorithm1(DataParallelAlgorithm):
 
 
     def _stream_divide(self):
-        file = open("C:/Users/tomer/Desktop/CEPproject/OpenCEP/test/strems.txt", 'w')
 
         for event_raw in self._events:
             event = Event(event_raw, self._data_formatter)
@@ -112,7 +129,9 @@ class Algorithm1(DataParallelAlgorithm):
         self._trees[thread_id].eval(self._events_list[thread_id], self._matches, data_formatter, False)
 
 class Algorithm2(DataParallelAlgorithm):
-
+    """
+        A class for  data parallel evaluation algorithm2 - Rip
+    """
     def __init__(self, numthreads, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform):
 
@@ -141,10 +160,7 @@ class Algorithm2(DataParallelAlgorithm):
         self._mutex = Queue()
 
     def _stream_divide(self):
-        count1 = 0
-        count_total = 0
-        count_shared = 0
-        count_used = 0
+
         try:
             event_raw = self._events.get_item()
             cur_event = Event(event_raw, self._data_formatter)
@@ -157,7 +173,6 @@ class Algorithm2(DataParallelAlgorithm):
         check_data = True
 
         while check_data:
-            count_shared += stream_s.count()
             stream = stream_s.duplicate()
             stream_s = Stream()
             while curr_time <= end_time and check_data:
@@ -192,7 +207,7 @@ class Algorithm2(DataParallelAlgorithm):
             self.start_list[i].close()
 
         while self._mutex.qsize() < self._numThreads-1:
-            pass
+            time.sleep(0.01)
 
         self._matches_handler.close()
 
@@ -245,6 +260,9 @@ class Algorithm2(DataParallelAlgorithm):
 
 
 class Algorithm3(DataParallelAlgorithm):
+    """
+           A class for data parallel evaluation algorithm3 - sigmod
+       """
     def __init__(self, threadsNum, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform, attributes_dict: dict):
         super().__init__(threadsNum, patterns, eval_mechanism_params, platform)
@@ -301,7 +319,6 @@ class Algorithm3(DataParallelAlgorithm):
         while self.finished_threads[0]!= (self._numThreads-1):
             time.sleep(0.0001)
         self._matches_handler.close()
-
 
 
 
