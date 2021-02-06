@@ -92,7 +92,6 @@ def multipleNotAtTheBeginningTest(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    print(pattern.get_all_event_types())
     runTest("MultipleNotBegin", [pattern], createTestFile)
 
 
@@ -139,5 +138,4 @@ def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    print(pattern.get_all_event_types())
     runTest("NotEverywhere", [pattern], createTestFile)

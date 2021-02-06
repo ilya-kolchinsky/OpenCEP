@@ -133,7 +133,7 @@ class Algorithm2(DataParallelAlgorithm):
         A class for  data parallel evaluation algorithm2 - Rip
     """
     def __init__(self, numthreads, patterns: Pattern or List[Pattern],
-                 eval_mechanism_params: EvaluationMechanismParameters, platform):
+                 eval_mechanism_params: EvaluationMechanismParameters, platform, mult):
 
         super().__init__(numthreads, patterns, eval_mechanism_params, platform)
         self._eval_mechanism_params = eval_mechanism_params
@@ -146,7 +146,9 @@ class Algorithm2(DataParallelAlgorithm):
         for k in range(1, len(patterns)):
             if patterns[k].window > max_window:
                 max_window = patterns[k].window
-        self.time_slot = 3 * max_window
+        if mult <2:
+            raise Exception("Time window is too small")
+        self.time_slot = mult * max_window
         self.shared_time = max_window
         self.start_list = [Stream() for j in range(self._numThreads - 1)]
         self.start_queue = Queue()

@@ -128,11 +128,11 @@ class Pattern:
         An auxiliary method for returning all event types in the pattern.
         """
         if isinstance(structure,KleeneClosureOperator):
-            if isinstance(structure.args, PrimitiveEventStructure):
+            if isinstance(structure.arg, PrimitiveEventStructure):
                 if structure.max_size == None:
-                    return [structure.args.type]
+                    return [structure.arg.type]
                 else:
-                    return [structure.args.type for i in range(structure.max_size)]
+                    return [structure.arg.type for i in range(structure.max_size)]
             else:
                 types=[]
                 for i in range(structure.max_size):
