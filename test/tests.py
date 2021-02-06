@@ -13,108 +13,108 @@ from stream.Stream import *
 
 
 runTest.over_all_time = 0
+#amazonSpecificPatternSearchTestAlgoritm1()
 
-
-#basic functionality tests
-oneArgumentsearchTest()
-simplePatternSearchTest()
-googleAscendPatternSearchTest()
-amazonInstablePatternSearchTest()
-msftDrivRacePatternSearchTest()
-googleIncreasePatternSearchTest()
-amazonSpecificPatternSearchTest()
-googleAmazonLowPatternSearchTest()
-nonsensePatternSearchTest()
-hierarchyPatternSearchTest()
-duplicateEventTypeTest()
-
-# tree plan generation algorithms
-arrivalRatesPatternSearchTest()
-nonFrequencyPatternSearchTest()
-frequencyPatternSearchTest()
-nonFrequencyPatternSearch2Test()
-frequencyPatternSearch2Test()
-nonFrequencyPatternSearch3Test()
-frequencyPatternSearch3Test()
-nonFrequencyPatternSearch4Test()
-frequencyPatternSearch4Test()
-nonFrequencyPatternSearch5Test()
-frequencyPatternSearch5Test()
-frequencyPatternSearch6Test()
-greedyPatternSearchTest()
-iiRandomPatternSearchTest()
-iiRandom2PatternSearchTest()
-iiGreedyPatternSearchTest()
-iiGreedy2PatternSearchTest()
-zStreamOrdPatternSearchTest()
-zStreamPatternSearchTest()
-dpBPatternSearchTest()
-dpLdPatternSearchTest()
-nonFrequencyTailoredPatternSearchTest()
-frequencyTailoredPatternSearchTest()
-
-# tree structure tests - CEP object only created not used
-structuralTest1()
-structuralTest2()
-structuralTest3()
-structuralTest4()
-structuralTest5()
-structuralTest6()
-structuralTest7()
-
-# Kleene closure tests
-MinMax_0_TestKleeneClosure()
-MinMax_1_TestKleeneClosure()
-MinMax_2_TestKleeneClosure()
-
-
-# Kleene Condition tests
-KC_AND_IndexCondition_01()
-KC_AND_IndexCondition_02()
-KC_AND_NegOffSet_01()
-KC_AllValues()
-KC_Specific_Value()
-KC_Mixed()
-KC_Condition_Failure_01()
-KC_Condition_Failure_02()
-KC_Condition_Failure_03()
-
-# negation tests
-simpleNotTest()
-multipleNotInTheMiddleTest()
-oneNotAtTheBeginningTest()
-multipleNotAtTheBeginningTest()
-oneNotAtTheEndTest()
-multipleNotAtTheEndTest()
-multipleNotBeginAndEndTest()
-testWithMultipleNotAtBeginningMiddleEnd()
-
-# # consumption policies tests
-singleType1PolicyPatternSearchTest()
-singleType2PolicyPatternSearchTest()
-contiguousPolicyPatternSearchTest()
-contiguousPolicy2PatternSearchTest()
-freezePolicyPatternSearchTest()
-freezePolicy2PatternSearchTest()
-
-# storage tests
-sortedStorageTest()
-run_storage_tests()
-
-# multi-pattern tests
-# first approach: sharing leaves
-leafIsRoot()
-distinctPatterns()
-threePatternsTest()
-samePatternDifferentTimeStamps()
-rootAndInner()
+# basic functionality tests
+# oneArgumentsearchTest()
+# simplePatternSearchTest()
+# googleAscendPatternSearchTest()
+# amazonInstablePatternSearchTest()
+# msftDrivRacePatternSearchTest()
+# googleIncreasePatternSearchTest()
+# amazonSpecificPatternSearchTest()
+# googleAmazonLowPatternSearchTest()
+# nonsensePatternSearchTest()
+# hierarchyPatternSearchTest()
+# duplicateEventTypeTest()
 #
+# # tree plan generation algorithms
+# arrivalRatesPatternSearchTest()
+# nonFrequencyPatternSearchTest()
+# frequencyPatternSearchTest()
+# nonFrequencyPatternSearch2Test()
+# frequencyPatternSearch2Test()
+# nonFrequencyPatternSearch3Test()
+# frequencyPatternSearch3Test()
+# nonFrequencyPatternSearch4Test()
+# frequencyPatternSearch4Test()
+# nonFrequencyPatternSearch5Test()
+# frequencyPatternSearch5Test()
+# frequencyPatternSearch6Test()
+# greedyPatternSearchTest()
+# iiRandomPatternSearchTest()
+# iiRandom2PatternSearchTest()
+# iiGreedyPatternSearchTest()
+# iiGreedy2PatternSearchTest()
+# zStreamOrdPatternSearchTest()
+# zStreamPatternSearchTest()
+# dpBPatternSearchTest()
+# dpLdPatternSearchTest()
+# nonFrequencyTailoredPatternSearchTest()
+# frequencyTailoredPatternSearchTest()
+#
+# # tree structure tests - CEP object only created not used
+# structuralTest1()
+# structuralTest2()
+# structuralTest3()
+# structuralTest4()
+# structuralTest5()
+# structuralTest6()
+# structuralTest7()
+
+# # Kleene closure tests
+# MinMax_0_TestKleeneClosure()
+# MinMax_1_TestKleeneClosure()
+# MinMax_2_TestKleeneClosure()
+#
+#
+# # Kleene Condition tests
+# KC_AND_IndexCondition_01()
+# KC_AND_IndexCondition_02()
+# KC_AND_NegOffSet_01()
+# KC_AllValues()
+# KC_Specific_Value()
+# KC_Mixed()
+# KC_Condition_Failure_01()
+# KC_Condition_Failure_02()
+# KC_Condition_Failure_03()
+# #
+# # negation tests
+# simpleNotTest()
+# multipleNotInTheMiddleTest()
+# oneNotAtTheBeginningTest()
+# multipleNotAtTheBeginningTest()
+# oneNotAtTheEndTest()
+# multipleNotAtTheEndTest()
+# multipleNotBeginAndEndTest()
+# testWithMultipleNotAtBeginningMiddleEnd()
+
+# # # consumption policies tests
+# singleType1PolicyPatternSearchTest()
+# singleType2PolicyPatternSearchTest()
+# contiguousPolicyPatternSearchTest()
+# contiguousPolicy2PatternSearchTest()
+# freezePolicyPatternSearchTest()
+# freezePolicy2PatternSearchTest()
+#
+# # storage tests
+# sortedStorageTest()
+# run_storage_tests()
+
+# # multi-pattern tests
+# # first approach: sharing leaves
+# leafIsRoot()
+# distinctPatterns()
+# threePatternsTest()
+# samePatternDifferentTimeStamps()
+# rootAndInner()
+# #
 # second approach: sharing equivalent subtrees
-onePatternIncludesOther()
-samePatternSharingRoot()
-severalPatternShareSubtree()
-notInTheBeginningShare()
-multipleParentsForInternalNode()
+# onePatternIncludesOther()
+# samePatternSharingRoot()
+# severalPatternShareSubtree()
+# notInTheBeginningShare()
+# multipleParentsForInternalNode()
 
 
 #
@@ -143,7 +143,7 @@ multipleParentsForInternalNode()
 # KCgoogleTestAlgorithm1()
 # KCequalsPatternSearchTestAlgorithm1()
 #
-# # Algorithm 2 - Rip
+# # # Algorithm 2 - Rip
 # oneArgumentsearchTestAlgorithm2()
 # simplePatternSearchTestAlgorithm2()
 # googleAscendPatternSearchTestAlgorithm2()
@@ -188,7 +188,7 @@ multipleParentsForInternalNode()
 # freezePolicyPatternSearchTestAlgorithm2()
 # freezePolicy2PatternSearchTestAlgorithm2()
 # sortedStorageTestAlgorithm2()
-#
+
 #
 # # ######Basic functionality tests for Algorithm3
 # oneArgumentsearchTestAlgorithm3()
@@ -230,7 +230,7 @@ multipleParentsForInternalNode()
 # frequencyTailoredPatternSearchTestAlgorithm3()
 #
 #
-# # ### Kleene closure tests
+### Kleene closure tests
 # MinMax_0_TestKleeneClosureAlgorithm3()
 # MinMax_2_TestKleeneClosureAlgorithm3()
 #
@@ -242,7 +242,7 @@ multipleParentsForInternalNode()
 # KC_AllValuesAlgorithm3()
 # KC_Specific_ValueAlgorithm3()
 # KC_MixedAlgorithm3()
-#
+# # #
 #
 # # # consumption policies tests
 # singleType1PolicyPatternSearchTestAlgorithm3()

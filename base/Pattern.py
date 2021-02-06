@@ -136,7 +136,7 @@ class Pattern:
             else:
                 types=[]
                 for i in range(structure.max_size):
-                    types.extend(reduce(lambda x, y: x + y,[self.__get_all_event_types_with_duplicates_aux(arg) for arg in structure.args.args]))
+                    types.extend(reduce(lambda x, y: x + y,[self.__get_all_event_types_with_duplicates_aux(arg) for arg in structure.arg.args]))
                 return types
 
         if isinstance(structure, NegationOperator):
@@ -144,7 +144,6 @@ class Pattern:
 
         if isinstance(structure, PrimitiveEventStructure):
             return [structure.type]
-
 
         if isinstance(structure,UnaryStructure):
             return reduce(lambda x, y: x+y, [self.__get_all_event_types_with_duplicates_aux(arg) for arg in structure.arg])

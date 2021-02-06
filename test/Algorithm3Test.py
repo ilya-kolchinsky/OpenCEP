@@ -1205,6 +1205,7 @@ def KC_AND_IndexCondition_01Algorithm3(createTestFile=False):
             attribute_dict[type].append(random.choice(attributes))
         else:
             attribute_dict[type] = [random.choice(attributes)]
+    print(attribute_dict)
     runTest("KC_AND_IndexCondition_01_", [pattern], createTestFile, events=nasdaqEventStreamKC,
             parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
                                                                   ParallelExecutionPlatforms.THREADING),
