@@ -69,9 +69,9 @@ runTest.over_all_time = 0
 #
 #
 # # Kleene Condition tests
-# KC_AND_IndexCondition_01()
-# KC_AND_IndexCondition_02()
-# KC_AND_NegOffSet_01()
+KC_AND_IndexCondition_01()
+KC_AND_IndexCondition_02()
+KC_AND_NegOffSet_01()
 # KC_AllValues()
 # KC_Specific_Value()
 # KC_Mixed()
