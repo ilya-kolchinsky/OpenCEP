@@ -159,7 +159,7 @@ class Tree:
         if isinstance(current_operator, UnaryStructure):
             # the current operator is a unary operator hiding a nested pattern structure
             unary_node = self.__create_internal_node_by_operator(current_operator, sliding_window, parent)
-            nested_operator = current_operator.args
+            nested_operator = current_operator.arg
             child = self.__construct_tree(nested_operator, Tree.__create_nested_structure(nested_operator),
                                           Tree.__get_operator_arg_list(nested_operator), sliding_window, unary_node,
                                           consumption_policy)
