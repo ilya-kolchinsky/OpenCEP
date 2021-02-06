@@ -193,17 +193,17 @@ KCequalsPatternSearchTestAlgorithm1()
 
 
 #######Basic functionality tests for Algorithm3
-# oneArgumentsearchTestAlgorithm3()
-# simplePatternSearchTestAlgorithm3()
-# googleAmazonLowPatternSearchTestAlgorithm3()
-# nonsensePatternSearchTestAlgorithm3()
-# duplicateEventTypeTestAlgorithm3()
-# amazonSpecificPatternSearchTestAlgorithm3()
-# googleAscendPatternSearchTestAlgorithm3()
-# amazonInstablePatternSearchTestAlgorithm3()
-# msftDrivRacePatternSearchTestAlgorithm3()
-# googleIncreasePatternSearchTestAlgorithm3()
-# hierarchyPatternSearchTestAlgorithm3()
+oneArgumentsearchTestAlgorithm3()
+simplePatternSearchTestAlgorithm3()
+googleAmazonLowPatternSearchTestAlgorithm3()
+nonsensePatternSearchTestAlgorithm3()
+duplicateEventTypeTestAlgorithm3()
+amazonSpecificPatternSearchTestAlgorithm3()
+googleAscendPatternSearchTestAlgorithm3()
+amazonInstablePatternSearchTestAlgorithm3()
+msftDrivRacePatternSearchTestAlgorithm3()
+googleIncreasePatternSearchTestAlgorithm3()
+hierarchyPatternSearchTestAlgorithm3()
 
 
 # tree plan generation algorithms for Algorithm3
