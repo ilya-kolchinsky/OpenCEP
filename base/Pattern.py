@@ -154,6 +154,7 @@ class Pattern:
         else:
             return reduce(lambda x, y: x + y, [self.__get_all_event_types_with_duplicates_aux(arg) for arg in structure.args])
 
+
     def __init_strict_conditions(self, pattern_structure: PatternStructure):
         """
         Augment the pattern with the contiguity constraints specified as a part of the consumption policy.

@@ -33,7 +33,8 @@ nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/Ev
 custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"))
 custom2 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom2.txt"))
 custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.txt"))
-custom_temp = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom_temp.txt"))
+nasdaq_equals = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_EQUALS.txt"))
+
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
 DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
@@ -306,19 +307,18 @@ success or fail output.
 def runMultiTest(testName, patterns, createTestFile=False,
                  eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                  events=None, eventStream=nasdaqEventStream,
-                 parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads= 6)
+                 parallel_execution_params: ParallelExecutionParameters = None,
+                 data_parallel_params: DataParallelExecutionParameters = None
                  ):
     if events is None:
         events = eventStream.duplicate()
     else:
         events = events.duplicate()
 
-    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns"]
-    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
-    listCustom = ["MultipleNotBeginAndEnd"]
-    listCustom2 = ["simpleNot"]
-
+    listShort = ["multiplePatterns", "distinctPatterns", "MultipleNotBeginningShare", "multipleParentsForInternalNode"]
+    listHalfShort = ["onePatternIncludesOther", "threeSharingSubtrees"]
+    listCustom = []
+    listCustom2 = ["FirstMultiPattern", "RootAndInner"]
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
     elif testName in listHalfShort:
