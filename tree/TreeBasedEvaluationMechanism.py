@@ -13,7 +13,10 @@ from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationPa
 from tree.MultiPatternTree import MultiPatternTree
 from tree.Tree import Tree
 
-from base.PatternStructure import NegationOperator
+from threading import Thread, Lock
+
+
+
 
 
 class TreeBasedEvaluationMechanism(EvaluationMechanism):
@@ -43,8 +46,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
 
-    def eval(self, events: InputStream, matches: OutputStream,
-             data_formatter: DataFormatter, to_close=True,  matches_handler:List=None):
+    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter,to_close=True,
+             finished_threads=None,mutex=None):
         """
         Activates the tree evaluation mechanism on the input event stream and reports all found pattern matches to the
         given output stream.
@@ -61,21 +64,23 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__try_register_freezer(event, leaf)
                 leaf.handle_event(event)
             for match in self.__tree.get_matches():
-                if not matches_handler or match not in matches_handler:
+                 if self._check_duplicates_in_match(match) == False:
                     matches.add_item(match)
-                if matches_handler and match not in matches_handler:
-                    matches_handler.append(match)
-                self.__remove_matched_freezers(match.events)
-
+                    self.__remove_matched_freezers(match.events)
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         for match in self.__tree.get_last_matches():
-            if not matches_handler or match not in matches_handler:
-                matches.add_item(match)
-            if matches_handler and match not in matches_handler:
-                matches_handler.append(match)
+            if self._check_duplicates_in_match(match) == False:
+              matches.add_item(match)
+
+        #Usage in Algorithm3
+        if finished_threads != None:
+            mutex.acquire()
+            finished_threads[0]+=1
+            mutex.release()
+
         if to_close:
-            matches.close()
+          matches.close()
 
 
     def eval_parallel(self, events: InputStream, matches: Stream, data_formatter: DataFormatter, time1, time2):
@@ -90,56 +95,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                     continue
                 self.__try_register_freezer(event, leaf)
                 leaf.handle_event(event)
-            ######
-            # if event.timestamp <= time1:  # begin
-            #     for match in self.__tree.get_matches():
-            #         match_event = match.events
-            #         flag = True
-            #         for event in match_event:
-            #             if event.timestamp > time1:  # not need to check if duplicated
-            #                 flag = False
-            #                 break
-            #         if flag == True and first_neg == True and isfirst == False:
-            #             continue
-            #         matches.add_item([match, flag])
-            #         self.__remove_matched_freezers(match.events)
-            #         #print("*", match)
-            # elif event.timestamp >= time2:  # end
-            #     for match in self.__tree.get_matches():
-            #         match_event = match.events
-            #         flag = True
-            #         for event in match_event:
-            #             if event.timestamp < time2:  # not need to check if duplicated
-            #                 flag = False
-            #                 break
-            #         if flag == True and last_neg == True and islast == False:
-            #             continue
-            #         matches.add_item([match, flag])
-            #         self.__remove_matched_freezers(match.events)
-            #         countM += 1
-            #        # print("***", match)
-            # else:  # middle
-            #
-            #     for match in self.__tree.get_matches():
-            #
-            #         flag1 = flag2 =False
-            #         if last_neg == True:
-            #             match_event = match.events
-            #             for event in match_event:
-            #                 if event.timestamp <=time1:
-            #                     flag1 = True
-            #                     break
-            #         if first_neg ==True:
-            #
-            #             match_event = match.events
-            #             for event in match_event:
-            #                 if event.timestamp >= time2:
-            #                     flag2 = True
-            #                     break
-            #         #print( flag1 or flag2)
-            #        # print("**", match)
-            #         matches.add_item([match, flag1 or flag2])
-            #         self.__remove_matched_freezers(match.events)
+
             if event.timestamp <= time1:  # begin
                 for match in self.__tree.get_matches():
                     match_event = match.events
@@ -169,6 +125,19 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         for match in self.__tree.get_last_matches():
             matches.add_item([match, True])
 
+
+
+        #     for match in self.__tree.get_matches():
+        #         matches.add_item(match)
+        #         self.__remove_matched_freezers(match.events)
+        #
+        #     # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
+        #     # collect them now<class 'tree.nodes.NegationNod
+        # for match in self.__tree.get_last_matches():
+        #     matches.add_item(match)
+        #     countM += 1
+
+        # print("m ", countM)
 
     def __register_event_listeners(self):
         """
@@ -247,3 +216,13 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
     def __repr__(self):
         return self.get_structure_summary()
+
+    def _check_duplicates_in_match(self,match):
+        events_in_match = [event.__str__() for event in match.events]
+        events_set=set()
+        for event in events_in_match:
+            events_set.add(event)
+        if len(events_in_match) == len(events_set):
+            return False
+        return True
+

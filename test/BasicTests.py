@@ -219,5 +219,8 @@ def duplicateEventTypeTest(createTestFile=False):
         TrueCondition(),
         timedelta(minutes=10)
     )
+    print(pattern.get_all_event_types())
     runTest("duplicateEventType", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
+
+
 

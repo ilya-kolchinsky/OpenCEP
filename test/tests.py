@@ -6,13 +6,19 @@ from test.PolicyTests import *
 from test.MultiPattern_tests import *
 from test.StorageTests import *
 from test.ParallelTests import *
+from test.Algorithm3Test import *
 
 from test.UnitTests.test_storage import run_storage_tests
 from stream.Stream import *
 
 
 runTest.over_all_time = 0
-#
+#amazonSpecificPatternSearchTestAlgoritm1()
+
+
+
+
+
 # # basic functionality tests
 # oneArgumentsearchTest()
 # simplePatternSearchTest()
@@ -27,7 +33,7 @@ runTest.over_all_time = 0
 # duplicateEventTypeTest()
 #
 # # tree plan generation algorithms
-# arrivalRatesPatternSearchTest()
+#arrivalRatesPatternSearchTest()
 # nonFrequencyPatternSearchTest()
 # frequencyPatternSearchTest()
 # nonFrequencyPatternSearch2Test()
@@ -184,5 +190,88 @@ KCequalsPatternSearchTestAlgorithm1()
 # freezePolicyPatternSearchTestAlgorithm2()
 # freezePolicy2PatternSearchTestAlgorithm2()
 # sortedStorageTestAlgorithm2()
+
+
+#######Basic functionality tests for Algorithm3
+# oneArgumentsearchTestAlgorithm3()
+# simplePatternSearchTestAlgorithm3()
+# googleAmazonLowPatternSearchTestAlgorithm3()
+# nonsensePatternSearchTestAlgorithm3()
+# duplicateEventTypeTestAlgorithm3()
+# amazonSpecificPatternSearchTestAlgorithm3()
+# googleAscendPatternSearchTestAlgorithm3()
+# amazonInstablePatternSearchTestAlgorithm3()
+# msftDrivRacePatternSearchTestAlgorithm3()
+# googleIncreasePatternSearchTestAlgorithm3()
+# hierarchyPatternSearchTestAlgorithm3()
+
+
+# tree plan generation algorithms for Algorithm3
+# arrivalRatesPatternSearchTestAlgorithm3()
+# frequencyPatternSearchTestAlgorithm3()
+# nonFrequencyPatternSearchTestAlgorithm3()
+# nonFrequencyPatternSearch3TestAlgorithm3()
+# frequencyPatternSearch3TestAlgorithm3()
+# nonFrequencyPatternSearch2TestAlgorithm3()
+# frequencyPatternSearch2TestAlgorithm3()
+# nonFrequencyPatternSearch4TestAlgorithm3()
+# frequencyPatternSearch4TestAlgorithm3()
+####nonFrequencyPatternSearch5TestAlgorithm3()#TODO:CHECK THOSE 3 TEST
+####frequencyPatternSearch5TestAlgorithm3()
+####frequencyPatternSearch6TestAlgorithm3()
+# greedyPatternSearchTestAlgorithm3()
+# iiRandomPatternSearchTestAlgorithm3()
+# iiRandom2PatternSearchTestAlgorithm3()
+# iiGreedyPatternSearchTestAlgorithm3()
+# iiGreedy2PatternSearchTestAlgorithm3()
+# zStreamOrdPatternSearchTestAlgorithm3()
+# zStreamPatternSearchTestAlgorithm3()
+# dpBPatternSearchTestAlgorithm3()
+# dpLdPatternSearchTestAlgorithm3()
+# nonFrequencyTailoredPatternSearchTestAlgorithm3()
+# frequencyTailoredPatternSearchTestAlgorithm3()
+
+
+# # ### Kleene closure tests
+# MinMax_0_TestKleeneClosureAlgorithm3()
+# MinMax_2_TestKleeneClosureAlgorithm3()
+#
+# #TODO:CHCK KLEENE
+# # # # Kleene Condition tests
+# KC_AND_IndexCondition_01Algorithm3()
+# KC_AND_IndexCondition_02Algorithm3()
+# KC_AND_NegOffSet_01Algorithm3()
+# KC_AllValuesAlgorithm3()
+# KC_Specific_ValueAlgorithm3()
+# KC_MixedAlgorithm3()
+
+
+# # # consumption policies tests
+# singleType1PolicyPatternSearchTestAlgorithm3()
+# singleType2PolicyPatternSearchTestAlgorithm3()
+# contiguousPolicyPatternSearchTestAlgorithm3()
+# contiguousPolicy2PatternSearchTestAlgorithm3()
+# freezePolicy2PatternSearchTestAlgorithm3()
+#
+# # storage tests
+# sortedStorageTestAlgorithm3()
+#
+#TODO:check all the tests below
+# # multi-pattern tests
+# # first approach: sharing leaves
+leafIsRootAlgorithm3()
+distinctPatternsAlgorithm3()
+samePatternDifferentTimeStampsAlgorithm3()
+rootAndInnerAlgorithm3()
+# #
+# # second approach: sharing equivalent subtrees
+onePatternIncludesOtherAlgorithm3()
+samePatternSharingRootAlgorithm3()
+multipleParentsForInternalNodeAlgorithm3()
+#TODO:CHECK THE BUG OF "SAME" TEST
+
+
+
+
 
 print("Finished running all tests, overall time: %s" % runTest.over_all_time)

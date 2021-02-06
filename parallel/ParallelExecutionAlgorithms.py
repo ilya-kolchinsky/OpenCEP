@@ -6,6 +6,7 @@ from abc import ABC
 from stream.Stream import InputStream, OutputStream
 from stream.DataParallelStream import *
 from stream.Stream import Stream
+import math
 
 from typing import List
 from base.Pattern import Pattern
@@ -16,9 +17,13 @@ from datetime import timedelta, datetime
 from base.Event import Event
 from datetime import datetime
 import threading
-
 from base.Event import Event
 from base.PatternMatch import *
+
+import time
+from threading import Lock
+
+
 
 def _make_tree(patterns: Pattern or List[Pattern],
                eval_mechanism_params: EvaluationMechanismParameters):
@@ -57,12 +62,7 @@ class DataParallelAlgorithm(ABC):
             self._trees.append(_make_tree(patterns, eval_mechanism_params))
             self._events_list.append(Stream())
 
-        """ 
-        self._matches_list = []
 
-        for i in range(numthreads):
-            self._matches_list.append(Stream())
-        """
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         self._events = events
@@ -98,6 +98,8 @@ class Algorithm1(DataParallelAlgorithm):
 
 
     def _stream_divide(self):
+        file = open("C:/Users/tomer/Desktop/CEPproject/OpenCEP/test/strems.txt", 'w')
+
         for event_raw in self._events:
             event = Event(event_raw, self._data_formatter)
             index = int(event.payload[self.key] % (self._numThreads - 1))
@@ -192,7 +194,6 @@ class Algorithm2(DataParallelAlgorithm):
         while self._mutex.qsize() < self._numThreads-1:
             pass
 
-
         self._matches_handler.close()
 
 
@@ -248,67 +249,76 @@ class Algorithm3(DataParallelAlgorithm):
                  eval_mechanism_params: EvaluationMechanismParameters, platform, attributes_dict: dict):
         super().__init__(threadsNum, patterns, eval_mechanism_params, platform)
         self.attributes_dict = attributes_dict
-        self.keys_list = list(self.attributes_dict.keys())
-        self.groups_num = math.ceil((self._numThreads-1)**(1/len(attributes_dict)))
-        self._matches_handler = []
-
-
+        self.types=[]
+        for pattern in patterns:
+            self.types.extend(list(pattern.get_all_event_types_with_duplicates()))
+        self.groups_num = math.ceil((self._numThreads-1)**(1/len(self.types)))
+        self._matches_handler = Stream()
+        self.finished_threads = [0]
+        self.mutex=Lock()
 
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
-        """
-        event = Event(events.first(), data_formatter)
-        event_type = event.type
-        event_attribute = self.attributes_dict[event_type]
-        attribute_val = event.payload[event_attribute]
-        print(self.keys_list)
-        for key in self.keys_list:
-            key_val = event.payload[key]
-            if not isinstance(key_val, (int, float)):
-                raise Exception("key %s has no numeric value" % (self.key,))
-        """
         super().eval_algorithm(events, matches, data_formatter)
-        for t in self._threads:
-            t.wait()
+        check_duplicated = list()
+
+        for match in self._matches_handler:
+            if match.__str__() not in check_duplicated:
+                self._matches.add_item(match)
+                check_duplicated.append(match.__str__())
         self._matches.close()
-        #if self._matches_handler:
-         #   self._matches_handler.close()
 
 
     def _stream_divide(self):
-        file = open("C:/Users/tomer/Desktop/CEPproject/OpenCEP/test/strems.txt", 'w')
-        i=0
         for event_raw in self._events:
-            i+=1
             event = Event(event_raw, self._data_formatter)
             event_type = event.type
-            event_attribute = self.attributes_dict[event_type]
-            attribute_val = event.payload[event_attribute]
-            group_index = int(attribute_val % (self.groups_num))
-            leg_size = self.groups_num**self.keys_list.index(event_type)
-            new_start = (group_index)*leg_size
-            jump = leg_size*(self.groups_num-1)+1
-            j = new_start
-
-            while j < (self._numThreads-1):
-                self._events_list[j].add_item(event_raw)
-                file.write("%s " % j)
-                file.write("%s " % event.type)
-                file.write("%s\n " % attribute_val)
-                file.write("%s " % event_raw)
-                file.write("%s\n" % event.payload[event_attribute])
-                leg_size-=1
-                if leg_size == 0:
-                    j+=jump
-                    leg_size = self.groups_num ** self.keys_list.index(event_type)
-                else:
-                    j+=1
-
+            if event_type not in self.types:
+                continue
+            if event_type not in self.attributes_dict.keys():
+                raise Exception("%s has no matching attribute" % event_type)
+            for index in range(len(self.attributes_dict[event_type])):
+                event_attribute = self.attributes_dict[event_type][index]
+                attribute_val = event.payload[event_attribute]
+                if not isinstance(attribute_val, (int, float)):
+                    raise Exception("Attribute %s has no numeric value" % event_attribute)
+                group_index = int(attribute_val % (self.groups_num))
+                type_index = self._finding_type_index_considering_duplications(index,event_type)
+                leg_size = self.groups_num**type_index
+                new_start = (group_index)*leg_size
+                jump = leg_size*(self.groups_num-1)+1
+                j = new_start
+                while j < (self._numThreads-1):
+                    self._events_list[j].add_item(event_raw)
+                    leg_size-=1
+                    if leg_size == 0:
+                        j+=jump
+                        leg_size = self.groups_num ** type_index
+                    else:
+                        j+=1
         for stream in self._events_list:
             stream.close()
+        while self.finished_threads[0]!= (self._numThreads-1):
+            time.sleep(0.0001)
+        self._matches_handler.close()
 
-        #self._matches_handler.close()
+
 
 
     def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
-        self._trees[thread_id].eval(self._events_list[thread_id], self._matches,data_formatter,self._matches_handler, False)
+        self._trees[thread_id].eval(self._events_list[thread_id], self._matches_handler, data_formatter,
+                                    False,self.finished_threads,self.mutex)
+
+
+
+    def _finding_type_index_considering_duplications(self,index_among_type,event_type) :
+        count=0
+        i=0
+        while list(self.attributes_dict.keys())[i] != event_type:
+            key = list(self.attributes_dict.keys())[i]
+            count+=len(self.attributes_dict[key])
+            i+=1
+        count+=index_among_type
+        return count
+
+
