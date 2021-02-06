@@ -61,7 +61,6 @@ def multipleNotInTheMiddleTest(createTestFile=False):
             ),
         timedelta(minutes=4)
     )
-    print(pattern.get_all_event_types())
     runTest("MultipleNotMiddle", [pattern], createTestFile)
 
 

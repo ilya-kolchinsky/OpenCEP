@@ -22,10 +22,8 @@ class Tree:
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     The pattern_id parameter is used in multi-pattern mode.
     """
-
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
                  pattern_id: int = None):
-
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
                                             Tree.__get_operator_arg_list(pattern.positive_structure),
                                             pattern.window, None, pattern.consumption_policy)
@@ -40,6 +38,7 @@ class Tree:
             self.__add_negative_tree_structure(pattern)
 
         self.__apply_condition(pattern)
+
         self.__root.create_storage_unit(storage_params)
 
         self.__root.create_parent_to_info_dict()
@@ -121,7 +120,7 @@ class Tree:
         if isinstance(operator, CompositeStructure):
             return operator.args
         if isinstance(operator, UnaryStructure):
-            return [operator.args]
+            return [operator.arg]
         # a PrimitiveEventStructure
         return [operator]
 
@@ -252,6 +251,3 @@ class Tree:
         Returns the root node of the tree.
         """
         return self.__root
-
-    def is_neg_Operator(self):
-        return self.__is_neg

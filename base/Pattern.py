@@ -110,9 +110,6 @@ class Pattern:
         """
         An auxiliary method for returning all event types in the pattern.
         """
-        if isinstance(structure,KleeneClosureOperator):
-            return [structure.args.type]
-
         if isinstance(structure, PrimitiveEventStructure):
             return [structure.type]
         return reduce(lambda x, y: x+y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
