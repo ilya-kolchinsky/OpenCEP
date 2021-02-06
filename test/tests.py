@@ -13,7 +13,7 @@ from stream.Stream import *
 
 
 runTest.over_all_time = 0
-#amazonSpecificPatternSearchTestAlgoritm1()
+
 
 # basic functionality tests
 # oneArgumentsearchTest()
@@ -132,16 +132,16 @@ runTest.over_all_time = 0
 #         pass
 #
 # # Data parallel tests
-# # Algorithm 1 - Hizel
-# oneArgumentsearchTestAlgorithm1()
-# amazonSpecificPatternSearchTestAlgoritm1()
-# fbNegPatternSearchTestAlgorithm1()
-# fbEqualToApple1PatternSearchTestAlgorithm1()
-# fbEqualToApple2PatternSearchTestAlgorithm1()
-# appleOpenToCloseTestAlgoritm1()
-# applePeakToOpenTestAlgoritm1()
-# KCgoogleTestAlgorithm1()
-# KCequalsPatternSearchTestAlgorithm1()
+# Algorithm 1 - Hizel
+oneArgumentsearchTestAlgorithm1()
+amazonSpecificPatternSearchTestAlgoritm1()
+fbNegPatternSearchTestAlgorithm1()
+fbEqualToApple1PatternSearchTestAlgorithm1()
+fbEqualToApple2PatternSearchTestAlgorithm1()
+appleOpenToCloseTestAlgoritm1()
+applePeakToOpenTestAlgoritm1()
+KCgoogleTestAlgorithm1()
+KCequalsPatternSearchTestAlgorithm1()
 #
 # # # Algorithm 2 - Rip
 # oneArgumentsearchTestAlgorithm2()
@@ -188,7 +188,7 @@ runTest.over_all_time = 0
 # freezePolicyPatternSearchTestAlgorithm2()
 # freezePolicy2PatternSearchTestAlgorithm2()
 # sortedStorageTestAlgorithm2()
-
+#
 #
 # # ######Basic functionality tests for Algorithm3
 # oneArgumentsearchTestAlgorithm3()
@@ -242,7 +242,7 @@ runTest.over_all_time = 0
 # KC_AllValuesAlgorithm3()
 # KC_Specific_ValueAlgorithm3()
 # KC_MixedAlgorithm3()
-# # #
+#
 #
 # # # consumption policies tests
 # singleType1PolicyPatternSearchTestAlgorithm3()

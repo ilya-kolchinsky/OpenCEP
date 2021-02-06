@@ -74,11 +74,12 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         for match in self.__tree.get_last_matches():
-            if mutex==None:
+            if mutex == None:
                 matches.add_item(match)
                 self.__remove_matched_freezers(match.events)
             elif self._check_duplicates_in_match(match) == False:
-              matches.add_item(match)
+                matches.add_item(match)
+                self.__remove_matched_freezers(match.events)
 
         #Usage in Algorithm3
         if finished_threads != None:
