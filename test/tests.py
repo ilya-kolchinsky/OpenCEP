@@ -20,17 +20,17 @@ runTest.over_all_time = 0
 
 
 # # basic functionality tests
-# oneArgumentsearchTest()
-# simplePatternSearchTest()
-# googleAscendPatternSearchTest()
-# amazonInstablePatternSearchTest()
-# msftDrivRacePatternSearchTest()
-# googleIncreasePatternSearchTest()
-# amazonSpecificPatternSearchTest()
-# googleAmazonLowPatternSearchTest()
-# nonsensePatternSearchTest()
-# hierarchyPatternSearchTest()
-# duplicateEventTypeTest()
+oneArgumentsearchTest()
+simplePatternSearchTest()
+googleAscendPatternSearchTest()
+amazonInstablePatternSearchTest()
+msftDrivRacePatternSearchTest()
+googleIncreasePatternSearchTest()
+amazonSpecificPatternSearchTest()
+googleAmazonLowPatternSearchTest()
+nonsensePatternSearchTest()
+hierarchyPatternSearchTest()
+duplicateEventTypeTest()
 #
 # # tree plan generation algorithms
 #arrivalRatesPatternSearchTest()
@@ -141,9 +141,9 @@ runTest.over_all_time = 0
 #fbEqualToApple1PatternSearchTestAlgorithm1()
 #fbEqualToApple2PatternSearchTestAlgorithm1()
 #appleOpenToCloseTestAlgoritm1()
-applePeakToOpenTestAlgoritm1()
-KCgoogleTestAlgorithm1()
-KCequalsPatternSearchTestAlgorithm1()
+# applePeakToOpenTestAlgoritm1()
+# KCgoogleTestAlgorithm1()
+# KCequalsPatternSearchTestAlgorithm1()
 
 # Algorithm 2 - Rip
 # oneArgumentsearchTestAlgorithm2()

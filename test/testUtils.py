@@ -231,8 +231,6 @@ def runTest(testName, patterns, createTestFile=False,
         events = custom.duplicate()
     elif testName in listCustom2:
         events = custom2.duplicate()
-    elif testName in list_temp:
-        events = custom_temp.duplicate()
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
 
