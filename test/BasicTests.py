@@ -9,6 +9,7 @@ from parallel.ParallelExecutionParameters import *
 
 
 
+
 def oneArgumentsearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
