@@ -48,7 +48,6 @@ def contiguousPolicyPatternSearchTest(createTestFile = False):
         timedelta(minutes=5),
         ConsumptionPolicy(contiguous=["a", "b", "c"])
     )
-    print(pattern.get_all_event_types())
     runTest("contiguousPolicySingleList", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
 
 
