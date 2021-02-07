@@ -35,9 +35,7 @@ nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/Ev
 custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"))
 custom2 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom2.txt"))
 custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.txt"))
-#custom_temp = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom_temp.txt"))
-#nasdaq_equals = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_EQUALS.txt"))
-
+custom_temp = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom_temp.txt"))
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
 DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
@@ -309,18 +307,18 @@ success or fail output.
 def runMultiTest(testName, patterns, createTestFile=False,
                  eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                  events=None, eventStream=nasdaqEventStream,
-                 parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads= 6)
+                 parallel_execution_params: ParallelExecutionParameters = None,
+                 data_parallel_params: DataParallelExecutionParameters = None
                  ):
     if events is None:
         events = eventStream.duplicate()
     else:
         events = events.duplicate()
 
-    listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns"]
-    listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
-    listCustom = ["MultipleNotBeginAndEnd"]
-    listCustom2 = ["simpleNot"]
+    listShort = ["multiplePatterns", "distinctPatterns", "MultipleNotBeginningShare", "multipleParentsForInternalNode"]
+    listHalfShort = ["onePatternIncludesOther", "threeSharingSubtrees"]
+    listCustom = []
+    listCustom2 = ["FirstMultiPattern", "RootAndInner"]
 
     if testName in listShort:
         events = nasdaqEventStreamShort.duplicate()
@@ -344,23 +342,20 @@ def runMultiTest(testName, patterns, createTestFile=False,
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
+    print(expected_matches_path)
 
-    match_set = [set() for i in range(len(patterns))]
     with open(actual_matches_path) as matchFile:
         all_matches = matchFile.read()
     match_list = all_matches.split('\n\n')
-    for match in match_list:
-        if match:
-            match_set[int(match.partition(':')[0]) - 1].add(match.strip()[match.index(' ') + 1:])
 
-    exp_set = [set() for i in range(len(patterns))]
     with open(expected_matches_path) as expFile:
         all_exp_matches = expFile.read()
     exp_match_list = all_exp_matches.split('\n\n')
-    for match in exp_match_list:
-        if match:
-            exp_set[int(match.partition(':')[0]) - 1].add(match.strip()[match.index(' ') + 1:])
-    res = (exp_set == match_set)
+
+    match_list.sort()
+    exp_match_list.sort()
+    res = (match_list == exp_match_list)
+
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if res else "Failed", running_time))
     runTest.over_all_time += running_time
@@ -374,8 +369,8 @@ class DummyOutputStream(OutputStream):
 
 
 def runBenchMark(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS, events=None,
-                 parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters(num_threads=6)
+                 parallel_execution_params: ParallelExecutionParameters = None,
+                 data_parallel_params: DataParallelExecutionParameters = None
                  ):
     """
     this runs a bench mark ,since some outputs for benchmarks are very large,
@@ -393,8 +388,8 @@ def runBenchMark(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALU
 
 def runStructuralTest(testName, patterns, expected_result,
                       eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                      parallel_execution_params: ParallelExecutionParameters = ParallelExecutionParameters(),
-                      data_parallel_params: DataParallelExecutionParameters = DataParallelExecutionParameters()
+                      parallel_execution_params: ParallelExecutionParameters = None,
+                      data_parallel_params: DataParallelExecutionParameters = None
                       ):
     # print('{} is a test to check the tree structure, without actually running a test'.format(testName))
     # print('place a breakpoint after creating the CEP object to debug it.\n')
