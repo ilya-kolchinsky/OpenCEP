@@ -7,13 +7,11 @@ from test.MultiPattern_tests import *
 from test.StorageTests import *
 from test.ParallelTests import *
 from test.Algorithm3Test import *
-
 from test.UnitTests.test_storage import run_storage_tests
 from stream.Stream import *
 
 
 runTest.over_all_time = 0
-
 
 # # basic functionality tests
 # oneArgumentsearchTest()
@@ -132,7 +130,7 @@ runTest.over_all_time = 0
 #         pass
 #
 # # Data parallel tests
-# Algorithm 1 - Hizela
+# Algorithm 1 - Hirzel
 # oneArgumentsearchTestAlgorithm1()
 # amazonSpecificPatternSearchTestAlgoritm1()
 # fbNegPatternSearchTestAlgorithm1()
@@ -141,7 +139,7 @@ runTest.over_all_time = 0
 # appleOpenToCloseTestAlgoritm1()
 # applePeakToOpenTestAlgoritm1()
 # KCgoogleTestAlgorithm1()
-# # KCequalsPatternSearchTestAlgorithm1()
+# KCequalsPatternSearchTestAlgorithm1()
 # multyPatternAlgorithm1()
 
 #
@@ -234,7 +232,7 @@ runTest.over_all_time = 0
 # MinMax_2_TestKleeneClosureAlgorithm3()
 #
 #
-# # # consumption policies tests
+# # # # consumption policies tests
 # singleType1PolicyPatternSearchTestAlgorithm3()
 # singleType2PolicyPatternSearchTestAlgorithm3()
 # contiguousPolicyPatternSearchTestAlgorithm3()
