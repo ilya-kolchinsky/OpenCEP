@@ -18,17 +18,18 @@ import random
 
 
 # Algorithm 1
-def oneArgumentsearchTestAlgorithm1(createTestFile=False):
+def oneArgumentsearchTestHirzelAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
         GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), 135),
         timedelta(minutes=120)
     )
     runTest("one", [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key = "Opening Price"))
+            parallel_execution_params=DataParallelExecutionParametersHirzelAlgorithm(ParallelExecutionModes.DATA_PARALLELISM,
+                                                                                     ParallelExecutionPlatforms.THREADING,
+                                                                                     units_number=6, key ="Opening Price"))
 
-def amazonSpecificPatternSearchTestAlgoritm1(createTestFile=False):
+def amazonSpecificPatternSearchTestHirzelAlgorithm(createTestFile=False):
     """
     This pattern is looking for an amazon stock in peak price of 73.
     """
@@ -38,11 +39,13 @@ def amazonSpecificPatternSearchTestAlgoritm1(createTestFile=False):
         timedelta(minutes=120)
     )
     runTest('amazonSpecific', [amazonSpecificPattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
+            parallel_execution_params=DataParallelExecutionParametersHirzelAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6, key="Opening Price"))
 
 
-def fbNegPatternSearchTestAlgorithm1(createTestFile=False):
+def fbNegPatternSearchTestHirzelAlgorithm(createTestFile=False):
 
     fbNegPattern = Pattern(
         SeqOperator(PrimitiveEventStructure("FB", "a")),
@@ -50,11 +53,13 @@ def fbNegPatternSearchTestAlgorithm1(createTestFile=False):
         timedelta(minutes=120)
     )
     runTest('fbNegOpeningPrice', [fbNegPattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
+            parallel_execution_params=DataParallelExecutionParametersHirzelAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6, key="Opening Price"))
 
 
-def fbEqualToApple1PatternSearchTestAlgorithm1(createTestFile=False):
+def fbEqualToApple1PatternSearchTestHirzelAlgorithm(createTestFile=False):
 
     fbAndAaplPattern = Pattern(
         AndOperator(PrimitiveEventStructure("FB", "f"), PrimitiveEventStructure("AAPL", "a")),
@@ -65,11 +70,13 @@ def fbEqualToApple1PatternSearchTestAlgorithm1(createTestFile=False):
     timedelta(minutes=9)
     )
     runTest('fbEqualToApple', [fbAndAaplPattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
+            parallel_execution_params=DataParallelExecutionParametersHirzelAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6, key="Opening Price"))
 
 
-def fbEqualToApple2PatternSearchTestAlgorithm1(createTestFile=False):
+def fbEqualToApple2PatternSearchTestHirzelAlgorithm(createTestFile=False):
 
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("FB", "f"), PrimitiveEventStructure("AAPL", "a")),
@@ -81,10 +88,12 @@ def fbEqualToApple2PatternSearchTestAlgorithm1(createTestFile=False):
         timedelta(minutes=9)
     )
     runTest('fbEqualToApple2', [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
+            parallel_execution_params=DataParallelExecutionParametersHirzelAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6, key="Opening Price"))
 
-def appleOpenToCloseTestAlgoritm1(createTestFile=False):
+def appleOpenToCloseTestHirzelAlgorithm(createTestFile=False):
 
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
@@ -95,11 +104,13 @@ def appleOpenToCloseTestAlgoritm1(createTestFile=False):
         timedelta(minutes=9)
     )
     runTest('appleOpenToClose', [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
+            parallel_execution_params=DataParallelExecutionParametersHirzelAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6, key="Opening Price"))
 
 
-def applePeakToOpenTestAlgoritm1(createTestFile=False):
+def applePeakToOpenTestHirzelAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
         AndCondition(
@@ -111,11 +122,13 @@ def applePeakToOpenTestAlgoritm1(createTestFile=False):
         timedelta(minutes=9)
     )
     runTest('applePeakToOpen', [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
+            parallel_execution_params=DataParallelExecutionParametersHirzelAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6, key="Opening Price"))
 
 
-def KCgoogleTestAlgorithm1():
+def KCgoogleTestHirzelAlgorithm():
     pattern = Pattern(
         KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a")),
         SimpleCondition(Variable("a", lambda x: x["Lowest Price"]), relation_op=lambda x: x == 530),
@@ -124,7 +137,7 @@ def KCgoogleTestAlgorithm1():
     runTest("KCgoogle", [pattern])
 
 
-def KCequalsPatternSearchTestAlgorithm1(createTestFile=False):
+def KCequalsPatternSearchTestHirzelAlgorithm(createTestFile=False):
 
     pattern = Pattern(
         KleeneClosureOperator(
@@ -137,12 +150,14 @@ def KCequalsPatternSearchTestAlgorithm1(createTestFile=False):
         timedelta(minutes=9)
     )
     runTest('KCequals', [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
+            parallel_execution_params=DataParallelExecutionParametersHirzelAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6, key="Opening Price"))
 
 
 
-def multyPatternAlgorithm1(createTestFile=False):
+def multyPatternHirzelAlgorithm(createTestFile=False):
     """
     THE test finds 2 patterns of match:
         1. AAPL stock whom Openning Price equals 135 and all the
@@ -164,26 +179,27 @@ def multyPatternAlgorithm1(createTestFile=False):
 
     )
     runMultiTest("multyPatternAlgorithm1", [pattern1, pattern2], createTestFile,eventStream=nasdaqEventStreamEquals,
-                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=7,
-                                                                 key="Opening Price"))
+                 parallel_execution_params=DataParallelExecutionParametersHirzelAlgorithm(
+                     ParallelExecutionModes.DATA_PARALLELISM,
+                     ParallelExecutionPlatforms.THREADING,
+                     units_number=7, key="Opening Price"))
 
 
 
 
 # Algorithm 2
-def oneArgumentsearchTestAlgorithm2(createTestFile=False):
+def oneArgumentsearchTestRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
         GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), 135),
         timedelta(minutes=120)
     )
     runTest("one", [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(ParallelExecutionModes.DATA_PARALLELISM,
+                                                                                  ParallelExecutionPlatforms.THREADING,
+                                                                                  units_number=6,mult=3))
 
-def simplePatternSearchTestAlgorithm2(createTestFile=False):
+def simplePatternSearchTestRIPAlgorithm(createTestFile=False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > b.OpeningPrice
@@ -203,11 +219,13 @@ def simplePatternSearchTestAlgorithm2(createTestFile=False):
         timedelta(minutes=5)
     )
     runTest("simple", [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6))
 
 
-def googleAscendPatternSearchTestAlgorithm2(createTestFile=False):
+def googleAscendPatternSearchTestRIPAlgorithm(createTestFile=False):
     """
     This pattern is looking for a short ascend in the Google peak prices.
     PATTERN SEQ(GoogleStockPriceUpdate a, GoogleStockPriceUpdate b, GoogleStockPriceUpdate c)
@@ -227,11 +245,12 @@ def googleAscendPatternSearchTestAlgorithm2(createTestFile=False):
         timedelta(minutes=3)
     )
     runTest('googleAscend', [googleAscendPattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6))
 
-
-def amazonInstablePatternSearchTestAlgorithm2(createTestFile=False):
+def amazonInstablePatternSearchTestRIPAlgorithm(createTestFile=False):
     """
     This pattern is looking for an in-stable day for Amazon.
     PATTERN SEQ(AmazonStockPriceUpdate x1, AmazonStockPriceUpdate x2, AmazonStockPriceUpdate x3)
@@ -250,11 +269,12 @@ def amazonInstablePatternSearchTestAlgorithm2(createTestFile=False):
         timedelta(days=1)
     )
     runTest('amazonInstable', [amazonInstablePattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
-
-def msftDrivRacePatternSearchTestAlgorithm2(createTestFile=False):
+def msftDrivRacePatternSearchTestRIPAlgorithm(createTestFile=False):
     """
     This pattern is looking for a race between driv and microsoft in ten minutes
     PATTERN SEQ(MicrosoftStockPriceUpdate a, DrivStockPriceUpdate b, MicrosoftStockPriceUpdate c, DrivStockPriceUpdate d, MicrosoftStockPriceUpdate e)
@@ -282,11 +302,13 @@ def msftDrivRacePatternSearchTestAlgorithm2(createTestFile=False):
         timedelta(minutes=10)
     )
     runTest('msftDrivRace', [msftDrivRacePattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
 
-def googleIncreasePatternSearchTestAlgorithm2(createTestFile=False):
+def googleIncreasePatternSearchTestRIPAlgorithm(createTestFile=False):
     """
     This Pattern is looking for a 1% increase in the google stock in a half-hour.
     PATTERN SEQ(GoogleStockPriceUpdate a, GoogleStockPriceUpdate b)
@@ -301,11 +323,13 @@ def googleIncreasePatternSearchTestAlgorithm2(createTestFile=False):
         timedelta(minutes=30)
     )
     runTest('googleIncrease', [googleIncreasePattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
 
-def amazonSpecificPatternSearchTestAlgorithm2(createTestFile=False):
+def amazonSpecificPatternSearchTestRIPAlgorithm(createTestFile=False):
     """
     This pattern is looking for an amazon stock in peak price of 73.
     """
@@ -315,11 +339,13 @@ def amazonSpecificPatternSearchTestAlgorithm2(createTestFile=False):
         timedelta(minutes=120)
     )
     runTest('amazonSpecific', [amazonSpecificPattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
 
-def googleAmazonLowPatternSearchTestAlgorithm2(createTestFile=False):
+def googleAmazonLowPatternSearchTestRIPAlgorithm(createTestFile=False):
     """
     This pattern is looking for low prices of Amazon and Google at the same minute.
     PATTERN AND(AmazonStockPriceUpdate a, GoogleStockPriceUpdate g)
@@ -337,11 +363,13 @@ def googleAmazonLowPatternSearchTestAlgorithm2(createTestFile=False):
         timedelta(minutes=1)
     )
     runTest('googleAmazonLow', [googleAmazonLowPattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
 
-def nonsensePatternSearchTestAlgorithm2(createTestFile=False):
+def nonsensePatternSearchTestRIPAlgorithm(createTestFile=False):
     """
     This pattern is looking for something that does not make sense.
     PATTERN AND(AmazonStockPriceUpdate a, AvidStockPriceUpdate b, AppleStockPriceUpdate c)
@@ -363,11 +391,13 @@ def nonsensePatternSearchTestAlgorithm2(createTestFile=False):
         timedelta(minutes=1)
     )
     runTest('nonsense', [nonsensePattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
 
-def hierarchyPatternSearchTestAlgorithm2(createTestFile=False):
+def hierarchyPatternSearchTestRIPAlgorithm(createTestFile=False):
     """
     The following pattern is looking for Amazon < Apple < Google cases in one minute windows.
     PATTERN AND(AmazonStockPriceUpdate a, AppleStockPriceUpdate b, GoogleStockPriceUpdate c)
@@ -387,10 +417,12 @@ def hierarchyPatternSearchTestAlgorithm2(createTestFile=False):
         timedelta(minutes=1)
     )
     runTest('hierarchy', [hierarchyPattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
-def duplicateEventTypeTestAlgorithm2(createTestFile=False):
+def duplicateEventTypeTestRIPAlgorithm(createTestFile=False):
     """
     PATTERN SEQ(AmazonStockPriceUpdate a, AmazonStockPriceUpdate b, AmazonStockPriceUpdate c)
     WHERE   TRUE
@@ -402,10 +434,12 @@ def duplicateEventTypeTestAlgorithm2(createTestFile=False):
         timedelta(minutes=10)
     )
     runTest("duplicateEventType", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads= 6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
-def structuralTest1Algorithm2():
+def structuralTest1RIPAlgorithm():
     """
     Seq([a, KC(And([KC(d), KC(Seq([e, f]))]))])
     """
@@ -429,11 +463,13 @@ def structuralTest1Algorithm2():
 
     expected_result = ('Seq', 'a', ('KC', ('And', ('And', 'b', ('KC', 'c')), ('KC', ('Seq', 'd', 'e')))))
     runStructuralTest('structuralTest1', [structural_test_pattern], expected_result,
-                      parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                      data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                      parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                          ParallelExecutionModes.DATA_PARALLELISM,
+                          ParallelExecutionPlatforms.THREADING,
+                          units_number=6,mult=3))
 
 
-def structuralTest2Algorithm2():
+def structuralTest2RIPAlgorithm():
     """
     KC(a)
     """
@@ -444,11 +480,13 @@ def structuralTest2Algorithm2():
     )
     expected_result = ('KC', 'a')
     runStructuralTest('structuralTest2', [structural_test_pattern], expected_result,
-                      parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                      data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                      parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                          ParallelExecutionModes.DATA_PARALLELISM,
+                          ParallelExecutionPlatforms.THREADING,
+                          units_number=6,mult=3))
 
 
-def structuralTest3Algorithm2():
+def structuralTest3RIPAlgorithm():
     """
     Seq([a, KC(b)])
     """
@@ -461,11 +499,13 @@ def structuralTest3Algorithm2():
     )
     expected_result = ('Seq', 'a', ('KC', 'b'))
     runStructuralTest('structuralTest3', [structural_test_pattern], expected_result,
-                      parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                      data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                      parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                          ParallelExecutionModes.DATA_PARALLELISM,
+                          ParallelExecutionPlatforms.THREADING,
+                          units_number=6,mult=3))
 
 
-def structuralTest4Algorithm2():
+def structuralTest4RIPAlgorithm():
     """
     And([KC(a), b])
     """
@@ -478,11 +518,13 @@ def structuralTest4Algorithm2():
     )
     expected_result = ('And', ('KC', 'a'), 'b')
     runStructuralTest('structuralTest4', [structural_test_pattern], expected_result,
-                      parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                      data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                      parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                          ParallelExecutionModes.DATA_PARALLELISM,
+                          ParallelExecutionPlatforms.THREADING,
+                          units_number=6,mult=3))
 
 
-def structuralTest5Algorithm2():
+def structuralTest5RIPAlgorithm():
     """
     KC(Seq([KC(a), KC(b)]))
     """
@@ -498,11 +540,13 @@ def structuralTest5Algorithm2():
     )
     expected_result = ('KC', ('Seq', ('KC', 'a'), ('KC', 'b')))
     runStructuralTest('structuralTest5', [structural_test_pattern], expected_result,
-                      parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                      data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                      parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                          ParallelExecutionModes.DATA_PARALLELISM,
+                          ParallelExecutionPlatforms.THREADING,
+                          units_number=6,mult=3))
 
 
-def structuralTest6Algorithm2():
+def structuralTest6RIPAlgorithm():
     """
     Seq([a, Seq([ b, And([c, d]), e])])
     """
@@ -523,11 +567,13 @@ def structuralTest6Algorithm2():
     )
     expected_result = ('Seq', 'a', ('Seq', ('Seq', 'b', ('And', 'c', 'd')), 'e'))
     runStructuralTest('structuralTest6', [structural_test_pattern], expected_result,
-                      parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                      data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                      parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                          ParallelExecutionModes.DATA_PARALLELISM,
+                          ParallelExecutionPlatforms.THREADING,
+                          units_number=6,mult=3))
 
 
-def structuralTest7Algorithm2():
+def structuralTest7RIPAlgorithm():
     """
     And([a, b, c, Seq([
                         d, KC(And([
@@ -566,42 +612,50 @@ def structuralTest7Algorithm2():
                                        ('Seq', ('Seq', 'd', ('KC', ('And', ('And', 'e', ('KC', 'f')), 'g'))),
                                         ('And', ('KC', 'h'), ('KC', ('Seq', 'i', 'j'))))), 'k'), 'l')
     runStructuralTest('structuralTest7', [structural_test_pattern], expected_result,
-                      parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                      data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                      parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                          ParallelExecutionModes.DATA_PARALLELISM,
+                          ParallelExecutionPlatforms.THREADING,
+                          units_number=6,mult=3))
 
-
-def MinMax_0_TestKleeneClosureAlgorithm2(createTestFile=False):
+def MinMax_0_TestKleeneClosureRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=1, max_size=2)),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         timedelta(minutes=5)
     )
     runTest("MinMax_0_", [pattern], createTestFile, events=nasdaqEventStreamKC,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
-def MinMax_1_TestKleeneClosureAlgorithm2(createTestFile=False):
+
+def MinMax_1_TestKleeneClosureRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         timedelta(minutes=5)
     )
     runTest("MinMax_1_", [pattern], createTestFile, events=nasdaqEventStreamKC,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
-
-def MinMax_2_TestKleeneClosureAlgorithm2(createTestFile=False):
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6))
+def MinMax_2_TestKleeneClosureRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=4, max_size=5)),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         timedelta(minutes=5)
     )
     runTest("MinMax_2_", [pattern], createTestFile, events=nasdaqEventStreamKC,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
 
-def KC_AND_IndexCondition_01_Algorithm2(createTestFile=False):
+
+def KC_AND_IndexCondition_01_RIPAlgorithm(createTestFile=False):
     """
     KC(And([a, b]))
     """
@@ -620,12 +674,13 @@ def KC_AND_IndexCondition_01_Algorithm2(createTestFile=False):
         timedelta(minutes=3)
     )
     runTest("KC_AND_IndexCondition_01_", [pattern], createTestFile, events=nasdaqEventStreamKC,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
 
-
-def KC_AND_IndexCondition_02_Algorithm2(createTestFile=False):
+def KC_AND_IndexCondition_02_RIPAlgorithm(createTestFile=False):
     """
     KC(And([a, b]))
     """
@@ -644,11 +699,12 @@ def KC_AND_IndexCondition_02_Algorithm2(createTestFile=False):
         timedelta(minutes=3)
     )
     runTest("KC_AND_IndexCondition_02_", [pattern], createTestFile, events=nasdaqEventStreamKC,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
-
-def KC_AND_NegOffSet_01_Algorithm2(createTestFile=False):
+def KC_AND_NegOffSet_01_RIPAlgorithm(createTestFile=False):
     """
     KC(And([a, b, c]))
     """
@@ -669,11 +725,12 @@ def KC_AND_NegOffSet_01_Algorithm2(createTestFile=False):
         timedelta(minutes=3)
     )
     runTest("KC_AND_NegOffSet_01_", [pattern], createTestFile, events=nasdaqEventStreamKC,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
-
-def KC_AllValuesAlgorithm2(createTestFile=False):
+def KC_AllValuesRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))),
         AndCondition(
@@ -683,11 +740,12 @@ def KC_AllValuesAlgorithm2(createTestFile=False):
         timedelta(minutes=5)
     )
     runTest("KC_AllValues_01_", [pattern], createTestFile, events=nasdaqEventStreamKC,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
-
-def KC_Specific_ValueAlgorithm2(createTestFile=False):
+def KC_Specific_ValueRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))),
         AndCondition(
@@ -697,10 +755,14 @@ def KC_Specific_ValueAlgorithm2(createTestFile=False):
         timedelta(minutes=5)
     )
     runTest("KC_Specific_Value_", [pattern], createTestFile, events=nasdaqEventStreamKC,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
-def KC_MixedAlgorithm2(createTestFile=False):
+
+
+def KC_MixedRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"))),
         AndCondition(
@@ -715,8 +777,11 @@ def KC_MixedAlgorithm2(createTestFile=False):
         timedelta(minutes=5)
     )
     runTest("KC_Mixed_", [pattern], createTestFile, events=nasdaqEventStreamKC,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
+
 
 
 currentPath = pathlib.Path(os.path.dirname(__file__))
@@ -726,7 +791,7 @@ sys.path.append(absolutePath)
 """
 Simple multi-pattern test with 2 patterns
 """
-def leafIsRootAlgorithm2(createTestFile = False):
+def leafIsRootRIPAlgorithm(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
         GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
@@ -743,13 +808,16 @@ def leafIsRootAlgorithm2(createTestFile = False):
     )
 
     runMultiTest("FirstMultiPattern", [pattern1, pattern2], createTestFile,
-                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                 parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                     ParallelExecutionModes.DATA_PARALLELISM,
+                     ParallelExecutionPlatforms.THREADING,
+                     units_number=6,mult=3))
+
 
 """
 multi-pattern test 2 completely distinct patterns
 """
-def distinctPatternsAlgorithm2(createTestFile = False):
+def distinctPatternsRIPAlgorithm(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"), PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
@@ -772,13 +840,16 @@ def distinctPatternsAlgorithm2(createTestFile = False):
     )
 
     runMultiTest("BigMultiPattern", [pattern1, pattern2], createTestFile,
-                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                 parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                     ParallelExecutionModes.DATA_PARALLELISM,
+                     ParallelExecutionPlatforms.THREADING,
+                     units_number=6,mult=3))
+
 
 """
 multi-pattern test with 3 patterns and leaf sharing
 """
-def threePatternsTestAlgorithm2(createTestFile = False):
+def threePatternsTestRIPAlgorithm(createTestFile = False):
     pattern1 = Pattern(
         AndOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
                      PrimitiveEventStructure("GOOG", "c")),
@@ -815,13 +886,17 @@ def threePatternsTestAlgorithm2(createTestFile = False):
     )
 
     runMultiTest("ThreePatternTest", [pattern1, pattern2, pattern3], createTestFile,
-                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                 parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                     ParallelExecutionModes.DATA_PARALLELISM,
+                     ParallelExecutionPlatforms.THREADING,
+                     units_number=6,mult=3))
+
+
 
 """
 multi-pattern test checking case where output node is not a root
 """
-def rootAndInnerAlgorithm2(createTestFile = False):
+def rootAndInnerRIPAlgorithm(createTestFile = False):
     #similar to leafIsRoot, but the time windows are different
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
@@ -839,13 +914,17 @@ def rootAndInnerAlgorithm2(createTestFile = False):
     )
 
     runMultiTest("RootAndInner", [pattern1, pattern2], createTestFile,
-                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                 parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                     ParallelExecutionModes.DATA_PARALLELISM,
+                     ParallelExecutionPlatforms.THREADING,
+                     units_number=6,mult=3))
+
+
 
 """
 multi-pattern test 2 identical patterns with different time stamp
 """
-def samePatternDifferentTimeStampsAlgorithm2(createTestFile = False):
+def samePatternDifferentTimeStampsRIPAlgorithm(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
@@ -866,13 +945,17 @@ def samePatternDifferentTimeStampsAlgorithm2(createTestFile = False):
     )
 
     runMultiTest("DifferentTimeStamp", [pattern1, pattern2], createTestFile,
-                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                 parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                     ParallelExecutionModes.DATA_PARALLELISM,
+                     ParallelExecutionPlatforms.THREADING,
+                     units_number=6,mult=3))
+
+
 
 """
 multi-pattern test sharing equivalent subtrees
 """
-def onePatternIncludesOtherAlgorithm2(createTestFile = False):
+def onePatternIncludesOtherRIPAlgorithm(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"),
                      PrimitiveEventStructure("AAPL", "c")),
@@ -900,13 +983,16 @@ def onePatternIncludesOtherAlgorithm2(createTestFile = False):
                                                                  prioritize_sorting_by_timestamp=True),
                                                                    MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.SUBTREES_UNION))
     runMultiTest("onePatternIncludesOther", [pattern1, pattern2], createTestFile, eval_mechanism_params,
-                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                 parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                     ParallelExecutionModes.DATA_PARALLELISM,
+                     ParallelExecutionPlatforms.THREADING,
+                     units_number=6,mult=3))
+
 
 """
 multi-pattern test multiple patterns share the same output node
 """
-def samePatternSharingRootAlgorithm2(createTestFile = False):
+def samePatternSharingRootRIPAlgorithm(createTestFile = False):
     hierarchyPattern = Pattern(
         AndOperator(PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("AAPL", "b"),
                     PrimitiveEventStructure("GOOG", "c")),
@@ -952,14 +1038,17 @@ def samePatternSharingRootAlgorithm2(createTestFile = False):
         MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.SUBTREES_UNION))
 
     runMultiTest('hierarchyMultiPattern', [hierarchyPattern, hierarchyPattern2, hierarchyPattern3], createTestFile, eval_mechanism_params,
-                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                 parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                     ParallelExecutionModes.DATA_PARALLELISM,
+                     ParallelExecutionPlatforms.THREADING,
+                     units_number=6,mult=3))
+
 
 
 """
 multi-pattern test sharing internal node between patterns
 """
-def multipleParentsForInternalNodeAlgorithm2(createTestFile = False):
+def multipleParentsForInternalNodeRIPAlgorithm(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"),
                     PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
@@ -1013,10 +1102,15 @@ def multipleParentsForInternalNodeAlgorithm2(createTestFile = False):
         MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.SUBTREES_UNION))
 
     runMultiTest("multipleParentsForInternalNode", [pattern1, pattern2, pattern3, pattern4], createTestFile, eval_mechanism_params,
-                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+                 parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                     ParallelExecutionModes.DATA_PARALLELISM,
+                     ParallelExecutionPlatforms.THREADING,
+                     units_number=6,mult=3))
 
-def simpleNotTestAlgorithm2(createTestFile=False):
+
+
+
+def simpleNotTestRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), NegationOperator(PrimitiveEventStructure("AMZN", "b")), PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
@@ -1029,12 +1123,13 @@ def simpleNotTestAlgorithm2(createTestFile=False):
     )
 
     runTest("simpleNot", [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
-
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
 # ON NASDAQ SHORT
-def multipleNotInTheMiddleTestAlgorithm2(createTestFile=False):
+def multipleNotInTheMiddleTestRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), NegationOperator(PrimitiveEventStructure("LI", "d")), PrimitiveEventStructure("AMZN", "b"),
                      NegationOperator(PrimitiveEventStructure("FB", "e")), PrimitiveEventStructure("GOOG", "c")),
@@ -1051,11 +1146,12 @@ def multipleNotInTheMiddleTestAlgorithm2(createTestFile=False):
         timedelta(minutes=4)
     )
     runTest("MultipleNotMiddle", [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
-
-def singleType1PolicyPatternSearchTestAlgorithm2(createTestFile = False):
+def singleType1PolicyPatternSearchTestRIPAlgorithm(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > c.OpeningPrice
@@ -1068,11 +1164,14 @@ def singleType1PolicyPatternSearchTestAlgorithm2(createTestFile = False):
         ConsumptionPolicy(single="AMZN", secondary_selection_strategy=SelectionStrategies.MATCH_NEXT)
     )
     runTest("singleType1Policy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
 
-def singleType2PolicyPatternSearchTestAlgorithm2(createTestFile = False):
+
+def singleType2PolicyPatternSearchTestRIPAlgorithm(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > c.OpeningPrice
@@ -1085,11 +1184,14 @@ def singleType2PolicyPatternSearchTestAlgorithm2(createTestFile = False):
         ConsumptionPolicy(single="AMZN", secondary_selection_strategy=SelectionStrategies.MATCH_SINGLE)
     )
     runTest("singleType2Policy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
 
-def contiguousPolicyPatternSearchTestAlgorithm2(createTestFile = False):
+
+def contiguousPolicyPatternSearchTestRIPAlgorithm(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > c.OpeningPrice
@@ -1102,11 +1204,15 @@ def contiguousPolicyPatternSearchTestAlgorithm2(createTestFile = False):
         ConsumptionPolicy(contiguous=["a", "b", "c"])
     )
     runTest("contiguousPolicySingleList", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
 
-def contiguousPolicy2PatternSearchTestAlgorithm2(createTestFile = False):
+
+
+def contiguousPolicy2PatternSearchTestRIPAlgorithm(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > c.OpeningPrice
@@ -1119,11 +1225,13 @@ def contiguousPolicy2PatternSearchTestAlgorithm2(createTestFile = False):
         ConsumptionPolicy(contiguous=[["a", "b"], ["b", "c"]])
     )
     runTest("contiguousPolicyMultipleLists", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
 
-def freezePolicyPatternSearchTestAlgorithm2(createTestFile = False):
+def freezePolicyPatternSearchTestRIPAlgorithm(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > c.OpeningPrice
@@ -1136,11 +1244,14 @@ def freezePolicyPatternSearchTestAlgorithm2(createTestFile = False):
         ConsumptionPolicy(freeze="a")
     )
     runTest("freezePolicy", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
 
-def freezePolicy2PatternSearchTestAlgorithm2(createTestFile = False):
+
+def freezePolicy2PatternSearchTestRIPAlgorithm(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > c.OpeningPrice
@@ -1153,10 +1264,12 @@ def freezePolicy2PatternSearchTestAlgorithm2(createTestFile = False):
         ConsumptionPolicy(freeze="b")
     )
     runTest("freezePolicy2", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
-def sortedStorageTestAlgorithm2(createTestFile=False):
+def sortedStorageTestRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
         AndOperator(PrimitiveEventStructure("DRIV", "a"), PrimitiveEventStructure("MSFT", "b"), PrimitiveEventStructure("CBRL", "c")),
         AndCondition(
@@ -1174,11 +1287,13 @@ def sortedStorageTestAlgorithm2(createTestFile=False):
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.tree_plan_params, storage_params
     )
     runTest("sortedStorageTest", [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(num_threads=6))
+            parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=6,mult=3))
 
 
-def sortedStorageBenchMarkTestAlgorithm2(createTestFile=False):
+def sortedStorageBenchMarkTestRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
         AndOperator(PrimitiveEventStructure("DRIV", "a"), PrimitiveEventStructure("MSFT", "b"),
                     PrimitiveEventStructure("CBRL", "c"), PrimitiveEventStructure("MSFT", "m")),
@@ -1201,7 +1316,7 @@ def sortedStorageBenchMarkTestAlgorithm2(createTestFile=False):
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.tree_plan_params, storage_params
     )
     runBenchMark("sortedStorageBenchMark - sorted storage", [pattern], eval_mechanism_params=eval_params,
-                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params=DataParallelExecutionParameters(num_threads=4))
-
-
+                 parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
+                     ParallelExecutionModes.DATA_PARALLELISM,
+                     ParallelExecutionPlatforms.THREADING,
+                     units_number=4,mult=3))

@@ -3,21 +3,15 @@
  Data parallel algoritms
 """
 from abc import ABC
-from stream.Stream import InputStream, OutputStream
 from stream.DataParallelStream import *
 from stream.Stream import Stream
 import math
 
-from typing import List
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters, EvaluationMechanismFactory
 from base.DataFormatter import DataFormatter
 from queue import Queue
-from datetime import timedelta, datetime
-from base.Event import Event
-from datetime import datetime
-import threading
-from base.Event import Event
+
 from base.PatternMatch import *
 
 import time
@@ -46,19 +40,19 @@ class DataParallelAlgorithm(ABC):
         An abstract base class for all  data parallel evaluation algorithms.
     """
 
-    def __init__(self, numthreads, patterns: Pattern or List[Pattern],
+    def __init__(self, units_number, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform):
         self._platform = platform
-        self._numThreads = numthreads
-        self._threads = []
+        self._units_number = units_number
+        self._units = []
         self._trees = []
         self._events = None
         self._events_list = []
-        self._stream_thread = platform.create_parallel_execution_unit(unit_id=self._numThreads - 1, callback_function=self._stream_divide)
+        self._stream_unit = platform.create_parallel_execution_unit(unit_id=self._units_number - 1, callback_function=self._stream_divide)
         self._matches = None
         self._patterns = patterns
 
-        for i in range(0, self._numThreads - 1):
+        for i in range(0, self._units_number - 1):
             self._trees.append(_make_tree(patterns, eval_mechanism_params))
             self._events_list.append(Stream())
 
@@ -71,10 +65,10 @@ class DataParallelAlgorithm(ABC):
         self._events = events
         self._data_formatter = data_formatter
         self._matches = matches
-        self._stream_thread.start()
-        for i in range(self._numThreads - 1):
+        self._stream_unit.start()
+        for i in range(self._units_number - 1):
             t = self._platform.create_parallel_execution_unit(unit_id=i, callback_function=self._eval_thread, thread_id=i, data_formatter=data_formatter)
-            self._threads.append(t)
+            self._units.append(t)
             t.start()
 
     def _eval_tread(self):
@@ -92,13 +86,13 @@ class DataParallelAlgorithm(ABC):
     def get_structure_summary(self):
         return self._trees[0].get_structure_summary()
 
-class Algorithm1(DataParallelAlgorithm):
+class HirzelAlgorithm(DataParallelAlgorithm):
     """
-        A class for data parallel evaluation algorithm1 - Hizel
+        A class for data parallel evaluation Hirzel algorithm
     """
-    def __init__(self, numthreads, patterns: Pattern or List[Pattern],
+    def __init__(self, units_number, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform, key: str):
-        super().__init__(numthreads, patterns, eval_mechanism_params, platform)
+        super().__init__(units_number, patterns, eval_mechanism_params, platform)
         self.key = key
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
@@ -109,7 +103,7 @@ class Algorithm1(DataParallelAlgorithm):
             raise Exception("key %s has no numeric value" % (self.key,))
         super().eval_algorithm(events, matches, data_formatter)
 
-        for t in self._threads:
+        for t in self._units:
             t.wait()
 
         self._matches.close()
@@ -119,7 +113,7 @@ class Algorithm1(DataParallelAlgorithm):
 
         for event_raw in self._events:
             event = Event(event_raw, self._data_formatter)
-            index = int(event.payload[self.key] % (self._numThreads - 1))
+            index = int(event.payload[self.key] % (self._units_number - 1))
             self._events_list[index].add_item(event_raw)
 
         for stream in self._events_list:
@@ -128,14 +122,14 @@ class Algorithm1(DataParallelAlgorithm):
     def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
         self._trees[thread_id].eval(self._events_list[thread_id], self._matches, data_formatter, False)
 
-class Algorithm2(DataParallelAlgorithm):
+class RIPAlgorithm(DataParallelAlgorithm):
     """
-        A class for  data parallel evaluation algorithm2 - Rip
+        A class for  data parallel evaluation RIP algorithm
     """
-    def __init__(self, numthreads, patterns: Pattern or List[Pattern],
+    def __init__(self, units_number, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform, mult):
 
-        super().__init__(numthreads, patterns, eval_mechanism_params, platform)
+        super().__init__(units_number, patterns, eval_mechanism_params, platform)
         self._eval_mechanism_params = eval_mechanism_params
         self._matches_handler = Stream()
         self._init_time = None
@@ -150,13 +144,13 @@ class Algorithm2(DataParallelAlgorithm):
             raise Exception("Time window is too small")
         self.time_slot = mult * max_window
         self.shared_time = max_window
-        self.start_list = [Stream() for j in range(self._numThreads - 1)]
+        self.start_list = [Stream() for j in range(self._units_number - 1)]
         self.start_queue = Queue()
         self.streams_queue = Queue()
         self.thread_pool = Queue()
         self.base_year = 0
 
-        for i in range(numthreads - 1):
+        for i in range(units_number - 1):
             self.thread_pool.put(i)
 
         self._mutex = Queue()
@@ -205,10 +199,10 @@ class Algorithm2(DataParallelAlgorithm):
             self.start_list[id].add_item(self.start_queue.get_nowait())
 
         # finished to divide the data
-        for i in range(0, self._numThreads - 1):
+        for i in range(0, self._units_number - 1):
             self.start_list[i].close()
 
-        while self._mutex.qsize() < self._numThreads-1:
+        while self._mutex.qsize() < self._units_number-1:
             time.sleep(0.01)
 
         self._matches_handler.close()
@@ -261,9 +255,9 @@ class Algorithm2(DataParallelAlgorithm):
         self._matches.close()
 
 
-class Algorithm3(DataParallelAlgorithm):
+class HyperCubeAlgorithm(DataParallelAlgorithm):
     """
-           A class for data parallel evaluation algorithm3 - sigmod
+           A class for data parallel evaluation HyperCube algorithm
        """
     def __init__(self, threadsNum, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform, attributes_dict: dict):
@@ -272,7 +266,7 @@ class Algorithm3(DataParallelAlgorithm):
         self.types=[]
         for pattern in patterns:
             self.types.extend(list(pattern.get_all_event_types_with_duplicates()))
-        self.groups_num = math.ceil((self._numThreads-1)**(1/len(self.types)))
+        self.groups_num = math.ceil((self._units_number - 1) ** (1 / len(self.types)))
         self._matches_handler = Stream()
         self.finished_threads = [0]
         self.mutex=Lock()
@@ -308,7 +302,7 @@ class Algorithm3(DataParallelAlgorithm):
                 new_start = (group_index)*leg_size
                 jump = leg_size*(self.groups_num-1)+1
                 j = new_start
-                while j < (self._numThreads-1):
+                while j < (self._units_number - 1):
                     self._events_list[j].add_item(event_raw)
                     leg_size-=1
                     if leg_size == 0:
@@ -318,7 +312,7 @@ class Algorithm3(DataParallelAlgorithm):
                         j+=1
         for stream in self._events_list:
             stream.close()
-        while self.finished_threads[0]!= (self._numThreads-1):
+        while self.finished_threads[0]!= (self._units_number - 1):
             time.sleep(0.0001)
         self._matches_handler.close()
 

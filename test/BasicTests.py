@@ -5,7 +5,6 @@ from condition.CompositeCondition import AndCondition
 from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, GreaterThanEqCondition, SmallerThanEqCondition
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
-from parallel.ParallelExecutionParameters import *
 
 
 
