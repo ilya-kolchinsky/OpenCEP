@@ -342,7 +342,7 @@ def runMultiTest(testName, patterns, createTestFile=False,
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
-
+    print(expected_matches_path)
 
     with open(actual_matches_path) as matchFile:
         all_matches = matchFile.read()
