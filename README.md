@@ -263,17 +263,22 @@ In order to run the program in parallel, it is required from the user to give in
 1. Number of the desired algorithm 
 2. Number of threads
 
-For each algorithm there is a unique additional input and certain Terms on the inputs or on the pattern.
-Please note that there is no input test. It is the responsibility of the user.
+For each algorithm there is a unique additional input and certain terms on the inputs or on the pattern.
+Please note that there is no input validation. Input correctness is the user responsibility.
 
 Algorithm 1-
-Additional input: An attribute for which the data will be divided into threads.
+Additional input: An attribute the data will be divided into threads according to it.
 Terms on the pattern: The pattern will only contain equations (for example: equations between attributes of different types, equality of a certain value to the attribute of a specific type).
+Please note that the given attribute has to be the same attribute that his equality tested in the pattern.
 
 Algorithm 2-
-Additional input: multipation of timedelta
+Additional input: multipation of timedelta.
 Terms on the pattern: The pattern will not contain unblocked negation.
 
 Algorithm 3-
-Additional input: a dictionary that contains the attribute and the suitable type for which the data will be divided into threads.
-Terms on the input of threads number': the threads number' minus one should be square number of the types' number of the given patter
+Additional input: A dictionary consist of data type(key) and attribute(data) the data will be divided into threads according to it.
+Terms on the given threads number: the threads number should satisfy the equation for some X: X**(types number)=(threads number-1).
+For example, for a pattern consist of 3 types, a possible threads number may be 28 (1+ 3 power 3).
+notes: - For KC patterns, only works when max_size for the Klenee Closer is given in the pattern, and doesn't work with nested Andoperator inside the KC pattern.
+       - The algorithm can't deal with negation condition. 
+Warning: The more times one type is used in a pattern, the more time the algorithm runs.

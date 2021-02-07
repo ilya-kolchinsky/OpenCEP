@@ -141,6 +141,37 @@ def KCequalsPatternSearchTestAlgorithm1(createTestFile=False):
             data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=6, key="Opening Price"))
 
 
+
+def multyPatternAlgorithm1(createTestFile=False):
+    """
+    THE test finds 2 patterns of match:
+        1. AAPL stock whom Openning Price equals 135 and all the
+        2. sequential Amazon and than Google stocks whom Opening Price equals
+
+    """
+    pattern1 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a")),
+        EqCondition(Variable("a", lambda x: x["Opening Price"]), 135),
+        timedelta(minutes=120)
+    )
+
+    pattern2 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AMZN", "a"), PrimitiveEventStructure("GOOG", "b")),
+        EqCondition(Variable("a", lambda x: x["Opening Price"]),
+                             Variable("b", lambda x: x["Opening Price"]))
+        ,
+        timedelta(minutes=3)
+
+    )
+    runMultiTest("multyPatternAlgorithm1", [pattern1, pattern2], createTestFile,eventStream=nasdaqEventStreamEquals,
+                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
+                                                                  ParallelExecutionPlatforms.THREADING),
+            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM1, num_threads=7,
+                                                                 key="Opening Price"))
+
+
+
+
 # Algorithm 2
 def oneArgumentsearchTestAlgorithm2(createTestFile=False):
     pattern = Pattern(

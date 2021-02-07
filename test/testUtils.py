@@ -28,6 +28,8 @@ nasdaqEventStreamMedium = FileInputStream(os.path.join(absolutePath, "test/Event
 nasdaqEventStreamFrequencyTailored = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
 nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
 nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
+nasdaqEventStreamEquals = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_EQUALS.txt"))
+
 
 nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt"))
 custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"))
@@ -246,7 +248,7 @@ def runTest(testName, patterns, createTestFile=False,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
     if is_test_successful:
-        os.remove(actual_matches_path)
+         os.remove(actual_matches_path)
 
 
 """
