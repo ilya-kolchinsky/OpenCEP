@@ -15,7 +15,7 @@ from stream.Stream import *
 runTest.over_all_time = 0
 
 
-# basic functionality tests
+# # basic functionality tests
 # oneArgumentsearchTest()
 # simplePatternSearchTest()
 # googleAscendPatternSearchTest()
@@ -28,7 +28,7 @@ runTest.over_all_time = 0
 # hierarchyPatternSearchTest()
 # duplicateEventTypeTest()
 #
-# # tree plan generation algorithms
+# # # tree plan generation algorithms
 # arrivalRatesPatternSearchTest()
 # nonFrequencyPatternSearchTest()
 # frequencyPatternSearchTest()
@@ -52,8 +52,8 @@ runTest.over_all_time = 0
 # dpLdPatternSearchTest()
 # nonFrequencyTailoredPatternSearchTest()
 # frequencyTailoredPatternSearchTest()
-#
-# # tree structure tests - CEP object only created not used
+# #
+# # # tree structure tests - CEP object only created not used
 # structuralTest1()
 # structuralTest2()
 # structuralTest3()
@@ -61,14 +61,14 @@ runTest.over_all_time = 0
 # structuralTest5()
 # structuralTest6()
 # structuralTest7()
-
-# # Kleene closure tests
+#
+# # # Kleene closure tests
 # MinMax_0_TestKleeneClosure()
 # MinMax_1_TestKleeneClosure()
 # MinMax_2_TestKleeneClosure()
-#
-#
-# # Kleene Condition tests
+# #
+# #
+# # # Kleene Condition tests
 # KC_AND_IndexCondition_01()
 # KC_AND_IndexCondition_02()
 # KC_AND_NegOffSet_01()
@@ -78,8 +78,8 @@ runTest.over_all_time = 0
 # KC_Condition_Failure_01()
 # KC_Condition_Failure_02()
 # KC_Condition_Failure_03()
-# #
-# # negation tests
+# # #
+# # # negation tests
 # simpleNotTest()
 # multipleNotInTheMiddleTest()
 # oneNotAtTheBeginningTest()
@@ -88,28 +88,28 @@ runTest.over_all_time = 0
 # multipleNotAtTheEndTest()
 # multipleNotBeginAndEndTest()
 # testWithMultipleNotAtBeginningMiddleEnd()
-
-# # # consumption policies tests
+#
+# # # # consumption policies tests
 # singleType1PolicyPatternSearchTest()
 # singleType2PolicyPatternSearchTest()
 # contiguousPolicyPatternSearchTest()
 # contiguousPolicy2PatternSearchTest()
 # freezePolicyPatternSearchTest()
 # freezePolicy2PatternSearchTest()
-#
-# # storage tests
+# #
+# # # storage tests
 # sortedStorageTest()
 # run_storage_tests()
-
-# # multi-pattern tests
-# # first approach: sharing leaves
+#
+# # # multi-pattern tests
+# # # first approach: sharing leaves
 # leafIsRoot()
 # distinctPatterns()
 # threePatternsTest()
 # samePatternDifferentTimeStamps()
 # rootAndInner()
-# #
-# second approach: sharing equivalent subtrees
+# # # #
+# # # second approach: sharing equivalent subtrees
 # onePatternIncludesOther()
 # samePatternSharingRoot()
 # severalPatternShareSubtree()
@@ -132,16 +132,18 @@ runTest.over_all_time = 0
 #         pass
 #
 # # Data parallel tests
-# Algorithm 1 - Hizel
-oneArgumentsearchTestAlgorithm1()
-amazonSpecificPatternSearchTestAlgoritm1()
-fbNegPatternSearchTestAlgorithm1()
-fbEqualToApple1PatternSearchTestAlgorithm1()
-fbEqualToApple2PatternSearchTestAlgorithm1()
-appleOpenToCloseTestAlgoritm1()
-applePeakToOpenTestAlgoritm1()
-KCgoogleTestAlgorithm1()
-KCequalsPatternSearchTestAlgorithm1()
+# Algorithm 1 - Hizela
+# oneArgumentsearchTestAlgorithm1()
+# amazonSpecificPatternSearchTestAlgoritm1()
+# fbNegPatternSearchTestAlgorithm1()
+# fbEqualToApple1PatternSearchTestAlgorithm1()
+# fbEqualToApple2PatternSearchTestAlgorithm1()
+# appleOpenToCloseTestAlgoritm1()
+# applePeakToOpenTestAlgoritm1()
+# KCgoogleTestAlgorithm1()
+# # KCequalsPatternSearchTestAlgorithm1()
+# multyPatternAlgorithm1()
+
 #
 # # # Algorithm 2 - Rip
 # oneArgumentsearchTestAlgorithm2()
@@ -214,9 +216,6 @@ KCequalsPatternSearchTestAlgorithm1()
 # frequencyPatternSearch2TestAlgorithm3()
 # nonFrequencyPatternSearch4TestAlgorithm3()
 # frequencyPatternSearch4TestAlgorithm3()
-# ###nonFrequencyPatternSearch5TestAlgorithm3()#TODO:CHECK THOSE 3 TEST
-# ###frequencyPatternSearch5TestAlgorithm3()
-# ###frequencyPatternSearch6TestAlgorithm3()
 # greedyPatternSearchTestAlgorithm3()
 # iiRandomPatternSearchTestAlgorithm3()
 # iiRandom2PatternSearchTestAlgorithm3()
@@ -230,18 +229,9 @@ KCequalsPatternSearchTestAlgorithm1()
 # frequencyTailoredPatternSearchTestAlgorithm3()
 #
 #
-### Kleene closure tests
+# # ### Kleene closure tests
 # MinMax_0_TestKleeneClosureAlgorithm3()
 # MinMax_2_TestKleeneClosureAlgorithm3()
-#
-# #TODO:CHCK KLEENE
-# # # # Kleene Condition tests
-# KC_AND_IndexCondition_01Algorithm3()
-# KC_AND_IndexCondition_02Algorithm3()
-# KC_AND_NegOffSet_01Algorithm3()
-# KC_AllValuesAlgorithm3()
-# KC_Specific_ValueAlgorithm3()
-# KC_MixedAlgorithm3()
 #
 #
 # # # consumption policies tests
@@ -259,10 +249,5 @@ KCequalsPatternSearchTestAlgorithm1()
 # samePatternDifferentTimeStampsAlgorithm3()
 # rootAndInnerAlgorithm3()
 # onePatternIncludesOtherAlgorithm3()
-# #TODO:CHECK THE BUG OF "SAME" TEST
-#
-#
-#
-#
 #
 # print("Finished running all tests, overall time: %s" % runTest.over_all_time)
