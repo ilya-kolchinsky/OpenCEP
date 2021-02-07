@@ -140,7 +140,7 @@ runTest.over_all_time = 0
 # applePeakToOpenTestAlgoritm1()
 # KCgoogleTestAlgorithm1()
 # KCequalsPatternSearchTestAlgorithm1()
-multyPatternAlgorithm1()
+# multyPatternAlgorithm1()
 
 #
 # # # Algorithm 2 - Rip
