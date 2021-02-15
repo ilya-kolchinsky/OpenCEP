@@ -49,7 +49,8 @@ def get_priority_list():
 
 def transform_and_and(pattern_structures_list : list):
     """
-    Returns modified pattern structures applying only the AND(AND()) rule
+    Returns modified pattern structures applying only the rule:
+    AND(X,AND(A,B,...),Y) -> AND(X,A,B,...,Y)
     """
     pattern_structures_list_copy = deepcopy(pattern_structures_list)
     # expand AND operators (nested inside AND)
@@ -66,7 +67,8 @@ def transform_and_and(pattern_structures_list : list):
 
 def transform_seq_or(pattern_structures_list : list):
     """
-    Returns modified pattern structures applying only the SEQ(OR()) rule
+    Returns modified pattern structures applying only the rule:
+    SEQ(X,OR(A,B,...),Y) -> SEQ(X,A,Y),SEQ(X,B,Y)...
     """
     pattern_structures_list_copy = deepcopy(pattern_structures_list)
     # expand OR operators (nested inside SEQ)
@@ -85,7 +87,8 @@ def transform_seq_or(pattern_structures_list : list):
 
 def transform_seq_not_and(pattern_structures_list : list):
     """
-    Returns modified pattern structures applying only the SEQ(NOT(AND())) rule
+    Returns modified pattern structures applying only the rule:
+    SEQ(X,NOT(AND(A,B,...)),Y) -> SEQ(X,NOT(A),Y),SEQ(X,NOT(B),Y),...
     """
     pattern_structures_list_copy = deepcopy(pattern_structures_list)
     # expand NOT(AND()) Operators (nested inside SEQ)
