@@ -39,10 +39,6 @@ MULTI_PATTERN_APPROACH = MultiPatternEvaluationApproaches.TRIVIAL_SHARING_LEAVES
 DEFAULT_PARALLEL_EXECUTION_MODE = ParallelExecutionModes.SEQUENTIAL
 DEFAULT_PARALLEL_EXECUTION_PLATFORM = ParallelExecutionPlatforms.THREADING
 
-# kleene closure limit constrains
-KC_MIN_SIZE = 1
-KC_MAX_SIZE = None
-
 # active pattern transformation for nested rules
 EXPAND_PATTERN_AND_AND = True
 EXPAND_PATTERN_SEQ_OR = True
@@ -51,9 +47,7 @@ EXPAND_PATTERN_SEQ_NOT_AND = True
 # pattern transformation rules priority (lower number denotes a higher priority)
 PRIORITY_PATTERN_TRANSFORMATION_MAX = -999
 PRIORITY_PATTERN_TRANSFORMATION_MIN = 999
-# PRIORITY_PATTERN_AND_AND = 1
-# PRIORITY_PATTERN_SEQ_OR = 2
-# PRIORITY_PATTERN_SEQ_NOT_AND = 3
+
 PRIORITY_PATTERN_TRANSFORMATION = {
     "AND_AND" : 1,
     "SEQ_OR" : 2,
