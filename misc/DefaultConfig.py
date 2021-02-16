@@ -10,6 +10,7 @@ from plan.IterativeImprovement import IterativeImprovementType, IterativeImprove
 from plan.multi.MultiPatternEvaluationApproaches import MultiPatternEvaluationApproaches
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
+from base.RuleTransformationTypes import RuleTransformationTypes
 
 
 # general settings
@@ -39,17 +40,9 @@ MULTI_PATTERN_APPROACH = MultiPatternEvaluationApproaches.TRIVIAL_SHARING_LEAVES
 DEFAULT_PARALLEL_EXECUTION_MODE = ParallelExecutionModes.SEQUENTIAL
 DEFAULT_PARALLEL_EXECUTION_PLATFORM = ParallelExecutionPlatforms.THREADING
 
-# active pattern transformation for nested rules
-EXPAND_PATTERN_AND_AND = True
-EXPAND_PATTERN_SEQ_OR = True
-EXPAND_PATTERN_SEQ_NOT_AND = True
-
-# pattern transformation rules priority (lower number denotes a higher priority)
-PRIORITY_PATTERN_TRANSFORMATION_MAX = -999
-PRIORITY_PATTERN_TRANSFORMATION_MIN = 999
-
-PRIORITY_PATTERN_TRANSFORMATION = {
-    "AND_AND" : 1,
-    "SEQ_OR" : 2,
-    "SEQ_NOT_AND" : 3 }
-
+# rule transformation defaults
+DEFAULT_RULES_DIRECTIVE = [
+    RuleTransformationTypes.AND_AND_PATTERN,
+    RuleTransformationTypes.SEQ_OR_PATTERN,
+    RuleTransformationTypes.SEQ_NOT_AND_PATTERN
+]

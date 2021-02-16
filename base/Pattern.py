@@ -24,7 +24,8 @@ class Pattern:
     tree construction mechanisms - this is hopefully a temporary hack.
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Condition,
-                 time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None):
+                 time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None,
+                 statistics_type = StatisticsTypes.NO_STATISTICS, statistics = None):
         self.id = pattern_id
 
         self.full_structure = pattern_structure
@@ -39,8 +40,8 @@ class Pattern:
 
         self.window = time_window
 
-        self.statistics_type = StatisticsTypes.NO_STATISTICS
-        self.statistics = None
+        self.statistics_type = statistics_type
+        self.statistics = statistics
         self.consumption_policy = consumption_policy
 
         if consumption_policy is not None:
@@ -176,3 +177,4 @@ class Pattern:
         return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.structure,
                                                                                 self.condition,
                                                                                 self.window)
+
