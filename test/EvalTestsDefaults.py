@@ -2,7 +2,8 @@ from datetime import timedelta
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
 from misc.OptimizerTypes import OptimizerTypes
 from misc.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
-from optimizer.OptimizerFactory import OptimizerParameters, StatisticChangesAwareOptimizerParameters
+from optimizer.OptimizerFactory import OptimizerParameters, StatisticChangesAwareOptimizerParameters, \
+    InvariantsAwareOptimizerParameters, TrivialOptimizerParameters
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreeCostModels, StatisticsTypes
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 from statistics_collector.StatisticsCollectorFactory import StatisticsCollectorParameters
@@ -39,20 +40,20 @@ DEFAULT_TESTING_ZSTREAM_BUSHY_TREE_BUILDER = \
 Default testing optimizer settings
 """
 DEFAULT_TESTING_TRIVIAL_OPTIMIZER_SETTINGS = \
-    OptimizerParameters(OptimizerTypes.TRIVIAL, TreePlanBuilderParameters())
+    TrivialOptimizerParameters(TreePlanBuilderParameters())
 
 DEFAULT_TESTING_CHANGES_AWARE_OPTIMIZER_SETTINGS = \
     StatisticChangesAwareOptimizerParameters(TreePlanBuilderParameters(), t=0.5,
                                              stat_type=StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES)
 
 DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS = \
-    OptimizerParameters(OptimizerTypes.USING_INVARIANT, DEFAULT_TESTING_INVARIANT_AWARE_GREEDY_TREE_BUILDER)
+    InvariantsAwareOptimizerParameters(DEFAULT_TESTING_INVARIANT_AWARE_GREEDY_TREE_BUILDER)
 
 DEFAULT_TESTING_ZSTREAM_INVARIANT_OPTIMIZER_SETTINGS = \
-    OptimizerParameters(OptimizerTypes.USING_INVARIANT, DEFAULT_TESTING_INVARIANT_AWARE_ZSTREAM_BUSHY_TREE_BUILDER)
+    InvariantsAwareOptimizerParameters(DEFAULT_TESTING_INVARIANT_AWARE_ZSTREAM_BUSHY_TREE_BUILDER)
 
 DEFAULT_TESTING_TRIVIAL_OPTIMIZER_SETTINGS_WITH_ZSTREAM = \
-    OptimizerParameters(OptimizerTypes.TRIVIAL, DEFAULT_TESTING_ZSTREAM_BUSHY_TREE_BUILDER)
+    TrivialOptimizerParameters(DEFAULT_TESTING_ZSTREAM_BUSHY_TREE_BUILDER)
 
 """
 Default testing Evaluation mechanism settings
