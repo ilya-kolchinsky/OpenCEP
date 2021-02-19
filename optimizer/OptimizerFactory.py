@@ -3,7 +3,9 @@ from misc.OptimizerTypes import OptimizerTypes
 from misc import DefaultConfig
 from misc.StatisticsTypes import StatisticsTypes
 from optimizer import Optimizer
+from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
+from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 
 
 class OptimizerParameters:
@@ -74,9 +76,10 @@ class OptimizerFactory:
                 return Optimizer.SelectivityAndArrivalRatesChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
 
         if optimizer_parameters.type == OptimizerTypes.USING_INVARIANT:
-            return Optimizer.InvariantsAwareOptimizer(tree_plan_builder)
-
-        raise Exception("Unknown optimizer type: %s" % (optimizer_parameters.type,))
+            if isinstance(tree_plan_builder, InvariantTreePlanBuilder):
+                return Optimizer.InvariantsAwareOptimizer(tree_plan_builder)
+            else:
+                raise Exception("Tree plan builder must be invariant aware")
 
     @staticmethod
     def __create_default_optimizer_parameters():

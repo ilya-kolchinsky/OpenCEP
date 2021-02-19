@@ -3,6 +3,7 @@ This file contains the implementations of algorithms constructing invariant-awar
 """
 from typing import List
 from base.PatternStructure import CompositeStructure
+from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.Invariants import Invariant, GreedyTreeInvariants
 from plan.TreePlan import TreePlanLeafNode, TreePlan
 from plan.TreePlanBuilder import TreePlanBuilder
@@ -11,17 +12,10 @@ from misc.Statistics import MissingStatisticsException
 from statistics_collector.StatisticsWrapper import StatisticsWrapper, SelectivityAndArrivalRatesWrapper
 
 
-class InvariantLeftDeepTreeBuilder(TreePlanBuilder):
+class InvariantLeftDeepTreeBuilder(InvariantTreePlanBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-
-    def build_tree_plan(self, statistics: StatisticsWrapper, pattern: Pattern):
-        """
-        Creates a tree-based evaluation plan for the given pattern.
-        """
-        tree_topology, invariants = self._create_tree_topology(statistics, pattern)
-        return TreePlan(tree_topology), invariants
 
     def _create_tree_topology(self, statistics: StatisticsWrapper, pattern: Pattern):
         order, invariants = self._create_evaluation_order(statistics) if isinstance(pattern.positive_structure,

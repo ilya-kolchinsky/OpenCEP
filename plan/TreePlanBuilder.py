@@ -5,7 +5,6 @@ from base.PatternStructure import AndOperator, SeqOperator
 from plan.TreeCostModel import TreeCostModelFactory
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode
-from statistics_collector.Statistics import Statistics
 from statistics_collector.StatisticsWrapper import StatisticsWrapper
 
 

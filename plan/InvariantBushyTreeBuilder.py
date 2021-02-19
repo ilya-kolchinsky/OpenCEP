@@ -2,6 +2,8 @@
 This file contains the implementations of algorithms constructing an invariant aware (bushy) tree-based evaluation mechanism.
 """
 from typing import List
+
+from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.Invariants import Invariant, ZStreamTreeInvariants
 from plan.TreePlan import TreePlanLeafNode, TreePlan
 from plan.TreePlanBuilder import TreePlanBuilder
@@ -10,17 +12,10 @@ from misc.Statistics import MissingStatisticsException
 from statistics_collector.StatisticsWrapper import StatisticsWrapper, SelectivityAndArrivalRatesWrapper
 
 
-class InvariantAwareZStreamTreeBuilder(TreePlanBuilder):
+class InvariantAwareZStreamTreeBuilder(InvariantTreePlanBuilder):
     """
     Creates an invariant aware bushy tree using ZStream algorithm.
     """
-
-    def build_tree_plan(self, statistics: StatisticsWrapper, pattern: Pattern):
-        """
-        Creates a tree-based evaluation plan for the given pattern.
-        """
-        tree_topology, invariants = self._create_tree_topology(statistics, pattern)
-        return TreePlan(tree_topology), invariants
 
     def _create_tree_topology(self, statistics: StatisticsWrapper, pattern: Pattern):
         if isinstance(statistics, SelectivityAndArrivalRatesWrapper):
