@@ -5,7 +5,7 @@ from base.Event import Event
 from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
 from condition.CompositeCondition import CompositeCondition, AndCondition
 from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
-    SeqOperator, NegationOperator
+    SeqOperator, NegationOperator, UnaryStructure
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
 from misc.ConsumptionPolicy import ConsumptionPolicy
@@ -117,8 +117,7 @@ class Pattern:
         """
         Returns a list of primitive events that make up the pattern structure.
         """
-
-        primitive_events = self.__get_primitive_events_aux(self.positive_structure.get_args())
+        primitive_events = self.__get_primitive_events_aux(self.full_structure.get_args())
         # a hack to remove unhashable duplicates from a list.
         return list({str(x): x for x in primitive_events}.values())
 
@@ -126,10 +125,12 @@ class Pattern:
         """
         An auxiliary method for returning a list of primitive events composing the pattern structure.
         """
-
         primitive_events = []
         while not isinstance(pattern_args, List) and not isinstance(pattern_args, PrimitiveEventStructure):
-            pattern_args = pattern_args.get_args()
+            if isinstance(pattern_args, UnaryStructure):
+                pattern_args = pattern_args.arg
+            else:
+                pattern_args = pattern_args.get_args()
         if isinstance(pattern_args, PrimitiveEventStructure):
             primitive_events.append(pattern_args)
         else:

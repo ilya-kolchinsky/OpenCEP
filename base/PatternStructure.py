@@ -74,9 +74,6 @@ class UnaryStructure(PatternStructure, ABC):
     def contains_event(self, event_name: str):
         return self.arg.contains_event(event_name)
 
-    def get_args(self):
-        return self.arg
-
 
 class CompositeStructure(PatternStructure, ABC):
     """
