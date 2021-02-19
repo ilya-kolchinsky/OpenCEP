@@ -1,3 +1,4 @@
+import heapq
 from typing import Dict, Set
 from base.DataFormatter import DataFormatter
 from base.Event import Event
@@ -222,7 +223,7 @@ class TrivialEvaluation(TreeBasedEvaluationMechanism):
         self._tree.get_matches()
 
     def get_all_old_events(self):
-        old_events = []
+        old_pattern_matches_events = [] # todo check the name
         leaf_types = set()
         leaves = self._tree.get_leaves()
         for leaf in leaves:
@@ -230,7 +231,10 @@ class TrivialEvaluation(TreeBasedEvaluationMechanism):
             if leaf_type not in leaf_types:
                 leaf_types.add(leaf_type)
                 partial_matches = leaf.get_storage_unit()
-                old_events.extend([pm.events[0] for pm in partial_matches])
+                old_pattern_matches_events.append([pm.events[0] for pm in partial_matches])
+
+        # using heap for fast sorting of sorted lists
+        old_events = list(heapq.merge(*old_pattern_matches_events, key=lambda event: event.timestamp))
         return old_events
 
     def play_old_events_on_tree(self, events):
