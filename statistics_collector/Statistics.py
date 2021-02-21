@@ -47,20 +47,21 @@ class ArrivalRatesStatistics(Statistics):
 
     def update(self, event: Event):
         event_type = event.type
-        time = datetime.now()
+        event_timestamp = event.timestamp
 
         if event_type in self.__event_type_to_indexes_map:
             indexes = self.__event_type_to_indexes_map[event_type]
             for index in indexes:
                 self.arrival_rates[index] += 1
-                self.__events_arrival_time.append(StatisticEventData(time, event_type))
+                self.__events_arrival_time.append(StatisticEventData(event_timestamp, event_type))
 
-        self.__remove_expired_events(time)
+        self.__remove_expired_events(event_timestamp)
 
     def __remove_expired_events(self, last_timestamp: datetime):
+        # TODO: refactor this
         """
         This method is efficient if we call this function every time we update statistics and
-        our assumption that is more efficient then binary search because we know that ther is
+        our assumption that is more efficient then binary search because we know that there is
         a little mount of expired event in the beginning.
         In addition, if we use this function not every time we update statistics but rather when
         the evaluation want get statistics the efficient method to implement this function is

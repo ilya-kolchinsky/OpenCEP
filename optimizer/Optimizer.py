@@ -68,7 +68,12 @@ class StatisticChangesAwareOptimizer(Optimizer):
         self._prev_statistics = None
 
     def is_need_optimize(self, new_statistics: StatisticsWrapper, pattern: Pattern):
-        return self._prev_statistics is None or self.is_changed_by_t(new_statistics.statistics, self._prev_statistics)
+        for statistics in new_statistics:
+            type = statistics.type
+            if self.algorithm[type].is_changed_by_t(statistics):
+                return True
+        return False
+        # return self._prev_statistics is None or self.is_changed_by_t(new_statistics.statistics, self._prev_statistics)
 
     def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
         self._prev_statistics = new_statistics.statistics
@@ -82,7 +87,16 @@ class StatisticChangesAwareOptimizer(Optimizer):
         raise NotImplementedError()
 
 
-class ArrivalRatesChangesAwareOptimizer(StatisticChangesAwareOptimizer):
+class ChangesAwareTester(ABC):
+    """
+    Abstract class for changes aware testing function
+    """
+    @abstractmethod
+    def is_changed_by_t(self):
+        raise NotImplementedError()
+
+
+class ArrivalRatesChangesAwareTester:
     """
     Checks for changes in the arrival rate by a factor of t.
     """
@@ -96,7 +110,7 @@ class ArrivalRatesChangesAwareOptimizer(StatisticChangesAwareOptimizer):
         return False
 
 
-class SelectivityChangesAwareOptimizer(StatisticChangesAwareOptimizer):
+class SelectivityChangesAwareOptimizerTester:
     """
     Checks for changes in the selectivity by a factor of t.
     """
@@ -109,19 +123,6 @@ class SelectivityChangesAwareOptimizer(StatisticChangesAwareOptimizer):
                         old_selectivity[i][j] * (1 - self._t) > new_selectivity[i][j]:
                     return True
         return False
-
-
-class SelectivityAndArrivalRatesChangesAwareOptimizer(ArrivalRatesChangesAwareOptimizer,
-                                                      SelectivityChangesAwareOptimizer):
-    """
-    Checks for changes in both arrival rates and selectivity by a factor of t.
-    """
-
-    def is_changed_by_t(self, new_statistics, old_statistics):
-        (new_selectivity, new_arrival_rates) = new_statistics
-        (old_selectivity, old_arrival_rates) = old_statistics
-        return ArrivalRatesChangesAwareOptimizer.is_changed_by_t(self, new_arrival_rates, old_arrival_rates) or \
-               SelectivityChangesAwareOptimizer.is_changed_by_t(self, new_selectivity, old_selectivity)
 
 
 class InvariantsAwareOptimizer(Optimizer):
