@@ -198,10 +198,10 @@ def optimizer_test(old_statistics: StatisticsWrapper, new_statistics: Statistics
     pattern = get_pattern_test()
 
     if optimizer.is_need_optimize(old_statistics, pattern):
-        tree_plan = optimizer.build_new_tree_plan(old_statistics, pattern)
+        optimizer.build_new_tree_plan(old_statistics, pattern)
 
     if optimizer.is_need_optimize(new_statistics, pattern):
-        tree_plan = optimizer.build_new_tree_plan(new_statistics, pattern)
+        optimizer.build_new_tree_plan(new_statistics, pattern)
         return True
 
     return False

@@ -32,10 +32,12 @@ class StatisticChangesAwareOptimizerParameters(OptimizerParameters):
     """
 
     def __init__(self, tree_plan_params: TreePlanBuilderParameters,
-                 t: float, stat_type: StatisticsTypes):
+                 t: float, statistics_types: List[StatisticsTypes] or StatisticsTypes):
         super().__init__(OptimizerTypes.CHANGES_AWARE, tree_plan_params)
+        if isinstance(statistics_types, StatisticsTypes):
+            statistics_types = [statistics_types]
         self.t = t
-        self.stat_type = stat_type
+        self.statistics_types = statistics_types
 
 
 class InvariantsAwareOptimizerParameters(OptimizerParameters):
@@ -66,12 +68,13 @@ class OptimizerFactory:
             return Optimizer.TrivialOptimizer(tree_plan_builder)
 
         if optimizer_parameters.type == OptimizerTypes.CHANGES_AWARE:
-            if optimizer_parameters.stat_type == StatisticsTypes.ARRIVAL_RATES:
-                return Optimizer.ArrivalRatesChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
-            if optimizer_parameters.stat_type == StatisticsTypes.SELECTIVITY_MATRIX:
-                return Optimizer.SelectivityChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
-            if optimizer_parameters.stat_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-                return Optimizer.SelectivityAndArrivalRatesChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
+            type_to_changes_aware_functions_map = {}
+            for stat_type in optimizer_parameters.statistics_types:
+                if stat_type == StatisticsTypes.ARRIVAL_RATES:
+                    type_to_changes_aware_functions_map[stat_type] = Optimizer.ArrivalRatesChangesAwareOptimizer()
+                if stat_type == StatisticsTypes.SELECTIVITY_MATRIX:
+                    type_to_changes_aware_functions_map[stat_type] = Optimizer.SelectivityChangesAwareOptimizer()
+            return Optimizer.StatisticChangesAwareOptimizer(tree_plan_builder, optimizer_parameters.t)
 
         if optimizer_parameters.type == OptimizerTypes.USING_INVARIANT:
             return Optimizer.InvariantsAwareOptimizer(tree_plan_builder)

@@ -6,20 +6,19 @@ from optimizer.OptimizerFactory import OptimizerParameters, StatisticChangesAwar
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreeCostModels, StatisticsTypes
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 from statistics_collector.StatisticsCollectorFactory import StatisticsCollectorParameters
-from statistics_collector.StatisticsFactory import StatisticsParameters
 from tree.PatternMatchStorage import TreeStorageParameters
 
 """
 Default testing statistics collector settings
 """
 DEFAULT_TESTING_STATISTICS_COLLECTOR_ARRIVAL_RATES_STATISTICS = \
-    StatisticsCollectorParameters(StatisticsParameters(stat_type=StatisticsTypes.ARRIVAL_RATES))
+    StatisticsCollectorParameters(statistics_types=StatisticsTypes.ARRIVAL_RATES)
 
 DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_STATISTICS = \
-    StatisticsCollectorParameters(StatisticsParameters(stat_type=StatisticsTypes.SELECTIVITY_MATRIX))
+    StatisticsCollectorParameters(statistics_types=StatisticsTypes.SELECTIVITY_MATRIX)
 
 DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS = \
-    StatisticsCollectorParameters(StatisticsParameters(stat_type=StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES))
+    StatisticsCollectorParameters(statistics_types=[StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES])
 
 """
 Default testing tree builder settings
@@ -84,8 +83,8 @@ DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS_AND_T_OPTIMIZER = \
                                            evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION,
                                            optimizer_params=DEFAULT_TESTING_CHANGES_AWARE_OPTIMIZER_SETTINGS,
                                            statistics_collector_params=StatisticsCollectorParameters(
-                                               StatisticsParameters(time_window=timedelta(seconds=2),
-                                                                    stat_type=StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES)),
+                                                                    time_window=timedelta(seconds=2),
+                                                                    statistics_types=[StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]),
                                            statistics_updates_time_window=timedelta(seconds=0.01))
 
 
@@ -145,8 +144,8 @@ DEFAULT_TESTING_SIMULTANEOUS_EVALUATION_MECHANISM_SETTINGS_AND_T_OPTIMIZER = \
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION,
                                            optimizer_params=DEFAULT_TESTING_CHANGES_AWARE_OPTIMIZER_SETTINGS,
-                                           statistics_collector_params=StatisticsCollectorParameters(StatisticsParameters(
-                                               stat_type=StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES)),
+                                           statistics_collector_params=StatisticsCollectorParameters(
+                                            statistics_types=[StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]),
                                            statistics_updates_time_window=timedelta(seconds=0.05))
 
 

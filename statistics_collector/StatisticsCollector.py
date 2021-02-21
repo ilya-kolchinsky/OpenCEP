@@ -7,7 +7,7 @@ class StatisticsCollector:
     """
     Collects, maintains and updates statistics from the stream
     """
-    def __init__(self, pattern: Pattern, statistics: Statistics):
+    def __init__(self, pattern: Pattern, statistics: dict):
         self.pattern = pattern
         self.__statistics = statistics
 
