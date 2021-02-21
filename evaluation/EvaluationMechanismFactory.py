@@ -78,7 +78,10 @@ class EvaluationMechanismFactory:
 
         statistics_collector = StatisticsCollectorFactory.build_statistics_collector(eval_mechanism_params.statistics_collector_params, patterns)
         optimizer = OptimizerFactory.build_optimizer(eval_mechanism_params.optimizer_params)
-        pattern_to_tree_plan_map = {pattern: optimizer.build_new_tree_plan(statistics_collector.get_statistics(), pattern) for pattern in patterns}
+        for pattern in patterns:
+            if pattern.statistics is not None:
+                statistics_collector.statistics = pattern.statistics
+        pattern_to_tree_plan_map = {pattern: optimizer.build_initial_tree_plan(statistics_collector.get_statistics(), pattern) for pattern in patterns}
 
         if eval_mechanism_params.evaluation_type == TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION:
             return TrivialEvaluation(pattern_to_tree_plan_map,

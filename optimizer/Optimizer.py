@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from base import Pattern
+from misc import DefaultConfig
 from plan import TreePlanBuilder, TreePlan
+from plan.LeftDeepTreeBuilders import TrivialLeftDeepTreeBuilder
+from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 from statistics_collector.StatisticsWrapper import StatisticsWrapper
 
 
@@ -22,6 +25,22 @@ class Optimizer(ABC):
     @abstractmethod
     def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
         raise NotImplementedError()
+
+    def build_initial_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
+
+        if pattern.statistics is None:
+            if DefaultConfig.DEFAULT_TREE_PLAN_BUILDER == TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE:
+                cost_model = self._tree_plan_builder.__cost_model
+                tree_plan_builder = TrivialLeftDeepTreeBuilder(cost_model)
+                temp_tree_plan_builder, self._tree_plan_builder = self._tree_plan_builder, tree_plan_builder
+                tree_plan = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
+                self.internal_init()
+                return tree_plan
+            else:
+                raise Exception("Unknown tree plan builder type: %s" % (DefaultConfig.DEFAULT_TREE_PLAN_BUILDER,))
+        else:
+            tree_plan = self.build_new_tree_plan(new_statistics, pattern)
+            return tree_plan
 
 
 class TrivialOptimizer(Optimizer):
@@ -120,3 +139,4 @@ class InvariantsAwareOptimizer(Optimizer):
     def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
         tree_plan, self._invariants = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
+
