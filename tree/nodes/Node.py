@@ -52,7 +52,6 @@ class Node(ABC):
         self._partial_matches = None
         self._condition = AndCondition()
 
-        assert confidence is None or 0 <= confidence <= 1
         self._confidence = confidence
         # Full pattern matches that were not yet reported. Only relevant for an output node, that is, for a node
         # corresponding to a full pattern definition.
