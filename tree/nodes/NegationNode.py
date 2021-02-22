@@ -6,6 +6,7 @@ from base.Event import Event
 from condition.Condition import RelopTypes, EquationSides
 from condition.CompositeCondition import CompositeCondition
 from base.PatternMatch import PatternMatch
+from base.Pattern import PatternParameters
 from base.PatternStructure import AndOperator, SeqOperator
 from misc.Utils import find_partial_match_by_timestamp, merge, is_sorted, merge_according_to
 from tree.nodes.BinaryNode import BinaryNode
@@ -19,11 +20,11 @@ class NegationNode(BinaryNode, ABC):
     This implementation heavily relies on the fact that, if any unbounded negation operators are defined in the
     pattern, they are conveniently placed at the top of the tree forming a left-deep chain of nodes.
     """
-    def __init__(self, sliding_window: timedelta, is_unbounded: bool, top_operator: Type,
+    def __init__(self, pattern_params: PatternParameters, is_unbounded: bool, top_operator: Type,
                  parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None, confidence: Optional[float] = None):
-        super().__init__(sliding_window, parents, pattern_ids, event_defs, left, right, confidence=confidence)
+                 left: Node = None, right: Node = None):
+        super().__init__(pattern_params, parents, pattern_ids, event_defs, left, right)
 
         # aliases for the negative node subtrees to make the code more readable
         # by construction, we always have the positive subtree on the left
@@ -203,11 +204,11 @@ class NegativeAndNode(NegationNode):
     """
     An internal node representing a negative conjunction operator.
     """
-    def __init__(self, sliding_window: timedelta, is_unbounded: bool,
+    def __init__(self, pattern_params: PatternParameters, is_unbounded: bool,
                  parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None, confidence: Optional[float] = None):
-        super().__init__(sliding_window, is_unbounded, AndOperator, parents, pattern_ids, event_defs, left, right, confidence=confidence)
+                 left: Node = None, right: Node = None):
+        super().__init__(pattern_params, is_unbounded, AndOperator, parents, pattern_ids, event_defs, left, right)
 
     def get_structure_summary(self):
         return ("NAnd",
@@ -220,11 +221,11 @@ class NegativeSeqNode(NegationNode):
     An internal node representing a negative sequence operator.
     Unfortunately, this class contains some code duplication from SeqNode to avoid diamond inheritance.
     """
-    def __init__(self, sliding_window: timedelta, is_unbounded: bool,
+    def __init__(self, pattern_params: PatternParameters, is_unbounded: bool,
                  parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None, confidence: Optional[float] = None):
-        super().__init__(sliding_window, is_unbounded, SeqOperator, parents, pattern_ids, event_defs, left, right, confidence=confidence)
+                 left: Node = None, right: Node = None):
+        super().__init__(pattern_params, is_unbounded, SeqOperator, parents, pattern_ids, event_defs, left, right)
 
     def get_structure_summary(self):
         return ("NSeq",

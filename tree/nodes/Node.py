@@ -4,6 +4,7 @@ from queue import Queue
 from typing import List, Set, Optional
 
 from base.Event import Event
+from base.Pattern import PatternParameters
 from condition.Condition import RelopTypes, EquationSides
 from condition.CompositeCondition import CompositeCondition, AndCondition
 from base.PatternMatch import PatternMatch
@@ -46,13 +47,14 @@ class Node(ABC):
 
 
     ###################################### Initialization
-    def __init__(self, sliding_window: timedelta, parents, pattern_ids: int or Set[int] = None, confidence: Optional[float] = None):
+    def __init__(self, pattern_params: PatternParameters, parents, pattern_ids: int or Set[int] = None):
         self._parents: List[Node] = []
-        self._sliding_window = sliding_window
+        self._sliding_window = pattern_params.window
         self._partial_matches = None
         self._condition = AndCondition()
 
-        self._confidence = confidence
+        self._confidence = pattern_params.confidence
+
         # Full pattern matches that were not yet reported. Only relevant for an output node, that is, for a node
         # corresponding to a full pattern definition.
         self._unreported_matches = Queue()
@@ -77,7 +79,6 @@ class Node(ABC):
         self._parent_to_unhandled_queue_dict = {}
 
         self.set_parents(parents, on_init=True)
-
 
     ###################################### Matching-related methods
     def get_next_unreported_match(self):

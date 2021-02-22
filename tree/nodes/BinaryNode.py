@@ -6,6 +6,7 @@ from base.Event import Event
 from condition.Condition import Condition, Variable, EquationSides
 from condition.BaseRelationCondition import BaseRelationCondition
 from base.PatternMatch import PatternMatch
+from base.Pattern import PatternParameters
 from tree.nodes.InternalNode import InternalNode
 from tree.nodes.Node import Node, PrimitiveEventDefinition
 
@@ -14,10 +15,10 @@ class BinaryNode(InternalNode, ABC):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
-    def __init__(self, sliding_window: timedelta, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
+    def __init__(self, pattern_params: PatternParameters, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
-                 left: Node = None, right: Node = None, confidence: Optional[float] = None):
-        super().__init__(sliding_window, parents, pattern_ids, event_defs, confidence=confidence)
+                 left: Node = None, right: Node = None):
+        super().__init__(pattern_params, parents, pattern_ids, event_defs)
         self._left_subtree = left
         self._right_subtree = right
 

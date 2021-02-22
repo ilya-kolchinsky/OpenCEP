@@ -3,6 +3,7 @@ from datetime import timedelta
 from typing import List, Set, Optional
 
 from base.Event import Event
+from base.Pattern import PatternParameters
 from condition.Condition import RelopTypes, EquationSides
 from tree.nodes.Node import Node, PrimitiveEventDefinition
 from tree.PatternMatchStorage import TreeStorageParameters, UnsortedPatternMatchStorage, SortedPatternMatchStorage
@@ -12,9 +13,9 @@ class InternalNode(Node, ABC):
     """
     This class represents a non-leaf node of an evaluation tree.
     """
-    def __init__(self, sliding_window: timedelta, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
-                 event_defs: List[PrimitiveEventDefinition] = None, confidence: Optional[float] = None):
-        super().__init__(sliding_window, parents, pattern_ids, confidence=confidence)
+    def __init__(self, pattern_params: PatternParameters, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
+                 event_defs: List[PrimitiveEventDefinition] = None):
+        super().__init__(pattern_params, parents, pattern_ids)
         self._event_defs = event_defs
 
     def get_event_definitions(self):

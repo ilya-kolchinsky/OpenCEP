@@ -7,6 +7,7 @@ from base.PatternStructure import PrimitiveEventStructure
 from tree.nodes.Node import Node
 from tree.nodes.Node import PrimitiveEventDefinition
 from base.PatternMatch import PatternMatch
+from base.Pattern import PatternParameters
 from tree.PatternMatchStorage import TreeStorageParameters, SortedPatternMatchStorage
 
 
@@ -14,9 +15,9 @@ class LeafNode(Node):
     """
     A leaf node is responsible for a single event type of the pattern.
     """
-    def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_event: PrimitiveEventStructure,
-                 parents: List[Node], pattern_ids: int or Set[int] = None, confidence: Optional[float] = None):
-        super().__init__(sliding_window, parents, pattern_ids, confidence=confidence)
+    def __init__(self, pattern_params: PatternParameters, leaf_index: int, leaf_event: PrimitiveEventStructure,
+                 parents: List[Node], pattern_ids: int or Set[int] = None):
+        super().__init__(pattern_params, parents, pattern_ids)
         self.__leaf_index = leaf_index
         self.__event_name = leaf_event.name
         self.__event_type = leaf_event.type
