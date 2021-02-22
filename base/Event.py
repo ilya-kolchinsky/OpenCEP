@@ -21,7 +21,8 @@ class Event:
         self.type = data_formatter.get_event_type(self.payload)
         self.timestamp = data_formatter.get_event_timestamp(self.payload)
         self.payload[Event.INDEX_ATTRIBUTE_NAME] = Event.counter
-        self.probability: Optional[float] = self.payload.get(Event.PROBABILITY_ATTRIBUTE_NAME, None)
+        self.probability: Optional[float] = data_formatter.get_probability(self.payload)
+        assert self.probability is None or 0 <= self.probability <= 1
         Event.counter += 1
 
     def __eq__(self, other):

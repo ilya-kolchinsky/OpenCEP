@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Union
+from typing import Any, Dict, Optional, Union
 
 from base.DataFormatter import DataFormatter, EventTypeClassifier
 from misc.Utils import str_to_number
@@ -54,3 +54,6 @@ class MetastockDataFormatter(DataFormatter):
         timestamp_str = str(event_payload[METASTOCK_EVENT_TIMESTAMP_KEY])
         return datetime(year=int(timestamp_str[0:4]), month=int(timestamp_str[4:6]), day=int(timestamp_str[6:8]),
                         hour=int(timestamp_str[8:10]), minute=int(timestamp_str[10:12]))
+
+    def get_probability(self, event_payload: Dict[str, Any]) -> Optional[float]:
+        return event_payload.get("Probability", None)

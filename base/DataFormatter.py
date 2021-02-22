@@ -1,4 +1,5 @@
 from abc import ABC
+from typing import Dict, Optional
 
 
 class EventTypeClassifier(ABC):
@@ -41,3 +42,6 @@ class DataFormatter(ABC):
         Deduces and returns the type of the event specified by the given payload.
         """
         return self.__event_type_classifier.get_event_type(event_payload)
+
+    def get_probability(self, event_payload: dict) -> Optional[float]:
+        raise NotImplementedError()
