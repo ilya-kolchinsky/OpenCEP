@@ -184,7 +184,7 @@ class MultiPatternTree:
                     # the pattern indices start from 1.
                     pattern = self.__id_to_pattern_map[pattern_id]
                     if match.last_timestamp - match.first_timestamp <= pattern.window and (
-                        pattern.confidence is None or match.probability >= pattern.confidence
+                        pattern.confidence is None or match.probability is None or match.probability >= pattern.confidence
                     ):
                         match.add_pattern_id(pattern_id)
                 matches.append(match)
