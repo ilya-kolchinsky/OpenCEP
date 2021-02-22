@@ -45,6 +45,8 @@ class UnaryNode(InternalNode, ABC):
         """
         Replaces the child of this node with the given node.
         """
+        if self._child != old_node:
+            raise Exception("old_node must be the node's child")
         self.set_subtree(new_node)
         new_node.add_parent(self)
 
