@@ -3,6 +3,7 @@ This file contains the implementations of algorithms constructing invariant-awar
 """
 from typing import List
 from base.PatternStructure import CompositeStructure
+from misc.StatisticsTypes import StatisticsTypes
 from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.Invariants import Invariant, GreedyTreeInvariants
 from plan.TreePlan import TreePlanLeafNode, TreePlan
@@ -17,7 +18,7 @@ class InvariantLeftDeepTreeBuilder(InvariantTreePlanBuilder):
     An abstract class for left-deep tree builders.
     """
 
-    def _create_tree_topology(self, statistics: StatisticsWrapper, pattern: Pattern):
+    def _create_tree_topology(self, statistics: dict, pattern: Pattern):
         order, invariants = self._create_evaluation_order(statistics) if isinstance(pattern.positive_structure,
                                                                                     CompositeStructure) else [0]
         return self._order_to_tree_topology(order, pattern), invariants
@@ -32,14 +33,14 @@ class InvariantLeftDeepTreeBuilder(InvariantTreePlanBuilder):
             tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(order[i]))
         return tree_topology
 
-    def _get_order_cost(self, statistics: StatisticsWrapper, pattern: Pattern, order: List[int]):
+    def _get_order_cost(self, statistics: dict, pattern: Pattern, order: List[int]):
         """
         Returns the cost of a given order of event processing.
         """
         tree_plan = InvariantLeftDeepTreeBuilder._order_to_tree_topology(order, pattern)
         return self._get_plan_cost(statistics, pattern, tree_plan)
 
-    def _create_evaluation_order(self, statistics: StatisticsWrapper):
+    def _create_evaluation_order(self, statistics: dict):
         """
         Creates an evaluation order to serve as a basis for the invariant aware left-deep tree topology.
         """
@@ -52,12 +53,15 @@ class InvariantAwareGreedyTreeBuilder(InvariantLeftDeepTreeBuilder):
     function.
     """
 
-    def _create_evaluation_order(self, statistics: StatisticsWrapper):
-        if isinstance(statistics, SelectivityAndArrivalRatesWrapper):
-            (selectivityMatrix, arrivalRates) = statistics.statistics
+    def _create_evaluation_order(self, statistics: dict):
+        if StatisticsTypes.ARRIVAL_RATES in statistics and \
+                StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
+                len(statistics) == 2:
+            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX]
+            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
         else:
             raise MissingStatisticsException()
-        order, invariants = self.calculate_greedy_order(selectivityMatrix, arrivalRates)
+        order, invariants = self.calculate_greedy_order(selectivity_matrix, arrival_rates)
 
         return order, invariants
 

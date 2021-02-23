@@ -8,7 +8,7 @@ from statistics_collector.StatisticsWrapper import StatisticsWrapper
 
 class InvariantTreePlanBuilder(TreePlanBuilder, ABC):
 
-    def build_tree_plan(self, statistics: StatisticsWrapper, pattern: Pattern):
+    def build_tree_plan(self, statistics: dict, pattern: Pattern):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """

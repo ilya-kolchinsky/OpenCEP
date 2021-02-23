@@ -15,19 +15,19 @@ class TreePlanBuilder(ABC):
     def __init__(self, cost_model_type: TreeCostModels):
         self.__cost_model = TreeCostModelFactory.create_cost_model(cost_model_type)
 
-    def build_tree_plan(self, statistics: StatisticsWrapper, pattern: Pattern):
+    def build_tree_plan(self, statistics: dict, pattern: Pattern):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
         return TreePlan(self._create_tree_topology(statistics, pattern))
 
-    def _create_tree_topology(self, statistics: StatisticsWrapper, pattern: Pattern):
+    def _create_tree_topology(self, statistics: dict, pattern: Pattern):
         """
         An abstract method for creating the actual tree topology.
         """
         raise NotImplementedError()
 
-    def _get_plan_cost(self, statistics: StatisticsWrapper, pattern: Pattern, plan: TreePlanNode):
+    def _get_plan_cost(self, statistics: dict, pattern: Pattern, plan: TreePlanNode):
         """
         Returns the cost of a given plan for the given plan according to a predefined cost model.
         """

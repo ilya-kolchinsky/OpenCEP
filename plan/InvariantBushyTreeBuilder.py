@@ -3,6 +3,7 @@ This file contains the implementations of algorithms constructing an invariant a
 """
 from typing import List
 
+from misc.StatisticsTypes import StatisticsTypes
 from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.Invariants import Invariant, ZStreamTreeInvariants
 from plan.TreePlan import TreePlanLeafNode, TreePlan
@@ -17,9 +18,12 @@ class InvariantAwareZStreamTreeBuilder(InvariantTreePlanBuilder):
     Creates an invariant aware bushy tree using ZStream algorithm.
     """
 
-    def _create_tree_topology(self, statistics: StatisticsWrapper, pattern: Pattern):
-        if isinstance(statistics, SelectivityAndArrivalRatesWrapper):
-            (selectivity_matrix, arrival_rates) = statistics.statistics
+    def _create_tree_topology(self, statistics: dict, pattern: Pattern):
+        if StatisticsTypes.ARRIVAL_RATES in statistics and \
+                StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
+                len(statistics) == 2:
+            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX]
+            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
         else:
             raise MissingStatisticsException()
 

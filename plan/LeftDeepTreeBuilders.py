@@ -44,7 +44,7 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
             tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(order[i]))
         return tree_topology
 
-    def _get_order_cost(self, statistics: StatisticsWrapper, pattern: Pattern, order: List[int]):
+    def _get_order_cost(self, statistics: dict, pattern: Pattern, order: List[int]):
         """
         Returns the cost of a given order of event processing.
         """
@@ -63,7 +63,7 @@ class TrivialLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree following the pattern-specified order.
     """
 
-    def _create_evaluation_order(self, statistics: StatisticsWrapper, pattern: Pattern):
+    def _create_evaluation_order(self, statistics: dict, pattern: Pattern):
         args_num = len(pattern.positive_structure.args)
         return list(range(args_num))
 
@@ -73,12 +73,14 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree following the order of ascending arrival rates of the event types.
     """
 
-    def _create_evaluation_order(self, statistics: StatisticsWrapper, pattern: Pattern):
-        if isinstance(statistics, FrequencyDictWrapper):
-            frequency_dict = statistics.statistics
+    def _create_evaluation_order(self, statistics: dict, pattern: Pattern):
+        if StatisticsTypes.FREQUENCY_DICT in statistics and \
+                len(statistics) == 1:
+            frequency_dict = statistics[StatisticsTypes.FREQUENCY_DICT]
             order = get_order_by_occurrences(pattern.positive_structure.args, frequency_dict)
-        elif isinstance(statistics, ArrivalRatesWrapper):
-            arrival_rates = statistics.statistics
+        elif StatisticsTypes.ARRIVAL_RATES in statistics and \
+                len(statistics) == 1:
+            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
             # create an index-arrival rate binding and sort according to arrival rate.
             sorted_order = sorted([(i, arrival_rates[i]) for i in range(len(arrival_rates))], key=lambda x: x[1])
             order = [x for x, y in sorted_order]  # create order from sorted binding.
@@ -93,12 +95,15 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     function.
     """
 
-    def _create_evaluation_order(self, statistics: StatisticsWrapper, pattern: Pattern):
-        if isinstance(statistics, SelectivityAndArrivalRatesWrapper):
-            (selectivityMatrix, arrivalRates) = statistics.statistics
+    def _create_evaluation_order(self, statistics: dict, pattern: Pattern):
+        if StatisticsTypes.ARRIVAL_RATES in statistics and \
+                StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
+                len(statistics) == 2:
+            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX]
+            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
         else:
             raise MissingStatisticsException()
-        return self.calculate_greedy_order(selectivityMatrix, arrivalRates)
+        return self.calculate_greedy_order(selectivity_matrix, arrival_rates)
 
     @staticmethod
     def calculate_greedy_order(selectivity_matrix: List[List[float]], arrival_rates: List[int]):
@@ -153,16 +158,19 @@ class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
         self.__initType = init_type
         self.__step_limit = step_limit
 
-    def _create_evaluation_order(self, statistics: StatisticsWrapper, pattern: Pattern):
-        if isinstance(statistics, SelectivityAndArrivalRatesWrapper):
-            (selectivityMatrix, arrivalRates) = statistics.statistics
+    def _create_evaluation_order(self, statistics: dict, pattern: Pattern):
+        if StatisticsTypes.ARRIVAL_RATES in statistics and \
+                StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
+                len(statistics) == 2:
+            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX]
+            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
         else:
             raise MissingStatisticsException()
         order = None
         if self.__initType == IterativeImprovementInitType.RANDOM:
-            order = self.__get_random_order(len(arrivalRates))
+            order = self.__get_random_order(len(arrival_rates))
         elif self.__initType == IterativeImprovementInitType.GREEDY:
-            order = GreedyLeftDeepTreeBuilder.calculate_greedy_order(selectivityMatrix, arrivalRates)
+            order = GreedyLeftDeepTreeBuilder.calculate_greedy_order(selectivity_matrix, arrival_rates)
         get_cost_callback = lambda o: self._get_order_cost(statistics, pattern, o)
         return self.__iterative_improvement.execute(self.__step_limit, order, get_cost_callback)
 
@@ -185,9 +193,11 @@ class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree using a dynamic programming algorithm.
     """
 
-    def _create_evaluation_order(self, statistics: StatisticsWrapper, pattern: Pattern):
-        if isinstance(statistics, SelectivityAndArrivalRatesWrapper):
-            (selectivity_matrix, arrival_rates) = statistics.statistics
+    def _create_evaluation_order(self, statistics: dict, pattern: Pattern):
+        if StatisticsTypes.ARRIVAL_RATES in statistics and \
+                StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
+                len(statistics) == 2:
+            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX]
         else:
             raise MissingStatisticsException()
         args_num = len(selectivity_matrix)

@@ -14,7 +14,7 @@ class TreeCostModel(ABC):
     """
     An abstract class for the cost model used by cost-based tree-structured evaluation plan generation algorithms.
     """
-    def get_plan_cost(self, statistics: StatisticsWrapper, pattern: Pattern, plan: TreePlanNode):
+    def get_plan_cost(self, statistics: dict, pattern: Pattern, plan: TreePlanNode):
         """
         Returns the cost of a given plan for a given pattern.
         """
@@ -25,9 +25,12 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
     """
     Calculates the plan cost based on the expected size of intermediate results (partial matches).
     """
-    def get_plan_cost(self, statistics: StatisticsWrapper, pattern: Pattern, plan: TreePlanNode):
-        if isinstance(statistics, SelectivityAndArrivalRatesWrapper):
-            (selectivity_matrix, arrival_rates) = statistics.statistics
+    def get_plan_cost(self, statistics: dict, pattern: Pattern, plan: TreePlanNode):
+        if StatisticsTypes.ARRIVAL_RATES in statistics and \
+                StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
+                len(statistics) == 2:
+            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX]
+            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
         else:
             raise MissingStatisticsException()
         _, _, cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(plan, selectivity_matrix,
