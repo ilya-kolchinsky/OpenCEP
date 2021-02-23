@@ -2,6 +2,8 @@
 This file contains the default parameter values for various system configuration settings.
 Each of the values below can be overridden by providing a different value in CEP.__init__ or CEP.run.
 """
+from datetime import timedelta
+
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc.SelectionStrategies import SelectionStrategies
 from misc.StatisticsTypes import StatisticsTypes
@@ -43,12 +45,15 @@ DEFAULT_PARALLEL_EXECUTION_PLATFORM = ParallelExecutionPlatforms.THREADING
 
 # statistics collection settings
 DEFAULT_STATISTICS_COLLECTOR_TYPE = StatisticsTypes.ARRIVAL_RATES
+TIME_WINDOW = timedelta(minutes=2)  # the default time window for The time when we are ready to keep statistics
 
 # Optimizer settings
 DEFAULT_OPTIMIZER_TYPE = OptimizerTypes.TRIVIAL
+THRESHOLD = 0.5  # the default threshold for statistics changer aware optimizer
 
 # statistics settings
 DEFAULT_STATISTICS_TYPE = StatisticsTypes.ARRIVAL_RATES
 
 # Tree Evaluation Mechanism settings
 DEFAULT_TREE_EVALUATION_MECHANISM_TYPE = TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION
+STATISTICS_UPDATES_TIME_WINDOW = timedelta(seconds=30)  # the default time window for the time when the evaluation ready to get statistics

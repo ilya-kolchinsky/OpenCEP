@@ -1,9 +1,7 @@
 from datetime import timedelta
 from base.Pattern import Pattern
-from misc import DefaultConfig
 from misc.StatisticsTypes import StatisticsTypes
-from statistics_collector.Statistics import SelectivityAndArrivalRatesStatistics, SelectivityStatistics, \
-    ArrivalRatesStatistics
+from statistics_collector.Statistics import SelectivityStatistics, ArrivalRatesStatistics
 
 
 class StatisticsFactory:
