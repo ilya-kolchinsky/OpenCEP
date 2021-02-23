@@ -3,6 +3,7 @@ from base import Pattern
 from misc import DefaultConfig
 from plan import TreePlanBuilder, TreePlan
 from plan.LeftDeepTreeBuilders import TrivialLeftDeepTreeBuilder
+from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 from statistics_collector.StatisticsWrapper import StatisticsWrapper
 
@@ -26,29 +27,25 @@ class Optimizer(ABC):
     def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
         raise NotImplementedError()
 
-    def build_initial_tree_plan(self, new_statistics: dict, pattern: Pattern):
+    def build_initial_tree_plan(self, new_statistics: dict, tree_plan_params: TreePlanBuilderParameters,
+                                pattern: Pattern):
 
-        tree_plan_builder = self.build_initial_tree_plan_helper(pattern)
-        if tree_plan_builder is None:
+        tree_plan_builder = self.build_initial_tree_plan_aux(tree_plan_params, pattern)
+        if tree_plan_builder:
             self._tree_plan_builder, temp_tree_plan_builder = tree_plan_builder, self._tree_plan_builder
             tree_plan = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
             self._tree_plan_builder = temp_tree_plan_builder
         else:
             tree_plan = self.build_new_tree_plan(new_statistics, pattern)
-
         return tree_plan
 
-    def build_initial_tree_plan_helper(self, pattern: Pattern):
-
+    def build_initial_tree_plan_aux(self, tree_plan_params: TreePlanBuilderParameters, pattern: Pattern):
         tree_plan_builder = None
-
-        if pattern.statistics is None:
+        if pattern.statistics:
             if DefaultConfig.DEFAULT_TREE_PLAN_BUILDER == TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE:
-                cost_model = self._tree_plan_builder.get_cost_model()
-                tree_plan_builder = TrivialLeftDeepTreeBuilder(cost_model)
+                tree_plan_builder = TrivialLeftDeepTreeBuilder(tree_plan_params.cost_model_type)
             else:
                 raise Exception("Unknown tree plan builder type: %s" % (DefaultConfig.DEFAULT_TREE_PLAN_BUILDER,))
-
         return tree_plan_builder
 
 
@@ -79,7 +76,8 @@ class StatisticsChangesAwareOptimizer(Optimizer):
     def is_need_optimize(self, new_statistics: dict, pattern: Pattern):
         for statistics_type, statistics in new_statistics.items():
             prev_statistics = self.__prev_statistics[statistics_type]
-            if self.__type_to_changes_aware_tester_map[statistics_type].is_changed_by_t(new_statistics, prev_statistics):
+            if self.__type_to_changes_aware_tester_map[statistics_type].is_changed_by_t(new_statistics,
+                                                                                        prev_statistics):
                 return True
         return False
         # return self._prev_statistics is None or self.is_changed_by_t(new_statistics.statistics, self._prev_statistics)
@@ -112,9 +110,9 @@ class InvariantsAwareOptimizer(Optimizer):
         tree_plan, self._invariants = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
 
-    def build_initial_tree_plan(self, new_statistics: dict, pattern: Pattern):
-        tree_plan_builder = super().build_initial_tree_plan_helper(pattern)
-        if tree_plan_builder is None:
+    def build_initial_tree_plan(self, new_statistics: dict, tree_plan_params: TreePlanBuilderParameters,
+                                pattern: Pattern):
+        tree_plan_builder = self.build_initial_tree_plan_aux(tree_plan_params, pattern)
+        if tree_plan_builder:
             return tree_plan_builder.build_tree_plan(new_statistics, pattern)
-        else:
-            return self.build_new_tree_plan(new_statistics, pattern)
+        return self.build_new_tree_plan(new_statistics, pattern)

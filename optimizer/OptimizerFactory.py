@@ -1,5 +1,5 @@
 from typing import List
-
+from typing import List
 from misc.OptimizerTypes import OptimizerTypes
 from misc import DefaultConfig
 from misc.StatisticsTypes import StatisticsTypes
