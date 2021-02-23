@@ -76,10 +76,10 @@ class OptimizerFactory:
             t = optimizer_parameters.t
             type_to_changes_aware_tester_map = {}
             for stat_type in optimizer_parameters.statistics_types:
-                changes_aware_tester = ChangesAwareFactory.create_changes_aware_tester(stat_type)
+                changes_aware_tester = ChangesAwareFactory.create_changes_aware_tester(stat_type, t)
                 type_to_changes_aware_tester_map[stat_type] = changes_aware_tester
 
-            return Optimizer.StatisticChangesAwareOptimizer(tree_plan_builder, type_to_changes_aware_tester_map)
+            return Optimizer.StatisticsChangesAwareOptimizer(tree_plan_builder, type_to_changes_aware_tester_map)
 
         if optimizer_parameters.type == OptimizerTypes.USING_INVARIANT:
             if isinstance(tree_plan_builder, InvariantTreePlanBuilder):

@@ -23,24 +23,33 @@ class Optimizer(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
+    def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
         raise NotImplementedError()
 
-    def build_initial_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
+    def build_initial_tree_plan(self, new_statistics: dict, pattern: Pattern):
+
+        tree_plan_builder = self.build_initial_tree_plan_helper(pattern)
+        if tree_plan_builder is None:
+            self._tree_plan_builder, temp_tree_plan_builder = tree_plan_builder, self._tree_plan_builder
+            tree_plan = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
+            self._tree_plan_builder = temp_tree_plan_builder
+        else:
+            tree_plan = self.build_new_tree_plan(new_statistics, pattern)
+
+        return tree_plan
+
+    def build_initial_tree_plan_helper(self, pattern: Pattern):
+
+        tree_plan_builder = None
 
         if pattern.statistics is None:
             if DefaultConfig.DEFAULT_TREE_PLAN_BUILDER == TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE:
-                cost_model = self._tree_plan_builder.__cost_model
+                cost_model = self._tree_plan_builder.get_cost_model()
                 tree_plan_builder = TrivialLeftDeepTreeBuilder(cost_model)
-                temp_tree_plan_builder, self._tree_plan_builder = self._tree_plan_builder, tree_plan_builder
-                tree_plan = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
-                self.internal_init()
-                return tree_plan
             else:
                 raise Exception("Unknown tree plan builder type: %s" % (DefaultConfig.DEFAULT_TREE_PLAN_BUILDER,))
-        else:
-            tree_plan = self.build_new_tree_plan(new_statistics, pattern)
-            return tree_plan
+
+        return tree_plan_builder
 
 
 class TrivialOptimizer(Optimizer):
@@ -56,27 +65,27 @@ class TrivialOptimizer(Optimizer):
         return tree_plan
 
 
-class StatisticChangesAwareOptimizer(Optimizer):
+class StatisticsChangesAwareOptimizer(Optimizer):
     """
     Represents the optimizer that is aware of the changes in the statistics,
     i.e if one of the statistics is changed by constant t then the optimizer will say that tree optimization is needed.
     """
 
-    def __init__(self, tree_plan_builder: TreePlanBuilder, t):
+    def __init__(self, tree_plan_builder: TreePlanBuilder, type_to_changes_aware_functions_map: dict):
         super().__init__(tree_plan_builder)
-        self._t = t
-        self._prev_statistics = None
+        self.__prev_statistics = None
+        self.__type_to_changes_aware_tester_map = type_to_changes_aware_functions_map
 
-    def is_need_optimize(self, new_statistics: StatisticsWrapper, pattern: Pattern):
-        for statistics in new_statistics:
-            type = statistics.type
-            if self.algorithm[type].is_changed_by_t(statistics):
+    def is_need_optimize(self, new_statistics: dict, pattern: Pattern):
+        for statistics_type, statistics in new_statistics.items():
+            prev_statistics = self.__prev_statistics[statistics_type]
+            if self.__type_to_changes_aware_tester_map[statistics_type].is_changed_by_t(new_statistics, prev_statistics):
                 return True
         return False
         # return self._prev_statistics is None or self.is_changed_by_t(new_statistics.statistics, self._prev_statistics)
 
-    def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
-        self._prev_statistics = new_statistics.statistics
+    def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
+        self.__prev_statistics = new_statistics
         tree_plan = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
 
@@ -85,44 +94,6 @@ class StatisticChangesAwareOptimizer(Optimizer):
         Checks if there was a changes in one of the statistics by a factor of t.
         """
         raise NotImplementedError()
-
-
-class ChangesAwareTester(ABC):
-    """
-    Abstract class for changes aware testing function
-    """
-    @abstractmethod
-    def is_changed_by_t(self):
-        raise NotImplementedError()
-
-
-class ArrivalRatesChangesAwareTester:
-    """
-    Checks for changes in the arrival rate by a factor of t.
-    """
-
-    def is_changed_by_t(self, new_arrival_rates, old_arrival_rates):
-
-        for i in range(len(new_arrival_rates)):
-            if old_arrival_rates[i] * (1 + self._t) < new_arrival_rates[i] or \
-                    old_arrival_rates[i] * (1 - self._t) > new_arrival_rates[i]:
-                return True
-        return False
-
-
-class SelectivityChangesAwareOptimizerTester:
-    """
-    Checks for changes in the selectivity by a factor of t.
-    """
-
-    def is_changed_by_t(self, new_selectivity, old_selectivity):
-
-        for i in range(len(new_selectivity)):
-            for j in range(len(new_selectivity[i])):
-                if old_selectivity[i][j] * (1 + self._t) < new_selectivity[i][j] or \
-                        old_selectivity[i][j] * (1 - self._t) > new_selectivity[i][j]:
-                    return True
-        return False
 
 
 class InvariantsAwareOptimizer(Optimizer):
@@ -134,10 +105,16 @@ class InvariantsAwareOptimizer(Optimizer):
         super().__init__(tree_plan_builder)
         self._invariants = None
 
-    def is_need_optimize(self, new_statistics: StatisticsWrapper, pattern: Pattern):
+    def is_need_optimize(self, new_statistics: dict, pattern: Pattern):
         return self._invariants is None or self._invariants.is_invariants_violated(new_statistics, pattern)
 
-    def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
+    def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
         tree_plan, self._invariants = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
 
+    def build_initial_tree_plan(self, new_statistics: dict, pattern: Pattern):
+        tree_plan_builder = super().build_initial_tree_plan_helper(pattern)
+        if tree_plan_builder is None:
+            return tree_plan_builder.build_tree_plan(new_statistics, pattern)
+        else:
+            return self.build_new_tree_plan(new_statistics, pattern)
