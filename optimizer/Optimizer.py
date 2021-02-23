@@ -3,6 +3,7 @@ from base import Pattern
 from misc import DefaultConfig
 from plan import TreePlanBuilder, TreePlan
 from plan.LeftDeepTreeBuilders import TrivialLeftDeepTreeBuilder
+from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 from statistics_collector.StatisticsWrapper import StatisticsWrapper
@@ -27,26 +28,27 @@ class Optimizer(ABC):
     def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
         raise NotImplementedError()
 
-    def build_initial_tree_plan(self, new_statistics: dict, tree_plan_params: TreePlanBuilderParameters,
+    def build_initial_tree_plan(self, new_statistics: dict, cost_model_type: TreeCostModels,
                                 pattern: Pattern):
 
-        tree_plan_builder = self.build_initial_tree_plan_aux(tree_plan_params, pattern)
-        if tree_plan_builder:
-            self._tree_plan_builder, temp_tree_plan_builder = tree_plan_builder, self._tree_plan_builder
-            tree_plan = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
+        non_prior_tree_plan_builder = self.build_non_prior_tree_plan_builder(cost_model_type, pattern)
+        if non_prior_tree_plan_builder is not None:
+            self._tree_plan_builder, temp_tree_plan_builder = non_prior_tree_plan_builder, self._tree_plan_builder
+            initial_tree_plan = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
             self._tree_plan_builder = temp_tree_plan_builder
         else:
-            tree_plan = self.build_new_tree_plan(new_statistics, pattern)
-        return tree_plan
+            initial_tree_plan = self.build_new_tree_plan(new_statistics, pattern)
+        return initial_tree_plan
 
-    def build_initial_tree_plan_aux(self, tree_plan_params: TreePlanBuilderParameters, pattern: Pattern):
-        tree_plan_builder = None
-        if pattern.statistics:
+    @staticmethod
+    def build_non_prior_tree_plan_builder(cost_model_type: TreeCostModels, pattern: Pattern):
+        non_prior_tree_plan_builder = None
+        if pattern.statistics is None:
             if DefaultConfig.DEFAULT_TREE_PLAN_BUILDER == TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE:
-                tree_plan_builder = TrivialLeftDeepTreeBuilder(tree_plan_params.cost_model_type)
+                non_prior_tree_plan_builder = TrivialLeftDeepTreeBuilder(cost_model_type.cost_model_type)
             else:
                 raise Exception("Unknown tree plan builder type: %s" % (DefaultConfig.DEFAULT_TREE_PLAN_BUILDER,))
-        return tree_plan_builder
+        return non_prior_tree_plan_builder
 
 
 class TrivialOptimizer(Optimizer):
@@ -54,10 +56,10 @@ class TrivialOptimizer(Optimizer):
     Represents the trivial optimizer that always says to re-optimize the tree, ignoring the statistics.
     """
 
-    def is_need_optimize(self, new_statistics: StatisticsWrapper, pattern: Pattern):
+    def is_need_optimize(self, new_statistics: dict, pattern: Pattern):
         return True
 
-    def build_new_tree_plan(self, new_statistics: StatisticsWrapper, pattern: Pattern):
+    def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
         tree_plan = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
 
@@ -110,9 +112,9 @@ class InvariantsAwareOptimizer(Optimizer):
         tree_plan, self._invariants = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
 
-    def build_initial_tree_plan(self, new_statistics: dict, tree_plan_params: TreePlanBuilderParameters,
+    def build_initial_tree_plan(self, new_statistics: dict, cost_model_type: TreeCostModels,
                                 pattern: Pattern):
-        tree_plan_builder = self.build_initial_tree_plan_aux(tree_plan_params, pattern)
-        if tree_plan_builder:
-            return tree_plan_builder.build_tree_plan(new_statistics, pattern)
+        non_prior_tree_plan_builder = self.build_non_prior_tree_plan_builder(cost_model_type, pattern)
+        if non_prior_tree_plan_builder is not None:
+            return non_prior_tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return self.build_new_tree_plan(new_statistics, pattern)
