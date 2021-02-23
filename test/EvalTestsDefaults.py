@@ -43,7 +43,7 @@ DEFAULT_TESTING_TRIVIAL_OPTIMIZER_SETTINGS = \
 
 DEFAULT_TESTING_CHANGES_AWARE_OPTIMIZER_SETTINGS = \
     StatisticChangesAwareOptimizerParameters(TreePlanBuilderParameters(), t=0.5,
-                                             stat_type=StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES)
+                                             statistics_types=StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES)
 
 DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS = \
     InvariantsAwareOptimizerParameters(DEFAULT_TESTING_INVARIANT_AWARE_GREEDY_TREE_BUILDER)

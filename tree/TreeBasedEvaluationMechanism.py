@@ -1,6 +1,7 @@
 from typing import Dict
 from base.DataFormatter import DataFormatter
 from base.Event import Event
+from misc.Statistics import calculate_selectivity_matrix
 from plan.TreePlan import TreePlan
 from stream.Stream import InputStream, OutputStream
 from misc.Utils import *
@@ -58,7 +59,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         given output stream.
         """
         self._event_types_listeners = self._register_event_listeners(self._tree)
-        statistics_update_start_time = datetime.now()
+        statistics_update_start_time = None
 
         for raw_event in events:
             event = Event(raw_event, data_formatter)
@@ -70,7 +71,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 # this condition is necessary for the multi-pattern tests and nothing more
                 # TODO: evaluation mechanism factory needs to support multi-pattern mode
                 self.__statistics_collector.event_handler(event)
-                if datetime.now() - statistics_update_start_time >= self.__statistics_update_time_window:
+                if not statistics_update_start_time or event.timestamp - statistics_update_start_time >= self.__statistics_update_time_window:
                     if self._is_need_new_statistics():
                         new_statistics = self.__statistics_collector.get_statistics()
                         if self.__optimizer.is_need_optimize(new_statistics, self._pattern):
@@ -78,9 +79,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                             new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
                             self._tree_update(new_tree)
                     # re-initialize statistics window start time
-                    statistics_update_start_time = datetime.now()
-
-            event.arrival_time = datetime.now()
+                    statistics_update_start_time = event.timestamp
 
             self._play_new_event_on_tree(event, matches)
             self._get_matches(matches)
