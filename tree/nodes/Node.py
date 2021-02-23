@@ -379,5 +379,4 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    def get_filtered_events(self):
-        return self._filtered_events
+
