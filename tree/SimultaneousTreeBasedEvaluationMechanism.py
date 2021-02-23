@@ -1,6 +1,5 @@
 from datetime import timedelta, datetime
 from typing import Dict
-
 from base.Event import Event
 from base.Pattern import Pattern
 from optimizer.Optimizer import Optimizer
@@ -31,19 +30,19 @@ class SimultaneousEvaluation(TreeBasedEvaluationMechanism):
         self.__is_simultaneous_state = False
         self.__tree_update_time = None
 
-    def tree_update(self, new_tree: Tree):
+    def _tree_update(self, new_tree: Tree):
         self.__tree_update_time = datetime.now()
         self.__new_tree = new_tree
-        self.__new_event_types_listeners = self.register_event_listeners(self.__new_tree)
+        self.__new_event_types_listeners = self._register_event_listeners(self.__new_tree)
         self.__is_simultaneous_state = True
 
-    def is_need_new_statistics(self):
+    def _is_need_new_statistics(self):
         return not self.__is_simultaneous_state
 
-    def play_new_event_on_tree(self, event: Event, matches: OutputStream):
-        self.play_new_event(event, self._event_types_listeners)
+    def _play_new_event_on_tree(self, event: Event, matches: OutputStream):
+        self._play_new_event(event, self._event_types_listeners)
         if self.__is_simultaneous_state:
-            self.play_new_event(event, self.__new_event_types_listeners)
+            self._play_new_event(event, self.__new_event_types_listeners)
 
             # After this round we ask if we are in a simultaneous state.
             # If the time window is over then we want to return to a state that is not simultaneous,
@@ -53,19 +52,19 @@ class SimultaneousEvaluation(TreeBasedEvaluationMechanism):
                 self._event_types_listeners, self.__new_event_types_listeners = self.__new_event_types_listeners, None
                 self.__is_simultaneous_state = False
 
-    def get_matches(self, matches: OutputStream):
+    def _get_matches(self, matches: OutputStream):
         if self.__is_simultaneous_state:
             for match in self._tree.get_matches():
-                if not self.is_all_new_event(match):
+                if not self.__is_all_new_event(match):
                     matches.add_item(match)
                     self._remove_matched_freezers(match.events)
             for match in self.__new_tree.get_matches():
                 matches.add_item(match)
                 self._remove_matched_freezers(match.events)
         else:
-            super().get_matches(matches)
+            super()._get_matches(matches)
 
-    def is_all_new_event(self, match: PatternMatch):
+    def __is_all_new_event(self, match: PatternMatch):
         """
         Checks whether all the events in the match are new
         """
@@ -74,7 +73,7 @@ class SimultaneousEvaluation(TreeBasedEvaluationMechanism):
                 return False
         return True
 
-    def get_last_matches(self, matches):
-        super().collect_pending_matches(self._tree, matches)
+    def _get_last_matches(self, matches):
+        super()._collect_pending_matches(self._tree, matches)
         if self.__new_tree is not None:
-            super().collect_pending_matches(self.__new_tree, matches)
+            super()._collect_pending_matches(self.__new_tree, matches)

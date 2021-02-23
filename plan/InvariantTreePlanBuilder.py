@@ -3,7 +3,6 @@ from abc import ABC
 from base.Pattern import Pattern
 from plan.TreePlan import TreePlan
 from plan.TreePlanBuilder import TreePlanBuilder
-from statistics_collector.StatisticsWrapper import StatisticsWrapper
 
 
 class InvariantTreePlanBuilder(TreePlanBuilder, ABC):

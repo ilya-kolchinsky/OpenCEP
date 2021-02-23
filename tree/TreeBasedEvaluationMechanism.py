@@ -1,8 +1,6 @@
-import heapq
-from typing import Dict, Set
+from typing import Dict
 from base.DataFormatter import DataFormatter
 from base.Event import Event
-from misc.Statistics import calculate_selectivity_matrix
 from plan.TreePlan import TreePlan
 from stream.Stream import InputStream, OutputStream
 from misc.Utils import *
@@ -30,8 +28,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                  statistics_update_time_window: timedelta = timedelta(seconds=30),
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
 
-        self.is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
-        if self.is_multi_pattern_mode:
+        self.__is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
+        if self.__is_multi_pattern_mode:
             self._tree = MultiPatternTree(pattern_to_tree_plan_map, storage_params, multi_pattern_eval_params)
         else:
             self._tree = Tree(list(pattern_to_tree_plan_map.values())[0],
@@ -42,15 +40,15 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         self.__optimizer = optimizer
 
         self._event_types_listeners = {}
-        self.statistics_update_time_window = statistics_update_time_window
+        self.__statistics_update_time_window = statistics_update_time_window
 
         # The remainder of the initialization process is only relevant for the freeze map feature. This feature can
         # only be enabled in single-pattern mode.
-        self._pattern = list(pattern_to_tree_plan_map)[0] if not self.is_multi_pattern_mode else None
+        self._pattern = list(pattern_to_tree_plan_map)[0] if not self.__is_multi_pattern_mode else None
         self.__freeze_map = {}
         self.__active_freezers = []
 
-        if not self.is_multi_pattern_mode and self._pattern.consumption_policy is not None and \
+        if not self.__is_multi_pattern_mode and self._pattern.consumption_policy is not None and \
                 self._pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
 
@@ -59,7 +57,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         Activates the tree evaluation mechanism on the input event stream and reports all found pattern matches to the
         given output stream.
         """
-        self._event_types_listeners = self.register_event_listeners(self._tree)
+        self._event_types_listeners = self._register_event_listeners(self._tree)
         statistics_update_start_time = datetime.now()
 
         for raw_event in events:
@@ -68,33 +66,33 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 continue
             self.__remove_expired_freezers(event)
 
-            if not self.is_multi_pattern_mode:  # Note: multi-pattern does not yet support adaptive-CEP,
+            if not self.__is_multi_pattern_mode:  # Note: multi-pattern does not yet support adaptive-CEP,
                 # this condition is necessary for the multi-pattern tests and nothing more
                 # TODO: evaluation mechanism factory needs to support multi-pattern mode
                 self.__statistics_collector.event_handler(event)
-                if datetime.now() - statistics_update_start_time >= self.statistics_update_time_window:
-                    if self.is_need_new_statistics():
+                if datetime.now() - statistics_update_start_time >= self.__statistics_update_time_window:
+                    if self._is_need_new_statistics():
                         new_statistics = self.__statistics_collector.get_statistics()
                         if self.__optimizer.is_need_optimize(new_statistics, self._pattern):
                             new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
                             new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
-                            self.tree_update(new_tree)
+                            self._tree_update(new_tree)
                     # re-initialize statistics window start time
                     statistics_update_start_time = datetime.now()
 
             event.arrival_time = datetime.now()
 
-            self.play_new_event_on_tree(event, matches)
-            self.get_matches(matches)
+            self._play_new_event_on_tree(event, matches)
+            self._get_matches(matches)
 
-        self.get_last_matches(matches)
+        self._get_last_matches(matches)
         matches.close()
 
-    def get_last_matches(self, matches):
+    def _get_last_matches(self, matches):
         raise NotImplementedError("Must override")
 
     @staticmethod
-    def collect_pending_matches(tree, matches):
+    def _collect_pending_matches(tree, matches):
         """
         Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         collect them now
@@ -102,7 +100,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         for match in tree.get_last_matches():
             matches.add_item(match)
 
-    def play_new_event(self, event: Event, event_types_listeners):
+    def _play_new_event(self, event: Event, event_types_listeners):
         """
         Lets the tree handle the event
         """
@@ -112,22 +110,22 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             self.__try_register_freezer(event, leaf)
             leaf.handle_event(event)
 
-    def get_matches(self, matches: OutputStream):
+    def _get_matches(self, matches: OutputStream):
         for match in self._tree.get_matches():
             matches.add_item(match)
             self._remove_matched_freezers(match.events)
 
-    def tree_update(self, new_tree: Tree):
+    def _tree_update(self, new_tree: Tree):
         raise NotImplementedError("Must override")
 
-    def is_need_new_statistics(self):
+    def _is_need_new_statistics(self):
         raise NotImplementedError("Must override")
 
-    def play_new_event_on_tree(self, event: Event, matches: OutputStream):
+    def _play_new_event_on_tree(self, event: Event, matches: OutputStream):
         raise NotImplementedError("Must override")
 
     @staticmethod
-    def register_event_listeners(tree: Tree):
+    def _register_event_listeners(tree: Tree):
         """
         Given tree, register leaf listeners for event types.
         """

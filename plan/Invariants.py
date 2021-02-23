@@ -3,10 +3,6 @@ from abc import ABC, abstractmethod
 from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
-from plan.TreeCostModel import TreeCostModelFactory, TreeCostModel, IntermediateResultsTreeCostModel
-from plan.TreeCostModels import TreeCostModels
-from statistics_collector.Statistics import Statistics, SelectivityAndArrivalRatesStatistics
-from statistics_collector.StatisticsWrapper import StatisticsWrapper, SelectivityAndArrivalRatesWrapper
 
 
 class Invariant:

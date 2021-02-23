@@ -15,9 +15,7 @@ from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
-from statistics_collector.Statistics import Statistics, SelectivityStatistics, FrequencyDict, ArrivalRatesStatistics
-from statistics_collector.StatisticsWrapper import StatisticsWrapper, FrequencyDictWrapper, ArrivalRatesWrapper, \
-    SelectivityWrapper, SelectivityAndArrivalRatesWrapper
+from statistics_collector.Statistics import Statistics
 
 
 class LeftDeepTreeBuilder(TreePlanBuilder):

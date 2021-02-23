@@ -6,11 +6,10 @@ from typing import List
 from misc.StatisticsTypes import StatisticsTypes
 from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.Invariants import Invariant, ZStreamTreeInvariants
-from plan.TreePlan import TreePlanLeafNode, TreePlan
+from plan.TreePlan import TreePlanLeafNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
-from statistics_collector.StatisticsWrapper import StatisticsWrapper, SelectivityAndArrivalRatesWrapper
 
 
 class InvariantAwareZStreamTreeBuilder(InvariantTreePlanBuilder):
@@ -81,7 +80,7 @@ class InvariantAwareZStreamTreeBuilder(InvariantTreePlanBuilder):
                     tree_to_second_min_tree_map[suborders[suborder][0]] = second_min_tree
 
         # Eliminates all trees that are not in best tree from map_tree_to_second_min_tree
-        InvariantAwareZStreamTreeBuilder.get_relevant_sub_trees(suborders[items][0], all_sub_trees)
+        InvariantAwareZStreamTreeBuilder.__get_relevant_sub_trees(suborders[items][0], all_sub_trees)
 
         for tree in all_sub_trees:
             invariants.add(Invariant(tree, tree_to_second_min_tree_map[tree]))
@@ -94,7 +93,7 @@ class InvariantAwareZStreamTreeBuilder(InvariantTreePlanBuilder):
         return list(range(len(selectivity_matrix)))
 
     @staticmethod
-    def get_relevant_sub_trees(tree, all_sub_trees):
+    def __get_relevant_sub_trees(tree, all_sub_trees):
         """
         Unlike the invariant aware greedy tree builder,
         here we want to eliminate all trees that are not in the best tree.
@@ -106,5 +105,5 @@ class InvariantAwareZStreamTreeBuilder(InvariantTreePlanBuilder):
 
         all_sub_trees.append(tree)
 
-        InvariantAwareZStreamTreeBuilder.get_relevant_sub_trees(tree.left_child, all_sub_trees)
-        InvariantAwareZStreamTreeBuilder.get_relevant_sub_trees(tree.right_child, all_sub_trees)
+        InvariantAwareZStreamTreeBuilder.__get_relevant_sub_trees(tree.left_child, all_sub_trees)
+        InvariantAwareZStreamTreeBuilder.__get_relevant_sub_trees(tree.right_child, all_sub_trees)

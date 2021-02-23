@@ -12,9 +12,6 @@ from misc.StatisticsTypes import StatisticsTypes
 from plan.LeftDeepTreeBuilders import GreedyLeftDeepTreeBuilder
 from itertools import combinations
 
-from statistics_collector.Statistics import Statistics, SelectivityAndArrivalRatesStatistics
-from statistics_collector.StatisticsWrapper import StatisticsWrapper, SelectivityAndArrivalRatesWrapper
-
 
 class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
     """

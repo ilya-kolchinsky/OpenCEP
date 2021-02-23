@@ -6,11 +6,10 @@ from base.PatternStructure import CompositeStructure
 from misc.StatisticsTypes import StatisticsTypes
 from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.Invariants import Invariant, GreedyTreeInvariants
-from plan.TreePlan import TreePlanLeafNode, TreePlan
+from plan.TreePlan import TreePlanLeafNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
-from statistics_collector.StatisticsWrapper import StatisticsWrapper, SelectivityAndArrivalRatesWrapper
 
 
 class InvariantLeftDeepTreeBuilder(InvariantTreePlanBuilder):
@@ -106,7 +105,7 @@ class InvariantAwareGreedyTreeBuilder(InvariantLeftDeepTreeBuilder):
                     to_add = i
 
                 # The second condition "second_min_index == to_add"
-                # handles the case that in the current for loop,
+                # handles the case that in the current while loop,
                 # the first index that popped from the "left_to_add" set is the minimum.
                 # Hence we need to save the second minimum for the invariants
                 # because in this case we never change the second_min_index.
