@@ -14,13 +14,33 @@ class ParallelExecutionParameters:
         self.platform = platform
 
 
-class DataParallelExecutionParameters:
-
-    def __init__(self, data_parallel_mode: DataParallelExecutionModes = DefaultConfig.DEFAULT_DATA_PARALLEL_ALGORITHM,
-                 num_threads: int = 1, key: str = None, attributes_dict:dict= None, mult = 3):
+class DataParallelExecutionParameters(ParallelExecutionParameters):
+    def __init__(self, execution_mode: ParallelExecutionModes, platform: ParallelExecutionPlatforms,
+                 data_parallel_mode: DataParallelExecutionModes = DefaultConfig.DEFAULT_DATA_PARALLEL_ALGORITHM,
+                 units_number: int = 1):
+        super().__init__(execution_mode, platform)
         self.algorithm = data_parallel_mode
-        self.numThreads = num_threads
-        self.algorithm1_key = key
-        self.algorithm2_mult = mult
-        self.algorithm3_dict = attributes_dict
+        self.units_number = units_number
+
+
+class DataParallelExecutionParametersHirzelAlgorithm(DataParallelExecutionParameters):
+    def __init__(self, execution_mode: ParallelExecutionModes, platform: ParallelExecutionPlatforms,
+                 units_number: int = 1, key: str = None):
+        super().__init__(execution_mode, platform, DataParallelExecutionModes.HirzelAlgorithm, units_number)
+        self.divide_key = key
+
+
+class DataParallelExecutionParametersRIPAlgorithm(DataParallelExecutionParameters):
+    def __init__(self, execution_mode: ParallelExecutionModes, platform: ParallelExecutionPlatforms,
+                 units_number: int = 1, mult:int = 3):
+        super().__init__(execution_mode, platform, DataParallelExecutionModes.RIPAlgorithm, units_number)
+        self.RIP_mult = mult
+
+
+class DataParallelExecutionParametersHyperCubeAlgorithm(DataParallelExecutionParameters):
+    def __init__(self, execution_mode: ParallelExecutionModes, platform: ParallelExecutionPlatforms,
+                 units_number: int = 1, attributes_dict:dict=None):
+        super().__init__(execution_mode, platform, DataParallelExecutionModes.HyperCubeAlgorithm, units_number)
+        self.divde_keys_dict = attributes_dict
+
 

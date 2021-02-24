@@ -19,7 +19,7 @@ class CEP:
     be optimized and parallelized.
     """
     def __init__(self, patterns: Pattern or List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None,
-                 parallel_execution_params: ParallelExecutionParameters = None, data_parallel_params: DataParallelExecutionParameters = None):
+                 parallel_execution_params: ParallelExecutionParameters = None):
         """
         Constructor of the class.
         """
@@ -27,8 +27,7 @@ class CEP:
             raise Exception("No patterns are provided")
         self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(patterns,
                                                                                        eval_mechanism_params,
-                                                                                       parallel_execution_params,
-                                                                                       data_parallel_params)
+                                                                                       parallel_execution_params)
 
     def run(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """

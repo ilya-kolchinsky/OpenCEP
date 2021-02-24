@@ -19,17 +19,18 @@ class PlatformFactory:
         raise Exception("Unknown parallel execution platform: %s" % (parallel_execution_params.platform,))
 
     """
-       Creates a threading algorithem execution platform given its specification.
+       Creates a threading algorithm execution platform given its specification.
     """
     @staticmethod
     def create_data_parallel_evaluation_manager(data_parallel_params: DataParallelExecutionParameters, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform):
         if data_parallel_params is None:
-            data_parallel_params = DataParallelExecutionParameters()
-        if data_parallel_params.algorithm == DataParallelExecutionModes.ALGORITHM1:
-           return Algorithm1(data_parallel_params.numThreads, patterns, eval_mechanism_params, platform, data_parallel_params.algorithm1_key)
-        if data_parallel_params.algorithm == DataParallelExecutionModes.ALGORITHM2:
-            return Algorithm2(data_parallel_params.numThreads, patterns, eval_mechanism_params, platform, data_parallel_params.algorithm2_mult)
-        if data_parallel_params.algorithm == DataParallelExecutionModes.ALGORITHM3:
-            return Algorithm3(data_parallel_params.numThreads, patterns, eval_mechanism_params, platform,data_parallel_params.algorithm3_dict)
-        raise Exception("Unknown parallel execution Algorithm: %s" % (data_parallel_params.algorithen,))
+            data_parallel_params = DataParallelExecutionParametersRIPAlgorithm()
+        #TODO:CHECK IF IT FINES
+        if data_parallel_params.algorithm == DataParallelExecutionModes.HirzelAlgorithm:
+           return HirzelAlgorithm(data_parallel_params.units_number, patterns, eval_mechanism_params, platform, data_parallel_params.divide_key)
+        if data_parallel_params.algorithm == DataParallelExecutionModes.RIPAlgorithm:
+            return RIPAlgorithm(data_parallel_params.units_number, patterns, eval_mechanism_params, platform, data_parallel_params.RIP_mult)
+        if data_parallel_params.algorithm == DataParallelExecutionModes.HyperCubeAlgorithm:
+            return HyperCubeAlgorithm(data_parallel_params.units_number, patterns, eval_mechanism_params, platform, data_parallel_params.divde_keys_dict)
+        raise Exception("Unknown parallel execution Algorithm: %s" % (data_parallel_params.algorithm,))

@@ -21,7 +21,7 @@ import random
 Basic functionality tests for Algorithm3
 """
 
-def oneArgumentsearchTestAlgorithm3(createTestFile=False):
+def oneArgumentsearchTestHyperCubeAlgorithm(createTestFile=False):
     """
     The test finds all the AAPL stock thier opening price greater than 135
     "by splitting tha given data into 8 threads.
@@ -42,16 +42,15 @@ def oneArgumentsearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("one", [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=5,
-                                                                 attributes_dict=attribute_dict)
-            )
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(ParallelExecutionModes.DATA_PARALLELISM,
+                                                                  ParallelExecutionPlatforms.THREADING,
+                                                                  units_number=5,
+                                                                  attributes_dict=attribute_dict))
 
 
 
 
-def simplePatternSearchTestAlgorithm3(createTestFile=False):
+def simplePatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     """
     Using 64 threads , Algorithm 3 calculates in parallel the pattern below by dividing each stock type into semi-groups
     according to randomly chosen attribute and than calculates all the possible semi-groups combinations over the threads.
@@ -81,13 +80,12 @@ def simplePatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("simple", [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=65,
-                                                                 attributes_dict=attribute_dict)
-            )
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(ParallelExecutionModes.DATA_PARALLELISM,
+                                                                 ParallelExecutionPlatforms.THREADING,
+                                                                 units_number=65,
+                                                                 attributes_dict=attribute_dict))
 
-def googleAmazonLowPatternSearchTestAlgorithm3(createTestFile=False):
+def googleAmazonLowPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     """
     Using 16 threads , Algorithm 3 calculates in parallel the pattern below by dividing each stock type into semi-groups
     according to randomly chosen attribute and than calculates all the possible semi-groups combinations over the threads.
@@ -115,14 +113,14 @@ def googleAmazonLowPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("googleAmazonLow", [googleAmazonLowPattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=17,
-                                                                 attributes_dict=attribute_dict)
-            )
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=17,
+                attributes_dict=attribute_dict))
 
 
-def nonsensePatternSearchTestAlgorithm3(createTestFile=False):
+def nonsensePatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     """
     Using 27 threads , Algorithm 3 calculates in parallel the pattern below by dividing each stock type into semi-groups
     according to randomly chosen attribute and than calculates all the possible semi-groups combinations over the threads.
@@ -154,15 +152,15 @@ def nonsensePatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("nonsense", [nonsensePattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=28,
-                                                                 attributes_dict=attribute_dict)
-            )
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=28,
+                attributes_dict=attribute_dict))
 
 
 
-def duplicateEventTypeTestAlgorithm3(createTestFile=False):
+def duplicateEventTypeTestHyperCubeAlgorithm(createTestFile=False):
     """
     Using 8 threads , Algorithm 3 calculates in parallel the pattern below by dividing each stock type into semi-groups
     according to randomly chosen attribute and than calculates all the possible semi-groups combinations over the threads.
@@ -185,15 +183,14 @@ def duplicateEventTypeTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("duplicateEventType", [pattern], createTestFile,eventStream=nasdaqEventStreamTiny,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=9,
-                                                                 attributes_dict=attribute_dict)
-            )
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=9,
+                attributes_dict=attribute_dict))
 
 
-
-def amazonSpecificPatternSearchTestAlgorithm3(createTestFile=False):
+def amazonSpecificPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     """
     Using 27 threads , Algorithm 3 calculates in parallel the pattern below by dividing each stock type into semi-groups
     according to randomly chosen attribute and than calculates all the possible semi-groups combinations over the threads.
@@ -215,11 +212,14 @@ def amazonSpecificPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest('amazonSpecific', [amazonSpecificPattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=28,attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=28,
+                attributes_dict=attribute_dict))
 
 
-def googleAscendPatternSearchTestAlgorithm3(createTestFile=False):
+def googleAscendPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     """
     This pattern is looking for a short ascend in the Google peak prices.
     PATTERN SEQ(GoogleStockPriceUpdate a, GoogleStockPriceUpdate b, GoogleStockPriceUpdate c)
@@ -247,11 +247,14 @@ def googleAscendPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest('googleAscend', [googleAscendPattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM, ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=9,attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=9,
+                attributes_dict=attribute_dict))
 
 
-def amazonInstablePatternSearchTestAlgorithm3(createTestFile=False):
+def amazonInstablePatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     """
     This pattern is looking for an in-stable day for Amazon.
     PATTERN SEQ(AmazonStockPriceUpdate x1, AmazonStockPriceUpdate x2, AmazonStockPriceUpdate x3)
@@ -278,13 +281,15 @@ def amazonInstablePatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest('amazonInstable', [amazonInstablePattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=65,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=65,
+                attributes_dict=attribute_dict))
 
 
-def msftDrivRacePatternSearchTestAlgorithm3(createTestFile=False):
+
+def msftDrivRacePatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     """
     This pattern is looking for a race between driv and microsoft in ten minutes
     PATTERN SEQ(MicrosoftStockPriceUpdate a, DrivStockPriceUpdate b, MicrosoftStockPriceUpdate c, DrivStockPriceUpdate d, MicrosoftStockPriceUpdate e)
@@ -320,14 +325,14 @@ def msftDrivRacePatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest('msftDrivRace', [msftDrivRacePattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=33,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=33,
+                attributes_dict=attribute_dict))
 
 
-
-def googleIncreasePatternSearchTestAlgorithm3(createTestFile=False):
+def googleIncreasePatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     """
     This Pattern is looking for a 1% increase in the google stock in a half-hour.
     PATTERN SEQ(GoogleStockPriceUpdate a, GoogleStockPriceUpdate b)
@@ -350,14 +355,14 @@ def googleIncreasePatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest('googleIncrease', [googleIncreasePattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=10,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=10,
+                attributes_dict=attribute_dict))
 
 
-
-def hierarchyPatternSearchTestAlgorithm3(createTestFile=False):
+def hierarchyPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     """
     The following pattern is looking for Amazon < Apple < Google cases in one minute windows.
     PATTERN AND(AmazonStockPriceUpdate a, AppleStockPriceUpdate b, GoogleStockPriceUpdate c)
@@ -385,12 +390,11 @@ def hierarchyPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest('hierarchy', [hierarchyPattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=9,
-                                                                 attributes_dict=attribute_dict))
-
-
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=9,
+                attributes_dict=attribute_dict))
 
 
 """
@@ -398,7 +402,7 @@ def hierarchyPatternSearchTestAlgorithm3(createTestFile=False):
 """
 
 
-def arrivalRatesPatternSearchTestAlgorithm3(createTestFile=False):
+def arrivalRatesPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("LOCM", "c")),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]),
@@ -421,13 +425,15 @@ def arrivalRatesPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest('arrivalRates', [pattern], createTestFile,eval_params,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=9,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=9,
+                attributes_dict=attribute_dict))
 
 
-def nonFrequencyPatternSearchTestAlgorithm3(createTestFile=False):
+
+def nonFrequencyPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("LOCM", "c")),
         AndCondition(
@@ -445,11 +451,13 @@ def nonFrequencyPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest('nonFrequency', [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=28,
-                                                                 attributes_dict=attribute_dict))
-def frequencyPatternSearchTestAlgorithm3(createTestFile=False):
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=28,
+                attributes_dict=attribute_dict))
+
+def frequencyPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("LOCM", "c")),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]),
@@ -467,16 +475,15 @@ def frequencyPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("nonFrequency", [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=28,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=28,
+                attributes_dict=attribute_dict))
 
 
 
-
-
-def nonFrequencyPatternSearch3TestAlgorithm3(createTestFile=False):
+def nonFrequencyPatternSearch3TestHyperCubeAlgorithm(createTestFile=False):
 
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AAPL", "b"),
@@ -493,15 +500,15 @@ def nonFrequencyPatternSearch3TestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest('nonFrequency3', [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=17,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=17,
+                attributes_dict=attribute_dict))
 
 
 
-
-def frequencyPatternSearch3TestAlgorithm3(createTestFile=False):
+def frequencyPatternSearch3TestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AAPL", "b"),
                     PrimitiveEventStructure("AAPL", "c"), PrimitiveEventStructure("LOCM", "d")),
@@ -522,15 +529,15 @@ def frequencyPatternSearch3TestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("frequency3", [pattern], createTestFile, eval_mechanism_params=eval_params,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=17,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=17,
+                attributes_dict=attribute_dict))
 
 
 
-
-def nonFrequencyPatternSearch2TestAlgorithm3(createTestFile=False):
+def nonFrequencyPatternSearch2TestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("LOCM", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AAPL", "c")),
         AndCondition(
@@ -550,13 +557,14 @@ def nonFrequencyPatternSearch2TestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("nonFrequency2", [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=9,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=9,
+                attributes_dict=attribute_dict))
 
 
-def frequencyPatternSearch2TestAlgorithm3(createTestFile=False):
+def frequencyPatternSearch2TestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("LOCM", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AAPL", "c")),
         AndCondition(
@@ -581,13 +589,15 @@ def frequencyPatternSearch2TestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("frequency2", [pattern], createTestFile,eval_mechanism_params=eval_params,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=9,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=9,
+                attributes_dict=attribute_dict))
 
 
-def nonFrequencyPatternSearch4TestAlgorithm3(createTestFile=False):
+
+def nonFrequencyPatternSearch4TestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
                     PrimitiveEventStructure("AVID", "c"), PrimitiveEventStructure("LOCM", "d")),
@@ -603,13 +613,15 @@ def nonFrequencyPatternSearch4TestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("nonFrequency4", [pattern], createTestFile,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=17,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=17,
+                attributes_dict=attribute_dict))
 
 
-def frequencyPatternSearch4TestAlgorithm3(createTestFile=False):
+
+def frequencyPatternSearch4TestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
                     PrimitiveEventStructure("AVID", "c"), PrimitiveEventStructure("LOCM", "d")),
@@ -630,13 +642,15 @@ def frequencyPatternSearch4TestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("frequency4", [pattern], createTestFile,eval_mechanism_params=eval_params,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=82,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=82,
+                attributes_dict=attribute_dict))
 
 
-def greedyPatternSearchTestAlgorithm3(createTestFile=False):
+
+def greedyPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"),
                     PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")),
@@ -667,13 +681,13 @@ def greedyPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("greedy1", [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=17,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=17,
+                attributes_dict=attribute_dict))
 
-
-def iiRandomPatternSearchTestAlgorithm3(createTestFile=False):
+def iiRandomPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"),
                     PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")),
@@ -707,13 +721,14 @@ def iiRandomPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("iiRandom1", [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=17,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=17,
+                attributes_dict=attribute_dict))
 
 
-def iiRandom2PatternSearchTestAlgorithm3(createTestFile=False):
+def iiRandom2PatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"),
                     PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")),
@@ -746,13 +761,14 @@ def iiRandom2PatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("iiRandom2", [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=82,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=82,
+                attributes_dict=attribute_dict))
 
 
-def iiGreedyPatternSearchTestAlgorithm3(createTestFile=False):
+def iiGreedyPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"),
                     PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")),
@@ -786,13 +802,14 @@ def iiGreedyPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("iiGreedy1", [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=82,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=82,
+                attributes_dict=attribute_dict))
 
 
-def iiGreedy2PatternSearchTestAlgorithm3(createTestFile=False):
+def iiGreedy2PatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"),
                     PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")),
@@ -826,14 +843,14 @@ def iiGreedy2PatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("iiGreedy2", [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=17,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=17,
+                attributes_dict=attribute_dict))
 
 
-
-def dpLdPatternSearchTestAlgorithm3(createTestFile=False):
+def dpLdPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"),
                     PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")),
@@ -864,13 +881,14 @@ def dpLdPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("dpLd1", [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=17,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=17,
+                attributes_dict=attribute_dict))
 
 
-def dpBPatternSearchTestAlgorithm3(createTestFile=False):
+def dpBPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"),
                     PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")),
@@ -902,13 +920,14 @@ def dpBPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("dpB1", [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=82,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=82,
+                attributes_dict=attribute_dict))
 
 
-def zStreamOrdPatternSearchTestAlgorithm3(createTestFile=False):
+def zStreamOrdPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"),
                     PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")),
@@ -941,13 +960,14 @@ def zStreamOrdPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest('zstream-ord1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=82,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=82,
+                attributes_dict=attribute_dict))
 
 
-def zStreamPatternSearchTestAlgorithm3(createTestFile=False):
+def zStreamPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"),
                     PrimitiveEventStructure("ORLY", "c"), PrimitiveEventStructure("CBRL", "d")),
@@ -982,13 +1002,14 @@ def zStreamPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("zstream1", [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=17,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=17,
+                attributes_dict=attribute_dict))
 
 
-def frequencyTailoredPatternSearchTestAlgorithm3(createTestFile=False):
+def frequencyTailoredPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("DRIV", "a"), PrimitiveEventStructure("MSFT", "b"), PrimitiveEventStructure("CBRL", "c")),
         AndCondition(
@@ -1014,13 +1035,14 @@ def frequencyTailoredPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("frequencyTailored1", [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=28,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=28,
+                attributes_dict=attribute_dict))
 
 
-def nonFrequencyTailoredPatternSearchTestAlgorithm3(createTestFile=False):
+def nonFrequencyTailoredPatternSearchTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("DRIV", "a"), PrimitiveEventStructure("MSFT", "b"), PrimitiveEventStructure("CBRL", "c")),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]),
@@ -1042,17 +1064,18 @@ def nonFrequencyTailoredPatternSearchTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("nonFrequencyTailored1", [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=9,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=9,
+                attributes_dict=attribute_dict))
 
 
 """
 Kleene closure tests
 """
 
-def MinMax_0_TestKleeneClosureAlgorithm3(createTestFile=False):
+def MinMax_0_TestKleeneClosureHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=1, max_size=2)),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
@@ -1067,12 +1090,16 @@ def MinMax_0_TestKleeneClosureAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("MinMax_0_", [pattern], createTestFile, events=nasdaqEventStreamKC,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=5,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=5,
+                attributes_dict=attribute_dict))
 
-def MinMax_2_TestKleeneClosureAlgorithm3(createTestFile=False):
+
+
+
+def MinMax_2_TestKleeneClosureHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=4, max_size=5)),
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
@@ -1087,20 +1114,18 @@ def MinMax_2_TestKleeneClosureAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("MinMax_2_", [pattern], createTestFile, events=nasdaqEventStreamKC,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=33,
-                                                                 attributes_dict=attribute_dict))
-
-
-
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=33,
+                attributes_dict=attribute_dict))
 
 
 """
 consumption policies tests
 """
 
-def singleType1PolicyPatternSearchTestAlgorithm3(createTestFile = False):
+def singleType1PolicyPatternSearchTestHyperCubeAlgorithm(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > c.OpeningPrice
@@ -1121,13 +1146,14 @@ def singleType1PolicyPatternSearchTestAlgorithm3(createTestFile = False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("singleType1Policy", [pattern], createTestFile, events=nasdaqEventStreamTiny,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=9,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=9,
+                attributes_dict=attribute_dict))
 
 
-def singleType2PolicyPatternSearchTestAlgorithm3(createTestFile = False):
+def singleType2PolicyPatternSearchTestHyperCubeAlgorithm(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > c.OpeningPrice
@@ -1148,13 +1174,14 @@ def singleType2PolicyPatternSearchTestAlgorithm3(createTestFile = False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("singleType2Policy", [pattern], createTestFile, events=nasdaqEventStreamTiny,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=9,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=9,
+                attributes_dict=attribute_dict))
 
 
-def contiguousPolicyPatternSearchTestAlgorithm3(createTestFile = False):
+def contiguousPolicyPatternSearchTestHyperCubeAlgorithm(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > c.OpeningPrice
@@ -1175,13 +1202,14 @@ def contiguousPolicyPatternSearchTestAlgorithm3(createTestFile = False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("contiguousPolicySingleList", [pattern], createTestFile, events=nasdaqEventStreamTiny,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=28,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=28,
+                attributes_dict=attribute_dict))
 
 
-def contiguousPolicy2PatternSearchTestAlgorithm3(createTestFile = False):
+def contiguousPolicy2PatternSearchTestHyperCubeAlgorithm(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > c.OpeningPrice
@@ -1202,15 +1230,14 @@ def contiguousPolicy2PatternSearchTestAlgorithm3(createTestFile = False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("contiguousPolicyMultipleLists", [pattern], createTestFile, events=nasdaqEventStreamTiny,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=65,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=65,
+                attributes_dict=attribute_dict))
 
 
-
-
-def freezePolicy2PatternSearchTestAlgorithm3(createTestFile = False):
+def freezePolicy2PatternSearchTestHyperCubeAlgorithm(createTestFile = False):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > c.OpeningPrice
@@ -1231,18 +1258,18 @@ def freezePolicy2PatternSearchTestAlgorithm3(createTestFile = False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("freezePolicy2", [pattern], createTestFile, events=nasdaqEventStreamTiny,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=28,
-                                                                 attributes_dict=attribute_dict))
-
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=28,
+                attributes_dict=attribute_dict))
 
 
 """
 storage tests
 """
 
-def sortedStorageTestAlgorithm3(createTestFile=False):
+def sortedStorageTestHyperCubeAlgorithm(createTestFile=False):
     pattern = Pattern(
         AndOperator(PrimitiveEventStructure("DRIV", "a"), PrimitiveEventStructure("MSFT", "b"), PrimitiveEventStructure("CBRL", "c")),
         AndCondition(
@@ -1268,16 +1295,17 @@ def sortedStorageTestAlgorithm3(createTestFile=False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runTest("sortedStorageTest", [pattern], createTestFile,  eval_mechanism_params=eval_params, events=nasdaqEventStream,
-            parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                  ParallelExecutionPlatforms.THREADING),
-            data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3, num_threads=9,
-                                                                 attributes_dict=attribute_dict))
+            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                ParallelExecutionModes.DATA_PARALLELISM,
+                ParallelExecutionPlatforms.THREADING,
+                units_number=9,
+                attributes_dict=attribute_dict))
 
 
 """
 multi-pattern tests
 """
-def distinctPatternsAlgorithm3(createTestFile = False):
+def distinctPatternsHyperCubeAlgorithm(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"), PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
@@ -1308,16 +1336,17 @@ def distinctPatternsAlgorithm3(createTestFile = False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runMultiTest("BigMultiPattern", [pattern1, pattern2], createTestFile,
-                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                       ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3,
-                                                                      num_threads=65,
-                                                                      attributes_dict=attribute_dict))
+                 parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                     ParallelExecutionModes.DATA_PARALLELISM,
+                     ParallelExecutionPlatforms.THREADING,
+                     units_number=65,
+                     attributes_dict=attribute_dict))
+
 
 """
 multi-pattern test checking case where output node is not a root
 """
-def rootAndInnerAlgorithm3(createTestFile = False):
+def rootAndInnerHyperCubeAlgorithm(createTestFile = False):
     #similar to leafIsRoot, but the time windows are different
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
@@ -1344,17 +1373,17 @@ def rootAndInnerAlgorithm3(createTestFile = False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runMultiTest("RootAndInner", [pattern1, pattern2], createTestFile,
-                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                       ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3,
-                                                                      num_threads=17,
-                                                                      attributes_dict=attribute_dict))
+                 parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                     ParallelExecutionModes.DATA_PARALLELISM,
+                     ParallelExecutionPlatforms.THREADING,
+                     units_number=17,
+                     attributes_dict=attribute_dict))
 
 
 """
 multi-pattern test 2 identical patterns with different time stamp
 """
-def samePatternDifferentTimeStampsAlgorithm3(createTestFile = False):
+def samePatternDifferentTimeStampsHyperCubeAlgorithm(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
@@ -1384,17 +1413,17 @@ def samePatternDifferentTimeStampsAlgorithm3(createTestFile = False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runMultiTest("DifferentTimeStamp", [pattern1, pattern2], createTestFile,
-                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                       ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3,
-                                                                      num_threads=65,
-                                                                      attributes_dict=attribute_dict))
+                 parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                     ParallelExecutionModes.DATA_PARALLELISM,
+                     ParallelExecutionPlatforms.THREADING,
+                     units_number=65,
+                     attributes_dict=attribute_dict))
 
 
 """
 multi-pattern test sharing equivalent subtrees
 """
-def onePatternIncludesOtherAlgorithm3(createTestFile = False):
+def onePatternIncludesOtherHyperCubeAlgorithm(createTestFile = False):
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"),
                      PrimitiveEventStructure("AAPL", "c")),
@@ -1431,10 +1460,10 @@ def onePatternIncludesOtherAlgorithm3(createTestFile = False):
         else:
             attribute_dict[type] = [random.choice(attributes)]
     runMultiTest("onePatternIncludesOther", [pattern1, pattern2], createTestFile,eval_mechanism_params,
-                 parallel_execution_params=ParallelExecutionParameters(ParallelExecutionModes.DATA_PARALLELISM,
-                                                                       ParallelExecutionPlatforms.THREADING),
-                 data_parallel_params=DataParallelExecutionParameters(DataParallelExecutionModes.ALGORITHM3,
-                                                                      num_threads=33,
-                                                                      attributes_dict=attribute_dict))
+                 parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
+                     ParallelExecutionModes.DATA_PARALLELISM,
+                     ParallelExecutionPlatforms.THREADING,
+                     units_number=33,
+                     attributes_dict=attribute_dict))
 
 
