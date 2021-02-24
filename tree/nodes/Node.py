@@ -148,6 +148,11 @@ class Node(ABC):
     def _validate_and_propagate_partial_match(self, events: List[Event], probability: Optional[float] = None):
         """
         Creates a new partial match from the list of events, validates it, and propagates it up the tree.
+
+        @param events: the events of the new partial match
+        @param probability: the joined probability of the events of the partial match
+
+        NOTE: the probability should not be calculated here as each node can calculate it differently (for example see `NegationNode._try_create_new_matches()`)
         """
         if not self._validate_new_match(events):
             return

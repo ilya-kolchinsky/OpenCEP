@@ -14,6 +14,9 @@ from misc.ConsumptionPolicy import ConsumptionPolicy
 
 @dataclass(frozen=True)
 class PatternParameters:
+    """
+        a class that bundles together pattern parameters that are passed down during evaluation tree construction
+    """
     window: timedelta
     confidence: Optional[float]
 
