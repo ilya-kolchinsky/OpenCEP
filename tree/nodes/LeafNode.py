@@ -70,6 +70,8 @@ class LeafNode(Node):
         """
         Inserts the given event to this leaf.
         """
+        # NOTE: this assert is here because you can't tell whether a stream is probabilistic without reading an event from it
+        assert event.probability is None or self._confidence is not None, "a pattern over a probabilistic stream must have a confidence parameter"
         self.clean_expired_partial_matches(event.timestamp)
         self._validate_and_propagate_partial_match([event], event.probability)
 
