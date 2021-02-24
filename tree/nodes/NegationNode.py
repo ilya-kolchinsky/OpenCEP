@@ -106,16 +106,23 @@ class NegationNode(BinaryNode, ABC):
         match up the tree if the validation fails.
         """
         positive_events = new_partial_match.events
+        probability = new_partial_match.probability
         for partial_match in partial_matches_to_compare:
             negative_events = partial_match.events
             combined_event_list = self._merge_events_for_new_match(first_event_defs, second_event_defs,
                                                                    positive_events, negative_events)
             if self._validate_new_match(combined_event_list):
-                # this match should not be transferred
-                # TODO: the rejected positive partial match should be explicitly removed to save space
-                return
+                if partial_match.probability is not None:
+                    # the negative events are uncertain so the probability of `new_partial_match` should be reduced
+                    if probability is None:
+                        probability = 1
+                    probability *= 1 - partial_match.probability
+                else:
+                    # this match should not be transferred
+                    # TODO: the rejected positive partial match should be explicitly removed to save space
+                    return
         # no negative match invalidated the positive one - we can go on
-        self._propagate_partial_match(positive_events, new_partial_match.probability)
+        self._propagate_partial_match(positive_events, probability)
 
     def _add_partial_match(self, pm: PatternMatch):
         """
