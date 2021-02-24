@@ -16,8 +16,8 @@ class StatisticsCollector:
         """
         Update all relevant statistics with the new event
         """
-        for statistics in self.__statistics:
-            statistics.update_by_event(event)
+        for statistics in self.__statistics.values():
+            statistics.update(event)
 
     def get_statistics(self):
         return self.__statistics

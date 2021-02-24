@@ -1,9 +1,9 @@
 import copy
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
+from typing import List
 from base.Event import Event
 from base.Pattern import Pattern
-from statistics_collector.StatisticsWrapper import ArrivalRatesWrapper, SelectivityWrapper, SelectivityAndArrivalRatesWrapper
 from statistics_collector.StatisticEventData import StatisticEventData
 
 
@@ -25,15 +25,13 @@ class Statistics(ABC):
         """
         raise NotImplementedError()
 
-
 class ArrivalRatesStatistics(Statistics):
     """
     Represents the arrival rates statistics.
     """
-    def __init__(self, time_window: timedelta, pattern: Pattern):
+    def __init__(self, time_window: timedelta, pattern: Pattern, predefined_statistics: List = None):
         args = pattern.get_primitive_events()
-        self.arrival_rates = [0.0] * len(args)
-
+        self.__arrival_rates = [0.0] * len(args) if not predefined_statistics else predefined_statistics
         self.__event_type_to_indexes_map = {}
         for i, arg in enumerate(args):
             if arg.get_type() in self.__event_type_to_indexes_map:
@@ -51,7 +49,7 @@ class ArrivalRatesStatistics(Statistics):
         if event_type in self.__event_type_to_indexes_map:
             indexes = self.__event_type_to_indexes_map[event_type]
             for index in indexes:
-                self.arrival_rates[index] += 1
+                self.__arrival_rates[index] += 1
                 self.__events_arrival_time.append(StatisticEventData(event_timestamp, event_type))
 
         self.__remove_expired_events(event_timestamp)
@@ -71,7 +69,7 @@ class ArrivalRatesStatistics(Statistics):
             if last_timestamp - event_time.timestamp > self.__time_window:
                 indexes = self.__event_type_to_indexes_map[event_time.event_type]
                 for index in indexes:
-                    self.arrival_rates[index] -= 1
+                    self.__arrival_rates[index] -= 1
 
             else:
                 is_removed_elements = True
@@ -82,7 +80,7 @@ class ArrivalRatesStatistics(Statistics):
             self.__events_arrival_time = []
 
     def get_statistics(self):
-        return copy.deepcopy(ArrivalRatesWrapper(self.arrival_rates))
+        return copy.deepcopy(self.__arrival_rates)
 
 
 class SelectivityStatistics(Statistics):
@@ -92,7 +90,7 @@ class SelectivityStatistics(Statistics):
     """
     # TODO: Implement selectivity that also takes into account a time window
 
-    def __init__(self, pattern: Pattern):
+    def __init__(self, pattern: Pattern, predefined_statistics: List[List] = None):
         self.__pattern = pattern
         self.__args = pattern.get_primitive_events()
         self.__args_len = len(self.__args)
@@ -102,7 +100,10 @@ class SelectivityStatistics(Statistics):
         self.__success_map = {}
         self.__event_type_to_arg_indexes_map = {}
         self.__event_type_to_events_map = {primitive_event.type: [] for primitive_event in self.__args}
-        self.selectivity_matrix = [[1.0 for _ in range(self.__args_len)] for _ in range(self.__args_len)]
+        if not predefined_statistics:
+            self.__selectivity_matrix = [[1.0 for _ in range(self.__args_len)] for _ in range(self.__args_len)]
+        else:
+            self.__selectivity_matrix = predefined_statistics
 
         self.init_maps()
 
@@ -128,12 +129,12 @@ class SelectivityStatistics(Statistics):
                 if self.__total_map[(arg_1_index, arg_2_index)] == 0:
                     continue
                 sel = self.__success_map[(arg_1_index, arg_2_index)] / self.__total_map[(arg_1_index, arg_2_index)]
-                self.selectivity_matrix[arg_1_index][arg_2_index] = sel
-                self.selectivity_matrix[arg_2_index][arg_1_index] = sel
+                self.__selectivity_matrix[arg_1_index][arg_2_index] = sel
+                self.__selectivity_matrix[arg_2_index][arg_1_index] = sel
         self.__event_type_to_events_map[event_type].append(event1)
 
     def get_statistics(self):
-        return copy.deepcopy(SelectivityWrapper(self.selectivity_matrix))
+        return copy.deepcopy(self.__selectivity_matrix)
 
     def init_maps(self):
         self.init_event_type_to_arg_indexes_map()
@@ -168,34 +169,16 @@ class SelectivityStatistics(Statistics):
                     self.__success_map[(j, i)] = 0
 
 
-class SelectivityAndArrivalRatesStatistics(Statistics):
-    """
-    Represents both the arrival rates and selectivity statistics.
-    """
-    def __init__(self, arrival_rates: ArrivalRatesStatistics, selectivity_matrix: SelectivityStatistics):
-        self.arrival_rates = arrival_rates
-        self.selectivity_matrix = selectivity_matrix
-
-    def update(self, event: Event):
-        self.arrival_rates.update(event)
-        self.selectivity_matrix.update(event)
-
-    def get_statistics(self):
-        arrival_rates = self.arrival_rates.arrival_rates
-        selectivity_matrix = self.selectivity_matrix.selectivity_matrix
-        return copy.deepcopy(SelectivityAndArrivalRatesWrapper(arrival_rates, selectivity_matrix))
-
-
 class FrequencyDict(Statistics):
     """
     Not implemented
     """
-    def __init__(self):
-        self.frequency_dict = {}
+    def __init__(self, predefined_statistics: dict = None):
+        self.frequency_dict = {} if not predefined_statistics else predefined_statistics
 
     def update(self, event):
         raise NotImplementedError()
 
     def get_statistics(self):
-        return self.frequency_dict
+        return copy.deepcopy(self.frequency_dict)
 

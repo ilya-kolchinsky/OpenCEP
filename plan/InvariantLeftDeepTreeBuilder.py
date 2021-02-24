@@ -56,8 +56,8 @@ class InvariantAwareGreedyTreeBuilder(InvariantLeftDeepTreeBuilder):
         if StatisticsTypes.ARRIVAL_RATES in statistics and \
                 StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
                 len(statistics) == 2:
-            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX]
-            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
+            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX].get_statistics()
+            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES].get_statistics()
         else:
             raise MissingStatisticsException()
         order, invariants = self.calculate_greedy_order(selectivity_matrix, arrival_rates)
