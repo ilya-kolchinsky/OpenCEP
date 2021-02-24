@@ -44,7 +44,7 @@ class KleeneClosureNode(UnaryNode):
             events_for_partial_match = KleeneClosureNode.__partial_match_set_to_event_list(partial_match_set)
             probability = reduce(
                 calculate_joined_probability,
-                partial_match_set,
+                (pm.probability for pm in partial_match_set),
                 None
             )
             self._validate_and_propagate_partial_match(events_for_partial_match, probability)
