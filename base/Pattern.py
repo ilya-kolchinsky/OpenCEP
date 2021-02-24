@@ -113,7 +113,11 @@ class Pattern:
         """
         Returns a list of primitive events that make up the pattern structure.
         """
-        primitive_events = self.__get_primitive_events_aux(self.full_structure.get_args())
+        if isinstance(self.full_structure, UnaryStructure):
+            full_structure_args = self.full_structure.arg
+        else:
+            full_structure_args = self.full_structure.get_args()
+        primitive_events = self.__get_primitive_events_aux(full_structure_args)
         # a hack to remove unhashable duplicates from a list.
         return list({str(x): x for x in primitive_events}.values())
 

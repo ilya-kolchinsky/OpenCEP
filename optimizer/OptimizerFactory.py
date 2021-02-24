@@ -2,7 +2,8 @@ from typing import List
 from misc.OptimizerTypes import OptimizerTypes
 from misc import DefaultConfig
 from misc.StatisticsTypes import StatisticsTypes
-from optimizer import Optimizer, ChangesAwareTester, ChangesAwareFactory
+from optimizer import Optimizer
+from optimizer.ChangesAwareFactory import ChangesAwareTesterFactory
 from plan.InvariantLeftDeepTreeBuilder import InvariantAwareGreedyTreeBuilder
 from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
@@ -75,7 +76,7 @@ class OptimizerFactory:
             t = optimizer_parameters.t
             type_to_changes_aware_tester_map = {}
             for stat_type in optimizer_parameters.statistics_types:
-                changes_aware_tester = ChangesAwareFactory.create_changes_aware_tester(stat_type, t)
+                changes_aware_tester = ChangesAwareTesterFactory.create_changes_aware_tester(stat_type, t)
                 type_to_changes_aware_tester_map[stat_type] = changes_aware_tester
 
             return Optimizer.StatisticsChangesAwareOptimizer(tree_plan_builder, type_to_changes_aware_tester_map)

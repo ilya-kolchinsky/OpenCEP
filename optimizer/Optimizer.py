@@ -33,7 +33,7 @@ class Optimizer(ABC):
         non_prior_tree_plan_builder = self.build_non_prior_tree_plan_builder(cost_model_type, pattern)
         if non_prior_tree_plan_builder is not None:
             self._tree_plan_builder, temp_tree_plan_builder = non_prior_tree_plan_builder, self._tree_plan_builder
-            initial_tree_plan = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
+            initial_tree_plan = self.build_new_tree_plan(new_statistics, pattern)
             self._tree_plan_builder = temp_tree_plan_builder
         else:
             initial_tree_plan = self.build_new_tree_plan(new_statistics, pattern)
