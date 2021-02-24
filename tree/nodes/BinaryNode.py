@@ -3,6 +3,7 @@ from datetime import timedelta
 from typing import List, Optional, Set
 
 from base.Event import Event
+from misc.Utils import calculate_joined_probability
 from condition.Condition import Condition, Variable, EquationSides
 from condition.BaseRelationCondition import BaseRelationCondition
 from base.PatternMatch import PatternMatch
@@ -130,17 +131,10 @@ class BinaryNode(InternalNode, ABC):
         necessary conditions creates new partial matches if all constraints are satisfied.
         """
         for partial_match in partial_matches_to_compare:
-            probability = self._calculate_joined_probability(new_partial_match, partial_match)
+            probability = calculate_joined_probability(new_partial_match.probability, partial_match.probability)
             events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
                                                                     new_partial_match.events, partial_match.events)
             self._validate_and_propagate_partial_match(events_for_new_match, probability)
-
-    def _calculate_joined_probability(self, pm1: PatternMatch, pm2: PatternMatch) -> Optional[float]:
-        if pm1.probability is None:
-            return pm2.probability
-        if pm2.probability is None:
-            return pm1.probability
-        return pm1.probability * pm2.probability
 
     def _merge_events_for_new_match(self,
                                     first_event_defs: List[PrimitiveEventDefinition],

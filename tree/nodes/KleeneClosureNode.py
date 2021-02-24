@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import List, Set, Optional
 from functools import reduce
+from misc.Utils import calculate_joined_probability
 
 from base.Event import Event
 from base.Pattern import PatternParameters
@@ -42,11 +43,7 @@ class KleeneClosureNode(UnaryNode):
             # create and propagate the new match
             events_for_partial_match = KleeneClosureNode.__partial_match_set_to_event_list(partial_match_set)
             probability = reduce(
-                lambda acc, pm: (
-                    pm.probability * (acc if acc is not None else 1)
-                    if pm.probability is not None
-                    else acc
-                ),
+                calculate_joined_probability,
                 partial_match_set,
                 None
             )

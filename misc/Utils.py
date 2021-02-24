@@ -3,7 +3,7 @@ This file contains various useful functions utilized by different project module
 """
 
 from datetime import datetime
-from typing import List, Container
+from typing import List, Container, Optional
 
 from base.Pattern import Pattern
 from base.PatternStructure import PrimitiveEventStructure
@@ -293,3 +293,14 @@ def get_last_index(container: Container, to_find_value: int, key: callable):
     """
     return get_index(container, to_find_value, key, False)
 
+def calculate_joined_probability(p1: Optional[float], p2: Optional[float]) -> Optional[float]:
+    """
+        calculate the joined probability of two events with probabilities p1 and p2.
+        the probability of a certain event is `None`
+        @returns: `None` if the joined event is certain, otherwise the joined probability
+    """
+    if p1 is None:
+        return p2
+    if p2 is None:
+        return p1
+    return p1 * p2
