@@ -1,4 +1,6 @@
 import heapq
+from datetime import datetime
+
 from base.Event import Event
 from stream.Stream import OutputStream
 from tree.Tree import Tree
@@ -7,7 +9,7 @@ from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 
 class TrivialEvaluation(TreeBasedEvaluationMechanism):
 
-    def _tree_update(self, new_tree: Tree, event: Event):
+    def _tree_update(self, new_tree: Tree, tree_update_time: datetime):
         old_events = self.__get_all_old_events()
         self._tree = new_tree
         self._event_types_listeners = self._register_event_listeners(new_tree)

@@ -52,8 +52,8 @@ DEFAULT_OPTIMIZER_TYPE = OptimizerTypes.TRIVIAL
 THRESHOLD = 0.5  # the default threshold for statistics changer aware optimizer
 
 # statistics settings
-DEFAULT_STATISTICS_TYPE = StatisticsTypes.ARRIVAL_RATES
+DEFAULT_STATISTICS_TYPE = [StatisticsTypes.ARRIVAL_RATES]
 
 # Tree Evaluation Mechanism settings
 DEFAULT_TREE_EVALUATION_MECHANISM_TYPE = TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION
-STATISTICS_UPDATES_TIME_WINDOW = timedelta(seconds=30)  # the default time window for the time when the evaluation ready to get statistics
+STATISTICS_UPDATES_TIME_WINDOW = timedelta(seconds=5)  # the default time window for the time when the evaluation ready to get statistics

@@ -25,6 +25,7 @@ class Statistics(ABC):
         """
         raise NotImplementedError()
 
+
 class ArrivalRatesStatistics(Statistics):
     """
     Represents the arrival rates statistics.

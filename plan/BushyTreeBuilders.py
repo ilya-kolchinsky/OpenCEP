@@ -21,7 +21,7 @@ class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
         if StatisticsTypes.ARRIVAL_RATES in statistics and \
                 StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
                 len(statistics) == 2:
-            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX].get_statistics()
+            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX]
         else:
             raise MissingStatisticsException()
 
@@ -70,8 +70,8 @@ class ZStreamTreeBuilder(TreePlanBuilder):
         if StatisticsTypes.ARRIVAL_RATES in statistics and \
                 StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
                 len(statistics) == 2:
-            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX].get_statistics()
-            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES].get_statistics()
+            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX]
+            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
         else:
             raise MissingStatisticsException()
 

@@ -26,7 +26,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                  storage_params: TreeStorageParameters,
                  statistics_collector: StatisticsCollector,
                  optimizer: Optimizer,
-                 statistics_update_time_window: timedelta = timedelta(seconds=30),
+                 statistics_update_time_window: timedelta,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
 
         self.__is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
@@ -60,13 +60,14 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         """
         self._event_types_listeners = self._register_event_listeners(self._tree)
         statistics_update_start_time = None
+        count = 0
 
         for raw_event in events:
             event = Event(raw_event, data_formatter)
             if event.type not in self._event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
-
+            count += 1
             if not self.__is_multi_pattern_mode:  # Note: multi-pattern does not yet support adaptive-CEP,
                 # this condition is necessary for the multi-pattern tests and nothing more
                 # TODO: evaluation mechanism factory needs to support multi-pattern mode
@@ -77,12 +78,13 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                         if self.__optimizer.is_need_optimize(new_statistics, self._pattern):
                             new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
                             new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
-                            self._tree_update(new_tree, event)
+                            self._tree_update(new_tree, event.timestamp)
                     # re-initialize statistics window start time
                     statistics_update_start_time = event.timestamp
 
             self._play_new_event_on_tree(event, matches)
             self._get_matches(matches)
+            print(count)
 
         self._get_last_matches(matches)
         matches.close()

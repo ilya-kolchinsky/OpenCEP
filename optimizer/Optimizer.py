@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
 from base import Pattern
 from misc import DefaultConfig
-from plan import TreePlanBuilder, TreePlan
+from plan import TreePlanBuilder
 from plan.LeftDeepTreeBuilders import TrivialLeftDeepTreeBuilder
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 from statistics_collector.StatisticsWrapper import StatisticsWrapper
 
@@ -18,7 +17,7 @@ class Optimizer(ABC):
         self._tree_plan_builder = tree_plan_builder
 
     @abstractmethod
-    def is_need_optimize(self, new_statistics: StatisticsWrapper, pattern: Pattern):
+    def is_need_optimize(self, new_statistics: dict, pattern: Pattern):
         """
         Asks if it's necessary to optimize the tree based on the new statistics.
         """
@@ -76,10 +75,10 @@ class StatisticsChangesAwareOptimizer(Optimizer):
         self.__type_to_changes_aware_tester_map = type_to_changes_aware_functions_map
 
     def is_need_optimize(self, new_statistics: dict, pattern: Pattern):
-        for statistics_type, statistics in new_statistics.items():
-            prev_statistics = self.__prev_statistics[statistics_type]
-            if self.__type_to_changes_aware_tester_map[statistics_type].is_changed_by_t(new_statistics,
-                                                                                        prev_statistics):
+        for new_statistics_type, new_statistics in new_statistics.items():
+            prev_statistics = self.__prev_statistics[new_statistics_type]
+            if self.__type_to_changes_aware_tester_map[new_statistics_type].is_changed_by_t(new_statistics,
+                                                                                            prev_statistics):
                 return True
         return False
         # return self._prev_statistics is None or self.is_changed_by_t(new_statistics.statistics, self._prev_statistics)

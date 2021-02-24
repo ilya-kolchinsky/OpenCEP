@@ -17,10 +17,10 @@ class StatisticsCollector:
         Update all relevant statistics with the new event
         """
         for statistics in self.__statistics.values():
-            statistics.update(event)
+            statistics.update_by_event(event)
 
     def get_statistics(self):
-        return self.__statistics
+        return {statistics_type: statistics.get_statistics() for statistics_type, statistics in self.__statistics.items()}
 
     def statistics_types(self):
         return self.__statistics.keys()

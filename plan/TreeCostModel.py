@@ -26,8 +26,8 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
         if StatisticsTypes.ARRIVAL_RATES in statistics and \
                 StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
                 len(statistics) == 2:
-            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX].get_statistics()
-            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES].get_statistics()
+            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX]
+            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
         else:
             raise MissingStatisticsException()
         _, _, cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(plan, selectivity_matrix,

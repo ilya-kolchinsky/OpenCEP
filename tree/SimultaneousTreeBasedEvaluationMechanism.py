@@ -30,8 +30,8 @@ class SimultaneousEvaluation(TreeBasedEvaluationMechanism):
         self.__is_simultaneous_state = False
         self.__tree_update_time = None
 
-    def _tree_update(self, new_tree: Tree, event: Event):
-        self.__tree_update_time = event.timestamp
+    def _tree_update(self, new_tree: Tree, tree_update_time: datetime):
+        self.__tree_update_time = tree_update_time
         self.__new_tree = new_tree
         self.__new_event_types_listeners = self._register_event_listeners(self.__new_tree)
         self.__is_simultaneous_state = True

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List
 
 
 class ChangesAwareTester(ABC):
@@ -18,7 +19,7 @@ class ArrivalRatesChangesAwareTester(ChangesAwareTester):
     Checks for changes in the arrival rate by a factor of t.
     """
 
-    def is_changed_by_t(self, new_statistics, prev_statistics):
+    def is_changed_by_t(self, new_statistics: List[int], prev_statistics: List[int]):
 
         for i in range(len(new_statistics)):
             if prev_statistics[i] * (1 + self._t) < new_statistics[i] or \
@@ -32,7 +33,7 @@ class SelectivityChangesAwareOptimizerTester(ChangesAwareTester):
     Checks for changes in the selectivity by a factor of t.
     """
 
-    def is_changed_by_t(self, new_statistics, prev_statistics):
+    def is_changed_by_t(self, new_statistics: List[List[float]], prev_statistics: List[List[float]]):
 
         for i in range(len(new_statistics)):
             for j in range(len(new_statistics[i])):
