@@ -134,6 +134,7 @@ def threePatternsTest(createTestFile=False):
             ),
         ),
         timedelta(minutes=5),
+        confidence=0.6,
     )
 
     runMultiTest("ThreePatternTestProb", [pattern1, pattern2, pattern3], createTestFile, eventStream=nasdaqEventStreamP)
