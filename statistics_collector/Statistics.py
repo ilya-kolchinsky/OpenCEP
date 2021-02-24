@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from base.Event import Event
 from base.Pattern import Pattern
-from misc.Statistics import calculate_selectivity_matrix
 from statistics_collector.StatisticsWrapper import ArrivalRatesWrapper, SelectivityWrapper, SelectivityAndArrivalRatesWrapper
 from statistics_collector.StatisticEventData import StatisticEventData
 
@@ -13,11 +12,11 @@ class Statistics(ABC):
     An abstract class for statistics.
     """
     @abstractmethod
-    def update(self, event: Event):
+    def update_by_event(self, event: Event):
         """
         Given the newly arrived event, update the statistics.
         """
-        raise NotImplementedError()
+        pass
 
     @abstractmethod
     def get_statistics(self):
@@ -45,7 +44,7 @@ class ArrivalRatesStatistics(Statistics):
         self.__events_arrival_time = []
         self.__time_window = time_window
 
-    def update(self, event: Event):
+    def update_by_event(self, event: Event):
         event_type = event.type
         event_timestamp = event.timestamp
 
@@ -107,7 +106,7 @@ class SelectivityStatistics(Statistics):
 
         self.init_maps()
 
-    def update(self, event1: Event):
+    def update_by_event(self, event1: Event):
         event_type = event1.type
         event_arg_1_indexes = self.__event_type_to_arg_indexes_map[event_type]
         for arg_1_index in event_arg_1_indexes:
