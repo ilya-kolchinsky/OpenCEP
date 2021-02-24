@@ -1,6 +1,5 @@
 from functools import reduce
-from typing import List
-
+from typing import List, Dict
 from base.Event import Event
 from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
 from condition.CompositeCondition import CompositeCondition, AndCondition
@@ -38,8 +37,6 @@ class Pattern:
             self.condition = AndCondition(self.condition)
 
         self.window = time_window
-
-        self.statistics_type = StatisticsTypes.NO_STATISTICS
         self.statistics = None
         self.consumption_policy = consumption_policy
 
@@ -50,11 +47,10 @@ class Pattern:
             if consumption_policy.contiguous_names is not None:
                 self.__init_strict_conditions(pattern_structure)
 
-    def set_statistics(self, statistics_type: StatisticsTypes, statistics):
+    def set_statistics(self, statistics: Dict):
         """
         Sets the statistical properties related to the events and conditions of this pattern.
         """
-        self.statistics_type = statistics_type
         self.statistics = statistics
 
     def __extract_negative_structure(self):

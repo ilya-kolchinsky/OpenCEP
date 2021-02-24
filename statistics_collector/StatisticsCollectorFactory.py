@@ -36,13 +36,10 @@ class StatisticsCollectorFactory:
         """
         pattern = patterns[0]
         time_window = statistics_collector_parameters.time_window
-        if pattern.statistics is not None:
-            statistics_dict = pattern.statistics
-        else:
-            statistics_dict = {}
-            for stat_type in statistics_collector_parameters.statistics_types:
-                stat = StatisticsFactory.create_statistics(pattern, stat_type, time_window)
-                statistics_dict[stat_type] = stat
+        statistics_dict = {}
+        for stat_type in statistics_collector_parameters.statistics_types:
+            stat = StatisticsFactory.create_statistics(pattern, stat_type, time_window)
+            statistics_dict[stat_type] = stat
         return StatisticsCollector(pattern, statistics_dict)
 
     @staticmethod

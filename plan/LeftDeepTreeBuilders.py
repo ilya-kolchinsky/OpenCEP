@@ -3,7 +3,6 @@ This file contains the implementations of algorithms constructing a left-deep tr
 """
 import random
 from typing import List
-
 from base.PatternStructure import CompositeStructure
 from misc import DefaultConfig
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType, \
@@ -23,7 +22,7 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
     An abstract class for left-deep tree builders.
     """
 
-    def _create_tree_topology(self, statistics: Statistics, pattern: Pattern):
+    def _create_tree_topology(self, statistics: dict, pattern: Pattern):
         """
         Invokes an algorithm (to be implemented by subclasses) that builds an evaluation order of the operands, and
         converts it into a left-deep tree topology.
@@ -49,7 +48,7 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
         tree_plan = LeftDeepTreeBuilder._order_to_tree_topology(order, pattern)
         return self._get_plan_cost(statistics, pattern, tree_plan)
 
-    def _create_evaluation_order(self, statistics: Statistics, pattern: Pattern):
+    def _create_evaluation_order(self, statistics: dict, pattern: Pattern):
         """
         Creates an evaluation order to serve as a basis for the left-deep tree topology.
         """
@@ -74,11 +73,11 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
     def _create_evaluation_order(self, statistics: dict, pattern: Pattern):
         if StatisticsTypes.FREQUENCY_DICT in statistics and \
                 len(statistics) == 1:
-            frequency_dict = statistics[StatisticsTypes.FREQUENCY_DICT]
+            frequency_dict = statistics[StatisticsTypes.FREQUENCY_DICT].frequency_dict
             order = get_order_by_occurrences(pattern.positive_structure.args, frequency_dict)
         elif StatisticsTypes.ARRIVAL_RATES in statistics and \
                 len(statistics) == 1:
-            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
+            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES].get_statistics()
             # create an index-arrival rate binding and sort according to arrival rate.
             sorted_order = sorted([(i, arrival_rates[i]) for i in range(len(arrival_rates))], key=lambda x: x[1])
             order = [x for x, y in sorted_order]  # create order from sorted binding.
@@ -97,8 +96,8 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
         if StatisticsTypes.ARRIVAL_RATES in statistics and \
                 StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
                 len(statistics) == 2:
-            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX]
-            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
+            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX].get_statistics()
+            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES].get_statistics()
         else:
             raise MissingStatisticsException()
         return self.calculate_greedy_order(selectivity_matrix, arrival_rates)
@@ -160,8 +159,8 @@ class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
         if StatisticsTypes.ARRIVAL_RATES in statistics and \
                 StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
                 len(statistics) == 2:
-            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX]
-            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
+            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX].get_statistics()
+            arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES].get_statistics()
         else:
             raise MissingStatisticsException()
         order = None
@@ -195,7 +194,7 @@ class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
         if StatisticsTypes.ARRIVAL_RATES in statistics and \
                 StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
                 len(statistics) == 2:
-            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX]
+            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX].get_statistics()
         else:
             raise MissingStatisticsException()
         args_num = len(selectivity_matrix)

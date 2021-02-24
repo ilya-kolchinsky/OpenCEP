@@ -22,19 +22,3 @@ class SelectivityWrapper(StatisticsWrapper):
     """
     def __init__(self, selectivity_matrix):
         self.statistics = selectivity_matrix
-
-
-class SelectivityAndArrivalRatesWrapper(StatisticsWrapper):
-    """
-    Represents both the arrival rates and selectivity statistics wrapper.
-    """
-    def __init__(self, arrival_rates, selectivity_matrix):
-        self.statistics = selectivity_matrix, arrival_rates
-
-
-class FrequencyDictWrapper(StatisticsWrapper):
-    """
-    Not implemented.
-    """
-    def __init__(self, frequency):
-        self.statistics = frequency
