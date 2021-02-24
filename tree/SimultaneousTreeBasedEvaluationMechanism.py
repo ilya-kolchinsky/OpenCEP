@@ -30,8 +30,8 @@ class SimultaneousEvaluation(TreeBasedEvaluationMechanism):
         self.__is_simultaneous_state = False
         self.__tree_update_time = None
 
-    def _tree_update(self, new_tree: Tree):
-        self.__tree_update_time = datetime.now()
+    def _tree_update(self, new_tree: Tree, event: Event):
+        self.__tree_update_time = event.timestamp
         self.__new_tree = new_tree
         self.__new_event_types_listeners = self._register_event_listeners(self.__new_tree)
         self.__is_simultaneous_state = True
@@ -47,7 +47,7 @@ class SimultaneousEvaluation(TreeBasedEvaluationMechanism):
             # After this round we ask if we are in a simultaneous state.
             # If the time window is over then we want to return to a state that is not simultaneous,
             # i.e. a single tree
-            if datetime.now() - self.__tree_update_time > self._pattern.window:
+            if event.timestamp - self.__tree_update_time > self._pattern.window:
                 self._tree, self.__new_tree = self.__new_tree, None
                 self._event_types_listeners, self.__new_event_types_listeners = self.__new_event_types_listeners, None
                 self.__is_simultaneous_state = False
@@ -69,7 +69,7 @@ class SimultaneousEvaluation(TreeBasedEvaluationMechanism):
         Checks whether all the events in the match are new
         """
         for event in match.events:
-            if event.arrival_time < self.__tree_update_time:
+            if event.timestamp < self.__tree_update_time:
                 return False
         return True
 

@@ -7,7 +7,7 @@ from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 
 class TrivialEvaluation(TreeBasedEvaluationMechanism):
 
-    def _tree_update(self, new_tree: Tree):
+    def _tree_update(self, new_tree: Tree, event: Event):
         old_events = self.__get_all_old_events()
         self._tree = new_tree
         self._event_types_listeners = self._register_event_listeners(new_tree)

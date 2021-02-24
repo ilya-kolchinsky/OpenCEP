@@ -77,7 +77,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                         if self.__optimizer.is_need_optimize(new_statistics, self._pattern):
                             new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
                             new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
-                            self._tree_update(new_tree)
+                            self._tree_update(new_tree, event)
                     # re-initialize statistics window start time
                     statistics_update_start_time = event.timestamp
 
@@ -114,7 +114,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             matches.add_item(match)
             self._remove_matched_freezers(match.events)
 
-    def _tree_update(self, new_tree: Tree):
+    def _tree_update(self, new_tree: Tree, event: Event):
         raise NotImplementedError("Must override")
 
     def _is_need_new_statistics(self):
