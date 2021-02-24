@@ -17,8 +17,9 @@ class TrivialEvaluation(TreeBasedEvaluationMechanism):
 
         # If there are new matches that have already been written
         # to a file then all we want is to avoid duplications.
-        # the method self._tree.get_matches() actually takes out the duplicate matches.
-        self._tree.get_matches()
+        # the loop over get_matches() takes out the duplicate matches.
+        for _ in self._tree.get_matches():
+            pass
 
     def __get_all_old_events(self):
         old_pattern_matches_events = []  # todo check the name
@@ -31,7 +32,7 @@ class TrivialEvaluation(TreeBasedEvaluationMechanism):
                 partial_matches = leaf.get_storage_unit()
                 old_pattern_matches_events.append([pm.events[0] for pm in partial_matches])
 
-        # using heap for fast sorting of sorted lists
+        # using heap for fast sort of sorted lists
         old_events = list(heapq.merge(*old_pattern_matches_events, key=lambda event: event.timestamp))
         return old_events
 

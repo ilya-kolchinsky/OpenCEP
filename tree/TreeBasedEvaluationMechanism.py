@@ -84,7 +84,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
             self._play_new_event_on_tree(event, matches)
             self._get_matches(matches)
-            print(count)
+            # print(count)
 
         self._get_last_matches(matches)
         matches.close()
