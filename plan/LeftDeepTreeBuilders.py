@@ -3,11 +3,7 @@ This file contains the implementations of algorithms constructing a left-deep tr
 """
 import random
 from typing import List
-#import numpy as np
-import copy
-
-from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
-    SeqOperator, NegationOperator, AndOperator, UnaryStructure
+from base.PatternStructure import CompositeStructure, PrimitiveEventStructure
 from misc import DefaultConfig
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType, \
     IterativeImprovementAlgorithmBuilder
@@ -17,7 +13,6 @@ from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
-from misc.Utils import get_order_by_occurrences
 
 
 class LeftDeepTreeBuilder(TreePlanBuilder):
@@ -27,76 +22,13 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
 
     def _create_tree_topology(self, pattern: Pattern):
         """
-        This function is done recursively, to support nested pattern's operators (i.e. And(Seq,Seq)).
-        When encounters KleeneClosure or CompositeStructure, it computes this operator's tree plan (recursively...)
-        and uses the returned tree plan's root as a new "simple" (primitive) event (with its statistics updated
-        according to its subtree nodes), such that all nested Kleene/Composite operators can be treated as "simple"
-        ones.
-        For every "flat" pattern, it invokes an algorithm (to be implemented by subclasses) that builds an evaluation
-        order of the operands, and converts it into a left-deep tree topology.
-        """
-        nested_topologies = None
-        nested_args = None
-        nested_cost = None
-        if not isinstance(pattern.positive_structure, PrimitiveEventStructure):
-            # If this is not primitive, than it's a nested one.
-            nested_topologies = []
-            nested_args = []
-            nested_arrival_rates = []
-            nested_selectivity = []
-            nested_cost = []
-            if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-                # If we have a selectivity matrix, than we need to create new one, that has the size of the "flat" root
-                # operator and all its entries are computed according to the nested operators in each composite/kleene
-                # structure.
-                nested_selectivity = TreePlanBuilder._selectivity_matrix_for_nested_operators(pattern)
-            for arg in pattern.positive_structure.get_args():
-                # This loop creates (recursively) all the nested subtrees
-                if not isinstance(arg, PrimitiveEventStructure):
-                    # If we are here than this structure is composite or kleene.
-                    # And first create new pattern that fits the nested operator's stats and structure.
-                    nested_pattern = Pattern(arg, None, pattern.window)
-                    if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
-                        nested_pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, pattern.statistics)
-                    elif pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-                        (_, arrival_rates) = pattern.statistics
-                        # Take only the relevant part of the selectivity matrix:
-                        chopped_nested_selectivity = TreePlanBuilder._chop_matrix(pattern, arg)
-                        nested_pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (chopped_nested_selectivity, arrival_rates))
-                    nested_topology = self._create_tree_topology(nested_pattern)
-                    nested_topologies.append(nested_topology)  # Save nested topology to add it as a field to its root
-                    if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES or pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-                        # Get the cost of the nested structure to calculate the new arrival rate and save it for other
-                        # functions (all functions that uses cost of a tree and will need the cost of nested subtrees).
-                        cost = self._get_plan_cost(nested_pattern, nested_topology)
-                        if isinstance(arg, UnaryStructure):
-                            nested_arrival_rates.append(pow(2, cost) / pattern.window.total_seconds())
-                        else:
-                            nested_arrival_rates.append(cost/pattern.window.total_seconds())
-                        nested_cost.append(cost)
-                    else:
-                        nested_cost.append(None)
-                    nested_args.append(arg.get_args())
-                else:
-                    # If we are here, than this structure is primitive
-                    nested_topologies.append(None)
-                    nested_args.append(None)
-                    nested_cost.append(None)
-                    if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
-                        nested_arrival_rates.append(pattern.statistics[0])
-                        pattern.statistics.pop(0)
-                    elif pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-                        (selectivity_matrix, arrival_rates) = pattern.statistics
-                        # Save the original arriving rate, because it is not nested, and pop it out, so we always look
-                        # on the arrival rate that fits the current arg in the loop.
-                        nested_arrival_rates.append(arrival_rates[0])
-                        arrival_rates.pop(0)
-                        pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivity_matrix, arrival_rates))
-            if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
-                pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, nested_arrival_rates)
-            elif pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-                pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (nested_selectivity, nested_arrival_rates))
 
+        """
+
+        if any(not isinstance(arg, PrimitiveEventStructure) for arg in pattern.positive_structure.get_args()):
+            pattern, nested_topologies, nested_args, nested_cost = self.extract_nested_pattern(pattern)
+        else:
+            nested_topologies = nested_args = nested_cost = [None for _ in pattern.positive_structure.get_args()]
         order = self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure,
                                                                      CompositeStructure) else [0]
         return LeftDeepTreeBuilder._order_to_tree_topology(order, pattern, nested_topologies, nested_args, nested_cost)

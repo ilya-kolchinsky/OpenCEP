@@ -21,43 +21,10 @@ class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
     """
     def _create_tree_topology(self, pattern: Pattern):
         """
-        This function is very very similar to the one on the LeftDeepTree. Just the final algorithm (for building the
-        actual tree plan) is different
+        TODO: COMMENT
         """
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            nested_topologies = None
-            nested_args = None
-            nested_cost = None
-            if not isinstance(pattern.positive_structure, PrimitiveEventStructure):
-                nested_topologies = []
-                nested_args = []
-                nested_arrival_rates = []
-                nested_cost = []
-                nested_selectivity = TreePlanBuilder._selectivity_matrix_for_nested_operators(pattern)
-                for arg in pattern.positive_structure.get_args():
-                    if isinstance(arg, CompositeStructure):
-                        temp_pattern = Pattern(arg, None, pattern.window)
-                        (_, arrival_rates) = pattern.statistics
-                        temp_nested_selectivity = TreePlanBuilder._chop_matrix(pattern, arg)
-                        temp_pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
-                                                    (temp_nested_selectivity, arrival_rates))
-                        nested_topology = self._create_tree_topology(temp_pattern)
-                        nested_topologies.append(nested_topology)
-                        cost = self._get_plan_cost(temp_pattern, nested_topology)
-                        nested_arrival_rates.append(cost / pattern.window.total_seconds())
-                        nested_cost.append(cost)
-                        nested_args.append(arg.args)
-                    else:
-                        nested_topologies.append(None)
-                        nested_args.append(None)
-                        nested_cost.append(None)
-                        (selectivity_matrix, arrival_rates) = pattern.statistics
-                        nested_arrival_rates.append(arrival_rates[0])
-                        arrival_rates.pop(0)
-                        pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
-                                               (selectivity_matrix, arrival_rates))
-                pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
-                                       (nested_selectivity, nested_arrival_rates))
+            pattern, nested_topologies, nested_args, nested_cost = self.extract_nested_pattern(pattern)
             return self._dynamic_bushy_tree_builder(pattern, nested_topologies, nested_args, nested_cost)
         else:
             raise MissingStatisticsException()
@@ -106,45 +73,10 @@ class ZStreamTreeBuilder(TreePlanBuilder):
     """
     def _create_tree_topology(self, pattern: Pattern):
         """
-        This function is very very similar to the one on the LeftDeepTree. Just the final algorithm (for building the
-        actual tree plan) is different
+        TODO: COMMENT
         """
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            nested_topologies = None
-            nested_args = None
-            # nested_arrival_rates = None
-            # nested_selectivity = None
-            nested_cost = None
-            if not isinstance(pattern.positive_structure, PrimitiveEventStructure):
-                nested_topologies = []
-                nested_args = []
-                nested_arrival_rates = []
-                nested_cost = []
-                nested_selectivity = TreePlanBuilder._selectivity_matrix_for_nested_operators(pattern)
-                for arg in pattern.positive_structure.get_args():
-                    if isinstance(arg, CompositeStructure):
-                        temp_pattern = Pattern(arg, None, pattern.window)
-                        (_, arrival_rates) = pattern.statistics
-                        temp_nested_selectivity = TreePlanBuilder._chop_matrix(pattern, arg)
-                        temp_pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
-                                                    (temp_nested_selectivity, arrival_rates))
-                        nested_topology = self._create_tree_topology(temp_pattern)
-                        nested_topologies.append(nested_topology)
-                        cost = self._get_plan_cost(temp_pattern, nested_topology)
-                        nested_arrival_rates.append(cost / pattern.window.total_seconds())
-                        nested_cost.append(cost)
-                        nested_args.append(arg.args)
-                    else:
-                        nested_topologies.append(None)
-                        nested_args.append(None)
-                        nested_cost.append(None)
-                        (selectivity_matrix, arrival_rates) = pattern.statistics
-                        nested_arrival_rates.append(arrival_rates[0])
-                        arrival_rates.pop(0)
-                        pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
-                                               (selectivity_matrix, arrival_rates))
-                pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
-                                       (nested_selectivity, nested_arrival_rates))
+            pattern, nested_topologies, nested_args, nested_cost = self.extract_nested_pattern(pattern)
             return self._zstream_bushy_tree_builder(pattern, nested_topologies, nested_args, nested_cost)
         else:
             raise MissingStatisticsException()

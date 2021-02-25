@@ -139,7 +139,7 @@ class Tree:
             return KleeneClosureNode(sliding_window, operator.min_size, operator.max_size, parent)
         raise Exception("Unknown or unsupported operator %s" % (operator_type,))
 
-    def __handle_primitive_event_or_nested_structure(self, tree_plan_leaf: TreePlanLeafNode,
+    def __handle_primitive_event_or_unary_structure(self, tree_plan_leaf: TreePlanLeafNode,
                                                      current_operator: PatternStructure,
                                                      sliding_window: timedelta, parent: Node,
                                                      consumption_policy: ConsumptionPolicy):
@@ -163,7 +163,6 @@ class Tree:
                                           consumption_policy)
             unary_node.set_subtree(child)
             return unary_node
-
 
     def __construct_tree(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
                          args: List[PatternStructure], sliding_window: timedelta, parent: Node,
