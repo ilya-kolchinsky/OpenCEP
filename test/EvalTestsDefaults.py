@@ -2,7 +2,7 @@ from datetime import timedelta
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
 from misc.OptimizerTypes import OptimizerTypes
 from misc.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
-from optimizer.OptimizerFactory import OptimizerParameters, StatisticChangesAwareOptimizerParameters, \
+from optimizer.OptimizerFactory import OptimizerParameters, StatisticsDeviationAwareOptimizerParameters, \
     InvariantsAwareOptimizerParameters, TrivialOptimizerParameters
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreeCostModels, StatisticsTypes
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
@@ -42,8 +42,8 @@ DEFAULT_TESTING_TRIVIAL_OPTIMIZER_SETTINGS = \
     TrivialOptimizerParameters(TreePlanBuilderParameters())
 
 DEFAULT_TESTING_CHANGES_AWARE_OPTIMIZER_SETTINGS = \
-    StatisticChangesAwareOptimizerParameters(TreePlanBuilderParameters(), t=0.5,
-                                             statistics_types=[StatisticsTypes.SELECTIVITY_MATRIX,
+    StatisticsDeviationAwareOptimizerParameters(TreePlanBuilderParameters(), t=0.5,
+                                                statistics_types=[StatisticsTypes.SELECTIVITY_MATRIX,
                                                                StatisticsTypes.ARRIVAL_RATES])
 
 DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS = \
@@ -70,7 +70,7 @@ DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS = \
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION,
-                                           statistics_updates_time_window=timedelta(seconds=0.001))
+                                           statistics_updates_wait_time=timedelta(seconds=0.001))
 
 """
 statistics collector: selectivity and arrival rates
@@ -87,7 +87,7 @@ DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS_AND_T_OPTIMIZER = \
                                            statistics_collector_params=StatisticsCollectorParameters(
                                                                     time_window=timedelta(seconds=2),
                                                                     statistics_types=[StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]),
-                                           statistics_updates_time_window=timedelta(seconds=0.01))
+                                           statistics_updates_wait_time=timedelta(seconds=0.01))
 
 
 """
@@ -103,7 +103,7 @@ DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS_AND_GREEDY_INVARIANT_OPTIM
                                            evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION,
                                            statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
                                            optimizer_params=DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS,
-                                           statistics_updates_time_window=timedelta(seconds=0.001))
+                                           statistics_updates_wait_time=timedelta(seconds=0.001))
 
 """
 statistics collector: selectivity and arrival rates
@@ -118,7 +118,7 @@ DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS_AND_ZSTREAM_INVARIANT_OPTI
                                            evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION,
                                            statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
                                            optimizer_params=DEFAULT_TESTING_ZSTREAM_INVARIANT_OPTIMIZER_SETTINGS,
-                                           statistics_updates_time_window=timedelta(seconds=0.001))
+                                           statistics_updates_wait_time=timedelta(seconds=0.001))
 
 """
 statistics collector: arrival rates
@@ -131,7 +131,7 @@ DEFAULT_TESTING_SIMULTANEOUS_EVALUATION_MECHANISM_SETTINGS = \
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),
                                            evaluation_type=TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION,
-                                           statistics_updates_time_window=timedelta(seconds=0.05))
+                                           statistics_updates_wait_time=timedelta(seconds=0.05))
 
 
 """
@@ -148,7 +148,7 @@ DEFAULT_TESTING_SIMULTANEOUS_EVALUATION_MECHANISM_SETTINGS_AND_T_OPTIMIZER = \
                                            optimizer_params=DEFAULT_TESTING_CHANGES_AWARE_OPTIMIZER_SETTINGS,
                                            statistics_collector_params=StatisticsCollectorParameters(
                                             statistics_types=[StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]),
-                                           statistics_updates_time_window=timedelta(seconds=0.05))
+                                           statistics_updates_wait_time=timedelta(seconds=0.05))
 
 
 """
@@ -164,7 +164,7 @@ DEFAULT_TESTING_SIMULTANEOUS_EVALUATION_MECHANISM_SETTINGS_AND_GREEDY_INVARIANT_
                                            evaluation_type=TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION,
                                            statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
                                            optimizer_params=DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS,
-                                           statistics_updates_time_window=timedelta(seconds=0.001))
+                                           statistics_updates_wait_time=timedelta(seconds=0.001))
 
 
 """
@@ -180,4 +180,4 @@ DEFAULT_TESTING_SIMULTANEOUS_EVALUATION_MECHANISM_SETTINGS_AND_ZSTRREAM_INVARIAN
                                            evaluation_type=TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION,
                                            statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
                                            optimizer_params=DEFAULT_TESTING_ZSTREAM_INVARIANT_OPTIMIZER_SETTINGS,
-                                           statistics_updates_time_window=timedelta(seconds=0.01))
+                                           statistics_updates_wait_time=timedelta(seconds=0.01))

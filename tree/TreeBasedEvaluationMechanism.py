@@ -1,7 +1,7 @@
+from abc import ABC
 from typing import Dict
 from base.DataFormatter import DataFormatter
 from base.Event import Event
-from misc.Statistics import calculate_selectivity_matrix
 from plan.TreePlan import TreePlan
 from stream.Stream import InputStream, OutputStream
 from misc.Utils import *
@@ -17,7 +17,7 @@ from datetime import timedelta
 from optimizer import Optimizer
 
 
-class TreeBasedEvaluationMechanism(EvaluationMechanism):
+class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
     """
     An implementation of the tree-based evaluation mechanism.
     """
@@ -63,16 +63,17 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         count = 0
 
         for raw_event in events:
+            count += 1
             event = Event(raw_event, data_formatter)
             if event.type not in self._event_types_listeners.keys():
                 continue
             self.__remove_expired_freezers(event)
-            count += 1
+
             if not self.__is_multi_pattern_mode:  # Note: multi-pattern does not yet support adaptive-CEP,
                 # this condition is necessary for the multi-pattern tests and nothing more
                 # TODO: evaluation mechanism factory needs to support multi-pattern mode
                 self.__statistics_collector.event_handler(event)
-                if not statistics_update_start_time or event.timestamp - statistics_update_start_time >= self.__statistics_update_time_window:
+                if not statistics_update_start_time or event.timestamp - statistics_update_start_time > self.__statistics_update_time_window:
                     if self._is_need_new_statistics():
                         new_statistics = self.__statistics_collector.get_statistics()
                         if self.__optimizer.is_need_optimize(new_statistics, self._pattern):
@@ -84,19 +85,19 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
             self._play_new_event_on_tree(event, matches)
             self._get_matches(matches)
-            # print(count)
 
-        self._get_last_matches(matches)
+        # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
+        # collect them now
+        self._get_last_pending_matches(matches)
         matches.close()
 
-    def _get_last_matches(self, matches):
+    def _get_last_pending_matches(self, matches):
         raise NotImplementedError("Must override")
 
     @staticmethod
     def _collect_pending_matches(tree, matches):
         """
-        Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
-        collect them now
+        Collects the pending matches from the tree
         """
         for match in tree.get_last_matches():
             matches.add_item(match)
@@ -106,23 +107,35 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         Lets the tree handle the event
         """
         for leaf in event_types_listeners[event.type]:
-            if self.__should_ignore_events_on_leaf(leaf, event_types_listeners):
+            if self._should_ignore_events_on_leaf(leaf, event_types_listeners):
                 continue
             self.__try_register_freezer(event, leaf)
             leaf.handle_event(event)
 
     def _get_matches(self, matches: OutputStream):
+        """
+        Collects the ready matches
+        """
         for match in self._tree.get_matches():
             matches.add_item(match)
             self._remove_matched_freezers(match.events)
 
     def _tree_update(self, new_tree: Tree, event: Event):
+        """
+
+        """
         raise NotImplementedError("Must override")
 
     def _is_need_new_statistics(self):
+        """
+
+        """
         raise NotImplementedError("Must override")
 
     def _play_new_event_on_tree(self, event: Event, matches: OutputStream):
+        """
+
+        """
         raise NotImplementedError("Must override")
 
     @staticmethod
@@ -159,7 +172,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
             if len(current_event_name_set) > 0:
                 self.__freeze_map[freezer_event_name] = current_event_name_set
 
-    def __should_ignore_events_on_leaf(self, leaf: LeafNode, event_types_listeners):
+    def _should_ignore_events_on_leaf(self, leaf: LeafNode, event_types_listeners):
         """
         If the 'freeze' consumption policy is enabled, checks whether the given event should be dropped based on it.
         """

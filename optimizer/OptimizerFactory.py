@@ -3,7 +3,7 @@ from misc.OptimizerTypes import OptimizerTypes
 from misc import DefaultConfig
 from misc.StatisticsTypes import StatisticsTypes
 from optimizer import Optimizer
-from optimizer.ChangesAwareFactory import ChangesAwareTesterFactory
+from optimizer.ChangesAwareFactory import DeviationAwareTesterFactory
 from plan.InvariantLeftDeepTreeBuilder import InvariantAwareGreedyTreeBuilder
 from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
@@ -30,15 +30,15 @@ class TrivialOptimizerParameters(OptimizerParameters):
         super().__init__(OptimizerTypes.TRIVIAL, tree_plan_params)
 
 
-class StatisticChangesAwareOptimizerParameters(OptimizerParameters):
+class StatisticsDeviationAwareOptimizerParameters(OptimizerParameters):
     """
-    Parameters for the creation of StatisticChangesAwareOptimizer class.
+    Parameters for the creation of StatisticDeviationAwareOptimizer class.
     """
 
     def __init__(self, tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
                  statistics_types: List[StatisticsTypes] or StatisticsTypes = DefaultConfig.DEFAULT_STATISTICS_TYPE,
                  t: float = DefaultConfig.THRESHOLD):
-        super().__init__(OptimizerTypes.CHANGES_AWARE, tree_plan_params)
+        super().__init__(OptimizerTypes.STATISTICS_DEVIATION_AWARE, tree_plan_params)
         if isinstance(statistics_types, StatisticsTypes):
             statistics_types = [statistics_types]
         self.statistics_types = statistics_types
@@ -72,14 +72,14 @@ class OptimizerFactory:
         if optimizer_parameters.type == OptimizerTypes.TRIVIAL:
             return Optimizer.TrivialOptimizer(tree_plan_builder)
 
-        if optimizer_parameters.type == OptimizerTypes.CHANGES_AWARE:
+        if optimizer_parameters.type == OptimizerTypes.STATISTICS_DEVIATION_AWARE:
             t = optimizer_parameters.t
             type_to_changes_aware_tester_map = {}
             for stat_type in optimizer_parameters.statistics_types:
-                changes_aware_tester = ChangesAwareTesterFactory.create_changes_aware_tester(stat_type, t)
-                type_to_changes_aware_tester_map[stat_type] = changes_aware_tester
+                deviation_aware_tester = DeviationAwareTesterFactory.create_deviation_aware_tester(stat_type, t)
+                type_to_changes_aware_tester_map[stat_type] = deviation_aware_tester
 
-            return Optimizer.StatisticsChangesAwareOptimizer(tree_plan_builder, type_to_changes_aware_tester_map)
+            return Optimizer.StatisticsDeviationAwareOptimizer(tree_plan_builder, type_to_changes_aware_tester_map)
 
         if optimizer_parameters.type == OptimizerTypes.USING_INVARIANT:
             if isinstance(tree_plan_builder, InvariantTreePlanBuilder):
@@ -94,8 +94,8 @@ class OptimizerFactory:
         """
         if DefaultConfig.DEFAULT_OPTIMIZER_TYPE == OptimizerTypes.TRIVIAL:
             return TrivialOptimizerParameters()
-        if DefaultConfig.DEFAULT_OPTIMIZER_TYPE == OptimizerTypes.CHANGES_AWARE:
-            return StatisticChangesAwareOptimizerParameters()
+        if DefaultConfig.DEFAULT_OPTIMIZER_TYPE == OptimizerTypes.STATISTICS_DEVIATION_AWARE:
+            return StatisticsDeviationAwareOptimizerParameters()
         if DefaultConfig.DEFAULT_OPTIMIZER_TYPE == OptimizerTypes.USING_INVARIANT:
             return InvariantsAwareOptimizerParameters()
 

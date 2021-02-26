@@ -9,7 +9,7 @@ from statistics_collector.StatisticsFactory import StatisticsFactory
 
 class StatisticsCollectorParameters:
 
-    def __init__(self, time_window: timedelta = DefaultConfig.TIME_WINDOW, statistics_types: StatisticsTypes or List[StatisticsTypes] = DefaultConfig.DEFAULT_STATISTICS_TYPE):
+    def __init__(self, time_window: timedelta = DefaultConfig.STATISTICS_TIME_WINDOW, statistics_types: StatisticsTypes or List[StatisticsTypes] = DefaultConfig.DEFAULT_STATISTICS_TYPE):
         if isinstance(statistics_types, StatisticsTypes):
             statistics_types = [statistics_types]
         self.statistics_types = statistics_types

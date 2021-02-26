@@ -198,6 +198,14 @@ class NegationNode(BinaryNode, ABC):
         v2 = self._negative_subtree.is_equivalent(other.get_right_subtree())
         return v1 and v2
 
+    # TODO: comment
+    def get_pending_partial_matches(self):
+        return self.__pending_partial_matches
+
+    # TODO: comment
+    def set_pending_partial_matches(self, pending_partial_matches: List[PatternMatch]):
+        self.__pending_partial_matches = pending_partial_matches
+
 
 class NegativeAndNode(NegationNode):
     """

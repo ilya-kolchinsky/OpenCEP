@@ -1,6 +1,5 @@
 import heapq
 from datetime import datetime
-
 from base.Event import Event
 from stream.Stream import OutputStream
 from tree.Tree import Tree
@@ -11,15 +10,21 @@ class TrivialEvaluation(TreeBasedEvaluationMechanism):
 
     def _tree_update(self, new_tree: Tree, tree_update_time: datetime):
         old_events = self.__get_all_old_events()
+        old_tree = self._tree
         self._tree = new_tree
+
         self._event_types_listeners = self._register_event_listeners(new_tree)
         self.__play_old_events_on_tree(old_events)
 
-        # If there are new matches that have already been written
-        # to a file then all we want is to avoid duplications.
-        # the loop over get_matches() takes out the duplicate matches.
+        # Passes pending matches from the old tree to the new tree if the root is a NegationNode
+        old_pending_matches = old_tree.get_last_matches()
+        if old_pending_matches:
+            self._tree.set_pending_matches(old_pending_matches)
+
+        # To avoid duplicate matches, flushes the matches from the new tree that have already been written
         for _ in self._tree.get_matches():
             pass
+
 
     def __get_all_old_events(self):
         old_pattern_matches_events = []  # todo check the name
@@ -53,5 +58,6 @@ class TrivialEvaluation(TreeBasedEvaluationMechanism):
     def _play_new_event_on_tree(self, event: Event, matches: OutputStream):
         self._play_new_event(event, self._event_types_listeners)
 
-    def _get_last_matches(self, matches):
+    def _get_last_pending_matches(self, matches):
         super()._collect_pending_matches(self._tree, matches)
+

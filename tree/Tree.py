@@ -212,6 +212,25 @@ class Tree:
         # the pending matches were released and have hopefully reached the root
         return self.get_matches()
 
+    # # TODO: comment
+    # def get_pending_matches(self):
+    #     if not isinstance(self.__root, NegationNode):
+    #         return []
+    #     # this is the node that contains the pending matches
+    #     first_unbounded_negative_node = self.__root.get_first_unbounded_negative_node()
+    #     if first_unbounded_negative_node is None:
+    #         return []
+    #     return first_unbounded_negative_node.get_pending_partial_matches()
+
+    # TODO: comment
+    def set_pending_matches(self, pending_matches):
+        if not isinstance(self.__root, NegationNode):
+            return
+        first_unbounded_negative_node = self.__root.get_first_unbounded_negative_node()
+        if not first_unbounded_negative_node:
+            return
+        first_unbounded_negative_node.set_pending_partial_matches(pending_matches)
+
     @staticmethod
     def __create_nested_structure(nested_operator: PatternStructure):
         """

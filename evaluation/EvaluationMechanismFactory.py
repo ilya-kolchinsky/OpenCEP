@@ -35,12 +35,12 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
                  evaluation_type: TreeEvaluationMechanismTypes = DefaultConfig.DEFAULT_TREE_EVALUATION_MECHANISM_TYPE,
                  statistics_collector_params: StatisticsCollectorParameters = StatisticsCollectorParameters(),
                  optimizer_params: OptimizerParameters = OptimizerParameters(),
-                 statistics_updates_time_window: timedelta = DefaultConfig.STATISTICS_UPDATES_TIME_WINDOW):
+                 statistics_updates_wait_time: timedelta = DefaultConfig.STATISTICS_UPDATES_WAIT_TIME):
         super().__init__(EvaluationMechanismTypes.TREE_BASED, statistics_collector_params, optimizer_params)
         self.storage_params = storage_params
         self.multi_pattern_eval_params = multi_pattern_eval_params
         self.evaluation_type = evaluation_type
-        self.statistics_updates_time_window = statistics_updates_time_window
+        self.statistics_updates_time_window = statistics_updates_wait_time
 
 
 class EvaluationMechanismFactory:
