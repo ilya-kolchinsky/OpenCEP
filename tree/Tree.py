@@ -153,8 +153,7 @@ class Tree:
                     consumption_policy.should_register_event_type_as_single(False, event.type):
                 parent.register_single_event_type(event.type)
             return LeafNode(sliding_window, tree_plan_leaf.event_index, event, parent)
-
-        if isinstance(current_operator, UnaryStructure):
+        elif isinstance(current_operator, UnaryStructure):
             # the current operator is a unary operator hiding a nested pattern structure
             unary_node = self.__create_internal_node_by_operator(current_operator, sliding_window, parent)
             nested_operator = current_operator.arg
@@ -163,6 +162,8 @@ class Tree:
                                           consumption_policy)
             unary_node.set_subtree(child)
             return unary_node
+        else:
+            raise Exception("Unknown primitive event")
 
     def __construct_tree(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
                          args: List[PatternStructure], sliding_window: timedelta, parent: Node,
