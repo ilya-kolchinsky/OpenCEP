@@ -4,6 +4,7 @@ from parallel.ParallelExecutionParameters import *
 from parallel.PlatformFactory import PlatformFactory
 from parallel.manager.EvaluationManager import EvaluationManager
 
+
 class ParallelEvaluationManager(EvaluationManager, ABC):
     """
     An abstract base class for all parallel evaluation managers.

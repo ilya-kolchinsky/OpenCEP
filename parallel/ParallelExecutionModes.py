@@ -5,7 +5,7 @@ class ParallelExecutionModes(Enum):
     """
     Types of parallel processing modes supported by the system.
     """
-    SEQUENTIAL = 0 # no parallelism
+    SEQUENTIAL = 0  # no parallelism
 
     # TODO: not yet implemented
     DATA_PARALLELISM = 1
@@ -16,6 +16,6 @@ class ParallelExecutionModes(Enum):
 
 class DataParallelExecutionModes(Enum):
 
-    HirzelAlgorithm = 1
-    RIPAlgorithm = 2
-    HyperCubeAlgorithm = 3
+    HIRZEL_ALGORITHM = 1
+    RIP_ALGORITHM = 2
+    HYPER_CUBE_ALGORITHM = 3

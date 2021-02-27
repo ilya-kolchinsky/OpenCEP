@@ -1,4 +1,3 @@
-
 """
  Data parallel algoritms
 """
@@ -6,33 +5,33 @@ from abc import ABC
 from stream.DataParallelStream import *
 from stream.Stream import Stream
 import math
-
 from base.Pattern import Pattern
-from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters, EvaluationMechanismFactory
+from evaluation.EvaluationMechanismFactory import \
+    EvaluationMechanismParameters, EvaluationMechanismFactory
 from base.DataFormatter import DataFormatter
 from queue import Queue
-
 from base.PatternMatch import *
-
 import time
 from threading import Lock
 
 
+class MakeTree:
 
-def _make_tree(patterns: Pattern or List[Pattern],
-               eval_mechanism_params: EvaluationMechanismParameters):
-    if isinstance(patterns, Pattern):
-        patterns = [patterns]
-    if len(patterns) > 1:
-        tree = EvaluationMechanismFactory.build_multi_pattern_eval_mechanism(
-            eval_mechanism_params,
-            patterns)
-    else:
-        tree = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(
-            eval_mechanism_params,
-            patterns[0])
+    @staticmethod
+    def make_tree(patterns: Pattern or List[Pattern],
+                   eval_mechanism_params: EvaluationMechanismParameters):
+        if isinstance(patterns, Pattern):
+            patterns = [patterns]
+        if len(patterns) > 1:
+            tree_eval = EvaluationMechanismFactory.build_multi_pattern_eval_mechanism(
+                eval_mechanism_params,
+                patterns)
+        else:
+            tree_eval = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(
+                eval_mechanism_params,
+                patterns[0])
 
-    return tree
+        return tree_eval
 
 
 class DataParallelAlgorithm(ABC):
@@ -41,24 +40,28 @@ class DataParallelAlgorithm(ABC):
     """
 
     def __init__(self, units_number, patterns: Pattern or List[Pattern],
-                 eval_mechanism_params: EvaluationMechanismParameters, platform):
+                 eval_mechanism_params: EvaluationMechanismParameters,
+                 platform):
         self._platform = platform
+        self._data_formatter = None
         self._units_number = units_number
         self._units = []
-        self._trees = []
+        self._eval_trees = []
         self._events = None
         self._events_list = []
-        self._stream_unit = platform.create_parallel_execution_unit(unit_id=self._units_number - 1, callback_function=self._stream_divide)
+        self._stream_unit = platform.create_parallel_execution_unit(
+            unit_id=self._units_number - 1,
+            callback_function=self._stream_divide)
         self._matches = None
-        self._patterns = patterns
+        self._patterns = [patterns] if isinstance(patterns, Pattern) else \
+            patterns
 
         for i in range(0, self._units_number - 1):
-            self._trees.append(_make_tree(patterns, eval_mechanism_params))
+            self._eval_trees.append(EvaluationMechanismFactory.build_eval_mechanism(eval_mechanism_params, patterns))
             self._events_list.append(Stream())
 
-
-
-    def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+    def eval_algorithm(self, events: InputStream, matches: OutputStream,
+                       data_formatter: DataFormatter):
         """
             Activates the algorithm evaluation mechanism
         """
@@ -67,9 +70,12 @@ class DataParallelAlgorithm(ABC):
         self._matches = matches
         self._stream_unit.start()
         for i in range(self._units_number - 1):
-            t = self._platform.create_parallel_execution_unit(unit_id=i, callback_function=self._eval_thread, thread_id=i, data_formatter=data_formatter)
-            self._units.append(t)
-            t.start()
+            thread = self._platform.create_parallel_execution_unit(unit_id=i,
+                                                              callback_function=self._eval_thread,
+                                                              thread_id=i,
+                                                              data_formatter=data_formatter)
+            self._units.append(thread)
+            thread.start()
 
     def _eval_tread(self):
         """
@@ -84,20 +90,25 @@ class DataParallelAlgorithm(ABC):
         raise NotImplementedError()
 
     def get_structure_summary(self):
-        return self._trees[0].get_structure_summary()
+        return self._eval_trees[0].get_structure_summary()
 
-class HirzelAlgorithm(DataParallelAlgorithm):
+
+class HirzelAlgorithm(DataParallelAlgorithm, ABC):
     """
         A class for data parallel evaluation Hirzel algorithm
     """
+
     def __init__(self, units_number, patterns: Pattern or List[Pattern],
-                 eval_mechanism_params: EvaluationMechanismParameters, platform, key: str):
-        super().__init__(units_number, patterns, eval_mechanism_params, platform)
+                 eval_mechanism_params: EvaluationMechanismParameters,
+                 platform, key: str):
+        super().__init__(units_number, patterns, eval_mechanism_params,
+                         platform)
         self.key = key
 
-    def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+    def eval_algorithm(self, events: InputStream, matches: OutputStream,
+                       data_formatter: DataFormatter):
 
-        event = Event(events.first(),data_formatter)
+        event = Event(events.first(), data_formatter)
         key_val = event.payload[self.key]
         if not isinstance(key_val, (int, float)):
             raise Exception("key %s has no numeric value" % (self.key,))
@@ -107,7 +118,6 @@ class HirzelAlgorithm(DataParallelAlgorithm):
             t.wait()
 
         self._matches.close()
-
 
     def _stream_divide(self):
 
@@ -120,16 +130,21 @@ class HirzelAlgorithm(DataParallelAlgorithm):
             stream.close()
 
     def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
-        self._trees[thread_id].eval(self._events_list[thread_id], self._matches, data_formatter, False)
+        self._eval_trees[thread_id].eval(self._events_list[thread_id],
+                                         self._matches, data_formatter, False)
 
-class RIPAlgorithm(DataParallelAlgorithm):
+
+class RIPAlgorithm(DataParallelAlgorithm, ABC):
     """
         A class for  data parallel evaluation RIP algorithm
     """
-    def __init__(self, units_number, patterns: Pattern or List[Pattern],
-                 eval_mechanism_params: EvaluationMechanismParameters, platform, mult):
 
-        super().__init__(units_number, patterns, eval_mechanism_params, platform)
+    def __init__(self, units_number, patterns: Pattern or List[Pattern],
+                 eval_mechanism_params: EvaluationMechanismParameters,
+                 platform, multiple):
+
+        super().__init__(units_number, patterns, eval_mechanism_params,
+                         platform)
         self._eval_mechanism_params = eval_mechanism_params
         self._matches_handler = Stream()
         self._init_time = None
@@ -140,18 +155,19 @@ class RIPAlgorithm(DataParallelAlgorithm):
         for k in range(1, len(patterns)):
             if patterns[k].window > max_window:
                 max_window = patterns[k].window
-        if mult <2:
+        if multiple < 2:
             raise Exception("Time window is too small")
-        self.time_slot = mult * max_window
-        self.shared_time = max_window
-        self.start_list = [Stream() for j in range(self._units_number - 1)]
-        self.start_queue = Queue()
-        self.streams_queue = Queue()
-        self.thread_pool = Queue()
-        self.base_year = 0
+        self.__time_slot = multiple * max_window
+        self.__shared_time = max_window
+        self.__start_list = [Stream() for _ in
+                             range(self._units_number - 1)]
+        self.__start_queue = Queue()
+        self.__streams_queue = Queue()
+        self.__thread_pool = Queue()
+        # self.base_year = 0
 
         for i in range(units_number - 1):
-            self.thread_pool.put(i)
+            self.__thread_pool.put(i)
 
         self._mutex = Queue()
 
@@ -164,7 +180,7 @@ class RIPAlgorithm(DataParallelAlgorithm):
             raise Exception("Stream has no data")
 
         curr_time = start_time = cur_event.timestamp
-        end_time = start_time + self.time_slot
+        end_time = start_time + self.__time_slot
         stream_s = Stream()
         check_data = True
 
@@ -173,51 +189,51 @@ class RIPAlgorithm(DataParallelAlgorithm):
             stream_s = Stream()
             while curr_time <= end_time and check_data:
                 stream.add_item(event_raw)
-                if curr_time >= end_time - self.shared_time:
+                if curr_time >= end_time - self.__shared_time:
                     stream_s.add_item(event_raw)
                 try:
                     event_raw = self._events.get_item()
                     cur_event = Event(event_raw, self._data_formatter)
                     curr_time = cur_event.timestamp
-                except:
+                except StopIteration:
                     check_data = False
             stream.close()
             if stream.count() > 0:
-                self.streams_queue.put_nowait(stream.duplicate())
-                self.start_queue.put_nowait(start_time)
-            start_time = end_time - self.shared_time
-            end_time = start_time + self.time_slot
+                self.__streams_queue.put_nowait(stream.duplicate())
+                self.__start_queue.put_nowait(start_time)
+            start_time = end_time - self.__shared_time
+            end_time = start_time + self.__time_slot
             ##########
-            while not self.thread_pool.empty() and not self.streams_queue.empty():
-                id = self.thread_pool.get()
-                self._events_list[id] = self.streams_queue.get_nowait().duplicate()  # stream of input data
-                self.start_list[id].add_item(self.start_queue.get_nowait())
+            while not self.__thread_pool.empty() and not self.__streams_queue.empty():
+                thread_id = self.__thread_pool.get()
+                self._events_list[thread_id] = self.__streams_queue.get_nowait().duplicate()  # stream of input data
+                self.__start_list[thread_id].add_item(self.__start_queue.get_nowait())
 
-        while not self.streams_queue.empty():
-            id = self.thread_pool.get()
-            self._events_list[id] = self.streams_queue.get_nowait().duplicate()  # stream of input data
-            self.start_list[id].add_item(self.start_queue.get_nowait())
+        while not self.__streams_queue.empty():
+            thread_id = self.__thread_pool.get()
+            self._events_list[thread_id] = self.__streams_queue.get_nowait().duplicate()  # stream of input data
+            self.__start_list[thread_id].add_item(self.__start_queue.get_nowait())
 
         # finished to divide the data
         for i in range(0, self._units_number - 1):
-            self.start_list[i].close()
+            self.__start_list[i].close()
 
-        while self._mutex.qsize() < self._units_number-1:
+        while self._mutex.qsize() < self._units_number - 1:
             time.sleep(0.01)
 
         self._matches_handler.close()
 
-
     def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
 
-        for start_time in self.start_list[thread_id]:
-            shared_time1 = start_time + self.shared_time
-            shared_time2 = start_time + self.time_slot - self.shared_time
-            self._trees[thread_id].eval_parallel(self._events_list[thread_id], self._matches_handler, data_formatter, shared_time1, shared_time2)
-            self._trees[thread_id] = _make_tree(self._patterns, self._eval_mechanism_params)
-            self.thread_pool.put(thread_id)
+        for start_time in self.__start_list[thread_id]:
+            shared_time1 = start_time + self.__shared_time
+            shared_time2 = start_time + self.__time_slot - self.__shared_time
+            self._eval_trees[thread_id].eval_parallel(
+                self._events_list[thread_id], self._matches_handler,
+                data_formatter, shared_time1, shared_time2)
+            self._eval_trees[thread_id] = EvaluationMechanismFactory.build_eval_mechanism(self._eval_mechanism_params, self._patterns)
+            self.__thread_pool.put(thread_id)
         self._mutex.put(1)
-
 
     def _match_to_output(self):
         duplicated = set()
@@ -231,19 +247,15 @@ class RIPAlgorithm(DataParallelAlgorithm):
             else:
                 self._matches.add_item(match)
 
-
-    def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+    def eval_algorithm(self, events: InputStream, matches: OutputStream,
+                       data_formatter: DataFormatter):
 
         super().eval_algorithm(events, matches, data_formatter)
-        # for t in self._threads:
-        #     t.wait()
         count = 0
         check_duplicated = list()
-
-
         for match, is_duplicated in self._matches_handler:
-            count+=1
-            if is_duplicated: #duplicated
+            count += 1
+            if is_duplicated:  # duplicated
                 if match.__str__() in check_duplicated:
                     check_duplicated.remove(match.__str__())
                 else:
@@ -255,24 +267,29 @@ class RIPAlgorithm(DataParallelAlgorithm):
         self._matches.close()
 
 
-class HyperCubeAlgorithm(DataParallelAlgorithm):
+class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
     """
            A class for data parallel evaluation HyperCube algorithm
        """
-    def __init__(self, threadsNum, patterns: Pattern or List[Pattern],
-                 eval_mechanism_params: EvaluationMechanismParameters, platform, attributes_dict: dict):
-        super().__init__(threadsNum, patterns, eval_mechanism_params, platform)
+
+    def __init__(self, threads_num, patterns: Pattern or List[Pattern],
+                 eval_mechanism_params: EvaluationMechanismParameters,
+                 platform, attributes_dict: dict):
+        super().__init__(threads_num, patterns, eval_mechanism_params,
+                         platform)
         self.attributes_dict = attributes_dict
-        self.types=[]
+        self.types = []
         for pattern in patterns:
-            self.types.extend(list(pattern.get_all_event_types_with_duplicates()))
-        self.groups_num = math.ceil((self._units_number - 1) ** (1 / len(self.types)))
+            self.types.extend(
+                list(pattern.get_all_event_types_with_duplicates()))
+        self.groups_num = math.ceil(
+            (self._units_number - 1) ** (1 / len(self.types)))
         self._matches_handler = Stream()
         self.finished_threads = [0]
-        self.mutex=Lock()
+        self.mutex = Lock()
 
-
-    def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+    def eval_algorithm(self, events: InputStream, matches: OutputStream,
+                       data_formatter: DataFormatter):
         super().eval_algorithm(events, matches, data_formatter)
         check_duplicated = list()
 
@@ -282,7 +299,6 @@ class HyperCubeAlgorithm(DataParallelAlgorithm):
                 check_duplicated.append(match.__str__())
         self._matches.close()
 
-
     def _stream_divide(self):
         for event_raw in self._events:
             event = Event(event_raw, self._data_formatter)
@@ -290,48 +306,49 @@ class HyperCubeAlgorithm(DataParallelAlgorithm):
             if event_type not in self.types:
                 continue
             if event_type not in self.attributes_dict.keys():
-                raise Exception("%s has no matching attribute" % event_type)
+                raise Exception(
+                    "%s has no matching attribute" % event_type)
             for index in range(len(self.attributes_dict[event_type])):
                 event_attribute = self.attributes_dict[event_type][index]
                 attribute_val = event.payload[event_attribute]
                 if not isinstance(attribute_val, (int, float)):
-                    raise Exception("Attribute %s has no numeric value" % event_attribute)
-                group_index = int(attribute_val % (self.groups_num))
-                type_index = self._finding_type_index_considering_duplications(index,event_type)
-                leg_size = self.groups_num**type_index
-                new_start = (group_index)*leg_size
-                jump = leg_size*(self.groups_num-1)+1
+                    raise Exception(
+                        "Attribute %s has no numeric value" % event_attribute)
+                group_index = int(attribute_val % self.groups_num)
+                type_index = self._finding_type_index_considering_duplications(
+                    index, event_type)
+                leg_size = self.groups_num ** type_index
+                new_start = group_index * leg_size
+                jump = leg_size * (self.groups_num - 1) + 1
                 j = new_start
                 while j < (self._units_number - 1):
                     self._events_list[j].add_item(event_raw)
-                    leg_size-=1
+                    leg_size -= 1
                     if leg_size == 0:
-                        j+=jump
+                        j += jump
                         leg_size = self.groups_num ** type_index
                     else:
-                        j+=1
+                        j += 1
         for stream in self._events_list:
             stream.close()
-        while self.finished_threads[0]!= (self._units_number - 1):
+        while self.finished_threads[0] != (self._units_number - 1):
             time.sleep(0.0001)
         self._matches_handler.close()
 
-
-
     def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
-        self._trees[thread_id].eval(self._events_list[thread_id], self._matches_handler, data_formatter,
-                                    False,self.finished_threads,self.mutex)
+        self._eval_trees[thread_id].eval(self._events_list[thread_id],
+                                         self._matches_handler, data_formatter,
+                                         False, self.finished_threads,
+                                         self.mutex)
 
-
-
-    def _finding_type_index_considering_duplications(self,index_among_type,event_type) :
-        count=0
-        i=0
+    def _finding_type_index_considering_duplications(self,
+                                                     index_among_type,
+                                                     event_type):
+        count = 0
+        i = 0
         while list(self.attributes_dict.keys())[i] != event_type:
             key = list(self.attributes_dict.keys())[i]
-            count+=len(self.attributes_dict[key])
-            i+=1
-        count+=index_among_type
+            count += len(self.attributes_dict[key])
+            i += 1
+        count += index_among_type
         return count
-
-

@@ -1,11 +1,11 @@
-
+from parallel.ParallelExcecutionAlgorithmsFactory import \
+    ParallelExecutionAlgorithmsFactory
 from parallel.manager.ParallelEvaluationManager import ParallelEvaluationManager
 from typing import List
 from base.Pattern import Pattern
-from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters, EvaluationMechanismFactory
+from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from stream.DataParallelStream import *
 from base.DataFormatter import DataFormatter
-from parallel.PlatformFactory import PlatformFactory
 from parallel.ParallelExecutionParameters import *
 
 
@@ -20,7 +20,7 @@ class DataParallelEvaluationManager(ParallelEvaluationManager):
         super().__init__(parallel_execution_params)
         self.__mode = parallel_execution_params.algorithm
         self.__numThreads = parallel_execution_params.units_number
-        self.__algorithm = PlatformFactory.create_data_parallel_evaluation_manager(parallel_execution_params, patterns, eval_mechanism_params, self._platform)
+        self.__algorithm = ParallelExecutionAlgorithmsFactory.create_data_parallel_evaluation(parallel_execution_params, patterns, eval_mechanism_params, self._platform)
         self.__pattern_matches = None
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):

@@ -16,9 +16,9 @@ class PatternMatch:
         self.pattern_ids = []
 
     def __eq__(self, other):
-        # return isinstance(other, PatternMatch) and set(self.events) == set(other.events) and \
-        #        self.pattern_ids == other.pattern_ids
-        return isinstance(other, PatternMatch) and set(self.events) == set(other.events)
+        return isinstance(other, PatternMatch) and set(self.events) == set(other.events) and \
+                self.pattern_ids == other.pattern_ids
+
     def __str__(self):
         result = ""
         match = ""

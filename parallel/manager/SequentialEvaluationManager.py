@@ -9,7 +9,6 @@ from parallel.manager.EvaluationManager import EvaluationManager
 from stream.Stream import InputStream, OutputStream
 from base.Pattern import Pattern
 from base.DataFormatter import DataFormatter
-
 from typing import List
 
 

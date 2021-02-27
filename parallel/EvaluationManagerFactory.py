@@ -2,10 +2,8 @@
 This file contains the class responsible for evaluation manager initialization.
 """
 from typing import List
-
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
-from parallel.ParallelExecutionModes import ParallelExecutionModes
 from parallel.ParallelExecutionParameters import *
 from parallel.manager.SequentialEvaluationManager import SequentialEvaluationManager
 from parallel.manager.DataParallelEvaluationManager import DataParallelEvaluationManager

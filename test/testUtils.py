@@ -29,8 +29,6 @@ nasdaqEventStreamFrequencyTailored = FileInputStream(os.path.join(absolutePath, 
 nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
 nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
 nasdaqEventStreamEquals = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_EQUALS.txt"))
-
-
 nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt"))
 custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"))
 custom2 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom2.txt"))
@@ -208,8 +206,7 @@ def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
 
 def runTest(testName, patterns, createTestFile=False,
             eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events=None, eventStream = nasdaqEventStream, parallel_execution_params=None,
-            data_parallel_params=None
+            events=None, eventStream = nasdaqEventStream, parallel_execution_params=None
             ):
     if createTestFile:
         createTest(testName, patterns, events, eventStream=eventStream)
@@ -233,7 +230,7 @@ def runTest(testName, patterns, createTestFile=False,
     elif testName == "NotEverywhere":
         events = custom3.duplicate()
 
-    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, data_parallel_params)
+    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params)
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
@@ -307,8 +304,7 @@ success or fail output.
 def runMultiTest(testName, patterns, createTestFile=False,
                  eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                  events=None, eventStream=nasdaqEventStream,
-                 parallel_execution_params: ParallelExecutionParameters = None,
-                 data_parallel_params: DataParallelExecutionParameters = None
+                 parallel_execution_params: ParallelExecutionParameters = None
                  ):
     if events is None:
         events = eventStream.duplicate()
@@ -334,7 +330,7 @@ def runMultiTest(testName, patterns, createTestFile=False,
     if createTestFile:
         createExpectedOutput(testName, patterns, eval_mechanism_params, events.duplicate(), eventStream)
 
-    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, data_parallel_params)
+    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params)
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
@@ -367,8 +363,7 @@ class DummyOutputStream(OutputStream):
 
 
 def runBenchMark(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS, events=None,
-                 parallel_execution_params: ParallelExecutionParameters = None,
-                 data_parallel_params: DataParallelExecutionParameters = None
+                 parallel_execution_params: ParallelExecutionParameters = None
                  ):
     """
     this runs a bench mark ,since some outputs for benchmarks are very large,
@@ -378,7 +373,7 @@ def runBenchMark(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALU
         events = nasdaqEventStream.duplicate()
     else:
         events = events.duplicate()
-    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, data_parallel_params  )
+    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params)
     running_time = cep.run(events, DummyOutputStream(), DEFAULT_TESTING_DATA_FORMATTER)
     print("Bench Mark %s completed, Time Passed: %s" % (testName, running_time))
     runTest.over_all_time += running_time
@@ -386,11 +381,9 @@ def runBenchMark(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALU
 
 def runStructuralTest(testName, patterns, expected_result,
                       eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                      parallel_execution_params: ParallelExecutionParameters = None,
-                      data_parallel_params: DataParallelExecutionParameters = None
-                      ):
+                      parallel_execution_params: ParallelExecutionParameters = None):
     # print('{} is a test to check the tree structure, without actually running a test'.format(testName))
     # print('place a breakpoint after creating the CEP object to debug it.\n')
-    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params, data_parallel_params)
+    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params)
     structure_summary = cep.get_evaluation_mechanism_structure_summary()
     print("Test %s result: %s" % (testName, "Succeeded" if structure_summary == expected_result else "Failed"))

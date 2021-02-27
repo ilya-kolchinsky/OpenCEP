@@ -34,6 +34,14 @@ class EvaluationMechanismFactory:
     """
     Creates an evaluation mechanism given its specification.
     """
+    @staticmethod
+    def build_eval_mechanism(eval_mechanism_params: EvaluationMechanismParameters,
+                                            patterns: Pattern):
+        if eval_mechanism_params is None:
+            eval_mechanism_params = EvaluationMechanismFactory.__create_default_eval_parameters()
+        if eval_mechanism_params.type == EvaluationMechanismTypes.TREE_BASED:
+            return EvaluationMechanismFactory.__create_tree_based_eval_mechanism(eval_mechanism_params, patterns)
+        raise Exception("Unknown evaluation mechanism type: %s" % (eval_mechanism_params.type,))
 
     @staticmethod
     def build_single_pattern_eval_mechanism(eval_mechanism_params: EvaluationMechanismParameters,

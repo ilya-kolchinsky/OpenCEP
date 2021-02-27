@@ -197,7 +197,7 @@ def oneArgumentsearchTestRIPAlgorithm(createTestFile=False):
     runTest("one", [pattern], createTestFile,
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(ParallelExecutionModes.DATA_PARALLELISM,
                                                                                   ParallelExecutionPlatforms.THREADING,
-                                                                                  units_number=6,mult=3))
+                                                                                  units_number=6,multiple=3))
 
 def simplePatternSearchTestRIPAlgorithm(createTestFile=False):
     """
@@ -272,7 +272,7 @@ def amazonInstablePatternSearchTestRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 def msftDrivRacePatternSearchTestRIPAlgorithm(createTestFile=False):
     """
@@ -305,7 +305,7 @@ def msftDrivRacePatternSearchTestRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 def googleIncreasePatternSearchTestRIPAlgorithm(createTestFile=False):
@@ -326,7 +326,7 @@ def googleIncreasePatternSearchTestRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 def amazonSpecificPatternSearchTestRIPAlgorithm(createTestFile=False):
@@ -342,7 +342,7 @@ def amazonSpecificPatternSearchTestRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 def googleAmazonLowPatternSearchTestRIPAlgorithm(createTestFile=False):
@@ -366,7 +366,7 @@ def googleAmazonLowPatternSearchTestRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 def nonsensePatternSearchTestRIPAlgorithm(createTestFile=False):
@@ -394,7 +394,7 @@ def nonsensePatternSearchTestRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 def hierarchyPatternSearchTestRIPAlgorithm(createTestFile=False):
@@ -420,7 +420,7 @@ def hierarchyPatternSearchTestRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 def duplicateEventTypeTestRIPAlgorithm(createTestFile=False):
     """
@@ -437,7 +437,7 @@ def duplicateEventTypeTestRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 def structuralTest1RIPAlgorithm():
     """
@@ -466,7 +466,7 @@ def structuralTest1RIPAlgorithm():
                       parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                           ParallelExecutionModes.DATA_PARALLELISM,
                           ParallelExecutionPlatforms.THREADING,
-                          units_number=6,mult=3))
+                          units_number=6,multiple=3))
 
 
 def structuralTest2RIPAlgorithm():
@@ -483,7 +483,7 @@ def structuralTest2RIPAlgorithm():
                       parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                           ParallelExecutionModes.DATA_PARALLELISM,
                           ParallelExecutionPlatforms.THREADING,
-                          units_number=6,mult=3))
+                          units_number=6,multiple=3))
 
 
 def structuralTest3RIPAlgorithm():
@@ -502,7 +502,7 @@ def structuralTest3RIPAlgorithm():
                       parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                           ParallelExecutionModes.DATA_PARALLELISM,
                           ParallelExecutionPlatforms.THREADING,
-                          units_number=6,mult=3))
+                          units_number=6,multiple=3))
 
 
 def structuralTest4RIPAlgorithm():
@@ -521,7 +521,7 @@ def structuralTest4RIPAlgorithm():
                       parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                           ParallelExecutionModes.DATA_PARALLELISM,
                           ParallelExecutionPlatforms.THREADING,
-                          units_number=6,mult=3))
+                          units_number=6,multiple=3))
 
 
 def structuralTest5RIPAlgorithm():
@@ -543,7 +543,7 @@ def structuralTest5RIPAlgorithm():
                       parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                           ParallelExecutionModes.DATA_PARALLELISM,
                           ParallelExecutionPlatforms.THREADING,
-                          units_number=6,mult=3))
+                          units_number=6,multiple=3))
 
 
 def structuralTest6RIPAlgorithm():
@@ -570,7 +570,7 @@ def structuralTest6RIPAlgorithm():
                       parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                           ParallelExecutionModes.DATA_PARALLELISM,
                           ParallelExecutionPlatforms.THREADING,
-                          units_number=6,mult=3))
+                          units_number=6,multiple=3))
 
 
 def structuralTest7RIPAlgorithm():
@@ -615,7 +615,7 @@ def structuralTest7RIPAlgorithm():
                       parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                           ParallelExecutionModes.DATA_PARALLELISM,
                           ParallelExecutionPlatforms.THREADING,
-                          units_number=6,mult=3))
+                          units_number=6,multiple=3))
 
 def MinMax_0_TestKleeneClosureRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
@@ -627,7 +627,7 @@ def MinMax_0_TestKleeneClosureRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 def MinMax_1_TestKleeneClosureRIPAlgorithm(createTestFile=False):
@@ -651,7 +651,7 @@ def MinMax_2_TestKleeneClosureRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 
@@ -677,7 +677,7 @@ def KC_AND_IndexCondition_01_RIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 def KC_AND_IndexCondition_02_RIPAlgorithm(createTestFile=False):
@@ -702,7 +702,7 @@ def KC_AND_IndexCondition_02_RIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 def KC_AND_NegOffSet_01_RIPAlgorithm(createTestFile=False):
     """
@@ -728,7 +728,7 @@ def KC_AND_NegOffSet_01_RIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 def KC_AllValuesRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
@@ -743,7 +743,7 @@ def KC_AllValuesRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 def KC_Specific_ValueRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
@@ -758,7 +758,7 @@ def KC_Specific_ValueRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 
@@ -780,7 +780,7 @@ def KC_MixedRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 
@@ -811,7 +811,7 @@ def leafIsRootRIPAlgorithm(createTestFile = False):
                  parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                      ParallelExecutionModes.DATA_PARALLELISM,
                      ParallelExecutionPlatforms.THREADING,
-                     units_number=6,mult=3))
+                     units_number=6,multiple=3))
 
 
 """
@@ -843,7 +843,7 @@ def distinctPatternsRIPAlgorithm(createTestFile = False):
                  parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                      ParallelExecutionModes.DATA_PARALLELISM,
                      ParallelExecutionPlatforms.THREADING,
-                     units_number=6,mult=3))
+                     units_number=6,multiple=3))
 
 
 """
@@ -889,7 +889,7 @@ def threePatternsTestRIPAlgorithm(createTestFile = False):
                  parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                      ParallelExecutionModes.DATA_PARALLELISM,
                      ParallelExecutionPlatforms.THREADING,
-                     units_number=6,mult=3))
+                     units_number=6,multiple=3))
 
 
 
@@ -917,7 +917,7 @@ def rootAndInnerRIPAlgorithm(createTestFile = False):
                  parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                      ParallelExecutionModes.DATA_PARALLELISM,
                      ParallelExecutionPlatforms.THREADING,
-                     units_number=6,mult=3))
+                     units_number=6,multiple=3))
 
 
 
@@ -948,7 +948,7 @@ def samePatternDifferentTimeStampsRIPAlgorithm(createTestFile = False):
                  parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                      ParallelExecutionModes.DATA_PARALLELISM,
                      ParallelExecutionPlatforms.THREADING,
-                     units_number=6,mult=3))
+                     units_number=6,multiple=3))
 
 
 
@@ -986,7 +986,7 @@ def onePatternIncludesOtherRIPAlgorithm(createTestFile = False):
                  parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                      ParallelExecutionModes.DATA_PARALLELISM,
                      ParallelExecutionPlatforms.THREADING,
-                     units_number=6,mult=3))
+                     units_number=6,multiple=3))
 
 
 """
@@ -1041,7 +1041,7 @@ def samePatternSharingRootRIPAlgorithm(createTestFile = False):
                  parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                      ParallelExecutionModes.DATA_PARALLELISM,
                      ParallelExecutionPlatforms.THREADING,
-                     units_number=6,mult=3))
+                     units_number=6,multiple=3))
 
 
 
@@ -1105,7 +1105,7 @@ def multipleParentsForInternalNodeRIPAlgorithm(createTestFile = False):
                  parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                      ParallelExecutionModes.DATA_PARALLELISM,
                      ParallelExecutionPlatforms.THREADING,
-                     units_number=6,mult=3))
+                     units_number=6,multiple=3))
 
 
 
@@ -1126,7 +1126,7 @@ def simpleNotTestRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 # ON NASDAQ SHORT
 def multipleNotInTheMiddleTestRIPAlgorithm(createTestFile=False):
@@ -1149,7 +1149,7 @@ def multipleNotInTheMiddleTestRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 def singleType1PolicyPatternSearchTestRIPAlgorithm(createTestFile = False):
     """
@@ -1167,7 +1167,7 @@ def singleType1PolicyPatternSearchTestRIPAlgorithm(createTestFile = False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 
@@ -1187,7 +1187,7 @@ def singleType2PolicyPatternSearchTestRIPAlgorithm(createTestFile = False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 
@@ -1207,7 +1207,7 @@ def contiguousPolicyPatternSearchTestRIPAlgorithm(createTestFile = False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 
@@ -1228,7 +1228,7 @@ def contiguousPolicy2PatternSearchTestRIPAlgorithm(createTestFile = False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 def freezePolicyPatternSearchTestRIPAlgorithm(createTestFile = False):
@@ -1247,7 +1247,7 @@ def freezePolicyPatternSearchTestRIPAlgorithm(createTestFile = False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 
@@ -1267,7 +1267,7 @@ def freezePolicy2PatternSearchTestRIPAlgorithm(createTestFile = False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 def sortedStorageTestRIPAlgorithm(createTestFile=False):
     pattern = Pattern(
@@ -1290,7 +1290,7 @@ def sortedStorageTestRIPAlgorithm(createTestFile=False):
             parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                 ParallelExecutionModes.DATA_PARALLELISM,
                 ParallelExecutionPlatforms.THREADING,
-                units_number=6,mult=3))
+                units_number=6,multiple=3))
 
 
 def sortedStorageBenchMarkTestRIPAlgorithm(createTestFile=False):
@@ -1319,4 +1319,4 @@ def sortedStorageBenchMarkTestRIPAlgorithm(createTestFile=False):
                  parallel_execution_params=DataParallelExecutionParametersRIPAlgorithm(
                      ParallelExecutionModes.DATA_PARALLELISM,
                      ParallelExecutionPlatforms.THREADING,
-                     units_number=4,mult=3))
+                     units_number=4,multiple=3))
