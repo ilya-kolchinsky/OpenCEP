@@ -70,16 +70,15 @@ class StatisticsDeviationAwareOptimizer(Optimizer):
     value by more than t, then plan reconstruction is activated.
     """
 
-    def __init__(self, tree_plan_builder: TreePlanBuilder, type_to_changes_aware_functions_map: dict):
+    def __init__(self, tree_plan_builder: TreePlanBuilder, type_to_deviation_aware_functions_map: dict):
         super().__init__(tree_plan_builder)
         self.__prev_statistics = None
-        self.__type_to_changes_aware_tester_map = type_to_changes_aware_functions_map
+        self.__type_to_deviation_aware_tester_map = type_to_deviation_aware_functions_map
 
     def is_need_optimize(self, new_statistics: dict, pattern: Pattern):
-        for new_statistics_type, new_statistics in new_statistics.items():
-            prev_statistics = self.__prev_statistics[new_statistics_type]
-            if self.__type_to_changes_aware_tester_map[new_statistics_type].is_deviated_by_t(new_statistics,
-                                                                                             prev_statistics):
+        for new_stats_type, new_stats in new_statistics.items():
+            prev_stats = self.__prev_statistics[new_stats_type]
+            if self.__type_to_deviation_aware_tester_map[new_stats_type].is_deviated_by_t(new_stats, prev_stats):
                 return True
         return False
         # return self._prev_statistics is None or self.is_changed_by_t(new_statistics.statistics, self._prev_statistics)

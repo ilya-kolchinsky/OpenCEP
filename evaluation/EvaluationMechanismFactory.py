@@ -4,7 +4,8 @@ from base.Pattern import Pattern
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc import DefaultConfig
 from misc.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
-from optimizer.OptimizerFactory import OptimizerParameters, OptimizerFactory
+from optimizer.OptimizerFactory import OptimizerParameters, OptimizerFactory, \
+    StatisticsDeviationAwareOptimizerParameters, InvariantsAwareOptimizerParameters
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from statistics_collector.StatisticsCollectorFactory import StatisticsCollectorParameters, StatisticsCollectorFactory
 from tree.PatternMatchStorage import TreeStorageParameters
@@ -34,7 +35,7 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters(),
                  evaluation_type: TreeEvaluationMechanismTypes = DefaultConfig.DEFAULT_TREE_EVALUATION_MECHANISM_TYPE,
                  statistics_collector_params: StatisticsCollectorParameters = StatisticsCollectorParameters(),
-                 optimizer_params: OptimizerParameters = OptimizerParameters(),
+                 optimizer_params: OptimizerParameters = StatisticsDeviationAwareOptimizerParameters(),
                  statistics_updates_wait_time: timedelta = DefaultConfig.STATISTICS_UPDATES_WAIT_TIME):
         super().__init__(EvaluationMechanismTypes.TREE_BASED, statistics_collector_params, optimizer_params)
         self.storage_params = storage_params

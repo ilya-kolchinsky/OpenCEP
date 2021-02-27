@@ -1,4 +1,4 @@
-from optimizer.OptimizerFactory import OptimizerParameters
+from optimizer.OptimizerFactory import OptimizerParameters, StatisticsDeviationAwareOptimizerParameters
 from test.testUtils import *
 from datetime import timedelta
 from condition.Condition import Variable
@@ -200,7 +200,7 @@ def onePatternIncludesOther(createTestFile=False):
     )
 
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
-        optimizer_params=OptimizerParameters(
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
             tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                        TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL)),
         storage_params=TreeStorageParameters(sort_storage=False,
@@ -253,7 +253,7 @@ def samePatternSharingRoot(createTestFile=False):
     )
 
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
-        optimizer_params=OptimizerParameters(
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
             tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                        TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL)),
         storage_params=TreeStorageParameters(sort_storage=False,
@@ -298,7 +298,7 @@ def severalPatternShareSubtree(createTestFile=False):
                        )
 
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
-        optimizer_params=OptimizerParameters(
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
             tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                        TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL)),
         storage_params=TreeStorageParameters(sort_storage=False,
@@ -354,7 +354,7 @@ def notInTheBeginningShare(createTestFile=False):
     )
 
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
-        optimizer_params=OptimizerParameters(
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
             tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                        TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL)),
         storage_params=TreeStorageParameters(sort_storage=False,
@@ -416,7 +416,7 @@ def multipleParentsForInternalNode(createTestFile=False):
     )
 
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
-        optimizer_params=OptimizerParameters(
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
             tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                        TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL)),
         storage_params=TreeStorageParameters(sort_storage=False,

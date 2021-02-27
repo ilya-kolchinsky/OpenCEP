@@ -1,6 +1,6 @@
 from typing import List
 from misc.StatisticsTypes import StatisticsTypes
-from optimizer import ChangesAwareTester
+from optimizer import DeviationAwareTester
 
 
 class DeviationAwareTesterFactory:
@@ -11,6 +11,6 @@ class DeviationAwareTesterFactory:
     @staticmethod
     def create_deviation_aware_tester(statistics_type: StatisticsTypes or List[StatisticsTypes], t: float):
         if statistics_type == StatisticsTypes.ARRIVAL_RATES:
-            return ChangesAwareTester.ArrivalRatesChangesAwareTester(t)
+            return DeviationAwareTester.ArrivalRatesDeviationAwareTester(t)
         if statistics_type == StatisticsTypes.SELECTIVITY_MATRIX:
-            return ChangesAwareTester.SelectivityChangesAwareOptimizerTester(t)
+            return DeviationAwareTester.SelectivityDeviationAwareOptimizerTester(t)

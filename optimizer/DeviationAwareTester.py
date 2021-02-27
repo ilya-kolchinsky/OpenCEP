@@ -2,24 +2,24 @@ from abc import ABC, abstractmethod
 from typing import List
 
 
-class ChangesAwareTester(ABC):
+class DeviationAwareTester(ABC):
     """
-    Abstract class for changes aware testing function
+    Abstract class for deviation aware testing function
     """
     def __init__(self, t):
         self._t = t
 
     @abstractmethod
-    def is_changed_by_t(self, new_statistics, prev_statistics):
+    def is_deviated_by_t(self, new_statistics, prev_statistics):
         raise NotImplementedError()
 
 
-class ArrivalRatesChangesAwareTester(ChangesAwareTester):
+class ArrivalRatesDeviationAwareTester(DeviationAwareTester):
     """
-    Checks for changes in the arrival rate by a factor of t.
+    Checks for deviations in the arrival rate by a factor of t.
     """
 
-    def is_changed_by_t(self, new_statistics: List[int], prev_statistics: List[int]):
+    def is_deviated_by_t(self, new_statistics: List[int], prev_statistics: List[int]):
 
         for i in range(len(new_statistics)):
             if prev_statistics[i] * (1 + self._t) < new_statistics[i] or \
@@ -28,12 +28,12 @@ class ArrivalRatesChangesAwareTester(ChangesAwareTester):
         return False
 
 
-class SelectivityChangesAwareOptimizerTester(ChangesAwareTester):
+class SelectivityDeviationAwareOptimizerTester(DeviationAwareTester):
     """
-    Checks for changes in the selectivity by a factor of t.
+    Checks for deviations in the selectivity by a factor of t.
     """
 
-    def is_changed_by_t(self, new_statistics: List[List[float]], prev_statistics: List[List[float]]):
+    def is_deviated_by_t(self, new_statistics: List[List[float]], prev_statistics: List[List[float]]):
 
         for i in range(len(new_statistics)):
             for j in range(len(new_statistics[i])):

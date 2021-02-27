@@ -3,7 +3,7 @@ from misc.OptimizerTypes import OptimizerTypes
 from misc import DefaultConfig
 from misc.StatisticsTypes import StatisticsTypes
 from optimizer import Optimizer
-from optimizer.ChangesAwareFactory import DeviationAwareTesterFactory
+from optimizer.DeviationAwareTesterFactory import DeviationAwareTesterFactory
 from plan.InvariantLeftDeepTreeBuilder import InvariantAwareGreedyTreeBuilder
 from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
@@ -67,7 +67,6 @@ class OptimizerFactory:
 
     @staticmethod
     def __create_optimizer(optimizer_parameters: OptimizerParameters):
-
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(optimizer_parameters.tree_plan_params)
         if optimizer_parameters.type == OptimizerTypes.TRIVIAL:
             return Optimizer.TrivialOptimizer(tree_plan_builder)

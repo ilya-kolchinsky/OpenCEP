@@ -19,7 +19,7 @@ class InvariantLeftDeepTreeBuilder(InvariantTreePlanBuilder):
 
     def _create_tree_topology(self, statistics: dict, pattern: Pattern):
         order, invariants = self._create_evaluation_order(statistics) if isinstance(pattern.positive_structure,
-                                                                                    CompositeStructure) else [0]
+                                                                                    CompositeStructure) else [[0], None]
         return self._order_to_tree_topology(order, pattern), invariants
 
     @staticmethod

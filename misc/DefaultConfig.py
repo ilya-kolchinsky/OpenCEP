@@ -43,17 +43,14 @@ DEFAULT_PARALLEL_EXECUTION_MODE = ParallelExecutionModes.SEQUENTIAL
 DEFAULT_PARALLEL_EXECUTION_PLATFORM = ParallelExecutionPlatforms.THREADING
 
 # statistics collection settings
-DEFAULT_STATISTICS_COLLECTOR_TYPE = StatisticsTypes.ARRIVAL_RATES
+DEFAULT_STATISTICS_TYPE = [StatisticsTypes.ARRIVAL_RATES]  # the default statistics type can also be a list of types
 STATISTICS_TIME_WINDOW = timedelta(minutes=2)  # Time window for statistics
 
 # optimizer settings
 DEFAULT_INIT_TREE_PLAN_BUILDER = TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE  # initial tree plan builder in case of predifined ststistics
-DEFAULT_OPTIMIZER_TYPE = OptimizerTypes.TRIVIAL
+DEFAULT_OPTIMIZER_TYPE = OptimizerTypes.STATISTICS_DEVIATION_AWARE
 THRESHOLD = 0.5  # the default threshold for statistics changes aware optimizer
 
-# statistics settings
-DEFAULT_STATISTICS_TYPE = [StatisticsTypes.ARRIVAL_RATES]  # the default statistics type can also be a list of types
-
 # tree evaluation mechanism settings
-DEFAULT_TREE_EVALUATION_MECHANISM_TYPE = TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION
+DEFAULT_TREE_EVALUATION_MECHANISM_TYPE = TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION
 STATISTICS_UPDATES_WAIT_TIME = timedelta(seconds=0.5)  # the default wait time between statistics updates
