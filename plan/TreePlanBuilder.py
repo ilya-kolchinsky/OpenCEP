@@ -7,7 +7,6 @@ from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Statistics import MissingStatisticsException
-import numpy as np
 
 
 class TreePlanBuilder(ABC):
@@ -22,14 +21,26 @@ class TreePlanBuilder(ABC):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
-        root = self._create_tree_topology(pattern)
+        if any(not isinstance(arg, PrimitiveEventStructure) for arg in pattern.positive_structure.get_args()):
+            root = self.create_nested_topology(pattern)
+        else:
+            root = self._create_tree_topology(pattern)
         return TreePlan(root)
 
-    def _create_tree_topology(self, pattern: Pattern):
+    def _create_tree_topology(self, pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
         """
         An abstract method for creating the actual tree topology.
+        This method works on the flat (not nested) case.
         """
         raise NotImplementedError()
+
+    def create_nested_topology(self, pattern: Pattern):
+        """
+        A recursive method, based on the '_create_tree_topology' one, to create a topology for the nested case.
+        The recursion happens in 'extract_nested_pattern', that uses this 'create_nested_topology' method.
+        """
+        pattern, nested_topologies, nested_args, nested_cost = self.extract_nested_pattern(pattern)
+        return self._create_tree_topology(pattern, nested_topologies, nested_args, nested_cost)
 
     def _get_plan_cost(self, pattern: Pattern, plan: TreePlanNode):
         """
@@ -111,6 +122,9 @@ class TreePlanBuilder(ABC):
 
     @staticmethod
     def _chop_matrix_aux(matrix, start, end):
+        """
+        TODO: COMMENT
+        """
         chopped_matrix = []
         for row in range(start, end+1):
             chopped_row = []
@@ -167,6 +181,9 @@ class TreePlanBuilder(ABC):
 
     def handle_composite_or_unary_nested_pattern(self, arg, pattern, nested_topologies, nested_arrival_rates,
                                                  nested_cost, nested_args):
+        """
+        TODO: COMMENT
+        """
         nested_pattern = Pattern(arg, None, pattern.window)
         if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
             nested_pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, pattern.statistics)
@@ -176,7 +193,7 @@ class TreePlanBuilder(ABC):
             chopped_nested_selectivity = TreePlanBuilder._chop_matrix(pattern, arg)
             nested_pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
                                           (chopped_nested_selectivity, arrival_rates))
-        nested_topology = self._create_tree_topology(nested_pattern)
+        nested_topology = self.create_nested_topology(nested_pattern)
         nested_topologies.append(nested_topology)  # Save nested topology to add it as a field to its root
         if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES or pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             # Get the cost of the nested structure to calculate the new arrival rate and save it for other
@@ -197,6 +214,9 @@ class TreePlanBuilder(ABC):
 
     @staticmethod
     def handle_primitive_event(pattern, nested_topologies, nested_arrival_rates, nested_cost, nested_args):
+        """
+        TODO: COMMENT
+        """
         nested_topologies.append(None)
         nested_args.append(None)
         nested_cost.append(None)

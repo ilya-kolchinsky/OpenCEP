@@ -65,6 +65,24 @@ def nonFrequencyPatternSearch2Test(createTestFile=False):
     runTest("nonFrequency2", [pattern], createTestFile)
 
 
+def frequencyPatternSearch2Test(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("LOCM", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AAPL", "c")),
+        AndCondition(
+            SmallerThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            SmallerThanCondition(Variable("b", lambda x: x["Opening Price"]),
+                                 Variable("c", lambda x: x["Opening Price"]))
+        ),
+        timedelta(minutes=5)
+    )
+    pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0076, 0.0153, 0.0159])
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest("frequency2", [pattern], createTestFile, eval_mechanism_params=eval_params)
+
 def nonFrequencyPatternSearch3Test(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AAPL", "b"),
@@ -75,6 +93,21 @@ def nonFrequencyPatternSearch3Test(createTestFile=False):
     runTest("nonFrequency3", [pattern], createTestFile)
 
 
+def frequencyPatternSearch3Test(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AAPL", "b"),
+                    PrimitiveEventStructure("AAPL", "c"), PrimitiveEventStructure("LOCM", "d")),
+        TrueCondition(),
+        timedelta(minutes=5)
+    )
+    pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0159, 0.0159, 0.0159, 0.0076])
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest("frequency3", [pattern], createTestFile, eval_mechanism_params=eval_params)
+
+
 def nonFrequencyPatternSearch4Test(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
@@ -83,6 +116,21 @@ def nonFrequencyPatternSearch4Test(createTestFile=False):
         timedelta(minutes=7)
     )
     runTest("nonFrequency4", [pattern], createTestFile)
+
+
+def frequencyPatternSearch4Test(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("AVID", "c"), PrimitiveEventStructure("LOCM", "d")),
+        TrueCondition(),
+        timedelta(minutes=7)
+    )
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0159, 0.0153, 0.0146, 0.0076])
+    runTest("frequency4", [pattern], createTestFile, eval_mechanism_params=eval_params)
 
 
 def nonFrequencyPatternSearch5Test(createTestFile=False):
@@ -96,6 +144,39 @@ def nonFrequencyPatternSearch5Test(createTestFile=False):
     )
     runTest("nonFrequency5", [pattern], createTestFile)
 
+
+def frequencyPatternSearch5Test(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("AAPL", "a1"), PrimitiveEventStructure("LOCM", "b1"),
+            PrimitiveEventStructure("AAPL", "a2"), PrimitiveEventStructure("LOCM", "b2"),
+            PrimitiveEventStructure("AAPL", "a3"), PrimitiveEventStructure("LOCM", "b3")),
+        TrueCondition(),
+        timedelta(minutes=7)
+    )
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0159, 0.0076, 0.0159, 0.0076, 0.0159, 0.0076])
+    runTest("frequency5", [pattern], createTestFile, eval_mechanism_params=eval_params)
+
+
+def frequencyPatternSearch6Test(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("AAPL", "a1"), PrimitiveEventStructure("LOCM", "b1"),
+            PrimitiveEventStructure("AAPL", "a2"), PrimitiveEventStructure("LOCM", "b2"),
+            PrimitiveEventStructure("AAPL", "a3"), PrimitiveEventStructure("LOCM", "b3")),
+        TrueCondition(),
+        timedelta(minutes=7)
+    )
+    pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0159, 0.0076, 0.0159, 0.0076, 0.0159, 0.0076])
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest("frequency6", [pattern], createTestFile, eval_mechanism_params=eval_params)
 
 def greedyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
@@ -341,6 +422,26 @@ def zStreamPatternSearchTest(createTestFile=False):
     runTest('zstream1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
+def frequencyTailoredPatternSearchTest(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("DRIV", "a"), PrimitiveEventStructure("MSFT", "b"), PrimitiveEventStructure("CBRL", "c")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            GreaterThanCondition(Variable("b", lambda x: x["Opening Price"]),
+                                 Variable("c", lambda x: x["Opening Price"]))
+        ),
+        timedelta(minutes=360)
+    )
+    # frequencyDict = {"MSFT": 256, "DRIV": 257, "CBRL": 1}
+    pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.01454418928322895, 0.016597077244258872, 0.012421711899791231])
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    runTest('frequencyTailored1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
+
+
 def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("DRIV", "a"), PrimitiveEventStructure("MSFT", "b"), PrimitiveEventStructure("CBRL", "c")),
@@ -355,103 +456,3 @@ def nonFrequencyTailoredPatternSearchTest(createTestFile=False):
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
     runTest('nonFrequencyTailored1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
-
-
-#######################################################################################################################
-'''Some Legacy code that should die here in peace:'''
-# def frequencyPatternSearch2Test(createTestFile=False):
-#     pattern = Pattern(
-#         SeqOperator(PrimitiveEventStructure("LOCM", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AAPL", "c")),
-#         AndCondition(
-#             SmallerThanCondition(Variable("a", lambda x: x["Opening Price"]),
-#                                  Variable("b", lambda x: x["Opening Price"])),
-#             SmallerThanCondition(Variable("b", lambda x: x["Opening Price"]),
-#                                  Variable("c", lambda x: x["Opening Price"]))
-#         ),
-#         timedelta(minutes=5)
-#     )
-#     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AAPL": 2, "AMZN": 3, "LOCM": 1})
-#     eval_params = TreeBasedEvaluationMechanismParameters(
-#         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
-#         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
-#     )
-#     runTest("frequency2", [pattern], createTestFile, eval_mechanism_params=eval_params)
-#
-# def frequencyPatternSearch3Test(createTestFile=False):
-#     pattern = Pattern(
-#         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AAPL", "b"),
-#                     PrimitiveEventStructure("AAPL", "c"), PrimitiveEventStructure("LOCM", "d")),
-#         TrueCondition(),
-#         timedelta(minutes=5)
-#     )
-#     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AAPL": 460, "LOCM": 219})
-#     eval_params = TreeBasedEvaluationMechanismParameters(
-#         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
-#         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
-#     )
-#     runTest("frequency3", [pattern], createTestFile, eval_mechanism_params=eval_params)
-#
-# def frequencyPatternSearch4Test(createTestFile=False):
-#     pattern = Pattern(
-#         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
-#                     PrimitiveEventStructure("AVID", "c"), PrimitiveEventStructure("LOCM", "d")),
-#         TrueCondition(),
-#         timedelta(minutes=7)
-#     )
-#     eval_params = TreeBasedEvaluationMechanismParameters(
-#         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
-#         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
-#     )
-#     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AVID": 1, "LOCM": 2, "AAPL": 3, "AMZN": 4})
-#     runTest("frequency4", [pattern], createTestFile, eval_mechanism_params=eval_params)
-#
-# def frequencyPatternSearch5Test(createTestFile=False):
-#     pattern = Pattern(
-#         SeqOperator(
-#             PrimitiveEventStructure("AAPL", "a1"), PrimitiveEventStructure("LOCM", "b1"),
-#             PrimitiveEventStructure("AAPL", "a2"), PrimitiveEventStructure("LOCM", "b2"),
-#             PrimitiveEventStructure("AAPL", "a3"), PrimitiveEventStructure("LOCM", "b3")),
-#         TrueCondition(),
-#         timedelta(minutes=7)
-#     )
-#     eval_params = TreeBasedEvaluationMechanismParameters(
-#         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
-#         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
-#     )
-#     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"LOCM": 1, "AAPL": 2})  # {"AAPL": 460, "LOCM": 219}
-#     runTest("frequency5", [pattern], createTestFile, eval_mechanism_params=eval_params)
-#
-# def frequencyPatternSearch6Test(createTestFile=False):
-#     pattern = Pattern(
-#         SeqOperator(
-#             PrimitiveEventStructure("AAPL", "a1"), PrimitiveEventStructure("LOCM", "b1"),
-#             PrimitiveEventStructure("AAPL", "a2"), PrimitiveEventStructure("LOCM", "b2"),
-#             PrimitiveEventStructure("AAPL", "a3"), PrimitiveEventStructure("LOCM", "b3")),
-#         TrueCondition(),
-#         timedelta(minutes=7)
-#     )
-#     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AAPL": 1, "LOCM": 2})  # {"AAPL": 460, "LOCM": 219}
-#     eval_params = TreeBasedEvaluationMechanismParameters(
-#         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
-#         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
-#     )
-#     runTest("frequency6", [pattern], createTestFile, eval_mechanism_params=eval_params)
-#
-# def frequencyTailoredPatternSearchTest(createTestFile=False):
-#     pattern = Pattern(
-#         SeqOperator(PrimitiveEventStructure("DRIV", "a"), PrimitiveEventStructure("MSFT", "b"), PrimitiveEventStructure("CBRL", "c")),
-#         AndCondition(
-#             GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-#                                  Variable("b", lambda x: x["Opening Price"])),
-#             GreaterThanCondition(Variable("b", lambda x: x["Opening Price"]),
-#                                  Variable("c", lambda x: x["Opening Price"]))
-#         ),
-#         timedelta(minutes=360)
-#     )
-#     frequencyDict = {"MSFT": 256, "DRIV": 257, "CBRL": 1}
-#     pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, frequencyDict)
-#     eval_params = TreeBasedEvaluationMechanismParameters(
-#         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
-#         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
-#     )
-#     runTest('frequencyTailored1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)

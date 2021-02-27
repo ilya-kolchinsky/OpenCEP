@@ -172,12 +172,12 @@ class Tree:
         """
         if isinstance(root_operator, UnaryStructure):
             # a special case where the top operator of the entire pattern is an unary operator
-            return self.__handle_primitive_event_or_nested_structure(tree_plan, root_operator,
+            return self.__handle_primitive_event_or_unary_structure(tree_plan, root_operator,
                                                                      sliding_window, parent, consumption_policy)
 
         if type(tree_plan) == TreePlanLeafNode:
             # This is either a leaf or unary node (maybe encapsulating nested structure)
-            return self.__handle_primitive_event_or_nested_structure(tree_plan, args[tree_plan.event_index],
+            return self.__handle_primitive_event_or_unary_structure(tree_plan, args[tree_plan.event_index],
                                                                      sliding_window, parent, consumption_policy)
         if type(tree_plan) == TreePlanNestedNode:
             # This is a nested node, therefore needs to use construct a subtree of this nested tree, recursively.

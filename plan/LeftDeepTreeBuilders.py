@@ -20,15 +20,10 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
     An abstract class for left-deep tree builders.
     """
 
-    def _create_tree_topology(self, pattern: Pattern):
+    def _create_tree_topology(self, pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
         """
-
+        Implementation of the virtual method for the left deep trees cases
         """
-
-        if any(not isinstance(arg, PrimitiveEventStructure) for arg in pattern.positive_structure.get_args()):
-            pattern, nested_topologies, nested_args, nested_cost = self.extract_nested_pattern(pattern)
-        else:
-            nested_topologies = nested_args = nested_cost = [None for _ in pattern.positive_structure.get_args()]
         order = self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure,
                                                                      CompositeStructure) else [0]
         return LeftDeepTreeBuilder._order_to_tree_topology(order, pattern, nested_topologies, nested_args, nested_cost)

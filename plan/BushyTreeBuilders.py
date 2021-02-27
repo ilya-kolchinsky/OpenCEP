@@ -19,17 +19,15 @@ class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
     """
     Creates a bushy tree using a dynamic programming algorithm.
     """
-    def _create_tree_topology(self, pattern: Pattern):
+
+    def _create_tree_topology(self, pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
         """
-        TODO: COMMENT
+        Implementation of the virtual method for the Dynamic Programming Bushy Tree case
         """
-        if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            pattern, nested_topologies, nested_args, nested_cost = self.extract_nested_pattern(pattern)
-            return self._dynamic_bushy_tree_builder(pattern, nested_topologies, nested_args, nested_cost)
-        else:
+
+        if pattern.statistics_type != StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             raise MissingStatisticsException()
 
-    def _dynamic_bushy_tree_builder(self, pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
         (selectivity_matrix, arrival_rates) = pattern.statistics
         args_num = len(selectivity_matrix)
         if args_num == 1:
@@ -71,17 +69,14 @@ class ZStreamTreeBuilder(TreePlanBuilder):
     """
     Creates a bushy tree using ZStream algorithm.
     """
-    def _create_tree_topology(self, pattern: Pattern):
+
+    def _create_tree_topology(self, pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
         """
-        TODO: COMMENT
+        Implementation of the virtual method for the ZStream Bushy Tree case
         """
-        if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            pattern, nested_topologies, nested_args, nested_cost = self.extract_nested_pattern(pattern)
-            return self._zstream_bushy_tree_builder(pattern, nested_topologies, nested_args, nested_cost)
-        else:
+        if pattern.statistics_type != StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             raise MissingStatisticsException()
 
-    def _zstream_bushy_tree_builder(self, pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
         (selectivity_matrix, arrival_rates) = pattern.statistics
         order = self._get_initial_order(selectivity_matrix, arrival_rates)
         args_num = len(order)
