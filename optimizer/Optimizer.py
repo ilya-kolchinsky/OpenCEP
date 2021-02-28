@@ -30,7 +30,7 @@ class Optimizer(ABC):
     def build_initial_tree_plan(self, new_statistics: dict, cost_model_type: TreeCostModels,
                                 pattern: Pattern):
 
-        non_prior_tree_plan_builder = self.build_non_prior_tree_plan_builder(cost_model_type, pattern)
+        non_prior_tree_plan_builder = self._build_non_prior_tree_plan_builder(cost_model_type, pattern)
         if non_prior_tree_plan_builder is not None:
             self._tree_plan_builder, temp_tree_plan_builder = non_prior_tree_plan_builder, self._tree_plan_builder
             initial_tree_plan = self.build_new_tree_plan(new_statistics, pattern)
@@ -40,7 +40,7 @@ class Optimizer(ABC):
         return initial_tree_plan
 
     @staticmethod
-    def build_non_prior_tree_plan_builder(cost_model_type: TreeCostModels, pattern: Pattern):
+    def _build_non_prior_tree_plan_builder(cost_model_type: TreeCostModels, pattern: Pattern):
         non_prior_tree_plan_builder = None
         if pattern.statistics is None:
             if DefaultConfig.DEFAULT_INIT_TREE_PLAN_BUILDER == TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE:
@@ -114,7 +114,7 @@ class InvariantsAwareOptimizer(Optimizer):
 
     def build_initial_tree_plan(self, new_statistics: dict, cost_model_type: TreeCostModels,
                                 pattern: Pattern):
-        non_prior_tree_plan_builder = self.build_non_prior_tree_plan_builder(cost_model_type, pattern)
+        non_prior_tree_plan_builder = self._build_non_prior_tree_plan_builder(cost_model_type, pattern)
         if non_prior_tree_plan_builder is not None:
             return non_prior_tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return self.build_new_tree_plan(new_statistics, pattern)

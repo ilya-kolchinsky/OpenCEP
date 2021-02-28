@@ -6,6 +6,6 @@ class StatisticEventData:
     """
     Contains an event type along with event timestamp
     """
-    def __init__(self, time: datetime, event_type: str):
-        self.timestamp = time
+    def __init__(self, timestamp: datetime, event_type: str):
+        self.timestamp = timestamp
         self.event_type = event_type

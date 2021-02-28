@@ -30,7 +30,7 @@ class ArrivalRatesStatistics(Statistics):
     """
     Represents the arrival rates statistics.
     """
-    def __init__(self, time_window: timedelta, pattern: Pattern, predefined_statistics: List = None):
+    def __init__(self, arrival_rates_time_window: timedelta, pattern: Pattern, predefined_statistics: List = None):
         args = pattern.get_primitive_events()
         self.__arrival_rates = [0.0] * len(args) if not predefined_statistics else predefined_statistics
         self.__event_type_to_indexes_map = {}
@@ -41,7 +41,7 @@ class ArrivalRatesStatistics(Statistics):
                 self.__event_type_to_indexes_map[arg.type] = [i]
 
         self.__events_arrival_time = []
-        self.__time_window = time_window
+        self.__arrival_rates_time_window = arrival_rates_time_window
 
     def update_by_event(self, event: Event):
         event_type = event.type
@@ -56,18 +56,9 @@ class ArrivalRatesStatistics(Statistics):
         self.__remove_expired_events(event_timestamp)
 
     def __remove_expired_events(self, last_timestamp: datetime):
-        # TODO: refactor this
-        """
-        This method is efficient if we call this function every time we update statistics and
-        our assumption that is more efficient then binary search because we know that there is
-        a little mount of expired event in the beginning.
-        In addition, if we use this function not every time we update statistics but rather when
-        the evaluation want get statistics the efficient method to implement this function is
-        probably by binary search.
-        """
         is_removed_elements = False
         for i, event_time in enumerate(self.__events_arrival_time):
-            if last_timestamp - event_time.timestamp > self.__time_window:
+            if last_timestamp - event_time.timestamp > self.__arrival_rates_time_window:
                 indexes = self.__event_type_to_indexes_map[event_time.event_type]
                 for index in indexes:
                     self.__arrival_rates[index] -= 1
@@ -86,8 +77,8 @@ class ArrivalRatesStatistics(Statistics):
 
 class SelectivityStatistics(Statistics):
     """
-    Represents the arrival rates statistics.
-    NOTE: Currently, this statistic ignores time window
+    Represents the selectivity statistics.
+    NOTE: Currently, this statistics ignores time window
     """
     # TODO: Implement selectivity that also takes into account a time window
 
