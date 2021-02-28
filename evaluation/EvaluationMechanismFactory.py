@@ -77,6 +77,9 @@ class EvaluationMechanismFactory:
             patterns = [patterns]
 
         statistics_collector = StatisticsCollectorFactory.build_statistics_collector(eval_mechanism_params.statistics_collector_params, patterns)
+        for pattern in patterns:
+            for condition in pattern.condition.extract_atomic_conditions():
+                condition.set_statistics_collector(statistics_collector)
         optimizer = OptimizerFactory.build_optimizer(eval_mechanism_params.optimizer_params)
 
         initial_statistics = statistics_collector.get_statistics()

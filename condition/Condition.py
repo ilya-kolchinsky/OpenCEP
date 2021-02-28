@@ -3,6 +3,7 @@ This file contains the basic Condition classes.
 """
 from abc import ABC
 from enum import Enum
+from statistics_collector.StatisticsCollector import StatisticsCollector
 
 
 class RelopTypes(Enum):
@@ -86,6 +87,10 @@ class AtomicCondition(Condition, ABC):
     """
     Represents an atomic (non-composite) condition.
     """
+    def __init__(self):
+        # currently used to update the selectivity statistics if they are present in the statistics collector
+        self._statistics_collector = None
+
     def is_condition_of(self, names: set):
         """
         Returns True if all variable names participating in this condition appear in the given set and False otherwise.
@@ -95,6 +100,8 @@ class AtomicCondition(Condition, ABC):
     def extract_atomic_conditions(self):
         return [self]
 
+    def set_statistics_collector(self, statistics_collector: StatisticsCollector):
+        self._statistics_collector = statistics_collector
 
 class TrueCondition(AtomicCondition):
     """
@@ -121,6 +128,7 @@ class SimpleCondition(AtomicCondition):
     A simple (non-composite) condition over N operands (either variables or constants).
     """
     def __init__(self, *terms, relation_op: callable):
+        super().__init__()
         self.terms = terms
         self.relation_op = relation_op
 

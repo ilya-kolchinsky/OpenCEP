@@ -113,6 +113,10 @@ class AndCondition(CompositeCondition):
         composite_condition = super().get_condition_of(names, get_kleene_closure_conditions, consume_returned_conditions)
         # at-least 1 condition was retrieved using get_condition_of for the list of conditions
         if composite_condition:
+            x = composite_condition.get_conditions_list()
+            z = AndCondition(*composite_condition.get_conditions_list())
+            if len(x)>1:
+                print(z,'     ',z.extract_atomic_conditions(),'     ' ,names)
             return AndCondition(*composite_condition.get_conditions_list())
         return None
 
