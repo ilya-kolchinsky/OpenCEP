@@ -12,6 +12,7 @@ from misc.ConsumptionPolicy import *
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from tree.MultiPatternTree import MultiPatternTree
 from statistics_collector import StatisticsCollector
+from misc.StatisticsTypes import StatisticsTypes
 from tree.Tree import Tree
 from datetime import timedelta
 from optimizer import Optimizer

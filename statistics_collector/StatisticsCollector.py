@@ -1,5 +1,4 @@
 from base.Event import Event
-from base.Pattern import Pattern
 from misc.StatisticsTypes import StatisticsTypes
 
 
@@ -8,16 +7,15 @@ class StatisticsCollector:
     Collects, maintains and updates statistics from the stream
     """
 
-    def __init__(self, pattern: Pattern, statistics: dict):
-        self.pattern = pattern
+    def __init__(self, statistics: dict):
         self.__statistics = statistics
 
     def event_handler(self, event: Event):
         """
-        Update all relevant statistics with the new event
+        Handles events directly from the stream.
+        Currently only arrival rates statistics handles the events
         """
-        for statistics in self.__statistics.values():
-            statistics.update_by_event(event)
+        self.update_specified_statistics(StatisticsTypes.ARRIVAL_RATES, event)
 
     def get_statistics(self):
         return {statistics_type: statistics.get_statistics() for statistics_type, statistics in self.__statistics.items()}
@@ -25,5 +23,10 @@ class StatisticsCollector:
     def statistics_types(self):
         return self.__statistics.keys()
 
-    def update_specific_statistics(self, statistics_type: StatisticsTypes, data):
-        pass
+    def update_specified_statistics(self, statistics_type: StatisticsTypes, data):
+        """
+        This method exists because there are statistics(like selectivity)
+        that are updated not based on events from the stream.
+        """
+        if statistics_type in self.__statistics:
+            self.__statistics[statistics_type].update(data)

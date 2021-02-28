@@ -40,7 +40,7 @@ class StatisticsCollectorFactory:
         for stat_type in statistics_collector_parameters.statistics_types:
             stat = StatisticsFactory.create_statistics(pattern, stat_type, time_window)
             statistics_dict[stat_type] = stat
-        return StatisticsCollector(pattern, statistics_dict)
+        return StatisticsCollector(statistics_dict)
 
     @staticmethod
     def __create_default_statistics_collector_parameters():

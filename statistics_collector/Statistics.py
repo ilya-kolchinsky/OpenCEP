@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import List
 from base.Event import Event
 from base.Pattern import Pattern
+from base.PatternStructure import PrimitiveEventStructure
 from statistics_collector.StatisticEventData import StatisticEventData
 
 
@@ -11,14 +12,12 @@ class Statistics(ABC):
     """
     An abstract class for statistics.
     """
-    @abstractmethod
-    def update_by_event(self, event: Event):
+    def update(self, data):
         """
         Given the newly arrived event, update the statistics.
         """
-        pass
+        raise NotImplementedError()
 
-    @abstractmethod
     def get_statistics(self):
         """
         Return the current statistics.
@@ -31,10 +30,10 @@ class ArrivalRatesStatistics(Statistics):
     Represents the arrival rates statistics.
     """
     def __init__(self, time_window: timedelta, pattern: Pattern, predefined_statistics: List = None):
-        args = pattern.get_primitive_events()
-        self.__arrival_rates = [0.0] * len(args) if not predefined_statistics else predefined_statistics
+        primitive_events = pattern.get_primitive_events()
+        self.__arrival_rates = [0.0] * len(primitive_events) if not predefined_statistics else predefined_statistics
         self.__event_type_to_indexes_map = {}
-        for i, arg in enumerate(args):
+        for i, arg in enumerate(primitive_events):
             if arg.get_type() in self.__event_type_to_indexes_map:
                 self.__event_type_to_indexes_map[arg.type].append(i)
             else:
@@ -43,7 +42,7 @@ class ArrivalRatesStatistics(Statistics):
         self.__events_arrival_time = []
         self.__time_window = time_window
 
-    def update_by_event(self, event: Event):
+    def update(self, event: Event):
         event_type = event.type
         event_timestamp = event.timestamp
 
@@ -86,13 +85,12 @@ class ArrivalRatesStatistics(Statistics):
 
 class SelectivityStatistics(Statistics):
     """
-    Represents the arrival rates statistics.
-    NOTE: Currently, this statistic ignores time window
+    Represents the selectivity statistics.
+    NOTE: Currently it ignores the time window
     """
-    # TODO: Implement selectivity that also takes into account a time window
+    # TODO: Implement selectivity that a time window in account
 
     def __init__(self, pattern: Pattern, predefined_statistics: List[List] = None):
-        self.__pattern = pattern
         self.__args = pattern.get_primitive_events()
         self.__args_len = len(self.__args)
         self.__args_index_to_events_common_conditions_indexes_map = {}
@@ -106,14 +104,15 @@ class SelectivityStatistics(Statistics):
         else:
             self.__selectivity_matrix = predefined_statistics
 
-        self.init_maps()
+        self.init_maps(pattern)
 
-    def update_by_event(self, event1: Event):
+    def update(self, event1: Event):
         event_type = event1.type
         event_arg_1_indexes = self.__event_type_to_arg_indexes_map[event_type]
         for arg_1_index in event_arg_1_indexes:
             for arg_2_index in self.__args_index_to_events_common_conditions_indexes_map[arg_1_index]:
                 condition = self.__indexes_to_condition_map[(arg_1_index, arg_2_index)]
+                print(condition)
                 arg_2_type = self.__args[arg_2_index].type
                 if arg_1_index == arg_2_index:
                     self.__total_map[(arg_1_index, arg_2_index)] += 1
@@ -137,9 +136,9 @@ class SelectivityStatistics(Statistics):
     def get_statistics(self):
         return copy.deepcopy(self.__selectivity_matrix)
 
-    def init_maps(self):
+    def init_maps(self, pattern: Pattern):
         self.init_event_type_to_arg_indexes_map()
-        self.init_condition_maps()
+        self.init_condition_maps(pattern)
 
     def init_event_type_to_arg_indexes_map(self):
         for i, primitive_event in enumerate(self.__args):
@@ -148,10 +147,10 @@ class SelectivityStatistics(Statistics):
             else:
                 self.__event_type_to_arg_indexes_map[primitive_event.type] = [i]
 
-    def init_condition_maps(self):
+    def init_condition_maps(self, pattern: Pattern):
         for i in range(self.__args_len):
             for j in range(i + 1):
-                condition = self.__pattern.condition.get_condition_of({self.__args[i].name, self.__args[j].name})
+                condition = pattern.condition.get_condition_of({self.__args[i].name, self.__args[j].name})
                 if condition is not None:
                     if i in self.__args_index_to_events_common_conditions_indexes_map:
                         self.__args_index_to_events_common_conditions_indexes_map[i].append(j)
