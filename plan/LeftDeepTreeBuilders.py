@@ -34,9 +34,17 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
         """
         A helper method for converting a given order to a tree topology.
         """
-        tree_topology = TreePlanLeafNode(order[0]) if (nested_topologies is None or nested_topologies[order[0]] is None) else TreePlanNestedNode(order[0], nested_topologies[order[0]], nested_args[order[0]], nested_cost[order[0]])
+        if nested_topologies is None or nested_topologies[order[0]] is None:
+            tree_topology = TreePlanLeafNode(order[0])
+        else:
+            tree_topology = TreePlanNestedNode(order[0], nested_topologies[order[0]],
+                                               nested_args[order[0]], nested_cost[order[0]])
         for i in range(1, len(order)):
-            new_node = TreePlanLeafNode(order[i]) if (nested_topologies is None or nested_topologies[order[i]] is None) else TreePlanNestedNode(order[i], nested_topologies[order[i]], nested_args[order[i]], nested_cost[order[i]])
+            if nested_topologies is None or nested_topologies[order[i]] is None:
+                new_node = TreePlanLeafNode(order[i])
+            else:
+                new_node = TreePlanNestedNode(order[i], nested_topologies[order[i]], nested_args[order[i]],
+                                              nested_cost[order[i]])
             tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, new_node)
         return tree_topology
 

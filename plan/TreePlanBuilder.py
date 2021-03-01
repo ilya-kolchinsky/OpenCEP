@@ -25,7 +25,12 @@ class TreePlanBuilder(ABC):
             root = self.create_nested_topology(pattern)
         else:
             root = self._create_tree_topology(pattern)
-        return TreePlan(root)
+        return TreePlan(TreePlanBuilder.convert_nested_plan_to_basic(root))
+
+    @staticmethod
+    def convert_nested_plan_to_basic(root):
+        # TODO: Implement
+        return root
 
     def _create_tree_topology(self, pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
         """
@@ -162,7 +167,7 @@ class TreePlanBuilder(ABC):
             for arg in pattern.positive_structure.get_args():
                 # This loop creates (recursively) all the nested subtrees
                 if not isinstance(arg, PrimitiveEventStructure):
-                    # If we are here than this structure is composite or kleene.
+                    # If we are here than this structure is composite or unary.
                     # And first create new pattern that fits the nested operator's stats and structure.
                     pattern, nested_topologies, nested_arrival_rates, nested_cost, nested_args = \
                         self.handle_composite_or_unary_nested_pattern(arg, pattern, nested_topologies,
@@ -203,7 +208,7 @@ class TreePlanBuilder(ABC):
                 if isinstance(arg, KleeneClosureOperator):
                     nested_arrival_rates.append(pow(2, cost) / pattern.window.total_seconds())
                 else:
-                    raise Exception("unknown unary operator")
+                    raise Exception("Unknown unary operator")
             else:
                 nested_arrival_rates.append(cost / pattern.window.total_seconds())
             nested_cost.append(cost)
