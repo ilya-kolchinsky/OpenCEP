@@ -25,7 +25,7 @@ runTest.over_all_time = 0
 # nonsensePatternSearchTest()
 # hierarchyPatternSearchTest()
 # duplicateEventTypeTest()
-#
+
 # # # tree plan generation algorithms
 # arrivalRatesPatternSearchTest()
 # nonFrequencyPatternSearchTest()
@@ -50,8 +50,8 @@ runTest.over_all_time = 0
 # dpLdPatternSearchTest()
 # nonFrequencyTailoredPatternSearchTest()
 # frequencyTailoredPatternSearchTest()
-# #
-# # # tree structure tests - CEP object only created not used
+#
+# # tree structure tests - CEP object only created not used
 # structuralTest1()
 # structuralTest2()
 # structuralTest3()
@@ -60,7 +60,7 @@ runTest.over_all_time = 0
 # structuralTest6()
 # structuralTest7()
 #
-# # # Kleene closure tests
+# # Kleene closure tests
 # MinMax_0_TestKleeneClosure()
 # MinMax_1_TestKleeneClosure()
 # MinMax_2_TestKleeneClosure()
@@ -131,19 +131,19 @@ runTest.over_all_time = 0
 #
 # # Data parallel tests
 # Hirzel Algorithm
-# oneArgumentsearchTestHirzelAlgorithm()
-# amazonSpecificPatternSearchTestHirzelAlgorithm()
-# fbNegPatternSearchTestHirzelAlgorithm()
-# fbEqualToApple1PatternSearchTestHirzelAlgorithm()
-# fbEqualToApple2PatternSearchTestHirzelAlgorithm()
-# appleOpenToCloseTestHirzelAlgorithm()
-# applePeakToOpenTestHirzelAlgorithm()
-# KCgoogleTestHirzelAlgorithm()
-# KCequalsPatternSearchTestHirzelAlgorithm()
-# multyPatternHirzelAlgorithm()
+oneArgumentsearchTestHirzelAlgorithm()
+amazonSpecificPatternSearchTestHirzelAlgorithm()
+fbNegPatternSearchTestHirzelAlgorithm()
+fbEqualToApple1PatternSearchTestHirzelAlgorithm()
+fbEqualToApple2PatternSearchTestHirzelAlgorithm()
+appleOpenToCloseTestHirzelAlgorithm()
+applePeakToOpenTestHirzelAlgorithm()
+KCgoogleTestHirzelAlgorithm()
+KCequalsPatternSearchTestHirzelAlgorithm()
+multyPatternHirzelAlgorithm()
 
-#
-# # # RIP Algorithm
+
+#  RIP Algorithm
 oneArgumentsearchTestRIPAlgorithm()
 simplePatternSearchTestRIPAlgorithm()
 googleAscendPatternSearchTestRIPAlgorithm()
@@ -188,9 +188,8 @@ contiguousPolicy2PatternSearchTestRIPAlgorithm()
 freezePolicyPatternSearchTestRIPAlgorithm()
 freezePolicy2PatternSearchTestRIPAlgorithm()
 sortedStorageTestRIPAlgorithm()
-#
-#
-# # ######Basic functionality tests for HyperCube Algorithm
+
+# Basic functionality tests for HyperCube Algorithm
 # oneArgumentsearchTestHyperCubeAlgorithm()
 # simplePatternSearchTestHyperCubeAlgorithm()
 # googleAmazonLowPatternSearchTestHyperCubeAlgorithm()
@@ -204,7 +203,7 @@ sortedStorageTestRIPAlgorithm()
 # hierarchyPatternSearchTestHyperCubeAlgorithm()
 
 
-# # tree plan generation algorithms for HyperCubeAlgorithm
+# tree plan generation algorithms for HyperCubeAlgorithm
 # arrivalRatesPatternSearchTestHyperCubeAlgorithm()
 # frequencyPatternSearchTestHyperCubeAlgorithm()
 # nonFrequencyPatternSearchTestHyperCubeAlgorithm()
