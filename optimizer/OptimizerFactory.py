@@ -73,12 +73,12 @@ class OptimizerFactory:
 
         if optimizer_parameters.type == OptimizerTypes.STATISTICS_DEVIATION_AWARE:
             t = optimizer_parameters.t
-            type_to_changes_aware_tester_map = {}
+            type_to_deviation_aware_tester_map = {}
             for stat_type in optimizer_parameters.statistics_types:
                 deviation_aware_tester = DeviationAwareTesterFactory.create_deviation_aware_tester(stat_type, t)
-                type_to_changes_aware_tester_map[stat_type] = deviation_aware_tester
+                type_to_deviation_aware_tester_map[stat_type] = deviation_aware_tester
 
-            return Optimizer.StatisticsDeviationAwareOptimizer(tree_plan_builder, type_to_changes_aware_tester_map)
+            return Optimizer.StatisticsDeviationAwareOptimizer(tree_plan_builder, type_to_deviation_aware_tester_map)
 
         if optimizer_parameters.type == OptimizerTypes.USING_INVARIANT:
             if isinstance(tree_plan_builder, InvariantTreePlanBuilder):

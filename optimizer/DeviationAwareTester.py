@@ -11,12 +11,15 @@ class DeviationAwareTester(ABC):
 
     @abstractmethod
     def is_deviated_by_t(self, new_statistics, prev_statistics):
+        """
+       Checks if there was a deviation in one of the statistics by a factor of t.
+       """
         raise NotImplementedError()
 
 
 class ArrivalRatesDeviationAwareTester(DeviationAwareTester):
     """
-    Checks for deviations in the arrival rate by a factor of t.
+    Checks for deviations in the arrival rates by a factor of t.
     """
 
     def is_deviated_by_t(self, new_statistics: List[int], prev_statistics: List[int]):

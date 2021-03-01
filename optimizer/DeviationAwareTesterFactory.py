@@ -5,7 +5,7 @@ from optimizer import DeviationAwareTester
 
 class DeviationAwareTesterFactory:
     """
-    Creates a changes aware tester according to the specification.
+    Creates a deviation aware tester according to the specification.
     """
 
     @staticmethod

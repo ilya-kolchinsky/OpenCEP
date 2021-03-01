@@ -27,16 +27,16 @@ class Optimizer(ABC):
     def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
         raise NotImplementedError()
 
-    def build_initial_tree_plan(self, new_statistics: dict, cost_model_type: TreeCostModels,
+    def build_initial_tree_plan(self, initial_statistics: dict, cost_model_type: TreeCostModels,
                                 pattern: Pattern):
 
         non_prior_tree_plan_builder = self._build_non_prior_tree_plan_builder(cost_model_type, pattern)
         if non_prior_tree_plan_builder is not None:
             self._tree_plan_builder, temp_tree_plan_builder = non_prior_tree_plan_builder, self._tree_plan_builder
-            initial_tree_plan = self.build_new_tree_plan(new_statistics, pattern)
+            initial_tree_plan = self.build_new_tree_plan(initial_statistics, pattern)
             self._tree_plan_builder = temp_tree_plan_builder
         else:
-            initial_tree_plan = self.build_new_tree_plan(new_statistics, pattern)
+            initial_tree_plan = self.build_new_tree_plan(initial_statistics, pattern)
         return initial_tree_plan
 
     @staticmethod
@@ -81,18 +81,11 @@ class StatisticsDeviationAwareOptimizer(Optimizer):
             if self.__type_to_deviation_aware_tester_map[new_stats_type].is_deviated_by_t(new_stats, prev_stats):
                 return True
         return False
-        # return self._prev_statistics is None or self.is_changed_by_t(new_statistics.statistics, self._prev_statistics)
 
     def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
         self.__prev_statistics = new_statistics
         tree_plan = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
         return tree_plan
-
-    def is_deviated_by_t(self, new_statistics, old_statistics):
-        """
-        Checks if there was a change in one of the statistics by a factor of t.
-        """
-        raise NotImplementedError()
 
 
 class InvariantsAwareOptimizer(Optimizer):

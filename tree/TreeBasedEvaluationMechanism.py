@@ -81,8 +81,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
                             new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
                             new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
                             self._tree_update(new_tree, event.timestamp)
-                    # re-initialize statistics window start time
-                    statistics_update_start_time = event.timestamp
+                        # re-initialize statistics window start time
+                        statistics_update_start_time = event.timestamp
 
             self._play_new_event_on_tree(event, matches)
             self._get_matches(matches)
@@ -90,17 +90,14 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         self._get_last_pending_matches(matches)
+        # print(count)
         matches.close()
 
     def _get_last_pending_matches(self, matches):
-        raise NotImplementedError("Must override")
-
-    @staticmethod
-    def _collect_pending_matches(tree, matches):
         """
         Collects the pending matches from the tree
         """
-        for match in tree.get_last_matches():
+        for match in self._tree.get_last_matches():
             matches.add_item(match)
 
     def _play_new_event(self, event: Event, event_types_listeners):

@@ -12,7 +12,7 @@ from tree.Tree import Tree
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 
 
-class SimultaneousEvaluation(TreeBasedEvaluationMechanism):
+class SimultaneousTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
 
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                  storage_params: TreeStorageParameters,
@@ -37,16 +37,19 @@ class SimultaneousEvaluation(TreeBasedEvaluationMechanism):
         self.__is_simultaneous_state = True
 
     def _is_need_new_statistics(self):
+        """
+        In order to avoid a situation where there are more than 2 trees
+        """
         return not self.__is_simultaneous_state
 
     def _play_new_event_on_tree(self, event: Event, matches: OutputStream):
         if self.__is_simultaneous_state:
-            self._play_new_event_on_new(event, self.__new_event_types_listeners)
+            self.__play_new_event_on_new_tree(event, self.__new_event_types_listeners)
 
         self._play_new_event(event, self._event_types_listeners)
         if self.__is_simultaneous_state:
             # After this round we ask if we are in a simultaneous state.
-            # If the time window is over then we want to return to a state that is not simultaneous,
+            # If the pattern window is over then we want to return to a state that is not simultaneous,
             # i.e. a single tree
             if event.timestamp - self.__tree_update_time > self._pattern.window:
                 # Passes pending matches from the old tree to the new tree if the root is a NegationNode
@@ -59,25 +62,14 @@ class SimultaneousEvaluation(TreeBasedEvaluationMechanism):
                 self.__is_simultaneous_state = False
 
     def _get_matches(self, matches: OutputStream):
+        super()._get_matches(matches)
+        # Flush the matches from the new tree while in simultaneous state
+        # These matches were necessarily obtained from the old tree
         if self.__is_simultaneous_state:
-            # TODO: comment here
-            for match in self._tree.get_matches():
-                matches.add_item(match)
-                self._remove_matched_freezers(match.events)
-            # Flush the matches from the new tree while in simultaneous state
             for _ in self.__new_tree.get_matches():
                 pass
-        else:
-            super()._get_matches(matches)
 
-    def _get_last_pending_matches(self, matches):
-        """
-        pending matches in the new tree are contained in the old tree
-        therefore it is enough to collect the pending matches only from the old tree
-        """
-        super()._collect_pending_matches(self._tree, matches)
-
-    def _play_new_event_on_new(self, event: Event, event_types_listeners):
+    def __play_new_event_on_new_tree(self, event: Event, event_types_listeners):
         """
         Lets the tree handle the event
         """

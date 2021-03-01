@@ -6,7 +6,11 @@ from tree.Tree import Tree
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 
 
-class TrivialEvaluation(TreeBasedEvaluationMechanism):
+class TrivialTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
+    """
+    Represent the trivial tree based evaluation mechanism.
+    Whenever you get a new tree, just replace it with the old one
+    """
 
     def _tree_update(self, new_tree: Tree, tree_update_time: datetime):
         old_events = self.__get_all_old_events()
@@ -25,8 +29,10 @@ class TrivialEvaluation(TreeBasedEvaluationMechanism):
         for _ in self._tree.get_matches():
             pass
 
-
     def __get_all_old_events(self):
+        """
+        get list of all old events that already played on the old tree
+        """
         old_pattern_matches_events = []  # todo check the name
         leaf_types = set()
         leaves = self._tree.get_leaves()
@@ -57,7 +63,4 @@ class TrivialEvaluation(TreeBasedEvaluationMechanism):
 
     def _play_new_event_on_tree(self, event: Event, matches: OutputStream):
         self._play_new_event(event, self._event_types_listeners)
-
-    def _get_last_pending_matches(self, matches):
-        super()._collect_pending_matches(self._tree, matches)
 
