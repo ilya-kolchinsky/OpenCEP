@@ -18,15 +18,16 @@ class StatisticsCollector:
         self.update_specified_statistics(StatisticsTypes.ARRIVAL_RATES, event)
 
     def get_statistics(self):
-        return {statistics_type: statistics.get_statistics() for statistics_type, statistics in self.__statistics.items()}
+        return {statistics_type: statistics.get_statistics() for statistics_type, statistics in
+                self.__statistics.items()}
 
-    def statistics_types(self):
+    def get_statistics_types(self):
         return self.__statistics.keys()
 
     def update_specified_statistics(self, statistics_type: StatisticsTypes, data):
         """
         This method exists because there are statistics(like selectivity)
-        that are updated not based on events from the stream.
+        that are updated not based on events from the stream directly.
         """
         if statistics_type in self.__statistics:
             self.__statistics[statistics_type].update(data)
