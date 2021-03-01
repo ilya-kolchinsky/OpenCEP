@@ -1,8 +1,10 @@
 """
 This file contains the basic Condition classes.
 """
-from abc import ABC
+from abc import ABC, abstractmethod
 from enum import Enum
+
+from misc.StatisticsTypes import StatisticsTypes
 from statistics_collector.StatisticsCollector import StatisticsCollector
 
 
@@ -91,6 +93,20 @@ class AtomicCondition(Condition, ABC):
         # currently used to update the selectivity statistics if they are present in the statistics collector
         self._statistics_collector = None
 
+    def eval(self, binding: dict or list = None):
+        result = self._eval(binding)
+        data = (self, result)
+        if self._statistics_collector:
+            self._statistics_collector.update_specified_statistics(StatisticsTypes.SELECTIVITY_MATRIX, data)
+        return result
+
+    @abstractmethod
+    def _eval(self, binding):
+        """
+        An abstract method for the actual eval.
+        """
+        raise NotImplementedError()
+
     def is_condition_of(self, names: set):
         """
         Returns True if all variable names participating in this condition appear in the given set and False otherwise.
@@ -103,11 +119,12 @@ class AtomicCondition(Condition, ABC):
     def set_statistics_collector(self, statistics_collector: StatisticsCollector):
         self._statistics_collector = statistics_collector
 
+
 class TrueCondition(AtomicCondition):
     """
     Represents a Boolean True condition.
     """
-    def eval(self, binding: dict = None):
+    def _eval(self, binding: dict = None):
         return True
 
     def __repr__(self):
@@ -132,7 +149,7 @@ class SimpleCondition(AtomicCondition):
         self.terms = terms
         self.relation_op = relation_op
 
-    def eval(self, binding: dict = None):
+    def _eval(self, binding: dict = None):
         rel_terms = []
         for term in self.terms:
             rel_terms.append(term.eval(binding) if isinstance(term, Variable) else term)
