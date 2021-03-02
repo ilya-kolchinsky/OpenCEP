@@ -123,8 +123,6 @@ class SelectivityStatistics(Statistics):
                     selectivity *= (numerator / denominator)
 
             self.__selectivity_matrix[j][i] = self.__selectivity_matrix[i][j] = selectivity
-
-        print(self.__selectivity_matrix)
         return copy.deepcopy(self.__selectivity_matrix)
 
     def init_maps(self, pattern: Pattern):

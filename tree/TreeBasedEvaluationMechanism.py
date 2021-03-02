@@ -12,7 +12,6 @@ from misc.ConsumptionPolicy import *
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from tree.MultiPatternTree import MultiPatternTree
 from statistics_collector import StatisticsCollector
-from misc.StatisticsTypes import StatisticsTypes
 from tree.Tree import Tree
 from datetime import timedelta
 from optimizer import Optimizer
@@ -35,7 +34,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
             self._tree = MultiPatternTree(pattern_to_tree_plan_map, storage_params, multi_pattern_eval_params)
         else:
             self._tree = Tree(list(pattern_to_tree_plan_map.values())[0],
-                              list(pattern_to_tree_plan_map)[0], storage_params)
+                              list(pattern_to_tree_plan_map)[0], storage_params,
+                              statistics_collector = statistics_collector)
 
         self.__storage_params = storage_params
         self.__statistics_collector = statistics_collector
@@ -79,7 +79,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
                         new_statistics = self.__statistics_collector.get_statistics()
                         if self.__optimizer.is_need_optimize(new_statistics, self._pattern):
                             new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
-                            new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
+                            new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params, statistics_collector = self.__statistics_collector)
                             self._tree_update(new_tree, event.timestamp)
                         # re-initialize statistics window start time
                         statistics_update_start_time = event.timestamp

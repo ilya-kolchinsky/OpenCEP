@@ -77,11 +77,7 @@ class EvaluationMechanismFactory:
             patterns = [patterns]
 
         statistics_collector = StatisticsCollectorFactory.build_statistics_collector(eval_mechanism_params.statistics_collector_params, patterns)
-        for pattern in patterns:
-            for condition in pattern.condition.extract_atomic_conditions():
-                condition.set_statistics_collector(statistics_collector)
         optimizer = OptimizerFactory.build_optimizer(eval_mechanism_params.optimizer_params)
-
         initial_statistics = statistics_collector.get_statistics()
         cost_model_type = eval_mechanism_params.optimizer_params.tree_plan_params.cost_model_type
         pattern_to_tree_plan_map = {pattern: optimizer.build_initial_tree_plan(initial_statistics, cost_model_type, pattern) for pattern in patterns}
