@@ -12,6 +12,7 @@ runTest.over_all_time = 0
 # basic functionality tests
 
 oneArgumentsearchTest()
+
 simplePatternSearchTest()
 
 googleAscendPatternSearchTest()
@@ -54,7 +55,9 @@ frequencyTailoredPatternSearchTest()
 
 # tree structure tests - CEP object only created not used
 structuralTest1()
+
 structuralTest2()
+
 structuralTest3()
 structuralTest4()
 structuralTest5()
@@ -82,14 +85,17 @@ KC_Condition_Failure_03()
 
 # negation tests
 simpleNotTest()
-multipleNotInTheMiddleTest(check_all_combs=True)
+
+multipleNotInTheMiddleTest()
+
 oneNotAtTheBeginningTest()
-multipleNotAtTheBeginningTest(check_all_combs=True)
+multipleNotAtTheBeginningTest()
 oneNotAtTheEndTest()
-multipleNotAtTheEndTest(check_all_combs=True)
-multipleNotBeginAndEndTest(check_all_combs=True)
-testWithMultipleNotAtBeginningMiddleEnd(check_all_combs=True)
-testWithMultipleNotAtBeginningMiddleEnd2()
+multipleNotAtTheEndTest()
+multipleNotBeginAndEndTest()
+testWithMultipleNotAtBeginningMiddleEnd()
+testWithMultipleNotAtBeginningMiddleEnd2(check_all_combinations=False)
+
 
 # consumption policies tests
 singleType1PolicyPatternSearchTest()
@@ -105,17 +111,23 @@ run_storage_tests()
 
 # multi-pattern tests
 # first approach: sharing leaves
+
 leafIsRoot()
+
 distinctPatterns()
 threePatternsTest()
 samePatternDifferentTimeStamps()
 rootAndInner()
 
 # second approach: sharing equivalent subtrees
+
 onePatternIncludesOther()
+
 samePatternSharingRoot()
 severalPatternShareSubtree()
+
 notInTheBeginningShare()
+
 multipleParentsForInternalNode()
 
 # benchmarks

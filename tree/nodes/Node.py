@@ -2,7 +2,6 @@ from abc import ABC
 from datetime import timedelta, datetime
 from queue import Queue
 from typing import List, Set
-
 from base.Event import Event
 from condition.Condition import RelopTypes, EquationSides
 from condition.CompositeCondition import CompositeCondition, AndCondition
@@ -19,8 +18,6 @@ class PrimitiveEventDefinition:
         self.name = event_name
         self.index = event_index
 
-    def get_event_index(self):
-        return self.index
 
 class Node(ABC):
     """

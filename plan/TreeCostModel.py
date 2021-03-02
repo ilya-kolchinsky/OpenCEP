@@ -25,7 +25,7 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
     """
     def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivity_matrix, arrival_rates) = pattern.statistics
+            (selectivity_matrix, arrival_rates) = pattern.positive_statistics
         else:
             raise MissingStatisticsException()
         _, _, cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(plan, selectivity_matrix,

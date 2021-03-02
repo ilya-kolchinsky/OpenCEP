@@ -70,9 +70,8 @@ class BinaryNode(InternalNode, ABC):
         self._left_subtree = left
         self._right_subtree = right
         # only the positive children definitions should be applied on this node
-        negative_event_defs = self._right_subtree.get_positive_event_definitions()
-        self._set_event_definitions(self._left_subtree.get_positive_event_definitions(), negative_event_defs)
-        return negative_event_defs
+        self._set_event_definitions(self._left_subtree.get_positive_event_definitions(),
+                                    self._right_subtree.get_positive_event_definitions())
 
     def propagate_sliding_window(self, sliding_window: timedelta):
         self.set_sliding_window(sliding_window)

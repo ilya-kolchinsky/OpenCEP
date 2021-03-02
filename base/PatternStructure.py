@@ -41,10 +41,6 @@ class PrimitiveEventStructure(PatternStructure):
     def __init__(self, event_type: str, name: str):
         self.type = event_type
         self.name = name
-        self.orig_idx = None
-
-    def set_orig_idx(self, num):
-        self.orig_idx = num
 
     def duplicate(self):
         return PrimitiveEventStructure(self.type, self.name)
@@ -72,9 +68,6 @@ class UnaryStructure(PatternStructure, ABC):
     def contains_event(self, event_name: str):
         return self.arg.contains_event(event_name)
 
-    def get_arg(self):
-        return self.arg
-
 
 class CompositeStructure(PatternStructure, ABC):
     """
@@ -82,9 +75,6 @@ class CompositeStructure(PatternStructure, ABC):
     """
     def __init__(self, *args):
         self.args = list(args)
-
-    def get_args(self):
-        return self.args
 
     def duplicate(self):
         new_structure = self.duplicate_top_operator()
@@ -155,8 +145,6 @@ class NegationOperator(UnaryStructure):
 
     def __init__(self, arg):
         super().__init__(arg)
-        # The indices of the positive events which this negative event is in contact with
-        self.pos_related_idxs = set()
 
     def duplicate(self):
         return NegationOperator(self.arg.duplicate())

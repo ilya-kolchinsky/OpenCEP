@@ -7,6 +7,10 @@ from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuild
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
+from negationAlgorithms.NegationAlgorithm import NegationAlgorithmTypes
+from negationAlgorithms.NaiveNegationAlgorithm import NaiveNegationAlgorithm
+from negationAlgorithms.StatisticNegationAlgorithm import StatisticNegationAlgorithm
+from negationAlgorithms.LowestPositionNegationAlgorithm import LowestPositionNegationAlgorithm
 
 
 class EvaluationMechanismParameters:
@@ -23,11 +27,18 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
     """
     def __init__(self, tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
                  storage_params: TreeStorageParameters = TreeStorageParameters(),
-                 multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
+                 multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters(),
+                 negation_algorithm_type: NegationAlgorithmTypes = DefaultConfig.DEFAULT_NEGATION_ALGORITHM):
         super().__init__(EvaluationMechanismTypes.TREE_BASED)
         self.tree_plan_params = tree_plan_params
         self.storage_params = storage_params
         self.multi_pattern_eval_params = multi_pattern_eval_params
+        if negation_algorithm_type is NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM:
+            self.negation_algorithm = NaiveNegationAlgorithm(negation_algorithm_type)
+        elif negation_algorithm_type is NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM:
+            self.negation_algorithm = StatisticNegationAlgorithm(negation_algorithm_type)
+        else:
+            self.negation_algorithm = LowestPositionNegationAlgorithm(negation_algorithm_type)
 
 
 class EvaluationMechanismFactory:
@@ -62,7 +73,10 @@ class EvaluationMechanismFactory:
         if isinstance(patterns, Pattern):
             patterns = [patterns]
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
-        pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
+        pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern,
+                                    eval_mechanism_params.negation_algorithm) for pattern in patterns}
+        for p in patterns:
+            see = pattern_to_tree_plan_map[p]
         return TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
                                             eval_mechanism_params.multi_pattern_eval_params)
 

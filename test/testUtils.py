@@ -10,7 +10,7 @@ from misc.Utils import generate_matches
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-from plan.NegationAlgorithmTypes import NegationAlgorithmTypes
+from negationAlgorithms.NegationAlgorithmTypes import NegationAlgorithmTypes
 from plugin.stocks.Stocks import MetastockDataFormatter
 from tree.PatternMatchStorage import TreeStorageParameters
 
@@ -186,10 +186,10 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
 
 
 def runTest(expectedFileName, patterns, createTestFile = False,
-            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS, events = None,
-            eventStream = nasdaqEventStream, negation_algorithm: NegationAlgorithmTypes = None, testName=None):
+            eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS, events=None,
+            eventStream=nasdaqEventStream, test_name=None):
     if createTestFile:
-        createTest(testName, patterns, events, eventStream = eventStream)
+        createTest(test_name, patterns, events, eventStream=eventStream)
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -210,21 +210,21 @@ def runTest(expectedFileName, patterns, createTestFile = False,
     elif expectedFileName == "NotEverywhere":
         events = custom3.duplicate()
 
-    cep = CEP(patterns, eval_mechanism_params, negation_algorithm=negation_algorithm)
+    cep = CEP(patterns, eval_mechanism_params)
 
-    if testName is None:
-        testName = expectedFileName
+    if test_name is None:
+        test_name = expectedFileName
     else:
-        if negation_algorithm is NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM:
-            negAlg = "naive"
-        elif negation_algorithm is NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM:
-            negAlg = "statistic"
+        if eval_mechanism_params.negation_algorithm.negation_algorithm_type is NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM:
+            negation_algorithm = "Naive"
+        elif eval_mechanism_params.negation_algorithm.negation_algorithm_type is NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM:
+            negation_algorithm = "Statistic"
         else:
-            negAlg = "lowestPos"
-        testName = expectedFileName+negAlg+testName
+            negation_algorithm = "LowestPos"
+        test_name = expectedFileName+negation_algorithm+test_name
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
-    output_file_name = "%sMatches.txt" % testName
+    output_file_name = "%sMatches.txt" % test_name
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
     ExpectedOutputFileName = "%sMatches.txt" % expectedFileName
@@ -232,14 +232,14 @@ def runTest(expectedFileName, patterns, createTestFile = False,
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
     is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
 
-    print("Test %s result: %s, Time Passed: %s" % (testName,
+    print("Test %s result: %s, Time Passed: %s" % (test_name,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
     if is_test_successful:
         os.remove(actual_matches_path)
     else:
         numFailedTests.increase_counter()
-        numFailedTests.failedTests.add(testName)
+        numFailedTests.failedTests.add(test_name)
 
 
 """
@@ -292,7 +292,7 @@ def uniteFiles(testName, numOfPatterns):
 This function runs multi-pattern CEP on the given list of patterns and prints
 success or fail output.
 """
-def runMultiTest(testName, patterns, createTestFile = False,
+def runMultiTest(test_name, patterns, createTestFile = False,
             eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
             events = None, eventStream = nasdaqEventStream):
 
@@ -305,24 +305,24 @@ def runMultiTest(testName, patterns, createTestFile = False,
     listHalfShort = ["onePatternIncludesOther", "threeSharingSubtrees"]
     listCustom = []
     listCustom2 = ["FirstMultiPattern", "RootAndInner"]
-    if testName in listShort:
+    if test_name in listShort:
         events = nasdaqEventStreamShort.duplicate()
-    elif testName in listHalfShort:
+    elif test_name in listHalfShort:
         events = nasdaqEventStreamHalfShort.duplicate()
-    elif testName in listCustom:
+    elif test_name in listCustom:
         events = custom.duplicate()
-    elif testName in listCustom2:
+    elif test_name in listCustom2:
         events = custom2.duplicate()
-    elif testName == "NotEverywhere":
+    elif test_name == "NotEverywhere":
         events = custom3.duplicate()
 
     if createTestFile:
-        createExpectedOutput(testName, patterns, eval_mechanism_params, events.duplicate(), eventStream)
+        createExpectedOutput(test_name, patterns, eval_mechanism_params, events.duplicate(), eventStream)
 
     cep = CEP(patterns, eval_mechanism_params)
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
-    output_file_name = "%sMatches.txt" % testName
+    output_file_name = "%sMatches.txt" % test_name
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
@@ -345,12 +345,14 @@ def runMultiTest(testName, patterns, createTestFile = False,
             exp_set[int(match.partition(':')[0]) - 1].add(match.strip()[match.index(' ') + 1:])
 
     res = (exp_set == match_set)
-    print("Test %s result: %s, Time Passed: %s" % (testName,
+    print("Test %s result: %s, Time Passed: %s" % (test_name,
           "Succeeded" if res else "Failed", running_time))
     runTest.over_all_time += running_time
     if res:
         os.remove(actual_matches_path)
-
+    else:
+        numFailedTests.increase_counter()
+        numFailedTests.failedTests.add(test_name)
 
 class DummyOutputStream(OutputStream):
     def add_item(self, item: object):

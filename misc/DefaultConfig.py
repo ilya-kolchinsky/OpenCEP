@@ -10,7 +10,7 @@ from plan.IterativeImprovement import IterativeImprovementType, IterativeImprove
 from plan.multi.MultiPatternEvaluationApproaches import MultiPatternEvaluationApproaches
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-
+from negationAlgorithms.NegationAlgorithmTypes import NegationAlgorithmTypes
 
 # general settings
 DEFAULT_EVALUATION_MECHANISM_TYPE = EvaluationMechanismTypes.TREE_BASED
@@ -38,3 +38,6 @@ MULTI_PATTERN_APPROACH = MultiPatternEvaluationApproaches.TRIVIAL_SHARING_LEAVES
 # parallel execution settings
 DEFAULT_PARALLEL_EXECUTION_MODE = ParallelExecutionModes.SEQUENTIAL
 DEFAULT_PARALLEL_EXECUTION_PLATFORM = ParallelExecutionPlatforms.THREADING
+
+# default negation algorithm
+DEFAULT_NEGATION_ALGORITHM = NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM

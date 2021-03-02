@@ -10,7 +10,6 @@ from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from typing import List
 from datetime import datetime
-from plan.NegationAlgorithmTypes import NegationAlgorithmTypes
 
 
 class CEP:
@@ -20,20 +19,12 @@ class CEP:
     be optimized and parallelized.
     """
     def __init__(self, patterns: Pattern or List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None,
-                 parallel_execution_params: ParallelExecutionParameters = None,
-                 negation_algorithm: NegationAlgorithmTypes = None):
+                 parallel_execution_params: ParallelExecutionParameters = None):
         """
         Constructor of the class.
         """
         if patterns is None or len(patterns) == 0:
             raise Exception("No patterns are provided")
-        flag = 0
-        for pattern in patterns:
-            if pattern.negative_structure is not None:
-                flag = 1
-                pattern.set_negation_algorithm(negation_algorithm)
-        if flag == 0 and negation_algorithm is not None:
-            raise Exception("Negation algorithm was provided, but none of the patterns includes negation operators")
         self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(patterns,
                                                                                        eval_mechanism_params,
                                                                                        parallel_execution_params)

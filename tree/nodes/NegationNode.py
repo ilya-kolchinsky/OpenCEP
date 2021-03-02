@@ -4,7 +4,6 @@ from typing import List, Set, Type
 
 from base.Event import Event
 from condition.Condition import RelopTypes, EquationSides
-from condition.CompositeCondition import CompositeCondition
 from base.PatternMatch import PatternMatch
 from base.PatternStructure import AndOperator, SeqOperator
 from misc.Utils import find_partial_match_by_timestamp, merge, is_sorted, merge_according_to
@@ -32,7 +31,6 @@ class NegationNode(BinaryNode, ABC):
 
         # contains the event definitions of the positive subtree
         self._positive_event_defs = None
-        self._negative_event_defs = None
         # negation operators that can appear in the end of the match have this flag on
         self.__is_unbounded = is_unbounded
 
@@ -48,14 +46,11 @@ class NegationNode(BinaryNode, ABC):
     def get_pending_partial_matches(self):
         return self.__pending_partial_matches
 
-    def get_negative_event_defs(self):
-        return self._negative_event_defs
-
     def set_subtrees(self, left: Node, right: Node):
         """
         Updates the aliases following the changes in the subtrees.
         """
-        self._negative_event_defs = super().set_subtrees(left, right)
+        super().set_subtrees(left, right)
         self._positive_subtree = self._left_subtree
         self._negative_subtree = self._right_subtree
 

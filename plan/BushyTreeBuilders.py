@@ -19,7 +19,7 @@ class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
     """
     def _create_tree_topology(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivity_matrix, arrival_rates) = pattern.statistics
+            (selectivity_matrix, arrival_rates) = pattern.positive_statistics
         else:
             raise MissingStatisticsException()
 
@@ -43,7 +43,7 @@ class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
                 set1_, set2_ = next(disjoint_sets_iter)
                 tree1_, _, _ = sub_trees[set1_]
                 tree2_, _, _ = sub_trees[set2_]
-                new_tree_ = TreePlanBuilder._instantiate_binary_node(pattern, tree1_, tree2_)
+                new_tree_ = TreePlanBuilder.instantiate_binary_node(pattern, tree1_, tree2_)
                 new_cost_ = self._get_plan_cost(pattern, new_tree_)
                 new_left_ = items.difference({subset})
                 sub_trees[subset] = new_tree_, new_cost_, new_left_
@@ -51,14 +51,14 @@ class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
                 for set1, set2 in disjoint_sets_iter:
                     tree1, _, _ = sub_trees[set1]
                     tree2, _, _ = sub_trees[set2]
-                    new_tree = TreePlanBuilder._instantiate_binary_node(pattern, tree1, tree2)
+                    new_tree = TreePlanBuilder.instantiate_binary_node(pattern, tree1, tree2)
                     new_cost = self._get_plan_cost(pattern, new_tree)
                     _, cost, left = sub_trees[subset]
                     # if new subset's topology is better, then update to it.
                     if new_cost < cost:
                         sub_trees[subset] = new_tree, new_cost, left
         # the best topology (index 0 at tuple) for items - the set of all arguments
-        return self._add_negative_part(sub_trees[items][0], pattern)
+        return sub_trees[items][0]
 
 
 class ZStreamTreeBuilder(TreePlanBuilder):
@@ -67,7 +67,7 @@ class ZStreamTreeBuilder(TreePlanBuilder):
     """
     def _create_tree_topology(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivity_matrix, arrival_rates) = pattern.statistics
+            (selectivity_matrix, arrival_rates) = pattern.positive_statistics
         else:
             raise MissingStatisticsException()
 
@@ -89,7 +89,7 @@ class ZStreamTreeBuilder(TreePlanBuilder):
                 order1_, order2_ = suborder[:1], suborder[1:]
                 tree1_, _ = suborders[order1_]
                 tree2_, _ = suborders[order2_]
-                tree = TreePlanBuilder._instantiate_binary_node(pattern, tree1_, tree2_)
+                tree = TreePlanBuilder.instantiate_binary_node(pattern, tree1_, tree2_)
                 cost = self._get_plan_cost(pattern, tree)
                 suborders[suborder] = tree, cost
                 # iterate over splits of suborder
@@ -99,11 +99,11 @@ class ZStreamTreeBuilder(TreePlanBuilder):
                     tree1, _ = suborders[order1]
                     tree2, _ = suborders[order2]
                     _, prev_cost = suborders[suborder]
-                    new_tree = TreePlanBuilder._instantiate_binary_node(pattern, tree1, tree2)
+                    new_tree = TreePlanBuilder.instantiate_binary_node(pattern, tree1, tree2)
                     new_cost = self._get_plan_cost(pattern, new_tree)
                     if new_cost < prev_cost:
                         suborders[suborder] = new_tree, new_cost
-        return self._add_negative_part(suborders[items][0], pattern)
+        return suborders[items][0]
 
     @staticmethod
     def _get_initial_order(selectivity_matrix: List[List[float]], arrival_rates: List[int]):

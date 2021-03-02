@@ -9,6 +9,8 @@ from misc.StatisticsTypes import StatisticsTypes
 import copy
 from numpy import random, fill_diagonal
 from itertools import permutations
+from negationAlgorithms.NegationAlgorithm import NegationAlgorithmTypes
+from misc import DefaultConfig
 
 
 class Statistics:
@@ -18,9 +20,9 @@ class Statistics:
         self.map_comb = {} # key: negative events' indices combination, value : 0  or 1 (if the combination was checked).
         self.comb_done = 0
         self.last_comb = ""
-        self.eventsNum = len(pattern.full_structure.get_args())
+        self.eventsNum = len(pattern.full_structure.args)
         # Collecting the negative events' indices
-        for i, arg in enumerate(pattern.full_structure.get_args()):
+        for i, arg in enumerate(pattern.full_structure.args):
             if type(arg) == NegationOperator:
                 self.negation_index_list.append(i)
         # Generating all the possible combinations for the negative events.
@@ -99,7 +101,7 @@ class Statistics:
         file.close()
 
 
-def runTrees(pattern, expectedFileName, createTestFile, check_all_combs):
+def runTrees(pattern, expectedFileName, createTestFile, check_all_combinations):
     """
     The function runs the test with the three negation algorithms on different statistics. In each loop,
     the negative events get a statistic combination that wasn't checked before, unless the flag "check_all_combs
@@ -118,7 +120,6 @@ def runTrees(pattern, expectedFileName, createTestFile, check_all_combs):
         if result is False:
             continue
         print("#### The following tests used the statistic combination " + statistics.last_comb + ":")
-
         # NAIVE NEGATION ALGORITHM
         runAllTrees(pattern, expectedFileName, createTestFile, selectivityMatrix=selectivityMatrix,
                     arrivalRates=arrivalRates)
@@ -131,90 +132,89 @@ def runTrees(pattern, expectedFileName, createTestFile, check_all_combs):
 
         print("### ### ###")
 
-        if check_all_combs is False:
+        if check_all_combinations is False:
             break
     if combinations_total_num == statistics.comb_done:
         statistics.print_to_statistics_file("all combinations were tested", expectedFileName)
-    elif check_all_combs:
+    elif check_all_combinations:
         statistics.print_to_statistics_file("missing combinations", expectedFileName, 1)
         numFailedTests.miss_comb.append(expectedFileName)
 
 
-def runAllTrees(pattern, expectedFileName, createTestFile, negationAlgo=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM
+def runAllTrees(pattern, expectedFileName, createTestFile, negationAlgorithm=DefaultConfig.DEFAULT_NEGATION_ALGORITHM
                 , selectivityMatrix=None, arrivalRates=None):
     """
     This function runs each test case with all kind of positive trees
     """
     # Trivial tree
-    origPatt = copy.deepcopy(pattern)
-    origPatt.set_statistics(StatisticsTypes.ARRIVAL_RATES, arrivalRates)
-    runTest(expectedFileName, [origPatt], createTestFile, negation_algorithm=negationAlgo, testName="Trivial")
+    original_pattern = copy.deepcopy(pattern)
+    original_pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, arrivalRates)
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE),
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params, negation_algorithm_type=negationAlgorithm
+    )
+    runTest(expectedFileName, [original_pattern], createTestFile, eval_params, test_name="Trivial")
 
     # SORT_BY_FREQUENCY_LEFT_DEEP_TREE
-    origPatt = copy.deepcopy(pattern)
-    origPatt.set_statistics(StatisticsTypes.ARRIVAL_RATES, arrivalRates)
+    original_pattern = copy.deepcopy(pattern)
+    original_pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, arrivalRates)
     eval_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
-        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params, negation_algorithm_type=negationAlgorithm
     )
-    runTest(expectedFileName, [origPatt], createTestFile, eval_params, negation_algorithm=negationAlgo, testName="Sort")
+    runTest(expectedFileName, [original_pattern], createTestFile, eval_params, test_name="Sort")
 
     # GREEDY_LEFT_DEEP_TREE
-    origPatt = copy.deepcopy(pattern)
-    origPatt.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    original_pattern = copy.deepcopy(pattern)
+    original_pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     eval_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE),
-        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params, negation_algorithm_type=negationAlgorithm
     )
-    runTest(expectedFileName, [origPatt], createTestFile, eval_params, nasdaqEventStream,
-            negation_algorithm=negationAlgo, testName="Greedy")
+    runTest(expectedFileName, [original_pattern], createTestFile, eval_params, nasdaqEventStream, test_name="Greedy")
 
     # LOCAL_SEARCH_LEFT_DEEP_TREE
     # this tree was not checked yet (at all)
 
     # DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE
-    origPatt = copy.deepcopy(pattern)
-    origPatt.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    original_pattern = copy.deepcopy(pattern)
+    original_pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     eval_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE),
-        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params, negation_algorithm_type=negationAlgorithm
     )
-    runTest(expectedFileName, [origPatt], createTestFile, eval_params, nasdaqEventStream,
-            negation_algorithm=negationAlgo, testName="DP")
+    runTest(expectedFileName, [original_pattern], createTestFile, eval_params, nasdaqEventStream, test_name="DP")
 
     # DYNAMIC_PROGRAMMING_BUSHY_TREE
-    origPatt = copy.deepcopy(pattern)
-    origPatt.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    original_pattern = copy.deepcopy(pattern)
+    original_pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     eval_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE),
-        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params, negation_algorithm_type=negationAlgorithm
     )
-    runTest(expectedFileName, [origPatt], createTestFile, eval_params, nasdaqEventStream,
-            negation_algorithm=negationAlgo, testName="DPBushy")
+    runTest(expectedFileName, [original_pattern], createTestFile, eval_params, nasdaqEventStream, test_name="DPBushy")
 
     # ZSTREAM_BUSHY_TREE
-    origPatt = copy.deepcopy(pattern)
-    origPatt.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    original_pattern = copy.deepcopy(pattern)
+    original_pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     eval_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE),
-        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params, negation_algorithm_type=negationAlgorithm
     )
-    runTest(expectedFileName, [origPatt], createTestFile, eval_params, nasdaqEventStream,
-            negation_algorithm=negationAlgo, testName="ZSBushy")
+    runTest(expectedFileName, [original_pattern], createTestFile, eval_params, nasdaqEventStream, test_name="ZSBushy")
 
     # ORDERED_ZSTREAM_BUSHY_TREE
-    origPatt = copy.deepcopy(pattern)
-    origPatt.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
+    original_pattern = copy.deepcopy(pattern)
+    original_pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     eval_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE),
-        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+        DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params, negation_algorithm_type=negationAlgorithm
     )
-    runTest(expectedFileName, [origPatt], createTestFile, eval_params, nasdaqEventStream,
-            negation_algorithm=negationAlgo, testName="OrderedZSBushy")
+    runTest(expectedFileName, [original_pattern], createTestFile, eval_params, nasdaqEventStream, test_name="OrderedZSBushy")
 
 
 # ON CUSTOM
-def multipleNotBeginAndEndTest(createTestFile=False, check_all_combs=False):
+def multipleNotBeginAndEndTest(createTestFile=False, check_all_combinations=True):
     pattern = Pattern(
         SeqOperator(NegationOperator(PrimitiveEventStructure("TYP1", "x")),
                     NegationOperator(PrimitiveEventStructure("TYP4", "t")),
@@ -233,11 +233,11 @@ def multipleNotBeginAndEndTest(createTestFile=False, check_all_combs=False):
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "MultipleNotBeginAndEnd", createTestFile, check_all_combs)
+    runTrees(pattern, "MultipleNotBeginAndEnd", createTestFile, check_all_combinations)
 
 
 # ON custom2
-def simpleNotTest(createTestFile=False, check_all_combs=False):
+def simpleNotTest(createTestFile=False, check_all_combinations=True):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), NegationOperator(PrimitiveEventStructure("AMZN", "b")), PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
@@ -248,11 +248,11 @@ def simpleNotTest(createTestFile=False, check_all_combs=False):
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "simpleNot", createTestFile, check_all_combs)
+    runTrees(pattern, "simpleNot", createTestFile, check_all_combinations)
 
 
 # ON NASDAQ SHORT
-def multipleNotInTheMiddleTest(createTestFile=False, check_all_combs=False):
+def multipleNotInTheMiddleTest(createTestFile=False, check_all_combinations=True):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), NegationOperator(PrimitiveEventStructure("LI", "d")), PrimitiveEventStructure("AMZN", "b"),
                      NegationOperator(PrimitiveEventStructure("FB", "e")), PrimitiveEventStructure("GOOG", "c")),
@@ -268,11 +268,11 @@ def multipleNotInTheMiddleTest(createTestFile=False, check_all_combs=False):
             ),
         timedelta(minutes=4)
     )
-    runTrees(pattern, "MultipleNotMiddle", createTestFile, check_all_combs)
+    runTrees(pattern, "MultipleNotMiddle", createTestFile, check_all_combinations)
 
 
 # ON NASDAQ SHORT
-def oneNotAtTheBeginningTest(createTestFile=False, check_all_combs=False):
+def oneNotAtTheBeginningTest(createTestFile=False, check_all_combinations=True):
     pattern = Pattern(
         SeqOperator(NegationOperator(PrimitiveEventStructure("TYP1", "x")), PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
@@ -283,11 +283,11 @@ def oneNotAtTheBeginningTest(createTestFile=False, check_all_combs=False):
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "OneNotBegin", createTestFile, check_all_combs)
+    runTrees(pattern, "OneNotBegin", createTestFile, check_all_combinations)
 
 
 # ON NASDAQ SHORT
-def multipleNotAtTheBeginningTest(createTestFile=False, check_all_combs=False):
+def multipleNotAtTheBeginningTest(createTestFile=False, check_all_combinations=True):
     pattern = Pattern(
         SeqOperator(NegationOperator(PrimitiveEventStructure("TYP1", "x")), NegationOperator(PrimitiveEventStructure("TYP2", "y")),
                     NegationOperator(PrimitiveEventStructure("TYP3", "z")), PrimitiveEventStructure("AAPL", "a"),
@@ -300,11 +300,11 @@ def multipleNotAtTheBeginningTest(createTestFile=False, check_all_combs=False):
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "MultipleNotBegin", createTestFile, check_all_combs)
+    runTrees(pattern, "MultipleNotBegin", createTestFile, check_all_combinations)
 
 
 # ON NASDAQ *HALF* SHORT
-def oneNotAtTheEndTest(createTestFile=False, check_all_combs=False):
+def oneNotAtTheEndTest(createTestFile=False, check_all_combinations=True):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c"), NegationOperator(PrimitiveEventStructure("TYP1", "x"))),
         AndCondition(
@@ -315,11 +315,11 @@ def oneNotAtTheEndTest(createTestFile=False, check_all_combs=False):
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "OneNotEnd", createTestFile, check_all_combs)
+    runTrees(pattern, "OneNotEnd", createTestFile, check_all_combinations)
 
 
 # ON NASDAQ *HALF* SHORT
-def multipleNotAtTheEndTest(createTestFile=False, check_all_combs=False):
+def multipleNotAtTheEndTest(createTestFile=False, check_all_combinations=True):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c"), NegationOperator(PrimitiveEventStructure("TYP1", "x")),
                     NegationOperator(PrimitiveEventStructure("TYP2", "y")), NegationOperator(PrimitiveEventStructure("TYP3", "z"))),
@@ -331,11 +331,11 @@ def multipleNotAtTheEndTest(createTestFile=False, check_all_combs=False):
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "MultipleNotEnd", createTestFile, check_all_combs)
+    runTrees(pattern, "MultipleNotEnd", createTestFile, check_all_combinations)
 
 
 # ON CUSTOM3
-def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False, check_all_combs=False):
+def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False, check_all_combinations=True):
     pattern = Pattern(
         SeqOperator(NegationOperator(PrimitiveEventStructure("AAPL", "a")), PrimitiveEventStructure("AMAZON", "b"),
                     NegationOperator(PrimitiveEventStructure("GOOG", "c")), PrimitiveEventStructure("FB", "d"),
@@ -348,11 +348,11 @@ def testWithMultipleNotAtBeginningMiddleEnd(createTestFile=False, check_all_comb
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "NotEverywhere", createTestFile, check_all_combs)
+    runTrees(pattern, "NotEverywhere", createTestFile, check_all_combinations)
 
 
 # ON CUSTOM
-def testWithMultipleNotAtBeginningMiddleEnd2(createTestFile=False, check_all_combs=False):
+def testWithMultipleNotAtBeginningMiddleEnd2(createTestFile=False, check_all_combinations=True):
     pattern = Pattern(
         SeqOperator(NegationOperator(PrimitiveEventStructure("TYP1", "x")),
                     NegationOperator(PrimitiveEventStructure("TYP4", "t")),
@@ -373,4 +373,4 @@ def testWithMultipleNotAtBeginningMiddleEnd2(createTestFile=False, check_all_com
         ),
         timedelta(minutes=5)
     )
-    runTrees(pattern, "NotEverywhere2", createTestFile, check_all_combs)
+    runTrees(pattern, "NotEverywhere2", createTestFile, check_all_combinations)
