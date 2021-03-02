@@ -41,6 +41,7 @@ class ArrivalRatesStatistics(Statistics):
         self.count = 0
         self.__events_arrival_time = []
         self.__arrival_rates_time_window = arrival_rates_time_window
+        self.__last_timestamp = None
 
     def update(self, event: Event):
         event_type = event.type
@@ -53,13 +54,13 @@ class ArrivalRatesStatistics(Statistics):
             for index in indices:
                 self.__arrival_rates[index] += 1
 
-        self.__remove_expired_events(event_timestamp)
+        self.__last_timestamp = event_timestamp
 
-    def __remove_expired_events(self, last_timestamp: datetime):
+    def __remove_expired_events(self):
         self.count += 1
         is_removed_elements = False
         for i, event_time in enumerate(self.__events_arrival_time):
-            if last_timestamp - event_time.timestamp > self.__arrival_rates_time_window:
+            if self.__last_timestamp - event_time.timestamp > self.__arrival_rates_time_window:
                 indices = self.__event_type_to_indices_map[event_time.event_type]
                 for index in indices:
                     self.__arrival_rates[index] -= 1
@@ -73,6 +74,7 @@ class ArrivalRatesStatistics(Statistics):
             self.__events_arrival_time = []
 
     def get_statistics(self):
+        self.__remove_expired_events()
         return copy.deepcopy(self.__arrival_rates)
 
 
