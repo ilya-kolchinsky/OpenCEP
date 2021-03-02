@@ -21,9 +21,6 @@ class StatisticsCollector:
         return {statistics_type: statistics.get_statistics() for statistics_type, statistics in
                 self.__statistics.items()}
 
-    def get_statistics_types(self):
-        return self.__statistics.keys()
-
     def update_specified_statistics(self, statistics_type: StatisticsTypes, data):
         """
         This method exists because there are statistics(like selectivity)
