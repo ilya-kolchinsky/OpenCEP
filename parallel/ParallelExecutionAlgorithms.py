@@ -1,6 +1,6 @@
 
 """
- Data parallel algoritms
+ Data parallel algorithms
 """
 from abc import ABC
 from stream.DataParallelStream import *
@@ -191,11 +191,6 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
                 self.__start_queue.put_nowait(start_time)
             start_time = end_time - self.__shared_time
             end_time = start_time + self.__time_slot
-            ##########
-            while not self.__thread_pool.empty() and not self.__streams_queue.empty():
-                unit_id = self.__thread_pool.get()
-                self._events_list[unit_id] = self.__streams_queue.get_nowait().duplicate()  # stream of input data
-                self.__start_list[unit_id].add_item(self.__start_queue.get_nowait())
 
         while not self.__streams_queue.empty():
             unit_id = self.__thread_pool.get()
@@ -212,13 +207,9 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
 
     def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
 
-        for _ in self.start_list[thread_id]:
-            self._eval_trees[thread_id].eval(self._events_list[thread_id],
-                                        self.__matches_handler,
-                                        data_formatter, False)
-            self._eval_trees[
-                thread_id] = EvaluationMechanismFactory.build_eval_mechanism(
-                self._eval_mechanism_params, self._patterns)
+        for _ in self.__start_list[thread_id]:
+            self._eval_trees[thread_id].eval(self._events_list[thread_id], self.__matches_handler, data_formatter, False)
+            self._eval_trees[thread_id] = EvaluationMechanismFactory.build_eval_mechanism(self._eval_mechanism_params, self._patterns)
             self.__thread_pool.put(thread_id)
 
         self._mutex.put(1)
@@ -267,19 +258,19 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
         self.__make_output_matches_stream()
 
 
-class HyperCubeAlgorithm(DataParallelAlgorithm):
+class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
     """
            A class for data parallel evaluation HyperCube algorithm
     """
-    def __init__(self, threadsNum, patterns: Pattern or List[Pattern],
+    def __init__(self, threads_num, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform, attributes_dict: dict):
-        super().__init__(threadsNum, patterns, eval_mechanism_params, platform)
+        super().__init__(threads_num, patterns, eval_mechanism_params, platform)
         self.attributes_dict = attributes_dict
         self.types = []
         for pattern in patterns:
             self.types.extend(list(pattern.get_all_event_types_with_duplicates()))
         self.groups_num = math.ceil((self._units_number - 1) ** (1 / len(self.types)))
-        self._matches_handler = Stream()
+        self.matches_handler = Stream()
         self.finished_threads = [0]
         self.mutex = Lock()
 
@@ -287,7 +278,7 @@ class HyperCubeAlgorithm(DataParallelAlgorithm):
         super().eval_algorithm(events, matches, data_formatter)
         check_duplicated = list()
 
-        for match in self._matches_handler:
+        for match in self.matches_handler:
             if match.__str__() not in check_duplicated:
                 self._matches.add_item(match)
                 check_duplicated.append(match.__str__())
@@ -326,11 +317,10 @@ class HyperCubeAlgorithm(DataParallelAlgorithm):
             stream.close()
         while self.finished_threads[0] != (self._units_number - 1):
             time.sleep(0.0001)
-        self._matches_handler.close()
+        self.matches_handler.close()
 
     def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
-        self._trees[thread_id].eval(self._events_list[thread_id], self._matches_handler, data_formatter,
-                                    False, self.finished_threads, self.mutex)
+        self._eval_trees[thread_id].eval(self._events_list[thread_id], self.matches_handler, data_formatter, False, self.finished_threads, self.mutex)
 
     def _finding_type_index_considering_duplications(self, index_among_type, event_type):
         count = 0
