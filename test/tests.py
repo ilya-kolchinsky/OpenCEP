@@ -13,119 +13,119 @@ from test.UnitTests.test_storage import run_storage_tests
 runTest.over_all_time = 0
 
 # # # basic functionality tests
-oneArgumentsearchTest()
-simplePatternSearchTest()
-googleAscendPatternSearchTest()
-amazonInstablePatternSearchTest()
-msftDrivRacePatternSearchTest()
-googleIncreasePatternSearchTest()
-amazonSpecificPatternSearchTest()
-googleAmazonLowPatternSearchTest()
-nonsensePatternSearchTest()
-hierarchyPatternSearchTest()
-duplicateEventTypeTest()
-
-# # # tree plan generation algorithms
-arrivalRatesPatternSearchTest()
-nonFrequencyPatternSearchTest()
-frequencyPatternSearchTest()
-nonFrequencyPatternSearch2Test()
-frequencyPatternSearch2Test()
-nonFrequencyPatternSearch3Test()
-frequencyPatternSearch3Test()
-nonFrequencyPatternSearch4Test()
-frequencyPatternSearch4Test()
-nonFrequencyPatternSearch5Test()
-frequencyPatternSearch5Test()
-frequencyPatternSearch6Test()
-greedyPatternSearchTest()
-iiRandomPatternSearchTest()
-iiRandom2PatternSearchTest()
-iiGreedyPatternSearchTest()
-iiGreedy2PatternSearchTest()
-zStreamOrdPatternSearchTest()
-zStreamPatternSearchTest()
-dpBPatternSearchTest()
-dpLdPatternSearchTest()
-nonFrequencyTailoredPatternSearchTest()
-frequencyTailoredPatternSearchTest()
-
-# # # tree structure tests - CEP object only created not used
-structuralTest1()
-structuralTest2()
-structuralTest3()
-structuralTest4()
-structuralTest5()
-structuralTest6()
-structuralTest7()
-
-# # # Kleene closure tests
-MinMax_0_TestKleeneClosure()
-MinMax_1_TestKleeneClosure()
-MinMax_2_TestKleeneClosure()
-
-# # # Kleene Condition tests
-KC_AND_IndexCondition_01()
-KC_AND_IndexCondition_02()
-KC_AND_NegOffSet_01()
-KC_AllValues()
-KC_Specific_Value()
-KC_Mixed()
-KC_Condition_Failure_01()
-KC_Condition_Failure_02()
-KC_Condition_Failure_03()
-
-# # # negation tests
-simpleNotTest()
-multipleNotInTheMiddleTest()
-oneNotAtTheBeginningTest()
-multipleNotAtTheBeginningTest()
-oneNotAtTheEndTest()
-multipleNotAtTheEndTest()
-multipleNotBeginAndEndTest()
-testWithMultipleNotAtBeginningMiddleEnd()
+# oneArgumentsearchTest()
+# simplePatternSearchTest()
+# googleAscendPatternSearchTest()
+# amazonInstablePatternSearchTest()
+# msftDrivRacePatternSearchTest()
+# googleIncreasePatternSearchTest()
+# amazonSpecificPatternSearchTest()
+# googleAmazonLowPatternSearchTest()
+# nonsensePatternSearchTest()
+# hierarchyPatternSearchTest()
+# duplicateEventTypeTest()
 #
-# # # # # consumption policies tests
-singleType1PolicyPatternSearchTest()
-singleType2PolicyPatternSearchTest()
-contiguousPolicyPatternSearchTest()
-contiguousPolicy2PatternSearchTest()
-freezePolicyPatternSearchTest()
-freezePolicy2PatternSearchTest()
+# # # # tree plan generation algorithms
+# arrivalRatesPatternSearchTest()
+# nonFrequencyPatternSearchTest()
+# frequencyPatternSearchTest()
+# nonFrequencyPatternSearch2Test()
+# frequencyPatternSearch2Test()
+# nonFrequencyPatternSearch3Test()
+# frequencyPatternSearch3Test()
+# nonFrequencyPatternSearch4Test()
+# frequencyPatternSearch4Test()
+# nonFrequencyPatternSearch5Test()
+# frequencyPatternSearch5Test()
+# frequencyPatternSearch6Test()
+# greedyPatternSearchTest()
+# iiRandomPatternSearchTest()
+# iiRandom2PatternSearchTest()
+# iiGreedyPatternSearchTest()
+# iiGreedy2PatternSearchTest()
+# zStreamOrdPatternSearchTest()
+# zStreamPatternSearchTest()
+# dpBPatternSearchTest()
+# dpLdPatternSearchTest()
+# nonFrequencyTailoredPatternSearchTest()
+# frequencyTailoredPatternSearchTest()
 #
-# # # # storage tests
-sortedStorageTest()
-run_storage_tests()
+# # # # tree structure tests - CEP object only created not used
+# structuralTest1()
+# structuralTest2()
+# structuralTest3()
+# structuralTest4()
+# structuralTest5()
+# structuralTest6()
+# structuralTest7()
 #
-# # # # multi-pattern tests
-# # # # first approach: sharing leaves
-leafIsRoot()
-distinctPatterns()
-threePatternsTest()
-samePatternDifferentTimeStamps()
-rootAndInner()
-# # # # #
-# # # # second approach: sharing equivalent subtrees
-onePatternIncludesOther()
-samePatternSharingRoot()
-severalPatternShareSubtree()
-notInTheBeginningShare()
-multipleParentsForInternalNode()
+# # # # Kleene closure tests
+# MinMax_0_TestKleeneClosure()
+# MinMax_1_TestKleeneClosure()
+# MinMax_2_TestKleeneClosure()
 #
+# # # # Kleene Condition tests
+# KC_AND_IndexCondition_01()
+# KC_AND_IndexCondition_02()
+# KC_AND_NegOffSet_01()
+# KC_AllValues()
+# KC_Specific_Value()
+# KC_Mixed()
+# KC_Condition_Failure_01()
+# KC_Condition_Failure_02()
+# KC_Condition_Failure_03()
 #
+# # # # negation tests
+# simpleNotTest()
+# multipleNotInTheMiddleTest()
+# oneNotAtTheBeginningTest()
+# multipleNotAtTheBeginningTest()
+# oneNotAtTheEndTest()
+# multipleNotAtTheEndTest()
+# multipleNotBeginAndEndTest()
+# testWithMultipleNotAtBeginningMiddleEnd()
 # #
-# # benchmarks
-if INCLUDE_BENCHMARKS:
-    sortedStorageBenchMarkTest()
+# # # # # # consumption policies tests
+# singleType1PolicyPatternSearchTest()
+# singleType2PolicyPatternSearchTest()
+# contiguousPolicyPatternSearchTest()
+# contiguousPolicy2PatternSearchTest()
+# freezePolicyPatternSearchTest()
+# freezePolicy2PatternSearchTest()
+# #
+# # # # # storage tests
+# sortedStorageTest()
+# run_storage_tests()
+# #
+# # # # # multi-pattern tests
+# # # # # first approach: sharing leaves
+# leafIsRoot()
+# distinctPatterns()
+# threePatternsTest()
+# samePatternDifferentTimeStamps()
+# rootAndInner()
+# # # # # #
+# # # # # second approach: sharing equivalent subtrees
+# onePatternIncludesOther()
+# samePatternSharingRoot()
+# severalPatternShareSubtree()
+# notInTheBeginningShare()
+# multipleParentsForInternalNode()
 # #
 # #
-# # # Twitter tests
-if INCLUDE_TWITTER:
-    try:
-        from TwitterTest import run_twitter_sanity_check
-        run_twitter_sanity_check()
-    except ImportError:  # tweepy might not be installed
-        pass
+# # #
+# # # benchmarks
+# if INCLUDE_BENCHMARKS:
+#     sortedStorageBenchMarkTest()
+# # #
+# # #
+# # # # Twitter tests
+# if INCLUDE_TWITTER:
+#     try:
+#         from TwitterTest import run_twitter_sanity_check
+#         run_twitter_sanity_check()
+#     except ImportError:  # tweepy might not be installed
+#         pass
 # #
 # # # Data parallel tests
 # ### Hirzel Algorithm
@@ -189,60 +189,60 @@ sortedStorageTestRIPAlgorithm()
 
 
 # # ######Basic functionality tests for HyperCube Algorithm
-oneArgumentsearchTestHyperCubeAlgorithm()
-simplePatternSearchTestHyperCubeAlgorithm()
-googleAmazonLowPatternSearchTestHyperCubeAlgorithm()
-nonsensePatternSearchTestHyperCubeAlgorithm()
-duplicateEventTypeTestHyperCubeAlgorithm()
-amazonSpecificPatternSearchTestHyperCubeAlgorithm()
-googleAscendPatternSearchTestHyperCubeAlgorithm()
-amazonInstablePatternSearchTestHyperCubeAlgorithm()
-msftDrivRacePatternSearchTestHyperCubeAlgorithm()
-googleIncreasePatternSearchTestHyperCubeAlgorithm()
-hierarchyPatternSearchTestHyperCubeAlgorithm()
-
-
-# # tree plan generation algorithms for HyperCubeAlgorithm
-arrivalRatesPatternSearchTestHyperCubeAlgorithm()
-frequencyPatternSearchTestHyperCubeAlgorithm()
-nonFrequencyPatternSearchTestHyperCubeAlgorithm()
-nonFrequencyPatternSearch3TestHyperCubeAlgorithm()
-frequencyPatternSearch3TestHyperCubeAlgorithm()
-nonFrequencyPatternSearch2TestHyperCubeAlgorithm()
-frequencyPatternSearch2TestHyperCubeAlgorithm()
-nonFrequencyPatternSearch4TestHyperCubeAlgorithm()
-frequencyPatternSearch4TestHyperCubeAlgorithm()
-greedyPatternSearchTestHyperCubeAlgorithm()
-iiRandomPatternSearchTestHyperCubeAlgorithm()
-iiRandom2PatternSearchTestHyperCubeAlgorithm()
-iiGreedyPatternSearchTestHyperCubeAlgorithm()
-iiGreedy2PatternSearchTestHyperCubeAlgorithm()
-zStreamOrdPatternSearchTestHyperCubeAlgorithm()
-zStreamPatternSearchTestHyperCubeAlgorithm()
-dpBPatternSearchTestHyperCubeAlgorithm()
-dpLdPatternSearchTestHyperCubeAlgorithm()
-nonFrequencyTailoredPatternSearchTestHyperCubeAlgorithm()
-frequencyTailoredPatternSearchTestHyperCubeAlgorithm()
-
-# # ### Kleene closure tests
-MinMax_0_TestKleeneClosureHyperCubeAlgorithm()
-MinMax_2_TestKleeneClosureHyperCubeAlgorithm()
+# oneArgumentsearchTestHyperCubeAlgorithm()
+# simplePatternSearchTestHyperCubeAlgorithm()
+# googleAmazonLowPatternSearchTestHyperCubeAlgorithm()
+# nonsensePatternSearchTestHyperCubeAlgorithm()
+# duplicateEventTypeTestHyperCubeAlgorithm()
+# amazonSpecificPatternSearchTestHyperCubeAlgorithm()
+# googleAscendPatternSearchTestHyperCubeAlgorithm()
+# amazonInstablePatternSearchTestHyperCubeAlgorithm()
+# msftDrivRacePatternSearchTestHyperCubeAlgorithm()
+# googleIncreasePatternSearchTestHyperCubeAlgorithm()
+# hierarchyPatternSearchTestHyperCubeAlgorithm()
 #
 #
-# # # # consumption policies tests
-singleType1PolicyPatternSearchTestHyperCubeAlgorithm()
-singleType2PolicyPatternSearchTestHyperCubeAlgorithm()
-contiguousPolicyPatternSearchTestHyperCubeAlgorithm()
-contiguousPolicy2PatternSearchTestHyperCubeAlgorithm()
-freezePolicy2PatternSearchTestHyperCubeAlgorithm()
-
-# # storage tests
-sortedStorageTestHyperCubeAlgorithm()
-
-# # # multi-pattern tests
-distinctPatternsHyperCubeAlgorithm()
-samePatternDifferentTimeStampsHyperCubeAlgorithm()
-rootAndInnerHyperCubeAlgorithm()
-onePatternIncludesOtherHyperCubeAlgorithm()
+# # # tree plan generation algorithms for HyperCubeAlgorithm
+# arrivalRatesPatternSearchTestHyperCubeAlgorithm()
+# frequencyPatternSearchTestHyperCubeAlgorithm()
+# nonFrequencyPatternSearchTestHyperCubeAlgorithm()
+# nonFrequencyPatternSearch3TestHyperCubeAlgorithm()
+# frequencyPatternSearch3TestHyperCubeAlgorithm()
+# nonFrequencyPatternSearch2TestHyperCubeAlgorithm()
+# frequencyPatternSearch2TestHyperCubeAlgorithm()
+# nonFrequencyPatternSearch4TestHyperCubeAlgorithm()
+# frequencyPatternSearch4TestHyperCubeAlgorithm()
+# greedyPatternSearchTestHyperCubeAlgorithm()
+# iiRandomPatternSearchTestHyperCubeAlgorithm()
+# iiRandom2PatternSearchTestHyperCubeAlgorithm()
+# iiGreedyPatternSearchTestHyperCubeAlgorithm()
+# iiGreedy2PatternSearchTestHyperCubeAlgorithm()
+# zStreamOrdPatternSearchTestHyperCubeAlgorithm()
+# zStreamPatternSearchTestHyperCubeAlgorithm()
+# dpBPatternSearchTestHyperCubeAlgorithm()
+# dpLdPatternSearchTestHyperCubeAlgorithm()
+# nonFrequencyTailoredPatternSearchTestHyperCubeAlgorithm()
+# frequencyTailoredPatternSearchTestHyperCubeAlgorithm()
+#
+# # # ### Kleene closure tests
+# MinMax_0_TestKleeneClosureHyperCubeAlgorithm()
+# MinMax_2_TestKleeneClosureHyperCubeAlgorithm()
+# #
+# #
+# # # # # consumption policies tests
+# singleType1PolicyPatternSearchTestHyperCubeAlgorithm()
+# singleType2PolicyPatternSearchTestHyperCubeAlgorithm()
+# contiguousPolicyPatternSearchTestHyperCubeAlgorithm()
+# contiguousPolicy2PatternSearchTestHyperCubeAlgorithm()
+# freezePolicy2PatternSearchTestHyperCubeAlgorithm()
+#
+# # # storage tests
+# sortedStorageTestHyperCubeAlgorithm()
+#
+# # # # multi-pattern tests
+# distinctPatternsHyperCubeAlgorithm()
+# samePatternDifferentTimeStampsHyperCubeAlgorithm()
+# rootAndInnerHyperCubeAlgorithm()
+# onePatternIncludesOtherHyperCubeAlgorithm()
 #
 print("Finished running all tests, overall time: %s" % runTest.over_all_time)

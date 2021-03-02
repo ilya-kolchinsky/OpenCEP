@@ -52,13 +52,13 @@ class DataParallelAlgorithm(ABC):
         for i in range(self._units_number - 1):
             thread = self._platform.create_parallel_execution_unit(
                 unit_id=i,
-                callback_function=self._eval_thread,
+                callback_function=self._eval_unit,
                 thread_id=i,
                 data_formatter=data_formatter)
             self._units.append(thread)
             thread.start()
 
-    def _eval_tread(self):
+    def _eval_unit(self):
         """
             Activates the unit evaluation mechanism
         """
@@ -113,7 +113,7 @@ class HirzelAlgorithm(DataParallelAlgorithm, ABC):
         for stream in self._events_list:
             stream.close()
 
-    def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
+    def _eval_unit(self, thread_id: int, data_formatter: DataFormatter):
         self._eval_trees[thread_id].eval(self._events_list[thread_id],
                                          self._matches, data_formatter, False)
 
@@ -205,7 +205,7 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
             time.sleep(0.01)
         self.__matches_handler.close()
 
-    def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
+    def _eval_unit(self, thread_id: int, data_formatter: DataFormatter):
 
         for _ in self.__start_list[thread_id]:
             self._eval_trees[thread_id].eval(self._events_list[thread_id], self.__matches_handler, data_formatter, False)
@@ -319,7 +319,7 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
             time.sleep(0.0001)
         self.matches_handler.close()
 
-    def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
+    def _eval_unit(self, thread_id: int, data_formatter: DataFormatter):
         self._eval_trees[thread_id].eval(self._events_list[thread_id], self.matches_handler, data_formatter, False, self.finished_threads, self.mutex)
 
     def _finding_type_index_considering_duplications(self, index_among_type, event_type):
