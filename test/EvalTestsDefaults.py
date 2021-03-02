@@ -85,7 +85,7 @@ DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS_AND_T_OPTIMIZER = \
                                            evaluation_type=TreeEvaluationMechanismTypes.TRIVIAL_TREE_EVALUATION,
                                            optimizer_params=DEFAULT_TESTING_DEVIATION_AWARE_OPTIMIZER_SETTINGS,
                                            statistics_collector_params=StatisticsCollectorParameters(
-                                                                    time_window=timedelta(seconds=2),
+                                                                    statistics_time_window=timedelta(seconds=2),
                                                                     statistics_types=[StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]),
                                            statistics_updates_wait_time=timedelta(seconds=0.01))
 
