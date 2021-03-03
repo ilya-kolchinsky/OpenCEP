@@ -128,12 +128,16 @@ class CompositeStructure(PatternStructure, ABC):
                 return True
         return False
 
-    def count_primitive_events(self):
+    def count_primitive_events(self, sons_only=False):
         n = 0
         for arg in self.args:
             if not isinstance(arg, PatternStructure):
                 raise Exception("unexpected arg")
-            n = n + arg.count_primitive_events()
+            if sons_only:
+                if isinstance(arg, PrimitiveEventStructure):
+                    n += 1
+            else:
+                n += arg.count_primitive_events()
         return n
 
     def get_primitive_events_names(self):

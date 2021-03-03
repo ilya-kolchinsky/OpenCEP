@@ -66,7 +66,7 @@ def nestedAscendingStructuralTest():
         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    expected_result = ('And', ('And', ('And', ('And', 'g', ('Seq', 'a', 'b')), ('And', 'f', 'e')), ('Seq', 'h', 'i')), ('Seq', 'c', 'd'))
+    expected_result = ('And', ('And', ('And', ('And', 'g', ('Seq', 'a', 'b')), ('Seq', 'c', 'd')), ('And', 'e', 'f')), ('Seq', 'h', 'i'))
     runStructuralTest('nestedAscendingStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 
@@ -237,7 +237,7 @@ def greedyNestedComplexStructuralTest():
     pattern = Pattern(
         AndOperator(SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("DRIV", "c")),
                     SeqOperator(PrimitiveEventStructure("LOCM", "d"), PrimitiveEventStructure("GOOG", "e")),
-                    SeqOperator(PrimitiveEventStructure("AVID", "f"), PrimitiveEventStructure("BIDU", "g"), SeqOperator(PrimitiveEventStructure("ORLY", "h"), PrimitiveEventStructure("CBRL", "i"))),
+                    SeqOperator(PrimitiveEventStructure("AVID", "f"), SeqOperator(PrimitiveEventStructure("ORLY", "g"), PrimitiveEventStructure("CBRL", "h")), PrimitiveEventStructure("BIDU", "i")),
                     PrimitiveEventStructure("MSFT", "j")),
         AndCondition(
             BinaryCondition(Variable("a", lambda x: x["Opening Price"]),
@@ -269,7 +269,7 @@ def greedyNestedComplexStructuralTest():
         TreePlanBuilderParameters(TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE),
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    expected_result = ('And', ('And', ('And', ('Seq', ('Seq', 'b', 'a'), 'c'), ('Seq', 'e', 'd')), ('Seq', ('Seq', 'g', ('Seq', 'i', 'h')), 'f')), 'j')
+    expected_result = ('And', ('And', ('And', ('Seq', ('Seq', 'b', 'c'), 'a'), ('Seq', ('Seq', 'i', 'f'), ('Seq', 'h', 'g'))), ('Seq', 'e', 'd')), 'j')
     runStructuralTest('greedyNestedComplexStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 
@@ -328,11 +328,11 @@ def dpLdNestedStructuralTest():
         TreePlanBuilderParameters(TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE),
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    expected_result = ('And', ('Seq', 'd', 'c'), ('Seq', 'b', 'a'))
+    expected_result = ('And', ('Seq', 'b', 'a'), ('Seq', 'd', 'c'))
     runStructuralTest('dpLdNestedStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 
-def dpBPatternSearchTest(createTestFile=False):
+def dpBNestedPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         AndOperator(SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
                     SeqOperator(PrimitiveEventStructure("AVID", "c"), PrimitiveEventStructure("BIDU", "d"))),
@@ -557,7 +557,7 @@ def zstreamOrdNestedComplexStructuralTest(createTestFile=False):
         TreePlanBuilderParameters(TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE),
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    expected_result = ('And', ('And', ('And', ('Seq', ('Seq', 'b', 'a'), 'c'), ('Seq', 'e', 'd')), ('Seq', 'g', ('Seq', ('Seq', 'i', 'h'), 'f'))), 'j')
+    expected_result = ('And', ('And', ('And', ('Seq', 'b', ('Seq', 'c', 'a')), ('Seq', ('Seq', 'g', 'f'), ('Seq', 'i', 'h'))), ('Seq', 'e', 'd')), 'j')
     runStructuralTest('zstreamOrdNestedComplexStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 

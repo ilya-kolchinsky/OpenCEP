@@ -157,9 +157,12 @@ class Tree:
             # the current operator is a unary operator hiding a nested pattern structure
             unary_node = self.__create_internal_node_by_operator(current_operator, sliding_window, parent)
             nested_operator = current_operator.arg
-            child = self.__construct_tree(nested_operator, TreePlanLeafNode(0) if isinstance(nested_operator, PrimitiveEventStructure) else tree_plan_leaf.sub_tree_plan,
-                                          Tree.__get_operator_arg_list(nested_operator), sliding_window, unary_node,
-                                          consumption_policy)
+            if isinstance(nested_operator, PrimitiveEventStructure):
+                unary_tree_plan = TreePlanLeafNode(0)
+            else:
+                unary_tree_plan = tree_plan_leaf.sub_tree_plan
+            arg_list = Tree.__get_operator_arg_list(nested_operator)
+            child = self.__construct_tree(nested_operator, unary_tree_plan, arg_list, sliding_window, unary_node, consumption_policy)
             unary_node.set_subtree(child)
             return unary_node
         else:
@@ -173,12 +176,11 @@ class Tree:
         """
         if isinstance(root_operator, UnaryStructure):
             # a special case where the top operator of the entire pattern is an unary operator
-            return self.__handle_primitive_event_or_unary_structure(tree_plan, root_operator,
-                                                                     sliding_window, parent, consumption_policy)
+            return self.__handle_primitive_event_or_unary_structure(tree_plan, root_operator, sliding_window, parent, consumption_policy)
 
         if type(tree_plan) == TreePlanLeafNode:
             # This is either a leaf or unary node (maybe encapsulating nested structure)
-            return self.__handle_primitive_event_or_unary_structure(tree_plan, args[tree_plan.event_index],
+            return self.__handle_primitive_event_or_unary_structure(tree_plan, args[tree_plan.nested_event_index],
                                                                      sliding_window, parent, consumption_policy)
         if type(tree_plan) == TreePlanNestedNode:
             # This is a nested node, therefore needs to use construct a subtree of this nested tree, recursively.

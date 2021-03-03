@@ -3,7 +3,7 @@ This file contains the implementations of algorithms constructing a left-deep tr
 """
 import random
 from typing import List
-from base.PatternStructure import CompositeStructure, PrimitiveEventStructure
+from base.PatternStructure import CompositeStructure
 from misc import DefaultConfig
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType, \
     IterativeImprovementAlgorithmBuilder

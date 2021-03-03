@@ -52,9 +52,9 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
 
         # calculate for left subtree
         left_args, left_pm, left_cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.left_child,
-                                                                                                selectivity_matrix,
-                                                                                                arrival_rates,
-                                                                                                time_window)
+                                                                                             selectivity_matrix,
+                                                                                             arrival_rates,
+                                                                                             time_window)
         # calculate for right subtree
         right_args, right_pm, right_cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.right_child,
                                                                                                 selectivity_matrix,

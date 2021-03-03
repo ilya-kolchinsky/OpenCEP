@@ -4,7 +4,7 @@ from base.Pattern import Pattern
 from base.PatternStructure import *
 from plan.TreeCostModel import TreeCostModelFactory, IntermediateResultsTreeCostModel
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode
+from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode, TreePlanUnaryNode, TreePlanNestedNode, TreePlanLeafNode
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Statistics import MissingStatisticsException
 
@@ -25,12 +25,41 @@ class TreePlanBuilder(ABC):
             root = self.create_nested_topology(pattern)
         else:
             root = self._create_tree_topology(pattern)
-        return TreePlan(TreePlanBuilder.convert_nested_plan_to_basic(root))
+        return TreePlan(TreePlanBuilder.convert_nested_plan_to_basic(pattern, root))
 
     @staticmethod
-    def convert_nested_plan_to_basic(root):
-        # TODO: Implement
+    def convert_nested_plan_to_basic(pattern: Pattern, root, offset=0):
+        """
+        TODO: comment
+        """
+        for index, arg in enumerate(pattern.positive_structure.get_args()):
+            node = TreePlanBuilder.node_from_index(root, index)
+            if isinstance(node, TreePlanLeafNode):
+                node.event_index += offset
+            elif isinstance(node, TreePlanNestedNode):
+                nested_pattern = Pattern(arg, None, pattern.window)
+                TreePlanBuilder.convert_nested_plan_to_basic(nested_pattern, node.sub_tree_plan, node.nested_event_index+offset)
+                offset += nested_pattern.count_primitive_positive_events() - 1
         return root
+
+    @staticmethod
+    def node_from_index(root, index):
+        """
+        TODO: comment
+        """
+        if isinstance(root, TreePlanBinaryNode):
+            node = TreePlanBuilder.node_from_index(root.left_child, index)
+            if node is None:
+                node = TreePlanBuilder.node_from_index(root.right_child, index)
+            return node
+        elif isinstance(root, TreePlanUnaryNode):
+            return TreePlanBuilder.node_from_index(root.child, index)
+        elif isinstance(root, TreePlanNestedNode):
+            return root if root.nested_event_index == index else None
+        elif isinstance(root, TreePlanLeafNode):
+            return root if root.event_index == index else None
+        else:
+            raise Exception("Illegal Root")
 
     def _create_tree_topology(self, pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
         """
@@ -191,13 +220,15 @@ class TreePlanBuilder(ABC):
         """
         nested_pattern = Pattern(arg, None, pattern.window)
         if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
-            nested_pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, pattern.statistics)
+            arg_arrival_rates = pattern.statistics[0:arg.count_primitive_events()]
+            nested_pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, arg_arrival_rates)
         elif pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (_, arrival_rates) = pattern.statistics
+            arg_arrival_rates = arrival_rates[0:arg.count_primitive_events()]
             # Take only the relevant part of the selectivity matrix:
             chopped_nested_selectivity = TreePlanBuilder._chop_matrix(pattern, arg)
             nested_pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES,
-                                          (chopped_nested_selectivity, arrival_rates))
+                                          (chopped_nested_selectivity, arg_arrival_rates))
         nested_topology = self.create_nested_topology(nested_pattern)
         nested_topologies.append(nested_topology)  # Save nested topology to add it as a field to its root
         if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES or pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:

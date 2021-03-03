@@ -30,6 +30,7 @@ class TreePlanLeafNode(TreePlanNode):
     Represents a leaf of a tree-based plan.
     """
     def __init__(self, event_index: int, event_type: str = None, event_name: str = None):
+        self.nested_event_index = event_index
         self.event_index = event_index
         self.event_type = event_type
         self.event_name = event_name
@@ -47,14 +48,7 @@ class TreePlanNestedNode(TreePlanNode):
         self.nested_event_index = event_index
         self.sub_tree_plan = tree_plan
         self.args = args
-        self.events = self.count_nested_events()
         self.cost = cost
-
-    def count_nested_events(self):
-        counter = 0
-        for arg in self.args:
-            counter += arg.count_primitive_events()
-        return counter
 
 
 class TreePlanInternalNode(TreePlanNode):
