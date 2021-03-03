@@ -153,7 +153,13 @@ def fileCompare(pathA, pathB):
     closeFiles(file1, file2)
     list1.sort()
     list2.sort()
-
+    #with open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l1.txt", 'w') as f1:
+    #    for item in list1:
+    #        f1.write("\n".join(item))
+    #with open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l2.txt", 'w') as f2:
+    #    for item in list2:
+    #        f2.write("\n".join(item))
+    #print(len(list1), len(list2))
     return list1 == list2
 
 

@@ -10,7 +10,6 @@ from evaluation.EvaluationMechanismFactory import \
 from base.DataFormatter import DataFormatter
 from queue import Queue
 from base.PatternMatch import *
-import time
 from threading import Lock
 
 
@@ -29,9 +28,6 @@ class DataParallelAlgorithm(ABC):
         self._eval_trees = []
         self._events = None
         self._events_list = []
-        # self._stream_unit = platform.create_parallel_execution_unit(
-        #     unit_id=self._units_number - 1,
-        #     callback_function=self._stream_divide)
         self._matches = None
         self._patterns = [patterns] if isinstance(patterns, Pattern) else \
             patterns
@@ -57,7 +53,7 @@ class DataParallelAlgorithm(ABC):
             self._units.append(unit)
             unit.start()
 
-    def _eval_unit(self):
+    def _eval_unit(self, thread_id: int, data_formatter: DataFormatter):
         """
             Activates the unit evaluation mechanism
         """
@@ -130,7 +126,6 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
                          platform)
         self.__eval_mechanism_params = eval_mechanism_params
         self.__matches_handler = Stream()
-        # self._init_time = None
 
         if isinstance(patterns, Pattern):
             patterns = [patterns]
@@ -204,18 +199,12 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
         for i in range(0, self._units_number):
             self.__start_list[i].close()
 
-        # while self._mutex.qsize() < self._units_number - 1:
-        #     time.sleep(0.01)
-        # self.__matches_handler.close()
-
     def _eval_unit(self, thread_id: int, data_formatter: DataFormatter):
 
         for _ in self.__start_list[thread_id]:
             self._eval_trees[thread_id].eval(self._events_list[thread_id], self.__matches_handler, data_formatter, False)
             self._eval_trees[thread_id] = EvaluationMechanismFactory.build_eval_mechanism(self.__eval_mechanism_params, self._patterns)
             self.__thread_pool.put(thread_id)
-
-    # self._mutex.put(1)
 
     """
         check if the match is in an section where it  suspected of duplication 
@@ -294,15 +283,13 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
         super().eval_algorithm(events, matches, data_formatter)
         self.__matches_unit.start()
         self._stream_divide()
-        count =0
+        count = 0
         for t in self._units:
-            count+=1
+            count += 1
             t.wait()
 
         self._matches_handler.close()
-
         self.__matches_unit.wait()
-
         self._matches.close()
 
     def _stream_divide(self):
@@ -351,7 +338,8 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
         count += index_among_type
         return count
 
-    def __check_duplicates_in_match(self, match):
+    @staticmethod
+    def __check_duplicates_in_match(match):
         events_in_match = [event.__str__() for event in match.events]
         events_set = set()
         for event in events_in_match:
@@ -364,7 +352,7 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
         duplicates = list()
         count = 0
         for match in self._matches_handler:
-            count+=1
+            count += 1
             if not self.__check_duplicates_in_match(match) and match.__str__() not in duplicates:
                 self._matches.add_item(match)
                 duplicates.append(match.__str__())
