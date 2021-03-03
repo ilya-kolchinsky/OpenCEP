@@ -189,7 +189,7 @@ sortedStorageTestRIPAlgorithm()
 
 
 # # ######Basic functionality tests for HyperCube Algorithm
-# oneArgumentsearchTestHyperCubeAlgorithm()
+oneArgumentsearchTestHyperCubeAlgorithm()
 simplePatternSearchTestHyperCubeAlgorithm()
 googleAmazonLowPatternSearchTestHyperCubeAlgorithm()
 nonsensePatternSearchTestHyperCubeAlgorithm()

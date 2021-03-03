@@ -5,7 +5,6 @@ from parallel.ParallelExecutionParameters import *
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
 from parallel.platform.ThreadingParallelExecutionPlatform import \
     ThreadingParallelExecutionPlatform
-from parallel.ParallelExecutionAlgorithms import *
 
 
 class PlatformFactory:

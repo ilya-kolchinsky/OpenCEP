@@ -33,7 +33,6 @@ nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/Ev
 custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"))
 custom2 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom2.txt"))
 custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.txt"))
-#custom_temp = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom_temp.txt"))
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
 DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
@@ -77,7 +76,7 @@ def fileCompare_StreamTest(pathA, pathB):
 
     for line in file2:
         list2.append(line)
-    #print(len(list1), len(list2))
+
     if len(list1) != len(list2):
         return False
 
@@ -85,7 +84,6 @@ def fileCompare_StreamTest(pathA, pathB):
     list2.sort()
     file1.close()
     file2.close()
-
     return list1 == list2
 
 def fileCompare1(pathA, pathB):
@@ -153,13 +151,7 @@ def fileCompare(pathA, pathB):
     closeFiles(file1, file2)
     list1.sort()
     list2.sort()
-    #with open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l1.txt", 'w') as f1:
-    #    for item in list1:
-    #        f1.write("\n".join(item))
-    #with open("C:/Users/chen-/PycharmProjects/OpenCEP/test/l2.txt", 'w') as f2:
-    #    for item in list2:
-    #        f2.write("\n".join(item))
-    #print(len(list1), len(list2))
+
     return list1 == list2
 
 

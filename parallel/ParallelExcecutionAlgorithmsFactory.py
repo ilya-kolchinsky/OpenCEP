@@ -1,5 +1,8 @@
+from parallel.ParallelExecutionHirzelAlgorithm import HirzelAlgorithm
+from parallel.ParallelExecutionHyperCubeAlgorithm import HyperCubeAlgorithm
 from parallel.ParallelExecutionParameters import *
 from parallel.ParallelExecutionAlgorithms import *
+from parallel.ParallelExecutionRIPAlgorithm import RIPAlgorithm
 
 
 class ParallelExecutionAlgorithmsFactory:
