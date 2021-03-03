@@ -33,7 +33,7 @@ class TrivialTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
         """
         get list of all old events that already played on the old tree
         """
-        old_pattern_matches_events = []  # todo check the name
+        old_pattern_matches_events = []
         leaf_types = set()
         leaves = self._tree.get_leaves()
         for leaf in leaves:
