@@ -118,6 +118,24 @@ class Pattern:
             structure_args = structure.args
         return reduce(lambda x, y: x + y, [self.__get_all_event_types_aux(arg) for arg in structure_args])
 
+    def get_all_event_names(self):
+        """
+        Returns all event names in the pattern.
+        """
+        return set(self.__get_all_event_names_aux(self.full_structure))
+
+    def __get_all_event_names_aux(self, structure: PatternStructure):
+        """
+        An auxiliary method for returning all event names in the pattern.
+        """
+        if isinstance(structure, PrimitiveEventStructure):
+            return [structure.name]
+        if type(structure) == NegationOperator:
+            structure_args = [structure.arg]
+        else:
+            structure_args = structure.args
+        return reduce(lambda x, y: x + y, [self.__get_all_event_names_aux(arg) for arg in structure_args])
+
     def __init_strict_conditions(self, pattern_structure: PatternStructure):
         """
         Augment the pattern with the contiguity constraints specified as a part of the consumption policy.
