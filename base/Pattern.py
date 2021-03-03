@@ -112,7 +112,11 @@ class Pattern:
         """
         if isinstance(structure, PrimitiveEventStructure):
             return [structure.type]
-        return reduce(lambda x, y: x+y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
+        if type(structure) == NegationOperator:
+            structure_args = [structure.arg]
+        else:
+            structure_args = structure.args
+        return reduce(lambda x, y: x + y, [self.__get_all_event_types_aux(arg) for arg in structure_args])
 
     def __init_strict_conditions(self, pattern_structure: PatternStructure):
         """
