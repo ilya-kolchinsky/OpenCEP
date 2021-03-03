@@ -10,7 +10,7 @@ from plan.IterativeImprovement import IterativeImprovementType, IterativeImprove
 from plan.multi.MultiPatternEvaluationApproaches import MultiPatternEvaluationApproaches
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-from base.RuleTransformationTypes import RuleTransformationTypes
+from base.transformation.RuleTransformationTypes import RuleTransformationTypes
 
 
 # general settings
@@ -43,6 +43,9 @@ DEFAULT_PARALLEL_EXECUTION_PLATFORM = ParallelExecutionPlatforms.THREADING
 # rule transformation defaults
 DEFAULT_RULES_DIRECTIVE = [
     RuleTransformationTypes.AND_AND_PATTERN,
-    RuleTransformationTypes.SEQ_OR_PATTERN,
-    RuleTransformationTypes.SEQ_NOT_AND_PATTERN
+    RuleTransformationTypes.NOT_OR_PATTERN,
+    RuleTransformationTypes.NOT_AND_PATTERN,
+    RuleTransformationTypes.TOPMOST_OR_PATTERN,
+    RuleTransformationTypes.INNER_OR_PATTERN,
+    RuleTransformationTypes.NOT_NOT_PATTERN
 ]

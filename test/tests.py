@@ -6,7 +6,7 @@ from test.PolicyTests import *
 from test.MultiPattern_tests import *
 from test.StorageTests import *
 from test.UnitTests.test_storage import run_storage_tests
-from test.RuleTransformationTests import *
+from test.UnitTests.RuleTransformationTests import ruleTransformationTests
 
 
 runTest.over_all_time = 0

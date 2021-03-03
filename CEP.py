@@ -10,8 +10,8 @@ from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from typing import List
 from datetime import datetime
-from base.RuleTransformationParameters import RuleTransformationParameters
-from base.RuleTransformation import pattern_transformation
+from base.transformation.RuleTransformationParameters import RuleTransformationParameters
+from base.transformation.PatternTransformation import PatternTransformation
 
 
 class CEP:
@@ -31,10 +31,12 @@ class CEP:
             raise Exception("No patterns are provided")
         transformed_patterns = []
         if type(patterns) == Pattern:
-            transformed_patterns.extend(pattern_transformation(patterns), rule_transformation_params)
+            pattern_list = [patterns]
         else:
-            for pattern in patterns:
-                transformed_patterns.extend(pattern_transformation(pattern), rule_transformation_params)
+            pattern_list = patterns
+            pattern_transformation = PatternTransformation(pattern_list, rule_transformation_params)
+            tmp_transformed_patterns = pattern_transformation.transform_patterns()
+            transformed_patterns.extend(tmp_transformed_patterns)
         self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(transformed_patterns,
                                                                                        eval_mechanism_params,
                                                                                        parallel_execution_params)
