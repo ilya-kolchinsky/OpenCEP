@@ -256,3 +256,21 @@ event_stream = TwitterInputStream(['corona'])
 ```
 ### Tweet formation in CEP
 The format of a tweet is defined in Tweets.py (see documentation). The tweet keys are described there based on the overview of a tweet in https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object
+
+### Confidence Parameter
+
+The confidence parameter is the minimum probability for a match.
+A confidence parameter must be defined for a pattern working on a stream of uncertain events.
+An example of such a pattern follows.
+
+```py3
+pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("GOOG", "a"), 
+            PrimitiveEventStructure("GOOG", "b")
+        ),
+        SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
+        timedelta(minutes=5),
+        confidence=0.9
+    )
+```
