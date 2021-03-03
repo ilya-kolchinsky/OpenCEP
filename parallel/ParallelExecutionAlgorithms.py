@@ -282,18 +282,27 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
         for pattern in patterns:
             self.types.extend(list(pattern.get_all_event_types_with_duplicates()))
         self.groups_num = math.ceil((self._units_number - 1) ** (1 / len(self.types)))
-        self.matches_handler = Stream()
+        self._matches_handler = Stream()
+        self.__matches_unit = self._platform.create_parallel_execution_unit(
+            unit_id=units_number - 1,
+            callback_function=self.__make_output_matches_stream)
+
         self.finished_threads = [0]
         self.mutex = Lock()
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         super().eval_algorithm(events, matches, data_formatter)
-        check_duplicated = list()
+        self.__matches_unit.start()
+        self._stream_divide()
+        count =0
+        for t in self._units:
+            count+=1
+            t.wait()
 
-        for match in self.matches_handler:
-            if match.__str__() not in check_duplicated:
-                self._matches.add_item(match)
-                check_duplicated.append(match.__str__())
+        self._matches_handler.close()
+
+        self.__matches_unit.wait()
+
         self._matches.close()
 
     def _stream_divide(self):
@@ -327,12 +336,10 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
                         j += 1
         for stream in self._events_list:
             stream.close()
-        while self.finished_threads[0] != (self._units_number - 1):
-            time.sleep(0.0001)
-        self.matches_handler.close()
+        print("bye")
 
     def _eval_unit(self, thread_id: int, data_formatter: DataFormatter):
-        self._eval_trees[thread_id].eval(self._events_list[thread_id], self.matches_handler, data_formatter, False, self.finished_threads, self.mutex)
+        self._eval_trees[thread_id].eval(self._events_list[thread_id], self._matches_handler, data_formatter, False)
 
     def _finding_type_index_considering_duplications(self, index_among_type, event_type):
         count = 0
@@ -343,3 +350,22 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
             i += 1
         count += index_among_type
         return count
+
+    def __check_duplicates_in_match(self, match):
+        events_in_match = [event.__str__() for event in match.events]
+        events_set = set()
+        for event in events_in_match:
+            events_set.add(event)
+        if len(events_in_match) == len(events_set):
+            return False
+        return True
+
+    def __make_output_matches_stream(self):
+        duplicates = list()
+        count = 0
+        for match in self._matches_handler:
+            count+=1
+            if not self.__check_duplicates_in_match(match) and match.__str__() not in duplicates:
+                self._matches.add_item(match)
+                duplicates.append(match.__str__())
+        print("check", count)
