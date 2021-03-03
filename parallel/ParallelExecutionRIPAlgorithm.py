@@ -40,13 +40,13 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
                              range(self._units_number)]
         self.__start_queue = Queue()
         self.__streams_queue = Queue()
-        self.__thread_pool = Queue()
+        self.__units_pool = Queue()
         self.__matches_unit = self._platform.create_parallel_execution_unit(
             unit_id=units_number - 1,
             callback_function=self.__make_output_matches_stream)
 
         for i in range(self._units_number):
-            self.__thread_pool.put(i)
+            self.__units_pool.put(i)
 
         self._mutex = Queue()
         self.__duplicated_matches = list()
@@ -88,7 +88,7 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
             end_time = start_time + self.__time_slot
 
         while not self.__streams_queue.empty():
-            unit_id = self.__thread_pool.get()
+            unit_id = self.__units_pool.get()
             self._events_list[unit_id] = self.__streams_queue.get_nowait().duplicate()  # stream of input data
             self.__start_list[unit_id].add_item(self.__start_queue.get_nowait())
 
@@ -101,7 +101,7 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
         for _ in self.__start_list[thread_id]:
             self._eval_trees[thread_id].eval(self._events_list[thread_id], self.__matches_handler, data_formatter, False)
             self._eval_trees[thread_id] = EvaluationMechanismFactory.build_eval_mechanism(self.__eval_mechanism_params, self._patterns)
-            self.__thread_pool.put(thread_id)
+            self.__units_pool.put(thread_id)
 
     def __check_duplicated_matches(self, match):
         """
