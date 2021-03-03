@@ -8,16 +8,18 @@ from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStruct
 from base.Pattern import Pattern
 
 
-def oneArgumentsearchTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS):
+def oneArgumentsearchTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                          test_name = "one"):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
         GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), 135),
         timedelta(minutes=120)
     )
-    runTest("one", [pattern], createTestFile, eval_mechanism_params)
+    runTest(test_name, [pattern], createTestFile, eval_mechanism_params)
 
 
-def simplePatternSearchTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS):
+def simplePatternSearchTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                            test_name = "simple"):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
     WHERE   a.OpeningPrice > b.OpeningPrice
@@ -37,11 +39,12 @@ def simplePatternSearchTest(createTestFile=False, eval_mechanism_params=DEFAULT_
         ),
         timedelta(minutes=5)
     )
-    runTest("simple", [pattern], createTestFile, eval_mechanism_params)
+    runTest(test_name, [pattern], createTestFile, eval_mechanism_params)
 
 
 def googleAscendPatternSearchTest(createTestFile=False,
-                                  eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS):
+                                  eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                                  test_name = "googleAscend"):
     """
     This pattern is looking for a short ascend in the Google peak prices.
     PATTERN SEQ(GoogleStockPriceUpdate a, GoogleStockPriceUpdate b, GoogleStockPriceUpdate c)
@@ -61,11 +64,12 @@ def googleAscendPatternSearchTest(createTestFile=False,
         ),
         timedelta(minutes=3)
     )
-    runTest('googleAscend', [googleAscendPattern], createTestFile, eval_mechanism_params)
+    runTest(test_name, [googleAscendPattern], createTestFile, eval_mechanism_params)
 
 
 def amazonInstablePatternSearchTest(createTestFile=False,
-                                    eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS):
+                                    eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                                    test_name = "amazonInstable"):
     """
     This pattern is looking for an in-stable day for Amazon.
     PATTERN SEQ(AmazonStockPriceUpdate x1, AmazonStockPriceUpdate x2, AmazonStockPriceUpdate x3)
@@ -84,11 +88,12 @@ def amazonInstablePatternSearchTest(createTestFile=False,
         ),
         timedelta(days=1)
     )
-    runTest('amazonInstable', [amazonInstablePattern], createTestFile, eval_mechanism_params)
+    runTest(test_name, [amazonInstablePattern], createTestFile, eval_mechanism_params)
 
 
 def msftDrivRacePatternSearchTest(createTestFile=False,
-                                  eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS):
+                                  eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                                  test_name = "msftDrivRace"):
     """
     This pattern is looking for a race between driv and microsoft in ten minutes
     PATTERN SEQ(MicrosoftStockPriceUpdate a, DrivStockPriceUpdate b, MicrosoftStockPriceUpdate c, DrivStockPriceUpdate d, MicrosoftStockPriceUpdate e)
@@ -115,11 +120,12 @@ def msftDrivRacePatternSearchTest(createTestFile=False,
         ),
         timedelta(minutes=10)
     )
-    runTest('msftDrivRace', [msftDrivRacePattern], createTestFile, eval_mechanism_params)
+    runTest(test_name, [msftDrivRacePattern], createTestFile, eval_mechanism_params)
 
 
 def googleIncreasePatternSearchTest(createTestFile=False,
-                                    eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS):
+                                    eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                                    test_name = "googleIncrease"):
     """
     This Pattern is looking for a 1% increase in the google stock in a half-hour.
     PATTERN SEQ(GoogleStockPriceUpdate a, GoogleStockPriceUpdate b)
@@ -133,11 +139,12 @@ def googleIncreasePatternSearchTest(createTestFile=False,
                         relation_op=lambda x, y: x >= y * 1.01),
         timedelta(minutes=30)
     )
-    runTest('googleIncrease', [googleIncreasePattern], createTestFile, eval_mechanism_params)
+    runTest(test_name, [googleIncreasePattern], createTestFile, eval_mechanism_params)
 
 
 def amazonSpecificPatternSearchTest(createTestFile=False,
-                                    eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS):
+                                    eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                                    test_name = "amazonSpecific"):
     """
     This pattern is looking for an amazon stock in peak price of 73.
     """
@@ -146,11 +153,12 @@ def amazonSpecificPatternSearchTest(createTestFile=False,
         EqCondition(Variable("a", lambda x: x["Peak Price"]), 73),
         timedelta(minutes=120)
     )
-    runTest('amazonSpecific', [amazonSpecificPattern], createTestFile, eval_mechanism_params)
+    runTest(test_name, [amazonSpecificPattern], createTestFile, eval_mechanism_params)
 
 
 def googleAmazonLowPatternSearchTest(createTestFile=False,
-                                     eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS):
+                                     eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                                     test_name = "googleAmazonLow"):
     """
     This pattern is looking for low prices of Amazon and Google at the same minute.
     PATTERN AND(AmazonStockPriceUpdate a, GoogleStockPriceUpdate g)
@@ -167,11 +175,12 @@ def googleAmazonLowPatternSearchTest(createTestFile=False,
         ),
         timedelta(minutes=1)
     )
-    runTest('googleAmazonLow', [googleAmazonLowPattern], createTestFile, eval_mechanism_params)
+    runTest(test_name, [googleAmazonLowPattern], createTestFile, eval_mechanism_params)
 
 
 def nonsensePatternSearchTest(createTestFile=False,
-                              eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS):
+                              eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                              test_name = "nonsense"):
     """
     This pattern is looking for something that does not make sense.
     PATTERN AND(AmazonStockPriceUpdate a, AvidStockPriceUpdate b, AppleStockPriceUpdate c)
@@ -193,11 +202,12 @@ def nonsensePatternSearchTest(createTestFile=False,
         ),
         timedelta(minutes=1)
     )
-    runTest('nonsense', [nonsensePattern], createTestFile, eval_mechanism_params)
+    runTest(test_name, [nonsensePattern], createTestFile, eval_mechanism_params)
 
 
 def hierarchyPatternSearchTest(createTestFile=False,
-                               eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS):
+                               eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                               test_name = "hierarchy"):
     """
     The following pattern is looking for Amazon < Apple < Google cases in one minute windows.
     PATTERN AND(AmazonStockPriceUpdate a, AppleStockPriceUpdate b, GoogleStockPriceUpdate c)
@@ -217,10 +227,11 @@ def hierarchyPatternSearchTest(createTestFile=False,
         ),
         timedelta(minutes=1)
     )
-    runTest('hierarchy', [hierarchyPattern], createTestFile, eval_mechanism_params)
+    runTest(test_name, [hierarchyPattern], createTestFile, eval_mechanism_params)
 
 
-def duplicateEventTypeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS):
+def duplicateEventTypeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                           test_name = "duplicateEventType"):
     """
     PATTERN SEQ(AmazonStockPriceUpdate a, AmazonStockPriceUpdate b, AmazonStockPriceUpdate c)
     WHERE   TRUE
@@ -232,5 +243,5 @@ def duplicateEventTypeTest(createTestFile=False, eval_mechanism_params=DEFAULT_T
         TrueCondition(),
         timedelta(minutes=10)
     )
-    runTest("duplicateEventType", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny,
+    runTest(test_name, [pattern], createTestFile, eventStream=nasdaqEventStreamTiny,
             eval_mechanism_params=eval_mechanism_params)

@@ -218,8 +218,11 @@ class Tree:
         # the pending matches were released and have hopefully reached the root
         return self.get_matches()
 
-    # TODO: comment
     def set_pending_matches(self, pending_matches):
+        """
+        Overwrites the current pending partial matches in the tree with new partial matches,
+        Currently used for tree replacement.
+        """
         if not isinstance(self.__root, NegationNode):
             return
         first_unbounded_negative_node = self.__root.get_first_unbounded_negative_node()

@@ -6,7 +6,9 @@ from plan.TreePlanBuilder import TreePlanBuilder
 
 
 class InvariantTreePlanBuilder(TreePlanBuilder, ABC):
-
+    """
+    Base class for an invariant tree plan builders
+    """
     def build_tree_plan(self, statistics: dict, pattern: Pattern):
         """
         Creates a tree-based evaluation plan for the given pattern.

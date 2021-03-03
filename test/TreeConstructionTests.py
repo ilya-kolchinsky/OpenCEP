@@ -3,7 +3,7 @@ from plan.TreePlanBuilderFactory import IterativeImprovementTreePlanBuilderParam
 from test.EvalTestsDefaults import DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS
 from test.testUtils import *
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
-from optimizer.OptimizerFactory import OptimizerParameters, StatisticsDeviationAwareOptimizerParameters
+from optimizer.OptimizerFactory import StatisticsDeviationAwareOptimizerParameters
 from plan.LeftDeepTreeBuilders import *
 from plan.BushyTreeBuilders import *
 from datetime import timedelta

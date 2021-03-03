@@ -4,7 +4,7 @@ import sys
 
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
-from misc.Statistics import calculate_selectivity_matrix
+from optimizer.OptimizerFactory import StatisticsDeviationAwareOptimizerParameters
 from stream.Stream import OutputStream
 from stream.FileStream import FileInputStream, FileOutputStream
 from misc.Utils import generate_matches
@@ -24,10 +24,8 @@ INCLUDE_TWITTER = False
 nasdaqEventStreamTiny = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_TINY.txt"))
 nasdaqEventStreamShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_SHORT.txt"))
 nasdaqEventStreamMedium = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt"))
-nasdaqEventStreamFrequencyTailored = FileInputStream(
-    os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
-nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(
-    os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
+nasdaqEventStreamFrequencyTailored = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
+nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
 nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
 
 nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt"))
@@ -40,11 +38,16 @@ nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFile
 DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
     TreeBasedEvaluationMechanismParameters(TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
-                                                                 prioritize_sorting_by_timestamp=True))
+                                                                 prioritize_sorting_by_timestamp=True),
+                                           optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params
+                                                                                                        =TreePlanBuilderParameters(
+                                               TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                               TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL)))
 """
 Default testing Data formatters
 """
 DEFAULT_TESTING_DATA_FORMATTER = MetastockDataFormatter()
+
 
 def numOfLinesInPattern(file):
     """
@@ -173,18 +176,19 @@ def runTest(testName, patterns, createTestFile=False,
     cep = CEP(patterns, eval_mechanism_params)
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
-    output_file_name = "%sMatches.txt" % testName
+    output_file_name = "%sMatches.txt" % testName.split('|')[0]
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
 
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
     is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
-    print("Test %s result: %s, Time Passed: %s" % (testName,
+    print("Test %s result: %s, Time Passed: %s" % (testName.replace('|', ''),
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
     if is_test_successful:
         os.remove(actual_matches_path)
+
 
 """
 Input:
@@ -193,6 +197,8 @@ patterns- list of patterns
 Output:
 expected output file for the test.
 """
+
+
 def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                          events=None, eventStream=nasdaqEventStream):
     curr_events = events
@@ -212,6 +218,7 @@ def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTI
         single_pattern_path = os.path.join(expected_directory, filename)
         os.remove(single_pattern_path)
 
+
 def uniteFiles(testName, numOfPatterns):
     base_matches_directory = os.path.join(absolutePath, 'test', 'TestsExpected')
     output_file_name = "%sMatches.txt" % testName
@@ -230,10 +237,14 @@ def uniteFiles(testName, numOfPatterns):
             for line in setexp:
                 f.write(line)
                 f.write('\n\n')
+
+
 """
 This function runs multi-pattern CEP on the given list of patterns and prints
 success or fail output.
 """
+
+
 def runMultiTest(testName, patterns, createTestFile=False,
                  eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                  events=None, eventStream=nasdaqEventStream):

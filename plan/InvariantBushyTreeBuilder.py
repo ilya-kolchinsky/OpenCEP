@@ -9,14 +9,13 @@ from plan.Invariants import Invariant, ZStreamTreeInvariants
 from plan.TreePlan import TreePlanLeafNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
-from misc.Statistics import MissingStatisticsException
+from misc.LegacyStatistics import MissingStatisticsException
 
 
 class InvariantAwareZStreamTreeBuilder(InvariantTreePlanBuilder):
     """
     Creates an invariant aware bushy tree using ZStream algorithm.
     """
-
     def _create_tree_topology(self, statistics: dict, pattern: Pattern):
         if StatisticsTypes.ARRIVAL_RATES in statistics and \
                 StatisticsTypes.SELECTIVITY_MATRIX in statistics and \

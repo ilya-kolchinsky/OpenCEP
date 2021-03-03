@@ -18,6 +18,9 @@ class StatisticsCollector:
         self.update_specified_statistics(StatisticsTypes.ARRIVAL_RATES, event)
 
     def get_statistics(self):
+        """
+        Returns a dictionary containing the statistics types and the raw statistics accordingly.
+        """
         return {statistics_type: statistics.get_statistics() for statistics_type, statistics in
                 self.__statistics.items()}
 

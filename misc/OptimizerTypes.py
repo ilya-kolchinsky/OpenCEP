@@ -3,8 +3,8 @@ from enum import Enum
 
 class OptimizerTypes(Enum):
     """
-    The various algorithms for determine if invoke the tree builder.
+    The various optimizer types that invoke the tree builder
     """
-    TRIVIAL = 0,
-    STATISTICS_DEVIATION_AWARE = 1,
-    USING_INVARIANT = 2
+    TRIVIAL_OPTIMIZER = 0,
+    STATISTICS_DEVIATION_AWARE_OPTIMIZER = 1,
+    INVARIANT_AWARE_OPTIMIZER = 2

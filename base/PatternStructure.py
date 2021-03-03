@@ -4,6 +4,7 @@ As of now, OpenCEP supports three n-ary operators (SEQ, AND, OR) and two unary o
 could be added in the future.
 """
 from abc import ABC
+from typing import List
 
 KC_MIN_SIZE = 1
 KC_MAX_SIZE = None
@@ -52,12 +53,6 @@ class PrimitiveEventStructure(PatternStructure):
 
     def __repr__(self):
         return "%s %s" % (self.type, self.name)
-
-    def get_type(self):
-        return self.type
-
-    def get_name(self):
-        return self.name
 
 
 class UnaryStructure(PatternStructure, ABC):

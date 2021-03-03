@@ -9,10 +9,13 @@ from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 class TrivialTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
     """
     Represent the trivial tree based evaluation mechanism.
-    Whenever you get a new tree, just replace it with the old one
+    Whenever a new tree is given, replaces the old tree with the new one.
     """
 
     def _tree_update(self, new_tree: Tree, tree_update_time: datetime):
+        """
+        Directly replaces the old tree with the new tree.
+        """
         old_events = self.__get_all_old_events()
         old_tree = self._tree
         self._tree = new_tree
@@ -25,7 +28,7 @@ class TrivialTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
         if old_pending_matches:
             self._tree.set_pending_matches(old_pending_matches)
 
-        # To avoid duplicate matches, flushes the matches from the new tree that have already been written
+        # To avoid duplicate matches, flushes the matches from the new tree that have already been written.
         for _ in self._tree.get_matches():
             pass
 

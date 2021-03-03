@@ -7,7 +7,7 @@ from plan.TreePlan import TreePlanLeafNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.Utils import get_all_disjoint_sets
-from misc.Statistics import MissingStatisticsException
+from misc.LegacyStatistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from plan.LeftDeepTreeBuilders import GreedyLeftDeepTreeBuilder
 from itertools import combinations

@@ -2,6 +2,7 @@
 This file contains the implementations of algorithms constructing invariant-aware left-deep tree-based evaluation mechanism.
 """
 from typing import List
+
 from base.PatternStructure import CompositeStructure
 from misc.StatisticsTypes import StatisticsTypes
 from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
@@ -9,14 +10,13 @@ from plan.Invariants import Invariant, GreedyTreeInvariants
 from plan.TreePlan import TreePlanLeafNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
-from misc.Statistics import MissingStatisticsException
+from misc.LegacyStatistics import MissingStatisticsException
 
 
 class InvariantLeftDeepTreeBuilder(InvariantTreePlanBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-
     def _create_tree_topology(self, statistics: dict, pattern: Pattern):
         order, invariants = self._create_evaluation_order(statistics) if isinstance(pattern.positive_structure,
                                                                                     CompositeStructure) else [[0], None]
@@ -51,7 +51,6 @@ class InvariantAwareGreedyTreeBuilder(InvariantLeftDeepTreeBuilder):
     Creates a left-deep tree using a greedy strategy that selects at each step the event type that minimizes the cost
     function.
     """
-
     def _create_evaluation_order(self, statistics: dict):
         if StatisticsTypes.ARRIVAL_RATES in statistics and \
                 StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
@@ -67,10 +66,10 @@ class InvariantAwareGreedyTreeBuilder(InvariantLeftDeepTreeBuilder):
     @staticmethod
     def calculate_greedy_order(selectivity_matrix: List[List[float]], arrival_rates: List[int]):
         """
-        At any step we will only consider the intermediate partial matches size,
+        At any step we only consider the intermediate partial matches size,
         even without considering the sliding window, because the result is independent of it.
-        For each unselected item, we will calculate the speculated
-        effect to the partial matches, and choose the one with minimal increase.
+        For each unselected item, we calculate the speculated
+        effect to the partial matches and choose the one with minimal increase.
         We don't even need to calculate the cost function.
         """
         size = len(selectivity_matrix)

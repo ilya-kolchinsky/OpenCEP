@@ -3,7 +3,6 @@ This file contains the basic Condition classes.
 """
 from abc import ABC, abstractmethod
 from enum import Enum
-
 from misc.StatisticsTypes import StatisticsTypes
 from statistics_collector.StatisticsCollector import StatisticsCollector
 
@@ -90,11 +89,13 @@ class AtomicCondition(Condition, ABC):
     Represents an atomic (non-composite) condition.
     """
     def __init__(self):
+
         # currently used to update the selectivity statistics if they are present in the statistics collector
         self._statistics_collector = None
 
     def eval(self, binding: dict or list = None):
         result = self._eval(binding)
+        # updates the selectivity statistics based on the evaluated atomic condition result
         data = (self, result)
         if self._statistics_collector:
             self._statistics_collector.update_specified_statistics(StatisticsTypes.SELECTIVITY_MATRIX, data)

@@ -12,7 +12,7 @@ from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlanLeafNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
-from misc.Statistics import MissingStatisticsException
+from misc.LegacyStatistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
 
@@ -21,7 +21,6 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-
     def _create_tree_topology(self, statistics: dict, pattern: Pattern):
         """
         Invokes an algorithm (to be implemented by subclasses) that builds an evaluation order of the operands, and

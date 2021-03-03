@@ -9,7 +9,7 @@ from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 
 class Optimizer(ABC):
     """
-    An abstract class for optimizer.
+    The base class for the optimizers that decide when to invoke plan reconstruction.
     """
 
     def __init__(self, tree_plan_builder: TreePlanBuilder):
@@ -18,7 +18,7 @@ class Optimizer(ABC):
     @abstractmethod
     def is_need_optimize(self, new_statistics: dict, pattern: Pattern):
         """
-        Asks if it's necessary to optimize(plan reconstruction) the tree based on the new statistics;
+        Asks if it's necessary to optimize(invoke plan reconstruction). usually based on the new statistics;
         """
         raise NotImplementedError()
 
@@ -28,6 +28,11 @@ class Optimizer(ABC):
 
     def build_initial_tree_plan(self, initial_statistics: dict, cost_model_type: TreeCostModels,
                                 pattern: Pattern):
+        """
+        initializes the Statistic objects with initial statistics if such statistics exists,
+        else, applies the default algorithm that does not require statistics.
+        Note: right now only the TrivialLeftDeepTreeBuilder algorithm does not require statistics.
+        """
 
         non_prior_tree_plan_builder = self._build_non_prior_tree_plan_builder(cost_model_type, pattern)
         if non_prior_tree_plan_builder is not None:

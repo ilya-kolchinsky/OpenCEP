@@ -9,7 +9,7 @@ from statistics_collector.StatisticEventData import StatisticEventData
 
 class Statistics(ABC):
     """
-    An abstract class for statistics.
+    An abstract class for the statistics.
     """
 
     def update(self, data):
@@ -34,7 +34,7 @@ class ArrivalRatesStatistics(Statistics):
         self.__arrival_rates = [0.0] * len(primitive_events) if not predefined_statistics else predefined_statistics
         self.__event_type_to_indices_map = {}
         for i, arg in enumerate(primitive_events):
-            if arg.get_type() in self.__event_type_to_indices_map:
+            if arg.type in self.__event_type_to_indices_map:
                 self.__event_type_to_indices_map[arg.type].append(i)
             else:
                 self.__event_type_to_indices_map[arg.type] = [i]
@@ -43,6 +43,9 @@ class ArrivalRatesStatistics(Statistics):
         self.__last_timestamp = None
 
     def update(self, event: Event):
+        """
+        Increases the arrival rate of the current event type by 1 and decreases the arrival rates of the expired events.
+        """
         event_type = event.type
         event_timestamp = event.timestamp
 
@@ -56,6 +59,9 @@ class ArrivalRatesStatistics(Statistics):
         self.__remove_expired_events(event_timestamp)
 
     def __remove_expired_events(self, last_timestamp: datetime):
+        """
+        Lowers the arrival rates of the events that left the time window.
+        """
         is_removed_elements = False
         for i, event_time in enumerate(self.__events_arrival_time):
             if last_timestamp - event_time.timestamp > self.__arrival_rates_time_window:
@@ -80,7 +86,6 @@ class SelectivityStatistics(Statistics):
     Represents the selectivity statistics.
     NOTE: Currently it ignores the time window
     """
-
     # TODO: support time window for selectivity
 
     def __init__(self, pattern: Pattern, predefined_statistics: List[List[float]] = None):
@@ -99,6 +104,9 @@ class SelectivityStatistics(Statistics):
         self.init_maps(pattern)
 
     def update(self, data):
+        """
+        Updates the selectivity of an atomic condition.
+        """
         (atomic_condition, is_condition_success) = data
 
         if atomic_condition:
@@ -110,7 +118,9 @@ class SelectivityStatistics(Statistics):
 
     def get_statistics(self):
         """
-        Return the updated selectivity matrix
+        Calculates the value of cell (i, j) in the selectivity matrix by multiplying the atomic selectivities of
+        all the conditions between event i and event j.
+        If there is no condition between any pair of events then the selectivity is always 1.0
         """
         for i, j in self.__relevant_indices:
             atomic_conditions_id = self.__indices_to_atomic_condition_map[(i, j)]
@@ -128,6 +138,9 @@ class SelectivityStatistics(Statistics):
         return copy.deepcopy(self.__selectivity_matrix)
 
     def init_maps(self, pattern: Pattern):
+        """
+        Initiates the success counters and total evaluation counters for each pair of event types.
+        """
         for i in range(self.__args_len):
             for j in range(i + 1):
                 conditions = pattern.condition.get_condition_of({self.__args[i].name, self.__args[j].name})

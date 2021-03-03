@@ -4,7 +4,6 @@ from misc.StatisticsTypes import StatisticsTypes
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from condition.Condition import SimpleCondition, Variable
-from statistics_collector.StatisticsWrapper import ArrivalRatesWrapper, SelectivityWrapper
 from optimizer.Optimizer import Optimizer
 from optimizer.OptimizerFactory import OptimizerFactory
 from test.EvalTestsDefaults import DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS, \
@@ -24,7 +23,7 @@ def get_pattern_test():
     return pattern
 
 
-def greedy_invariant_optimizer_doesnt_change_the_tree_1():
+def greedyInvariantOptimizerTreeChangeFailTest_1():
     """
     Basic test, check if greedy invariant aware optimizer say that
     need to generate new tree in the case that statistics doesnt change
@@ -47,13 +46,11 @@ def greedy_invariant_optimizer_doesnt_change_the_tree_1():
                       StatisticsTypes.SELECTIVITY_MATRIX: new_selectivity_matrix}
 
     is_changed = optimizer_test(old_statistics, new_statistics, optimizer)
-    if not is_changed:
-        print("Success")
-    else:
-        print("Failed")
+    result = "Succeeded" if not is_changed else "Failed"
+    print(f"Test greedyInvariantOptimizerTreeChangeFailTest_1 result: {result}")
 
 
-def greedy_invariant_optimizer_doesnt_change_the_tree_2():
+def greedyInvariantOptimizerTreeChangeFailTest_2():
     """
     In this test:
     We change the statistics so that the conditions in invariants should not change yet.
@@ -76,13 +73,11 @@ def greedy_invariant_optimizer_doesnt_change_the_tree_2():
                       StatisticsTypes.SELECTIVITY_MATRIX: new_selectivity_matrix}
 
     is_changed = optimizer_test(old_statistics, new_statistics, optimizer)
-    if not is_changed:
-        print("Success")
-    else:
-        print("Failed")
+    result = "Succeeded" if not is_changed else "Failed"
+    print(f"Test greedyInvariantOptimizerTreeChangeFailTest_2 result: {result}")
 
 
-def greedy_invariant_optimizer_change_the_tree_1():
+def greedyInvariantOptimizerTreeChangeTest_1():
     """
     In this test:
     We change the statistics so that the conditions in invariants should be change.
@@ -105,13 +100,11 @@ def greedy_invariant_optimizer_change_the_tree_1():
                       StatisticsTypes.SELECTIVITY_MATRIX: new_selectivity_matrix}
 
     is_changed = optimizer_test(old_statistics, new_statistics, optimizer)
-    if not is_changed:
-        print("Failed")
-    else:
-        print("Success")
+    result = "Failed" if not is_changed else "Succeeded"
+    print(f"Test greedyInvariantOptimizerTreeChangeTest_1 result: {result}")
 
 
-def zstream_invariant_optimizer_doesnt_change_the_tree_1():
+def zstreamInvariantOptimizerTreeChangeFailTest_1():
     """
     Basic test, check if zstream invariant aware optimizer say that
     need to generate new tree in the case that statistics doesnt change
@@ -133,13 +126,11 @@ def zstream_invariant_optimizer_doesnt_change_the_tree_1():
                       StatisticsTypes.SELECTIVITY_MATRIX: new_selectivity_matrix}
 
     is_changed = optimizer_test(old_statistics, new_statistics, optimizer)
-    if not is_changed:
-        print("Success")
-    else:
-        print("Failed")
+    result = "Succeeded" if not is_changed else "Failed"
+    print(f"Test zstreamInvariantOptimizerTreeChangeFailTest_1 result: {result}")
 
 
-def zstream_invariant_optimizer_change_the_tree_1():
+def zstreamInvariantOptimizerTreeChangeTest_1():
     """
     Basic test, check if zstream invariant aware optimizer say that
     need to generate new tree in the case that statistics doesnt change
@@ -162,13 +153,11 @@ def zstream_invariant_optimizer_change_the_tree_1():
                       StatisticsTypes.SELECTIVITY_MATRIX: new_selectivity_matrix}
 
     is_changed = optimizer_test(old_statistics, new_statistics, optimizer)
-    if is_changed:
-        print("Success")
-    else:
-        print("Failed")
+    result = "Succeeded" if is_changed else "Failed"
+    print(f"Test zstreamInvariantOptimizerTreeChangeTest_1 result: {result}")
 
 
-def zstream_invariant_optimizer_change_the_tree_2():
+def zstreamInvariantOptimizerTreeChangeTest_2():
     """
     Basic test, check if zstream invariant aware optimizer say that
     need to generate new tree in the case that statistics doesnt change
@@ -191,10 +180,8 @@ def zstream_invariant_optimizer_change_the_tree_2():
                       StatisticsTypes.SELECTIVITY_MATRIX: new_selectivity_matrix}
 
     is_changed = optimizer_test(old_statistics, new_statistics, optimizer)
-    if is_changed:
-        print("Success")
-    else:
-        print("Failed")
+    result = "Succeeded" if is_changed else "Failed"
+    print(f"Test zstreamInvariantOptimizerTreeChangeTest_2 result: {result}")
 
 
 def optimizer_test(old_statistics: Dict, new_statistics: Dict, optimizer: Optimizer):

@@ -1,7 +1,8 @@
 from abc import ABC
 from typing import List
+
 from base.Pattern import Pattern
-from misc.Statistics import MissingStatisticsException
+from misc.LegacyStatistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlanNode, TreePlanLeafNode

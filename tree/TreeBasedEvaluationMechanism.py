@@ -60,10 +60,8 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
         """
         self._event_types_listeners = self._register_event_listeners(self._tree)
         statistics_update_start_time = None
-        count = 0
 
         for raw_event in events:
-            count += 1
             event = Event(raw_event, data_formatter)
             if event.type not in self._event_types_listeners.keys():
                 continue
@@ -72,7 +70,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
             if not self.__is_multi_pattern_mode:
                 # Note: multi-pattern does not yet support adaptive-CEP,
                 # TODO: support multi-pattern mode
-                self.__statistics_collector.event_handler(event)
+
                 if not statistics_update_start_time or event.timestamp - statistics_update_start_time > self.__statistics_update_time_window:
                     if self._is_need_new_statistics():
                         new_statistics = self.__statistics_collector.get_statistics()
@@ -83,13 +81,13 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
                         # re-initialize statistics window start time
                         statistics_update_start_time = event.timestamp
 
+            self.__statistics_collector.event_handler(event)
             self._play_new_event_on_tree(event, matches)
             self._get_matches(matches)
 
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         self._get_last_pending_matches(matches)
-        # print(count)
         matches.close()
 
     def _get_last_pending_matches(self, matches):
@@ -111,7 +109,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
 
     def _get_matches(self, matches: OutputStream):
         """
-        Collects the ready matches
+        Collects the ready matches from the tree and adds them to the evaluation matches.
         """
         for match in self._tree.get_matches():
             matches.add_item(match)
@@ -119,19 +117,19 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
 
     def _tree_update(self, new_tree: Tree, event: Event):
         """
-
+        Registers a new tree in the evaluation mechanism.
         """
         raise NotImplementedError("Must override")
 
     def _is_need_new_statistics(self):
         """
-
+        Checks if new statistics are needed for the evaluation.
         """
         raise NotImplementedError("Must override")
 
     def _play_new_event_on_tree(self, event: Event, matches: OutputStream):
         """
-
+        Lets the tree handle the event.
         """
         raise NotImplementedError("Must override")
 

@@ -6,7 +6,7 @@ class DeviationAwareTester(ABC):
     """
     Abstract class for deviation aware testing function
     """
-    def __init__(self, t):
+    def __init__(self, t: float):
         self._t = t
 
     @abstractmethod
@@ -19,7 +19,7 @@ class DeviationAwareTester(ABC):
 
 class ArrivalRatesDeviationAwareTester(DeviationAwareTester):
     """
-    Checks for deviations in the arrival rates by a factor of t.
+    Checks for deviations in the arrival rates statistics by a factor of t.
     """
 
     def is_deviated_by_t(self, new_statistics: List[int], prev_statistics: List[int]):
@@ -33,13 +33,13 @@ class ArrivalRatesDeviationAwareTester(DeviationAwareTester):
 
 class SelectivityDeviationAwareOptimizerTester(DeviationAwareTester):
     """
-    Checks for deviations in the selectivity by a factor of t.
+    Checks for deviations in the selectivity matrix statistics by a factor of t.
     """
 
     def is_deviated_by_t(self, new_statistics: List[List[float]], prev_statistics: List[List[float]]):
 
         for i in range(len(new_statistics)):
-            for j in range(len(new_statistics[i])):
+            for j in range(i+1):
                 if prev_statistics[i][j] * (1 + self._t) < new_statistics[i][j] or \
                         prev_statistics[i][j] * (1 - self._t) > new_statistics[i][j]:
                     return True

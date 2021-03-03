@@ -78,7 +78,7 @@ evaluation mechanism: trivial
 optimizer: changes aware optimizer
 tree builder: trivial left tree builder
 """
-DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS_AND_T_OPTIMIZER = \
+DEFAULT_TESTING_TRIVIAL_EVALUATION_MECHANISM_SETTINGS_AND_DEVIATION_AWARE_OPTIMIZER = \
     TreeBasedEvaluationMechanismParameters(TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True),

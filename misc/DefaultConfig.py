@@ -15,6 +15,7 @@ from plan.multi.MultiPatternEvaluationApproaches import MultiPatternEvaluationAp
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 
+
 # general settings
 DEFAULT_EVALUATION_MECHANISM_TYPE = EvaluationMechanismTypes.TREE_BASED
 
@@ -48,8 +49,8 @@ STATISTICS_TIME_WINDOW = timedelta(minutes=2)  # Time window for statistics
 
 # optimizer settings
 DEFAULT_INIT_TREE_PLAN_BUILDER = TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE  # initial tree plan builder in case of predifined ststistics
-DEFAULT_OPTIMIZER_TYPE = OptimizerTypes.STATISTICS_DEVIATION_AWARE
-THRESHOLD = 0.5  # the default threshold for statistics changes aware optimizer
+DEFAULT_OPTIMIZER_TYPE = OptimizerTypes.STATISTICS_DEVIATION_AWARE_OPTIMIZER
+DEVIATION_OPTIMIZER_THRESHOLD = 0.5  # the default threshold for statistics changes aware optimizer
 
 # tree evaluation mechanism settings
 DEFAULT_TREE_EVALUATION_MECHANISM_TYPE = TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION
