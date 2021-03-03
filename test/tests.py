@@ -189,18 +189,44 @@ sortedStorageTestRIPAlgorithm()
 
 
 # # ######Basic functionality tests for HyperCube Algorithm
-# oneArgumentsearchTestHyperCubeAlgorithm()
-# simplePatternSearchTestHyperCubeAlgorithm()
-# googleAmazonLowPatternSearchTestHyperCubeAlgorithm()
-# nonsensePatternSearchTestHyperCubeAlgorithm()
-# duplicateEventTypeTestHyperCubeAlgorithm()
-# amazonSpecificPatternSearchTestHyperCubeAlgorithm()
-# googleAscendPatternSearchTestHyperCubeAlgorithm()
-# amazonInstablePatternSearchTestHyperCubeAlgorithm()
-# msftDrivRacePatternSearchTestHyperCubeAlgorithm()
-# googleIncreasePatternSearchTestHyperCubeAlgorithm()
-# hierarchyPatternSearchTestHyperCubeAlgorithm()
-#
+oneArgumentsearchTestHyperCubeAlgorithm()
+simplePatternSearchTestHyperCubeAlgorithm()
+googleAmazonLowPatternSearchTestHyperCubeAlgorithm()
+nonsensePatternSearchTestHyperCubeAlgorithm()
+duplicateEventTypeTestHyperCubeAlgorithm()
+amazonSpecificPatternSearchTestHyperCubeAlgorithm()
+googleAscendPatternSearchTestHyperCubeAlgorithm()
+amazonInstablePatternSearchTestHyperCubeAlgorithm()
+msftDrivRacePatternSearchTestHyperCubeAlgorithm()
+googleIncreasePatternSearchTestHyperCubeAlgorithm()
+hierarchyPatternSearchTestHyperCubeAlgorithm()
+
+
+# # tree plan generation algorithms for HyperCubeAlgorithm
+arrivalRatesPatternSearchTestHyperCubeAlgorithm()
+frequencyPatternSearchTestHyperCubeAlgorithm()
+nonFrequencyPatternSearchTestHyperCubeAlgorithm()
+nonFrequencyPatternSearch3TestHyperCubeAlgorithm()
+frequencyPatternSearch3TestHyperCubeAlgorithm()
+nonFrequencyPatternSearch2TestHyperCubeAlgorithm()
+frequencyPatternSearch2TestHyperCubeAlgorithm()
+nonFrequencyPatternSearch4TestHyperCubeAlgorithm()
+frequencyPatternSearch4TestHyperCubeAlgorithm()
+greedyPatternSearchTestHyperCubeAlgorithm()
+iiRandomPatternSearchTestHyperCubeAlgorithm()
+iiRandom2PatternSearchTestHyperCubeAlgorithm()
+iiGreedyPatternSearchTestHyperCubeAlgorithm()
+iiGreedy2PatternSearchTestHyperCubeAlgorithm()
+zStreamOrdPatternSearchTestHyperCubeAlgorithm()
+zStreamPatternSearchTestHyperCubeAlgorithm()
+dpBPatternSearchTestHyperCubeAlgorithm()
+dpLdPatternSearchTestHyperCubeAlgorithm()
+nonFrequencyTailoredPatternSearchTestHyperCubeAlgorithm()
+frequencyTailoredPatternSearchTestHyperCubeAlgorithm()
+
+# # ### Kleene closure tests
+MinMax_0_TestKleeneClosureHyperCubeAlgorithm()
+MinMax_2_TestKleeneClosureHyperCubeAlgorithm()
 #
 # # # tree plan generation algorithms for HyperCubeAlgorithm
 # arrivalRatesPatternSearchTestHyperCubeAlgorithm()
