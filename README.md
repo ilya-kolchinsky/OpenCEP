@@ -173,7 +173,7 @@ pattern = Pattern(
 ```
 #### Optimizing evaluation performance with custom TreeBasedEvaluationMechanismParameters
 
-The following is an example of a pattern containing a negation operator specifying the naive negation algorithm:
+The following is an example of a pattern containing a negation operator specifying the statistic negation algorithm:
 
 ```
 pattern = Pattern(
