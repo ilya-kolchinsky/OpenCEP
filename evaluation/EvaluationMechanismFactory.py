@@ -75,8 +75,6 @@ class EvaluationMechanismFactory:
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
         pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern,
                                     eval_mechanism_params.negation_algorithm) for pattern in patterns}
-        for p in patterns:
-            see = pattern_to_tree_plan_map[p]
         return TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
                                             eval_mechanism_params.multi_pattern_eval_params)
 

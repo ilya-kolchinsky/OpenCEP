@@ -42,7 +42,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
 
-    def __handle_timeout_pending_matches(self, timestamp, first_unbounded=None):
+    def __handle_timeout_pending_matches(self, time_stamp, first_unbounded=None):
         """
         When new event (and therefore new timestamp) entering the system, the function checks if some pending
         matches (in the first unbounded neg node) are time outed. If so, it evaluates if these matches are
@@ -55,7 +55,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         pending_matches_to_remove = []
         for i, match in enumerate(pending_matches):
             # since the window passed, the unbounded node holding the pending match won't reject it
-            if timestamp - match.first_timestamp > self.__pattern.window:
+            if time_stamp - match.first_timestamp > self.__pattern.window:
                 current_node = first_unbounded
                 while current_node is not None:
                     # if the partial match matches negative event it is invalid and there's no need to keep propagate it

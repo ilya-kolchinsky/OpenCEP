@@ -1,23 +1,20 @@
-"""
-TODO
-"""
-
 from plan.TreePlanBuilder import TreePlanBuilder
 from negationAlgorithms.NegationAlgorithm import *
 
 
 class StatisticNegationAlgorithm(NegationAlgorithm):
     """
-    TODO
+    This class represents the statistic negation algorithm, and saves the data related to it.
     """
-
     def __init__(self, negation_algorithm_type: NegationAlgorithmTypes = NegationAlgorithmTypes.
                  STATISTIC_NEGATION_ALGORITHM):
         super().__init__(negation_algorithm_type)
 
     def add_negative_part(self, pattern: Pattern, positive_tree_plan: TreePlanBinaryNode):
         """
-        TODO
+        This method adds the negative part to the tree plan (that includes only the positive part),
+        according to the statistic algorithm, i.e. - negative nodes inserted on top of the positive tree plan, in the
+        order determined by their statistics.
         """
         tree_topology = positive_tree_plan
         if pattern.negative_structure is None or pattern.full_statistics is None:

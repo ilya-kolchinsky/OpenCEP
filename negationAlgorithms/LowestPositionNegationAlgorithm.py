@@ -1,7 +1,3 @@
-"""
-TODO
-"""
-
 from negationAlgorithms.NegationAlgorithm import *
 from negationAlgorithms.StatisticNegationAlgorithm import StatisticNegationAlgorithm
 from base.PatternStructure import AndOperator
@@ -10,9 +6,8 @@ from plan.TreePlan import OperatorTypes, TreePlanBinaryNode, TreePlanLeafNode
 
 class LowestPositionNegationAlgorithm(NegationAlgorithm):
     """
-    TODO
+    This class represents the lowest position negation algorithm, and saves the data related to it.
     """
-
     def __init__(self, negation_algorithm_type: NegationAlgorithmTypes = NegationAlgorithmTypes.
                  LOWEST_POSITION_NEGATION_ALGORITHM):
         super().__init__(negation_algorithm_type)
@@ -20,10 +15,8 @@ class LowestPositionNegationAlgorithm(NegationAlgorithm):
         self.internal_node_descendants_map = {}
         self.pointers_to_leaves_map = {}
 
-    """
-    TODO - static?
-    """
-    def create_name_index_map(self, pattern: Pattern):
+    @staticmethod
+    def create_name_index_map(pattern: Pattern):
         """
         Creates a mapping from event's name to its fake index (the index in the positive structure or the negative one)
         """
@@ -55,6 +48,19 @@ class LowestPositionNegationAlgorithm(NegationAlgorithm):
                 for neg_index in negative_indices:
                     self.positive_related_events_per_each_negative_event[neg_index].update(positive_indices)
 
+    def update_maps(self, node: TreePlanNode):
+        """
+        Updates pointers_to_leaves_map and internal_node_descendants_map in case the node is leaf node, and
+        internal_node_descendants_map only in case of internal node
+        """
+        if type(node) == TreePlanLeafNode:
+            self.pointers_to_leaves_map[node.event_index] = node
+            self.internal_node_descendants_map[node.parent][node.event_index] = True
+        else:
+            for index, value in enumerate(self.internal_node_descendants_map[node]):
+                if value is True:
+                    self.internal_node_descendants_map[node][index] = True
+
     def traverse_positive_tree_plan(self, tree_topology, positive_events_num):
         """
         This function traverse the positive tree plan and updates the descendants array of each internal node,
@@ -67,20 +73,8 @@ class LowestPositionNegationAlgorithm(NegationAlgorithm):
         tree_topology.right_child.parent = tree_topology
         tree_topology.left_child.parent = tree_topology
         self.internal_node_descendants_map[tree_topology] = [False]*positive_events_num
-        if type(tree_topology.left_child) == TreePlanLeafNode:
-            self.pointers_to_leaves_map[tree_topology.left_child.event_index] = tree_topology.left_child
-            self.internal_node_descendants_map[tree_topology][tree_topology.left_child.event_index] = True
-        else:
-            for index, value in enumerate(self.internal_node_descendants_map[tree_topology.left_child]):
-                if value is True:
-                    self.internal_node_descendants_map[tree_topology][index] = True
-        if type(tree_topology.right_child) == TreePlanLeafNode:
-            self.pointers_to_leaves_map[tree_topology.right_child.event_index] = tree_topology.right_child
-            self.internal_node_descendants_map[tree_topology][tree_topology.right_child.event_index] = True
-        else:
-            for index, value in enumerate(self.internal_node_descendants_map[tree_topology.right_child]):
-                if value is True:
-                    self.internal_node_descendants_map[tree_topology][index] = True
+        self.update_maps(tree_topology.left_child)
+        self.update_maps(tree_topology.right_child)
 
     def find_negative_chunk(self, negative_iterator, right_positive_index, pattern):
         """
@@ -135,7 +129,8 @@ class LowestPositionNegationAlgorithm(NegationAlgorithm):
             temp_lowest_position = temp_lowest_position.parent
         return lowest_position
 
-    def add_negative_event(self, negative_event_to_insert, place_to_add, negative_operator_type):
+    @staticmethod
+    def add_negative_event(negative_event_to_insert, place_to_add, negative_operator_type):
         """
         This function inserts the negative node and the negative event itself (internal node and leaf node) to the tree
         plan and updates all relevant nodes
@@ -212,7 +207,9 @@ class LowestPositionNegationAlgorithm(NegationAlgorithm):
 
     def add_negative_part(self, pattern: Pattern, positive_tree_plan: TreePlanBinaryNode):
         """
-        TODO
+        This method adds the negative part to the tree plan (that includes only the positive part),
+        according to the lowest position algorithm, i.e. - each negative node inserted at the lowest position possible
+        (such that the positive nodes related to it are beneath it).
         """
         tree_topology = positive_tree_plan
         if pattern.negative_structure is None:

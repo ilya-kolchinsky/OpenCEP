@@ -10,13 +10,9 @@ from test.UnitTests.test_storage import run_storage_tests
 runTest.over_all_time = 0
 
 # basic functionality tests
-
 oneArgumentsearchTest()
-
 simplePatternSearchTest()
-
 googleAscendPatternSearchTest()
-
 amazonInstablePatternSearchTest()
 msftDrivRacePatternSearchTest()
 googleIncreasePatternSearchTest()
@@ -55,9 +51,7 @@ frequencyTailoredPatternSearchTest()
 
 # tree structure tests - CEP object only created not used
 structuralTest1()
-
 structuralTest2()
-
 structuralTest3()
 structuralTest4()
 structuralTest5()
@@ -85,9 +79,7 @@ KC_Condition_Failure_03()
 
 # negation tests
 simpleNotTest()
-
 multipleNotInTheMiddleTest()
-
 oneNotAtTheBeginningTest()
 multipleNotAtTheBeginningTest()
 oneNotAtTheEndTest()
@@ -111,23 +103,17 @@ run_storage_tests()
 
 # multi-pattern tests
 # first approach: sharing leaves
-
 leafIsRoot()
-
 distinctPatterns()
 threePatternsTest()
 samePatternDifferentTimeStamps()
 rootAndInner()
 
 # second approach: sharing equivalent subtrees
-
 onePatternIncludesOther()
-
 samePatternSharingRoot()
 severalPatternShareSubtree()
-
 notInTheBeginningShare()
-
 multipleParentsForInternalNode()
 
 # benchmarks
@@ -145,9 +131,9 @@ if INCLUDE_TWITTER:
 
 
 print("Finished running all tests, overall time: %s" % runTest.over_all_time)
-numFailedTests.print_counter()
-if len(numFailedTests.failedTests):
-    print(numFailedTests.failedTests)
-if len(numFailedTests.miss_comb):
+num_failed_tests.print_counter()
+if len(num_failed_tests.failed_tests):
+    print(num_failed_tests.failed_tests)
+if len(num_failed_tests.missing_combination):
     print("\nTests that didn't check all the statistic combinations:")
-    print(*numFailedTests.miss_comb, sep=", ")
+    print(*num_failed_tests.missing_combination, sep=", ")

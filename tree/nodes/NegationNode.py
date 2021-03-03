@@ -1,7 +1,6 @@
 from abc import ABC
 from datetime import timedelta, datetime
 from typing import List, Set, Type
-
 from base.Event import Event
 from condition.Condition import RelopTypes, EquationSides
 from base.PatternMatch import PatternMatch
@@ -192,13 +191,13 @@ class NegationNode(BinaryNode, ABC):
         Returns the deepest unbounded node in the tree. This node keeps the partial matches that are pending release
         due to the presence of unbounded negative events in the pattern.
         """
-        deepestUnboundedSoFar = None
+        deepest_unbounded_so_far = None
         current_node = self
         while isinstance(current_node, NegativeSeqNode):
             if current_node.__is_unbounded:
-                deepestUnboundedSoFar = current_node
+                deepest_unbounded_so_far = current_node
             current_node = current_node.get_left_subtree()
-        return deepestUnboundedSoFar
+        return deepest_unbounded_so_far
 
     def __is_first_unbounded_negative_node(self):
         """

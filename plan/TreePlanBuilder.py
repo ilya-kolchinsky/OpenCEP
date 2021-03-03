@@ -15,12 +15,11 @@ class TreePlanBuilder(ABC):
     def __init__(self, cost_model_type: TreeCostModels):
         self.__cost_model = TreeCostModelFactory.create_cost_model(cost_model_type)
 
-    def build_tree_plan(self, pattern: Pattern, negationAlgorithm: NegationAlgorithm):
+    def build_tree_plan(self, pattern: Pattern, negation_algorithm: NegationAlgorithm):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
-
-        return TreePlan(negationAlgorithm.add_negative_part(pattern, self._create_tree_topology(pattern)))
+        return TreePlan(negation_algorithm.add_negative_part(pattern, self._create_tree_topology(pattern)))
 
     def _create_tree_topology(self, pattern: Pattern):
         """

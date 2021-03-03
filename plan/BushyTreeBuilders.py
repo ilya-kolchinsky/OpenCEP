@@ -103,7 +103,7 @@ class ZStreamTreeBuilder(TreePlanBuilder):
                     new_cost = self._get_plan_cost(pattern, new_tree)
                     if new_cost < prev_cost:
                         suborders[suborder] = new_tree, new_cost
-        return suborders[items][0]
+        return suborders[items][0]  # return the topology (index 0 at tuple) of the entire order, indexed to 'items'.
 
     @staticmethod
     def _get_initial_order(selectivity_matrix: List[List[float]], arrival_rates: List[int]):

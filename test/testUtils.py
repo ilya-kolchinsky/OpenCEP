@@ -44,11 +44,14 @@ DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
                                                                  prioritize_sorting_by_timestamp=True))
 DEFAULT_TESTING_DATA_FORMATTER = MetastockDataFormatter()
 
-# this class helps tracking failed tests (if there are any)
+
 class FailedCounter:
+    """
+    This class helps tracking failed tests (if there are any).
+    """
     counter = 0
-    failedTests = set()
-    miss_comb = []
+    failed_tests = set()
+    missing_combination = []
 
     def increase_counter(self):
         self.counter = self.counter + 1
@@ -57,7 +60,7 @@ class FailedCounter:
         print(self.counter, "tests Failed")
 
 
-numFailedTests = FailedCounter()
+num_failed_tests = FailedCounter()
 
 file1 = os.path.join(absolutePath, 'test/StatisticsDocumentation/statistics.txt')
 with open(file1, 'w') as file:
@@ -238,8 +241,8 @@ def runTest(expectedFileName, patterns, createTestFile = False,
     if is_test_successful:
         os.remove(actual_matches_path)
     else:
-        numFailedTests.increase_counter()
-        numFailedTests.failedTests.add(test_name)
+        num_failed_tests.increase_counter()
+        num_failed_tests.failed_tests.add(test_name)
 
 
 """
@@ -351,8 +354,8 @@ def runMultiTest(test_name, patterns, createTestFile = False,
     if res:
         os.remove(actual_matches_path)
     else:
-        numFailedTests.increase_counter()
-        numFailedTests.failedTests.add(test_name)
+        num_failed_tests.increase_counter()
+        num_failed_tests.failed_tests.add(test_name)
 
 class DummyOutputStream(OutputStream):
     def add_item(self, item: object):

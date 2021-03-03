@@ -152,7 +152,10 @@ pattern = Pattern(
 ```
 ### Negation Operator 
 
-The following is the example of a pattern containing a negation operator:
+OpenCEP supports a variety of negation algorithms provided using the TreeBasedEvaluationMechanismParameters parameter.
+It is an optional parameter, if the pattern includes negative events and negation algorithm was not provided, the naive negation algorithm would be used. 
+ 
+The following is an example of a pattern containing a negation operator (without providing negation algorithm):
 
 ```
 pattern = Pattern(
@@ -166,7 +169,34 @@ pattern = Pattern(
                                  Variable("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
+
 ```
+#### Optimizing evaluation performance with custom TreeBasedEvaluationMechanismParameters
+
+The following is an example of a pattern containing a negation operator specifying the naive negation algorithm:
+
+```
+pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), 
+                    NegationOperator(PrimitiveEventStructure("AMZN", "b")), 
+                    PrimitiveEventStructure("GOOG", "c")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            SmallerThanCondition(Variable("b", lambda x: x["Opening Price"]),
+                                 Variable("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        negation_algorithm_type = NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM
+    )
+    cep = CEP(pattern, eval_mechanism_params)
+```
+There is one more negation algorithm, the lowest position algorithm. In order to use it, use the TreeBasedEvaluationMechanismParameters as demonstrated above, specifying "NegationAlgorithmTypes.LOWEST_POSITION_NEGATION_ALGORITHM" as negation algorithm type.
+
+The use of the non naive algorithms may improve system performance.
+The statistic algorithm is recommended when data stream include a large amount of negative events.
+The lowest position algorithm is recommended when some of the negative events are bounded (i.e. not located at the beginning nor the end of the events sequence in the pattern). 
 
 ### Consumption policies and selection strategies
 
