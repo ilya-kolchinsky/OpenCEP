@@ -1,4 +1,3 @@
-
 """
  Data parallel algorithms
 """
@@ -37,7 +36,7 @@ class DataParallelAlgorithm(ABC):
         self._patterns = [patterns] if isinstance(patterns, Pattern) else \
             patterns
 
-        for _ in range(0, self._units_number - 1):
+        for _ in range(0, self._units_number):
             self._eval_trees.append(EvaluationMechanismFactory.build_eval_mechanism(eval_mechanism_params, patterns))
             self._events_list.append(Stream())
 
@@ -49,18 +48,15 @@ class DataParallelAlgorithm(ABC):
         self._data_formatter = data_formatter
         self._matches = matches
         # self._stream_unit.start()
-        for i in range(self._units_number - 1):
-            thread = self._platform.create_parallel_execution_unit(
+        for i in range(self._units_number):
+            unit = self._platform.create_parallel_execution_unit(
                 unit_id=i,
                 callback_function=self._eval_unit,
                 thread_id=i,
                 data_formatter=data_formatter)
-            self._units.append(thread)
-            thread.start()
+            self._units.append(unit)
+            unit.start()
 
-        self._stream_divide()
-
-    def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
     def _eval_unit(self):
         """
             Activates the unit evaluation mechanism
@@ -97,7 +93,7 @@ class HirzelAlgorithm(DataParallelAlgorithm, ABC):
         if not isinstance(key_val, (int, float)):
             raise Exception("key %s has no numeric value" % (self.__key,))
         super().eval_algorithm(events, matches, data_formatter)
-
+        self._stream_divide()
         for t in self._units:
             t.wait()
 
@@ -106,6 +102,7 @@ class HirzelAlgorithm(DataParallelAlgorithm, ABC):
     """
         Divide the input stream into calculation units according to the values of the key
     """
+
     def _stream_divide(self):
 
         for event_raw in self._events:
@@ -129,8 +126,7 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
     def __init__(self, units_number, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters,
                  platform, multiple):
-
-        super().__init__(units_number, patterns, eval_mechanism_params,
+        super().__init__(units_number - 1, patterns, eval_mechanism_params,
                          platform)
         self.__eval_mechanism_params = eval_mechanism_params
         self.__matches_handler = Stream()
@@ -148,12 +144,15 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
         self.__shared_time = max_window
         self.__algorithm_start_time = -1
         self.__start_list = [Stream() for _ in
-                             range(self._units_number - 1)]
+                             range(self._units_number)]
         self.__start_queue = Queue()
         self.__streams_queue = Queue()
         self.__thread_pool = Queue()
+        self.__matches_unit = self._platform.create_parallel_execution_unit(
+            unit_id=units_number - 1,
+            callback_function=self.__make_output_matches_stream)
 
-        for i in range(units_number - 1):
+        for i in range(self._units_number):
             self.__thread_pool.put(i)
 
         self._mutex = Queue()
@@ -162,6 +161,7 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
     """
         Divide the input stream into calculation units according to events times
     """
+
     def _stream_divide(self):
 
         try:
@@ -201,12 +201,12 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
             self.__start_list[unit_id].add_item(self.__start_queue.get_nowait())
 
         # finished to divide the data
-        for i in range(0, self._units_number - 1):
+        for i in range(0, self._units_number):
             self.__start_list[i].close()
 
-        while self._mutex.qsize() < self._units_number - 1:
-            time.sleep(0.01)
-        self.__matches_handler.close()
+        # while self._mutex.qsize() < self._units_number - 1:
+        #     time.sleep(0.01)
+        # self.__matches_handler.close()
 
     def _eval_unit(self, thread_id: int, data_formatter: DataFormatter):
 
@@ -215,11 +215,12 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
             self._eval_trees[thread_id] = EvaluationMechanismFactory.build_eval_mechanism(self.__eval_mechanism_params, self._patterns)
             self.__thread_pool.put(thread_id)
 
-        self._mutex.put(1)
+    # self._mutex.put(1)
 
     """
         check if the match is in an section where it  suspected of duplication 
     """
+
     def __check_duplicated_matches(self, match):
         while self.__algorithm_start_time == -1:
             pass
@@ -241,6 +242,7 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
     """
         remove duplicated matches and send the matches to the output stream
     """
+
     def __make_output_matches_stream(self):
 
         for match in self.__matches_handler:
@@ -258,16 +260,23 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
 
         super().eval_algorithm(events, matches, data_formatter)
-        self.__make_output_matches_stream()
+        self.__matches_unit.start()
+        self._stream_divide()
+        for t in self._units:
+            t.wait()
+
+        self.__matches_handler.close()
+        self.__matches_unit.wait()
 
 
 class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
     """
            A class for data parallel evaluation HyperCube algorithm
     """
-    def __init__(self, threads_num, patterns: Pattern or List[Pattern],
+
+    def __init__(self, units_number, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform, attributes_dict: dict):
-        super().__init__(threads_num, patterns, eval_mechanism_params, platform)
+        super().__init__(units_number - 1, patterns, eval_mechanism_params, platform)
         self.attributes_dict = attributes_dict
         self.types = []
         for pattern in patterns:
@@ -334,5 +343,3 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
             i += 1
         count += index_among_type
         return count
-
-
