@@ -368,4 +368,4 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
             if not self.__check_duplicates_in_match(match) and match.__str__() not in duplicates:
                 self._matches.add_item(match)
                 duplicates.append(match.__str__())
-       # print("check", count)
+
