@@ -281,7 +281,7 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
         self.types = []
         for pattern in patterns:
             self.types.extend(list(pattern.get_all_event_types_with_duplicates()))
-        self.groups_num = math.ceil((self._units_number - 1) ** (1 / len(self.types)))
+        self.groups_num = math.ceil((self._units_number) ** (1 / len(self.types)))
         self._matches_handler = Stream()
         self.__matches_unit = self._platform.create_parallel_execution_unit(
             unit_id=units_number - 1,
@@ -326,7 +326,7 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
                 new_start = group_index * leg_size
                 jump = leg_size * (self.groups_num - 1) + 1
                 j = new_start
-                while j < (self._units_number - 1):
+                while j < (self._units_number ):
                     self._events_list[j].add_item(event_raw)
                     leg_size -= 1
                     if leg_size == 0:
@@ -336,7 +336,7 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
                         j += 1
         for stream in self._events_list:
             stream.close()
-        print("bye")
+
 
     def _eval_unit(self, thread_id: int, data_formatter: DataFormatter):
         self._eval_trees[thread_id].eval(self._events_list[thread_id], self._matches_handler, data_formatter, False)
@@ -368,4 +368,4 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
             if not self.__check_duplicates_in_match(match) and match.__str__() not in duplicates:
                 self._matches.add_item(match)
                 duplicates.append(match.__str__())
-        print("check", count)
+       # print("check", count)
