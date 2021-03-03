@@ -79,7 +79,7 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
             sorted_order = sorted([(i, arrival_rates[i]) for i in range(len(arrival_rates))], key=lambda x: x[1])
             order = [x for x, y in sorted_order]  # create order from sorted binding.
         else:
-            raise MissingStatisticsException()
+            raise Exception("AscendingFrequencyTreeBuilder supports only arrival rates or frequency dict statistics")
         return order
 
 
