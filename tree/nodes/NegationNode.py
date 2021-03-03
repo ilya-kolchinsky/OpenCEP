@@ -4,7 +4,6 @@ from typing import List, Set, Type
 
 from base.Event import Event
 from condition.Condition import RelopTypes, EquationSides
-from condition.CompositeCondition import CompositeCondition
 from base.PatternMatch import PatternMatch
 from base.PatternStructure import AndOperator, SeqOperator
 from misc.Utils import find_partial_match_by_timestamp, merge, is_sorted, merge_according_to

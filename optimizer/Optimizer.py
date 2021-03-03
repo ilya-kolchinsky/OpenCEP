@@ -5,7 +5,6 @@ from plan import TreePlanBuilder
 from plan.LeftDeepTreeBuilders import TrivialLeftDeepTreeBuilder
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-from statistics_collector.StatisticsWrapper import StatisticsWrapper
 
 
 class Optimizer(ABC):

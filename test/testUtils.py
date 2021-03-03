@@ -41,12 +41,10 @@ DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
     TreeBasedEvaluationMechanismParameters(TreeStorageParameters(sort_storage=False,
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True))
-
 """
 Default testing Data formatters
 """
 DEFAULT_TESTING_DATA_FORMATTER = MetastockDataFormatter()
-
 
 def numOfLinesInPattern(file):
     """
@@ -188,7 +186,6 @@ def runTest(testName, patterns, createTestFile=False,
     if is_test_successful:
         os.remove(actual_matches_path)
 
-
 """
 Input:
 testName- name of the test
@@ -196,8 +193,6 @@ patterns- list of patterns
 Output:
 expected output file for the test.
 """
-
-
 def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                          events=None, eventStream=nasdaqEventStream):
     curr_events = events
@@ -217,7 +212,6 @@ def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTI
         single_pattern_path = os.path.join(expected_directory, filename)
         os.remove(single_pattern_path)
 
-
 def uniteFiles(testName, numOfPatterns):
     base_matches_directory = os.path.join(absolutePath, 'test', 'TestsExpected')
     output_file_name = "%sMatches.txt" % testName
@@ -236,14 +230,10 @@ def uniteFiles(testName, numOfPatterns):
             for line in setexp:
                 f.write(line)
                 f.write('\n\n')
-
-
 """
 This function runs multi-pattern CEP on the given list of patterns and prints
 success or fail output.
 """
-
-
 def runMultiTest(testName, patterns, createTestFile=False,
                  eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                  events=None, eventStream=nasdaqEventStream):

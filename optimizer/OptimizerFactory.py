@@ -4,7 +4,6 @@ from misc import DefaultConfig
 from misc.StatisticsTypes import StatisticsTypes
 from optimizer import Optimizer
 from optimizer.DeviationAwareTesterFactory import DeviationAwareTesterFactory
-from plan.InvariantLeftDeepTreeBuilder import InvariantAwareGreedyTreeBuilder
 from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes

@@ -5,14 +5,13 @@ by invoking the rest of the system components.
 from base.DataFormatter import DataFormatter
 from parallel.EvaluationManagerFactory import EvaluationManagerFactory
 from parallel.ParallelExecutionParameters import ParallelExecutionParameters
-from statistics_collector.StatisticsCollectorFactory import StatisticsCollectorParameters
 from stream.Stream import InputStream, OutputStream
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from typing import List
 from datetime import datetime
-from optimizer.OptimizerFactory import OptimizerParameters
 import warnings
+
 
 class CEP:
     """

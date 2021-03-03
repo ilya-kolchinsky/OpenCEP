@@ -32,7 +32,7 @@ class StatisticsCollectorFactory:
                                       patterns: List[Pattern]):
         """
         Currently, multi-pattern is not supported.
-        TODO: To support multi-pattern it will need to go through a loop and create statistics for each pattern.
+        TODO: To support multi-pattern mode it will need to go through a loop and create statistics for each pattern.
         """
         pattern = patterns[0]
         statistics_time_window = statistics_collector_parameters.statistics_time_window

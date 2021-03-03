@@ -54,9 +54,11 @@ class Tree:
         The condition is copied since it is modified inside the recursive apply_condition call.
         """
         condition_copy = deepcopy(pattern.condition)
-        # sets the statistics collector reference to every atomic condition
+
+        # set the statistics collector reference to every atomic condition
         for atomic_condition in condition_copy.extract_atomic_conditions():
             atomic_condition.set_statistics_collector(statistics_collector)
+
         self.__root.apply_condition(condition_copy)
         if condition_copy.get_num_conditions() > 0:
             raise Exception("Unused conditions after condition propagation: {}".format(
@@ -215,16 +217,6 @@ class Tree:
         first_unbounded_negative_node.flush_pending_matches()
         # the pending matches were released and have hopefully reached the root
         return self.get_matches()
-
-    # # TODO: comment
-    # def get_pending_matches(self):
-    #     if not isinstance(self.__root, NegationNode):
-    #         return []
-    #     # this is the node that contains the pending matches
-    #     first_unbounded_negative_node = self.__root.get_first_unbounded_negative_node()
-    #     if first_unbounded_negative_node is None:
-    #         return []
-    #     return first_unbounded_negative_node.get_pending_partial_matches()
 
     # TODO: comment
     def set_pending_matches(self, pending_matches):

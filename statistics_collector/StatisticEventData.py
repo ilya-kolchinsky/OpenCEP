@@ -1,5 +1,4 @@
-from datetime import timedelta, datetime
-from base.Event import Event
+from datetime import datetime
 
 
 class StatisticEventData:

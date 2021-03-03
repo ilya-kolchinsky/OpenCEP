@@ -13,7 +13,6 @@ from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCon
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
 
-
 def nonFrequencyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
@@ -95,7 +94,6 @@ def frequencyPatternSearch2Test(createTestFile=False):
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
 
     runTest("frequency2", [pattern], createTestFile, eval_mechanism_params=eval_params)
-
 
 def nonFrequencyPatternSearch3Test(createTestFile=False):
     pattern = Pattern(
@@ -194,7 +192,6 @@ def frequencyPatternSearch6Test(createTestFile=False):
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
 
     runTest("frequency6", [pattern], createTestFile, eval_mechanism_params=eval_params)
-
 
 def greedyPatternSearchTest(createTestFile=False):
     pattern = Pattern(

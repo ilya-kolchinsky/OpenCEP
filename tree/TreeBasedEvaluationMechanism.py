@@ -21,7 +21,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
     """
     An implementation of the tree-based evaluation mechanism.
     """
-
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                  storage_params: TreeStorageParameters,
                  statistics_collector: StatisticsCollector,
@@ -70,9 +69,9 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
                 continue
             self.__remove_expired_freezers(event)
 
-            if not self.__is_multi_pattern_mode:  # Note: multi-pattern does not yet support adaptive-CEP,
-                # this condition is necessary for the multi-pattern tests and nothing more
-                # TODO: evaluation mechanism factory needs to support multi-pattern mode
+            if not self.__is_multi_pattern_mode:
+                # Note: multi-pattern does not yet support adaptive-CEP,
+                # TODO: support multi-pattern mode
                 self.__statistics_collector.event_handler(event)
                 if not statistics_update_start_time or event.timestamp - statistics_update_start_time > self.__statistics_update_time_window:
                     if self._is_need_new_statistics():
@@ -148,7 +147,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
                 event_types_listeners[event_type].append(leaf)
             else:
                 event_types_listeners[event_type] = [leaf]
-
         return event_types_listeners
 
     def __init_freeze_map(self):
@@ -205,7 +203,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
         """
         Removes the freezers that have been expired.
         """
-
         if len(self.__freeze_map) == 0:
             # freeze option disabled
             return False
@@ -217,8 +214,3 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
 
     def __repr__(self):
         return self.get_structure_summary()
-
-
-
-
-

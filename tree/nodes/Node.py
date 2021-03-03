@@ -378,5 +378,3 @@ class Node(ABC):
         An abstract method for recursive partial match storage initialization.
         """
         raise NotImplementedError()
-
-

@@ -1,6 +1,6 @@
 import copy
-from abc import ABC, abstractmethod
-from datetime import datetime, timedelta
+from abc import ABC
+from datetime import timedelta
 from typing import List
 from base.Event import Event
 from base.Pattern import Pattern
@@ -84,7 +84,7 @@ class SelectivityStatistics(Statistics):
     NOTE: Currently it ignores the time window
     """
 
-    # TODO: Implement selectivity that a time window in account
+    # TODO: support time window for selectivity
 
     def __init__(self, pattern: Pattern, predefined_statistics: List[List[float]] = None):
         self.__args = pattern.get_primitive_events()

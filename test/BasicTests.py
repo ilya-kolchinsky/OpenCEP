@@ -4,7 +4,6 @@ from condition.Condition import Variable, TrueCondition, BinaryCondition, Simple
 from condition.CompositeCondition import AndCondition
 from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, GreaterThanEqCondition, \
     SmallerThanEqCondition
-from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
 

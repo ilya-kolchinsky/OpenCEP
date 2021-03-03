@@ -5,8 +5,7 @@ from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc import DefaultConfig
 from misc.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
 from optimizer.OptimizerFactory import OptimizerParameters, OptimizerFactory, \
-    StatisticsDeviationAwareOptimizerParameters, InvariantsAwareOptimizerParameters
-from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
+    StatisticsDeviationAwareOptimizerParameters
 from statistics_collector.StatisticsCollectorFactory import StatisticsCollectorParameters, StatisticsCollectorFactory
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.SimultaneousTreeBasedEvaluationMechanism import SimultaneousTreeBasedEvaluationMechanism

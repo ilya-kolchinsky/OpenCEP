@@ -3,6 +3,7 @@ This file contains the implementations of algorithms constructing a left-deep tr
 """
 import random
 from typing import List
+
 from base.PatternStructure import CompositeStructure
 from misc import DefaultConfig
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType, \
@@ -14,7 +15,6 @@ from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
-from statistics_collector.Statistics import Statistics
 
 
 class LeftDeepTreeBuilder(TreePlanBuilder):
@@ -59,7 +59,6 @@ class TrivialLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree following the pattern-specified order.
     """
-
     def _create_evaluation_order(self, statistics: dict, pattern: Pattern):
         args_num = len(pattern.positive_structure.args)
         return list(range(args_num))
@@ -69,7 +68,6 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree following the order of ascending arrival rates of the event types.
     """
-
     def _create_evaluation_order(self, statistics: dict, pattern: Pattern):
         if StatisticsTypes.FREQUENCY_DICT in statistics and \
                 len(statistics) == 1:
@@ -91,7 +89,6 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree using a greedy strategy that selects at each step the event type that minimizes the cost
     function.
     """
-
     def _create_evaluation_order(self, statistics: dict, pattern: Pattern):
         if StatisticsTypes.ARRIVAL_RATES in statistics and \
                 StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
@@ -146,7 +143,6 @@ class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree using the iterative improvement procedure.
     """
-
     def __init__(self, cost_model_type: TreeCostModels, step_limit: int,
                  ii_type: IterativeImprovementType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE,
                  init_type: IterativeImprovementInitType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE):
@@ -189,7 +185,6 @@ class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree using a dynamic programming algorithm.
     """
-
     def _create_evaluation_order(self, statistics: dict, pattern: Pattern):
         if StatisticsTypes.ARRIVAL_RATES in statistics and \
                 StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
