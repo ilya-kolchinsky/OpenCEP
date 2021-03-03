@@ -30,9 +30,9 @@ class DataParallelAlgorithm(ABC):
         self._eval_trees = []
         self._events = None
         self._events_list = []
-        self._stream_unit = platform.create_parallel_execution_unit(
-            unit_id=self._units_number - 1,
-            callback_function=self._stream_divide)
+        # self._stream_unit = platform.create_parallel_execution_unit(
+        #     unit_id=self._units_number - 1,
+        #     callback_function=self._stream_divide)
         self._matches = None
         self._patterns = [patterns] if isinstance(patterns, Pattern) else \
             patterns
@@ -48,7 +48,7 @@ class DataParallelAlgorithm(ABC):
         self._events = events
         self._data_formatter = data_formatter
         self._matches = matches
-        self._stream_unit.start()
+        # self._stream_unit.start()
         for i in range(self._units_number - 1):
             thread = self._platform.create_parallel_execution_unit(
                 unit_id=i,
@@ -58,7 +58,9 @@ class DataParallelAlgorithm(ABC):
             self._units.append(thread)
             thread.start()
 
-    def _eval_tread(self):
+        self._stream_divide()
+
+    def _eval_thread(self, thread_id: int, data_formatter: DataFormatter):
         """
             Activates the unit evaluation mechanism
         """
@@ -84,15 +86,15 @@ class HirzelAlgorithm(DataParallelAlgorithm, ABC):
                  platform, key: str):
         super().__init__(units_number, patterns, eval_mechanism_params,
                          platform)
-        self.key = key
+        self.__key = key
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream,
                        data_formatter: DataFormatter):
 
         event = Event(events.first(), data_formatter)
-        key_val = event.payload[self.key]
+        key_val = event.payload[self.__key]
         if not isinstance(key_val, (int, float)):
-            raise Exception("key %s has no numeric value" % (self.key,))
+            raise Exception("key %s has no numeric value" % (self.__key,))
         super().eval_algorithm(events, matches, data_formatter)
 
         for t in self._units:
@@ -107,7 +109,7 @@ class HirzelAlgorithm(DataParallelAlgorithm, ABC):
 
         for event_raw in self._events:
             event = Event(event_raw, self._data_formatter)
-            index = int(event.payload[self.key] % (self._units_number - 1))
+            index = int(event.payload[self.__key] % (self._units_number - 1))
             self._events_list[index].add_item(event_raw)
 
         for stream in self._events_list:
@@ -129,9 +131,9 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
 
         super().__init__(units_number, patterns, eval_mechanism_params,
                          platform)
-        self._eval_mechanism_params = eval_mechanism_params
+        self.__eval_mechanism_params = eval_mechanism_params
         self.__matches_handler = Stream()
-        self._init_time = None
+        # self._init_time = None
 
         if isinstance(patterns, Pattern):
             patterns = [patterns]
@@ -153,7 +155,7 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
         for i in range(units_number - 1):
             self.__thread_pool.put(i)
 
-        self._mutex = Queue()
+        self.__mutex = Queue()
         self.__duplicated_matches = list()
 
     """
@@ -201,7 +203,7 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
         for i in range(0, self._units_number - 1):
             self.__start_list[i].close()
 
-        while self._mutex.qsize() < self._units_number - 1:
+        while self.__mutex.qsize() < self._units_number - 1:
             time.sleep(0.01)
         self.__matches_handler.close()
 
@@ -209,10 +211,10 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
 
         for _ in self.__start_list[thread_id]:
             self._eval_trees[thread_id].eval(self._events_list[thread_id], self.__matches_handler, data_formatter, False)
-            self._eval_trees[thread_id] = EvaluationMechanismFactory.build_eval_mechanism(self._eval_mechanism_params, self._patterns)
+            self._eval_trees[thread_id] = EvaluationMechanismFactory.build_eval_mechanism(self.__eval_mechanism_params, self._patterns)
             self.__thread_pool.put(thread_id)
 
-        self._mutex.put(1)
+        self.__mutex.put(1)
 
     """
         check if the match is in an section where it  suspected of duplication 
