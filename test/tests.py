@@ -225,7 +225,6 @@ frequencyTailoredPatternSearchTestHyperCubeAlgorithm()
 
 # # ### Kleene closure tests
 MinMax_0_TestKleeneClosureHyperCubeAlgorithm()
-MinMax_2_TestKleeneClosureHyperCubeAlgorithm()
 
 # # tree plan generation algorithms for HyperCubeAlgorithm
 arrivalRatesPatternSearchTestHyperCubeAlgorithm()
