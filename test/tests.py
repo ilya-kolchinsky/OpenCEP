@@ -9,7 +9,6 @@ from test.ParallelTests import *
 from test.HyperCubeAlgorithmTests import *
 from test.UnitTests.test_storage import run_storage_tests
 
-print("linor")
 runTest.over_all_time = 0
 
 # # # basic functionality tests
