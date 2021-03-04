@@ -271,18 +271,18 @@ Additionally, for each algorithm there is a unique additional input and certain 
 Please note that there is no input validation. Input correctness is the user responsibility.
 
 Hirzel Algorithm -
-Additional input: An attribute the data will be divided into threads according to it.
+Additional input: An attribute the data will be divided into units according to it.
 Terms on the pattern: The pattern will only contain equations (for example: equations between attributes of different types, equality of a certain value to the attribute of a specific type).
 Please note that the given attribute has to be the same attribute that his equality tested in the pattern.
 
 RIP Algorithm -
-Additional input: multipation of timedelta.
+Additional input: multiple of timedelta.
 Terms on the pattern: The pattern will not contain unblocked negation.
 
 HyperCube Algorithm -
 Additional input: A dictionary consist of data type(key) and attribute(data) the data will be divided into threads according to it.
-Terms on the given threads number: the threads number should satisfy the equation for some X: X**(types number)=(threads number-1).
-For example, for a pattern consist of 3 types, a possible threads number may be 28 (1+ 3 power 3).
+Terms on the given units number: the units number should satisfy the equation for some X: X**(types number)=(threads number-1).
+For example, for a pattern consist of 3 types, a possible units number may be 28 (1+ 3 power 3).
 notes: - For KC patterns, only works when max_size for the Klenee Closer is given in the pattern, and doesn't work with nested Andoperator inside the KC pattern.
        - The algorithm can't deal with negation condition. 
 Warning: The more times one type is used in a pattern, the more time the algorithm runs.
