@@ -7,6 +7,7 @@ from evaluation.EvaluationMechanismFactory import \
     EvaluationMechanismParameters, EvaluationMechanismFactory
 from base.DataFormatter import DataFormatter
 from base.PatternMatch import *
+from stream.Stream import *
 
 
 class DataParallelAlgorithm(ABC):

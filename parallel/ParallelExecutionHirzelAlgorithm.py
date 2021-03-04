@@ -9,6 +9,7 @@ from evaluation.EvaluationMechanismFactory import \
     EvaluationMechanismParameters
 from base.DataFormatter import DataFormatter
 from base.PatternMatch import *
+from stream.Stream import *
 
 
 class HirzelAlgorithm(DataParallelAlgorithm, ABC):

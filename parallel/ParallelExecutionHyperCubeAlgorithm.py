@@ -10,6 +10,7 @@ from evaluation.EvaluationMechanismFactory import \
 from base.DataFormatter import DataFormatter
 from base.PatternMatch import *
 from threading import Lock
+from stream.Stream import *
 
 
 class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):

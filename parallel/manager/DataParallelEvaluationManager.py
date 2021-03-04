@@ -6,6 +6,7 @@ from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from base.DataFormatter import DataFormatter
 from parallel.ParallelExecutionParameters import *
+from stream.Stream import *
 
 
 class DataParallelEvaluationManager(ParallelEvaluationManager):
