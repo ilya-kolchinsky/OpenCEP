@@ -2,7 +2,6 @@
  Data parallel algorithms
 """
 from abc import ABC
-from stream.DataParallelStream import *
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import \
     EvaluationMechanismParameters, EvaluationMechanismFactory

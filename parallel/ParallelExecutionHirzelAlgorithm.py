@@ -3,7 +3,7 @@
 """
 from abc import ABC
 from parallel.ParallelExecutionAlgorithms import DataParallelAlgorithm
-from stream.DataParallelStream import *
+
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import \
     EvaluationMechanismParameters

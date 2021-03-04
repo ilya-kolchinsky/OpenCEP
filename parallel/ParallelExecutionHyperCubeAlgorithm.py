@@ -2,7 +2,6 @@
  Data parallel HyperCube algorithms
 """
 from abc import ABC
-from stream.DataParallelStream import *
 from parallel.ParallelExecutionAlgorithms import DataParallelAlgorithm
 import math
 from base.Pattern import Pattern

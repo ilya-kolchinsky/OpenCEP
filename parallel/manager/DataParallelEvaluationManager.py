@@ -4,7 +4,6 @@ from parallel.manager.ParallelEvaluationManager import ParallelEvaluationManager
 from typing import List
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
-from stream.DataParallelStream import *
 from base.DataFormatter import DataFormatter
 from parallel.ParallelExecutionParameters import *
 
