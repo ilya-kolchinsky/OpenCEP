@@ -101,7 +101,7 @@ class SelectivityStatistics(Statistics):
         else:
             self.__selectivity_matrix = predefined_statistics
 
-        self.init_maps(pattern)
+        self.__init_maps(pattern)
 
     def update(self, data):
         """
@@ -137,7 +137,7 @@ class SelectivityStatistics(Statistics):
 
         return copy.deepcopy(self.__selectivity_matrix)
 
-    def init_maps(self, pattern: Pattern):
+    def __init_maps(self, pattern: Pattern):
         """
         Initiates the success counters and total evaluation counters for each pair of event types.
         """
