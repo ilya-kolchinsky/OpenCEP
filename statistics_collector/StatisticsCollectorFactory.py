@@ -2,7 +2,7 @@ from typing import List
 from datetime import timedelta
 from base.Pattern import Pattern
 from misc import DefaultConfig
-from misc.StatisticsTypes import StatisticsTypes
+from statistics_collector.StatisticsTypes import StatisticsTypes
 from statistics_collector.StatisticsCollector import StatisticsCollector
 from statistics_collector.StatisticsFactory import StatisticsFactory
 

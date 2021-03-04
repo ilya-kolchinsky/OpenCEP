@@ -4,7 +4,7 @@ from datetime import timedelta
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc import DefaultConfig
-from misc.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
+from tree.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
 from optimizer.OptimizerFactory import OptimizerParameters, OptimizerFactory, \
     StatisticsDeviationAwareOptimizerParameters
 from statistics_collector.StatisticsCollectorFactory import StatisticsCollectorParameters, StatisticsCollectorFactory

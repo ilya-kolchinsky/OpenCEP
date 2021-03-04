@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 
 from base.Pattern import Pattern
 from misc.LegacyStatistics import MissingStatisticsException
-from misc.StatisticsTypes import StatisticsTypes
+from statistics_collector.StatisticsTypes import StatisticsTypes
+from plan.TreeCostModel import TreeCostModel
 
 
 class Invariant:
@@ -75,7 +76,7 @@ class ZStreamTreeInvariants(Invariants):
     Tests the following condition for every invariant in the invariants:
     cost(invariant.left) < cost(invariant.right).
     """
-    def __init__(self, cost_model):
+    def __init__(self, cost_model: TreeCostModel):
         super().__init__()
         self.__cost_model = cost_model
 

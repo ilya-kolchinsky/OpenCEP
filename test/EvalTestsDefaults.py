@@ -1,8 +1,7 @@
 from datetime import timedelta
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
-from misc.OptimizerTypes import OptimizerTypes
-from misc.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
-from optimizer.OptimizerFactory import OptimizerParameters, StatisticsDeviationAwareOptimizerParameters, \
+from tree.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
+from optimizer.OptimizerFactory import StatisticsDeviationAwareOptimizerParameters, \
     InvariantsAwareOptimizerParameters, TrivialOptimizerParameters
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreeCostModels, StatisticsTypes
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes

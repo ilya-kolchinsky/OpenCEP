@@ -1,6 +1,6 @@
 from datetime import timedelta
 from typing import Dict
-from misc.StatisticsTypes import StatisticsTypes
+from statistics_collector.StatisticsTypes import StatisticsTypes
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from condition.Condition import SimpleCondition, Variable

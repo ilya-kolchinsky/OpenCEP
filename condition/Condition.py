@@ -3,7 +3,7 @@ This file contains the basic Condition classes.
 """
 from abc import ABC, abstractmethod
 from enum import Enum
-from misc.StatisticsTypes import StatisticsTypes
+from statistics_collector.StatisticsTypes import StatisticsTypes
 from statistics_collector.StatisticsCollector import StatisticsCollector
 
 

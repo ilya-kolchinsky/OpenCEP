@@ -4,7 +4,7 @@ This file contains the implementations of algorithms constructing invariant-awar
 from typing import List
 
 from base.PatternStructure import CompositeStructure
-from misc.StatisticsTypes import StatisticsTypes
+from statistics_collector.StatisticsTypes import StatisticsTypes
 from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.Invariants import Invariant, GreedyTreeInvariants
 from plan.TreePlan import TreePlanLeafNode

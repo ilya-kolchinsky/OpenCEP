@@ -13,7 +13,7 @@ from plan.TreePlan import TreePlanLeafNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.LegacyStatistics import MissingStatisticsException
-from misc.StatisticsTypes import StatisticsTypes
+from statistics_collector.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_order_by_occurrences
 
 

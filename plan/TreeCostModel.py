@@ -3,7 +3,7 @@ from typing import List
 
 from base.Pattern import Pattern
 from misc.LegacyStatistics import MissingStatisticsException
-from misc.StatisticsTypes import StatisticsTypes
+from statistics_collector.StatisticsTypes import StatisticsTypes
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlanNode, TreePlanLeafNode
 

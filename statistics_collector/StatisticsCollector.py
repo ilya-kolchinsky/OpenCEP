@@ -1,5 +1,5 @@
 from base.Event import Event
-from misc.StatisticsTypes import StatisticsTypes
+from statistics_collector.StatisticsTypes import StatisticsTypes
 
 
 class StatisticsCollector:

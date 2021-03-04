@@ -1,5 +1,5 @@
 from typing import List
-from misc.StatisticsTypes import StatisticsTypes
+from statistics_collector.StatisticsTypes import StatisticsTypes
 from optimizer import DeviationAwareTester
 
 

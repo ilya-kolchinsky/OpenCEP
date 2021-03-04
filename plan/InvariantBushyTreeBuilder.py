@@ -3,7 +3,7 @@ This file contains the implementations of algorithms constructing an invariant a
 """
 from typing import List
 
-from misc.StatisticsTypes import StatisticsTypes
+from statistics_collector.StatisticsTypes import StatisticsTypes
 from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.Invariants import Invariant, ZStreamTreeInvariants
 from plan.TreePlan import TreePlanLeafNode

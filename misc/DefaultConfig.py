@@ -5,9 +5,9 @@ Each of the values below can be overridden by providing a different value in CEP
 from datetime import timedelta
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc.SelectionStrategies import SelectionStrategies
-from misc.StatisticsTypes import StatisticsTypes
-from misc.OptimizerTypes import OptimizerTypes
-from misc.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
+from statistics_collector.StatisticsTypes import StatisticsTypes
+from optimizer.OptimizerTypes import OptimizerTypes
+from tree.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
 from parallel.ParallelExecutionModes import ParallelExecutionModes
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType

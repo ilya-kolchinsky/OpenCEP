@@ -1,6 +1,6 @@
 from datetime import timedelta
 from base.Pattern import Pattern
-from misc.StatisticsTypes import StatisticsTypes
+from statistics_collector.StatisticsTypes import StatisticsTypes
 from statistics_collector.Statistics import SelectivityStatistics, ArrivalRatesStatistics
 
 
