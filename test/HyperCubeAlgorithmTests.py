@@ -1099,26 +1099,7 @@ def MinMax_0_TestKleeneClosureHyperCubeAlgorithm(createTestFile=False):
 
 
 
-def MinMax_2_TestKleeneClosureHyperCubeAlgorithm(createTestFile=False):
-    pattern = Pattern(
-        SeqOperator(KleeneClosureOperator(PrimitiveEventStructure("GOOG", "a"), min_size=4, max_size=5)),
-        SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
-        timedelta(minutes=5)
-    )
-    attributes = ["Opening Price", "Peak Price", "Lowest Price", "Close Price", "Volume"]
-    attribute_dict = {}
-    types = pattern.get_all_event_types_with_duplicates()
-    for type in types:
-        if type in attribute_dict.keys():
-            attribute_dict[type].append(random.choice(attributes))
-        else:
-            attribute_dict[type] = [random.choice(attributes)]
-    runTest("MinMax_2_", [pattern], createTestFile, events=nasdaqEventStreamKC,
-            parallel_execution_params=DataParallelExecutionParametersHyperCubeAlgorithm(
-                ParallelExecutionModes.DATA_PARALLELISM,
-                ParallelExecutionPlatforms.THREADING,
-                units_number=33,
-                attributes_dict=attribute_dict))
+
 
 
 """
