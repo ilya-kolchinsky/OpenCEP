@@ -280,8 +280,8 @@ Additional input: multiple of timedelta.
 Terms on the pattern: The pattern will not contain unblocked negation.
 
 HyperCube Algorithm -
-Additional input: A dictionary consist of data type(key) and attribute(data) the data will be divided into threads according to it.
-Terms on the given units number: the units number should satisfy the equation for some X: X**(types number)=(threads number-1).
+Additional input: A dictionary consist of data type(key) and attribute(data) the data will be divided into units according to it.
+Terms on the given units number: the units number should satisfy the equation for some X: X**(types number)=(units number-1).
 For example, for a pattern consist of 3 types, a possible units number may be 28 (1+ 3 power 3).
 notes: - For KC patterns, only works when max_size for the Klenee Closer is given in the pattern, and doesn't work with nested Andoperator inside the KC pattern.
        - The algorithm can't deal with negation condition. 
