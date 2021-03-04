@@ -178,4 +178,4 @@ class Pattern:
                                                                                 self.window)
 
     def count_primitive_positive_events(self):
-        return self.positive_structure.count_primitive_events()
+        return self.positive_structure.count_primitive_events()  # counts primitive offsprings

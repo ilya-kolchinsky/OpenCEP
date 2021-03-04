@@ -2,7 +2,7 @@ from test.testUtils import *
 from plan.LeftDeepTreeBuilders import *
 from plan.BushyTreeBuilders import *
 from datetime import timedelta
-from condition.Condition import Variable, TrueCondition, BinaryCondition, SimpleCondition
+from condition.Condition import Variable, TrueCondition, BinaryCondition
 from condition.CompositeCondition import AndCondition
 from condition.BaseRelationCondition import EqCondition
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, KleeneClosureOperator
@@ -194,45 +194,6 @@ def iiGreedyNestedStructuralTest():
     runStructuralTest('iiGreedyNestedStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 
-# def greedyNestedComplexTest(createTestFile=False):
-#     pattern = Pattern(
-#         AndOperator(SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("DRIV", "c")),
-#                     SeqOperator(PrimitiveEventStructure("LOCM", "d"), PrimitiveEventStructure("GOOG", "e")),
-#                     SeqOperator(PrimitiveEventStructure("AVID", "f"), PrimitiveEventStructure("BIDU", "g"), SeqOperator(PrimitiveEventStructure("ORLY", "h"), PrimitiveEventStructure("CBRL", "i"))),
-#                     PrimitiveEventStructure("MSFT", "j")),
-#         AndCondition(
-#             BinaryCondition(Variable("a", lambda x: x["Opening Price"]),
-#                             Variable("b", lambda x: x["Opening Price"]),
-#                             relation_op=lambda x, y: x > y),
-#             BinaryCondition(Variable("d", lambda x: x["Opening Price"]),
-#                             Variable("c", lambda x: x["Opening Price"]),
-#                             relation_op=lambda x, y: x > y),
-#             EqCondition(Variable("a", lambda x: x["Date"]), 200802010900),
-#             EqCondition(Variable("b", lambda x: x["Date"]), 200802010900),
-#             EqCondition(Variable("c", lambda x: x["Date"]), 200802010900),
-#             EqCondition(Variable("d", lambda x: x["Date"]), 200802010900)
-#         ),
-#         timedelta(minutes=3)
-#     )
-#     selectivityMatrix = [[1.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
-#                          [0.1, 1.0, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19],
-#                          [0.2, 0.12, 1.0, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29],
-#                          [0.3, 0.13, 0.23, 1.0, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39],
-#                          [0.4, 0.14, 0.24, 0.34, 1.0, 0.45, 0.46, 0.47, 0.48, 0.49],
-#                          [0.5, 0.15, 0.25, 0.35, 0.45, 1.0, 0.56, 0.57, 0.58, 0.59],
-#                          [0.6, 0.16, 0.26, 0.36, 0.46, 0.56, 1.0, 0.67, 0.68, 0.69],
-#                          [0.7, 0.17, 0.27, 0.37, 0.47, 0.57, 0.67, 1.0, 0.78, 0.79],
-#                          [0.8, 0.18, 0.28, 0.38, 0.48, 0.58, 0.68, 0.78, 1.0, 0.89],
-#                          [0.9, 0.19, 0.29, 0.39, 0.49, 0.59, 0.69, 0.79, 0.89, 1.0]]
-#     arrivalRates = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-#     pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-#     eval_params = TreeBasedEvaluationMechanismParameters(
-#         TreePlanBuilderParameters(TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE),
-#         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
-#     )
-#     runTest('greedyNestedComplex', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
-
-
 def greedyNestedComplexStructuralTest():
     pattern = Pattern(
         AndOperator(SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("DRIV", "c")),
@@ -391,48 +352,6 @@ def dpBNestedStructuralTest():
     runStructuralTest('dpBNestedStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 
-# def dpLdNestedPatternComplexSearchTest(createTestFile=False):
-#     pattern = Pattern(
-#         AndOperator(SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
-#                                 PrimitiveEventStructure("DRIV", "c")),
-#                     SeqOperator(PrimitiveEventStructure("LOCM", "d"), PrimitiveEventStructure("GOOG", "e")),
-#                     SeqOperator(PrimitiveEventStructure("AVID", "f"), PrimitiveEventStructure("BIDU", "g"),
-#                                 SeqOperator(PrimitiveEventStructure("ORLY", "h"),
-#                                             PrimitiveEventStructure("CBRL", "i"))),
-#                     PrimitiveEventStructure("MSFT", "j")),
-#         AndCondition(
-#             BinaryCondition(Variable("a", lambda x: x["Opening Price"]),
-#                             Variable("b", lambda x: x["Opening Price"]),
-#                             relation_op=lambda x, y: x > y),
-#             BinaryCondition(Variable("d", lambda x: x["Opening Price"]),
-#                             Variable("c", lambda x: x["Opening Price"]),
-#                             relation_op=lambda x, y: x > y),
-#             EqCondition(Variable("a", lambda x: x["Date"]), 200802010900),
-#             EqCondition(Variable("b", lambda x: x["Date"]), 200802010900),
-#             EqCondition(Variable("c", lambda x: x["Date"]), 200802010900),
-#             EqCondition(Variable("d", lambda x: x["Date"]), 200802010900)
-#         ),
-#         timedelta(minutes=3)
-#     )
-#     selectivityMatrix = [[1.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
-#                          [0.1, 1.0, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19],
-#                          [0.2, 0.12, 1.0, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29],
-#                          [0.3, 0.13, 0.23, 1.0, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39],
-#                          [0.4, 0.14, 0.24, 0.34, 1.0, 0.45, 0.46, 0.47, 0.48, 0.49],
-#                          [0.5, 0.15, 0.25, 0.35, 0.45, 1.0, 0.56, 0.57, 0.58, 0.59],
-#                          [0.6, 0.16, 0.26, 0.36, 0.46, 0.56, 1.0, 0.67, 0.68, 0.69],
-#                          [0.7, 0.17, 0.27, 0.37, 0.47, 0.57, 0.67, 1.0, 0.78, 0.79],
-#                          [0.8, 0.18, 0.28, 0.38, 0.48, 0.58, 0.68, 0.78, 1.0, 0.89],
-#                          [0.9, 0.19, 0.29, 0.39, 0.49, 0.59, 0.69, 0.79, 0.89, 1.0]]
-#     arrivalRates = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-#     pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-#     eval_params = TreeBasedEvaluationMechanismParameters(
-#         TreePlanBuilderParameters(TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE),
-#         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
-#     )
-#     runTest('dpLdNestedComplex', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
-
-
 def dpLdNestedComplexStructuralTest():
     pattern = Pattern(
         AndOperator(SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
@@ -476,49 +395,7 @@ def dpLdNestedComplexStructuralTest():
     runStructuralTest('dpLdNestedComplexStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 
-# def zStreamOrdNestedPatternComplexSearchTest(createTestFile=False):
-#     pattern = Pattern(
-#         AndOperator(SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
-#                                 PrimitiveEventStructure("DRIV", "c")),
-#                     SeqOperator(PrimitiveEventStructure("LOCM", "d"), PrimitiveEventStructure("GOOG", "e")),
-#                     SeqOperator(PrimitiveEventStructure("AVID", "f"), PrimitiveEventStructure("BIDU", "g"),
-#                                 SeqOperator(PrimitiveEventStructure("ORLY", "h"),
-#                                             PrimitiveEventStructure("CBRL", "i"))),
-#                     PrimitiveEventStructure("MSFT", "j")),
-#         AndCondition(
-#             BinaryCondition(Variable("a", lambda x: x["Opening Price"]),
-#                             Variable("b", lambda x: x["Opening Price"]),
-#                             relation_op=lambda x, y: x > y),
-#             BinaryCondition(Variable("d", lambda x: x["Opening Price"]),
-#                             Variable("c", lambda x: x["Opening Price"]),
-#                             relation_op=lambda x, y: x > y),
-#             EqCondition(Variable("a", lambda x: x["Date"]), 200802010900),
-#             EqCondition(Variable("b", lambda x: x["Date"]), 200802010900),
-#             EqCondition(Variable("c", lambda x: x["Date"]), 200802010900),
-#             EqCondition(Variable("d", lambda x: x["Date"]), 200802010900)
-#         ),
-#         timedelta(minutes=3)
-#     )
-#     selectivityMatrix = [[1.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
-#                          [0.1, 1.0, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19],
-#                          [0.2, 0.12, 1.0, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29],
-#                          [0.3, 0.13, 0.23, 1.0, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39],
-#                          [0.4, 0.14, 0.24, 0.34, 1.0, 0.45, 0.46, 0.47, 0.48, 0.49],
-#                          [0.5, 0.15, 0.25, 0.35, 0.45, 1.0, 0.56, 0.57, 0.58, 0.59],
-#                          [0.6, 0.16, 0.26, 0.36, 0.46, 0.56, 1.0, 0.67, 0.68, 0.69],
-#                          [0.7, 0.17, 0.27, 0.37, 0.47, 0.57, 0.67, 1.0, 0.78, 0.79],
-#                          [0.8, 0.18, 0.28, 0.38, 0.48, 0.58, 0.68, 0.78, 1.0, 0.89],
-#                          [0.9, 0.19, 0.29, 0.39, 0.49, 0.59, 0.69, 0.79, 0.89, 1.0]]
-#     arrivalRates = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-#     pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-#     eval_params = TreeBasedEvaluationMechanismParameters(
-#         TreePlanBuilderParameters(TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE),
-#         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
-#     )
-#     runTest('zstreamOrdNestedComplex', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
-
-
-def zstreamOrdNestedComplexStructuralTest(createTestFile=False):
+def zstreamOrdNestedComplexStructuralTest():
     pattern = Pattern(
         AndOperator(SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
                                 PrimitiveEventStructure("DRIV", "c")),

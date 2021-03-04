@@ -1,7 +1,8 @@
 from abc import ABC
+from typing import List
 
 from base.Pattern import Pattern
-from base.PatternStructure import *
+from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, PatternStructure, UnaryStructure, KleeneClosureOperator
 from plan.TreeCostModel import TreeCostModelFactory, IntermediateResultsTreeCostModel
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode, TreePlanUnaryNode, TreePlanNestedNode, TreePlanLeafNode
@@ -13,7 +14,6 @@ class TreePlanBuilder(ABC):
     """
     The base class for the builders of tree-based plans.
     """
-
     def __init__(self, cost_model_type: TreeCostModels):
         self.__cost_model = TreeCostModelFactory.create_cost_model(cost_model_type)
 
@@ -25,12 +25,13 @@ class TreePlanBuilder(ABC):
             root = self.create_nested_topology(pattern)
         else:
             root = self._create_tree_topology(pattern)
-        return TreePlan(TreePlanBuilder.convert_nested_plan_to_basic(pattern, root))
+        return TreePlan(TreePlanBuilder.adjust_nested_indexes(pattern, root))
 
     @staticmethod
-    def convert_nested_plan_to_basic(pattern: Pattern, root, offset=0):
+    def adjust_nested_indexes(pattern: Pattern, root, offset=0):
         """
-        TODO: comment
+        After building a tree plan, this function will correct the indexes of sub trees to continue the
+        indexes of the main tree, instead of restarting in each sub tree(which was important while building the plan)
         """
         for index, arg in enumerate(pattern.positive_structure.get_args()):
             node = TreePlanBuilder.node_from_index(root, index)
@@ -38,14 +39,14 @@ class TreePlanBuilder(ABC):
                 node.event_index += offset
             elif isinstance(node, TreePlanNestedNode):
                 nested_pattern = Pattern(arg, None, pattern.window)
-                TreePlanBuilder.convert_nested_plan_to_basic(nested_pattern, node.sub_tree_plan, node.nested_event_index+offset)
+                TreePlanBuilder.adjust_nested_indexes(nested_pattern, node.sub_tree_plan, node.nested_event_index+offset)
                 offset += nested_pattern.count_primitive_positive_events() - 1
         return root
 
     @staticmethod
     def node_from_index(root, index):
         """
-        TODO: comment
+        Given a tree and an event index, this will recursively search for the node structure with the index.
         """
         if isinstance(root, TreePlanBinaryNode):
             node = TreePlanBuilder.node_from_index(root.left_child, index)
@@ -157,7 +158,7 @@ class TreePlanBuilder(ABC):
     @staticmethod
     def _chop_matrix_aux(matrix, start, end):
         """
-        TODO: COMMENT
+        Helper function for matrix chopping, extracting a square(from start to end) out of the matrix.
         """
         chopped_matrix = []
         for row in range(start, end+1):
@@ -169,7 +170,6 @@ class TreePlanBuilder(ABC):
 
     def extract_nested_pattern(self, pattern):
         """
-        TODO: UPDATE COMMENT
         This function is done recursively, to support nested pattern's operators (i.e. And(Seq,Seq)).
         When encounters KleeneClosure or CompositeStructure, it computes this operator's tree plan (recursively...)
         and uses the returned tree plan's root as a new "simple" (primitive) event (with its statistics updated
@@ -199,7 +199,7 @@ class TreePlanBuilder(ABC):
                     # If we are here than this structure is composite or unary.
                     # And first create new pattern that fits the nested operator's stats and structure.
                     pattern, nested_topologies, nested_arrival_rates, nested_cost, nested_args = \
-                        self.handle_composite_or_unary_nested_pattern(arg, pattern, nested_topologies,
+                        self.handle_composite_or_unary_nested_operator(arg, pattern, nested_topologies,
                                                                       nested_arrival_rates, nested_cost, nested_args)
                 else:
                     # If we are here, than this structure is primitive
@@ -213,10 +213,10 @@ class TreePlanBuilder(ABC):
 
         return pattern, nested_topologies, nested_args, nested_cost
 
-    def handle_composite_or_unary_nested_pattern(self, arg, pattern, nested_topologies, nested_arrival_rates,
-                                                 nested_cost, nested_args):
+    def handle_composite_or_unary_nested_operator(self, arg, pattern, nested_topologies, nested_arrival_rates, nested_cost, nested_args):
         """
-        TODO: COMMENT
+        This function is building a sub tree for a given nested operator, and returns all the parameters of this subtree
+        up to the main tree, that will treat this subtree as a fake leaf.
         """
         nested_pattern = Pattern(arg, None, pattern.window)
         if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
@@ -251,7 +251,7 @@ class TreePlanBuilder(ABC):
     @staticmethod
     def handle_primitive_event(pattern, nested_topologies, nested_arrival_rates, nested_cost, nested_args):
         """
-        TODO: COMMENT
+        This function updates the needed nested parameters for primitive nodes.
         """
         nested_topologies.append(None)
         nested_args.append(None)

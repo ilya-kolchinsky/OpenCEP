@@ -22,6 +22,7 @@ class TreeCostModel(ABC):
 class IntermediateResultsTreeCostModel(TreeCostModel):
     """
     Calculates the plan cost based on the expected size of intermediate results (partial matches).
+    Creates an invariant matrix for an arrival rates only case, so that we can still use it in the cost algorithms.
     """
     def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:

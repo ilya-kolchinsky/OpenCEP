@@ -35,7 +35,7 @@ class PatternStructure(ABC):
 
     def count_primitive_events(self):
         """
-        Returns the number of pimitive events under this structure
+        Returns the number of primitive events under this structure
         """
         raise NotImplementedError()
 
@@ -129,6 +129,11 @@ class CompositeStructure(PatternStructure, ABC):
         return False
 
     def count_primitive_events(self, sons_only=False):
+        """
+        This functions counts the total primitive offsprings of a composite structure,
+        either all of them(default)
+        or only the direct sons(sons_only=True)
+        """
         n = 0
         for arg in self.args:
             if not isinstance(arg, PatternStructure):
@@ -141,6 +146,9 @@ class CompositeStructure(PatternStructure, ABC):
         return n
 
     def get_primitive_events_names(self):
+        """
+        Returns a list containing the names of all primitive offsprings of the composite structure.
+        """
         names = []
         for arg in self.args:
             if not isinstance(arg, PatternStructure):

@@ -6,7 +6,7 @@ from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, CompositeStructure, UnaryStructure, \
     KleeneClosureOperator, PrimitiveEventStructure, NegationOperator
 from misc.ConsumptionPolicy import ConsumptionPolicy
-from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanBinaryNode, OperatorTypes, TreePlanNestedNode
+from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanNestedNode
 from tree.nodes.AndNode import AndNode
 from tree.nodes.KleeneClosureNode import KleeneClosureNode
 from tree.nodes.LeafNode import LeafNode
@@ -140,11 +140,12 @@ class Tree:
         raise Exception("Unknown or unsupported operator %s" % (operator_type,))
 
     def __handle_primitive_event_or_unary_structure(self, tree_plan_leaf: TreePlanLeafNode,
-                                                     current_operator: PatternStructure,
-                                                     sliding_window: timedelta, parent: Node,
-                                                     consumption_policy: ConsumptionPolicy):
+                                                    current_operator: PatternStructure,
+                                                    sliding_window: timedelta, parent: Node,
+                                                    consumption_policy: ConsumptionPolicy):
         """
-        Constructs a single leaf node or a subtree with nested structure according to the input parameters.
+        Creates leaf nodes for primitive events, or creates an internal unary node,
+        constructing its subtree as its child.
         """
         if isinstance(current_operator, PrimitiveEventStructure):
             # the current operator is a primitive event - we should simply create a leaf

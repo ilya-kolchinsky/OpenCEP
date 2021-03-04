@@ -3,6 +3,7 @@ This file contains the implementations of algorithms constructing a left-deep tr
 """
 import random
 from typing import List
+
 from base.PatternStructure import CompositeStructure
 from misc import DefaultConfig
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType, \
@@ -19,7 +20,6 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-
     def _create_tree_topology(self, pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
         """
         Implementation of the virtual method for the left deep trees cases
@@ -30,9 +30,10 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
 
     @staticmethod
     def _order_to_tree_topology(order: List[int], pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
-
         """
         A helper method for converting a given order to a tree topology.
+        If a node is in fact nested node and not a primitive one, a nested node is created instead,
+        and keeps there the subtree's parameters.
         """
         if nested_topologies is None or nested_topologies[order[0]] is None:
             tree_topology = TreePlanLeafNode(order[0])
@@ -66,7 +67,6 @@ class TrivialLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree following the pattern-specified order.
     """
-
     def _create_evaluation_order(self, pattern: Pattern):
         args_num = len(pattern.positive_structure.args)
         return list(range(args_num))
@@ -76,7 +76,6 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree following the order of ascending arrival rates of the event types.
     """
-
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
             arrival_rates = pattern.statistics
@@ -93,7 +92,6 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree using a greedy strategy that selects at each step the event type that minimizes the cost
     function.
     """
-
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivityMatrix, arrivalRates) = pattern.statistics
@@ -145,7 +143,6 @@ class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree using the iterative improvement procedure.
     """
-
     def __init__(self, cost_model_type: TreeCostModels, step_limit: int,
                  ii_type: IterativeImprovementType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE,
                  init_type: IterativeImprovementInitType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE):
@@ -185,7 +182,6 @@ class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree using a dynamic programming algorithm.
     """
-
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivity_matrix, arrival_rates) = pattern.statistics
