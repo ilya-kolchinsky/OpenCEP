@@ -1,8 +1,7 @@
 from datetime import timedelta
 from base.Pattern import Pattern
 from base.transformation.RuleTransformationParameters import RuleTransformationParameters
-from condition.CompositeCondition import AndCondition
-from condition.Condition import TrueCondition, BinaryCondition, Variable
+from condition.Condition import TrueCondition
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, NegationOperator, OrOperator
 
 from base.transformation.RuleTransformationTypes import RuleTransformationTypes
@@ -50,11 +49,6 @@ def andAndPatternTransformationTest():
     )
     pattern_transformation = PatternTransformation([pattern])
     transformed_patterns = pattern_transformation.transform_patterns()
-    print()
-    print("Original Pattern:\t\t", pattern.full_structure)
-    print("Expected Pattern:\t\t", expected_pattern.full_structure)
-    print("Transformed Pattern:\t", transformed_patterns[0].full_structure)
-
     assert len(transformed_patterns) == 1, "Test andAndPatternTransformation Failed"
     assert expected_pattern.full_structure == transformed_patterns[0].full_structure, \
         "Test andAndPatternTransformation Failed"
@@ -100,22 +94,12 @@ def innerOrPatternTransformationTest():
     ]
     pattern_transformation = PatternTransformation([pattern])
     transformed_patterns = pattern_transformation.transform_patterns()
-    print()
-    print("Original Pattern:\t\t", pattern.full_structure)
-    print("Expected Pattern:\t\t")
-    i = 1
     expected_patterns_structures = []
     for tmp_pattern in pattern_list:
-        print("\t\t\t\t\t\t", i, " ", tmp_pattern.full_structure)
-        i = i + 1
         expected_patterns_structures.append(tmp_pattern.full_structure)
     assert len(transformed_patterns) == len(pattern_list), "Test innerOrPatternTransformation Failed"
-    print("Transformed Patterns:\t")
-    i = 1
     for tmp_pattern in transformed_patterns:
-        print("\t\t\t\t\t\t", i, " ", tmp_pattern.full_structure)
         assert tmp_pattern.full_structure in expected_patterns_structures, "Test innerOrPatternTransformation Failed"
-        i = i + 1
 
 
 def notAndPatternTransformationTest():
@@ -138,18 +122,11 @@ def notAndPatternTransformationTest():
         TrueCondition(),
         timedelta(minutes=5)
     )
-
     rules_directive = [RuleTransformationTypes.NOT_AND_PATTERN]
     params = RuleTransformationParameters()
     params.rules_directive = rules_directive
     pattern_transformation = PatternTransformation([pattern], params)
     transformed_patterns = pattern_transformation.transform_patterns()
-
-    print()
-    print("Original Pattern:\t\t", pattern.full_structure)
-    print("Expected Pattern:\t\t", expected_pattern.full_structure)
-    print("Transformed Pattern:\t", transformed_patterns[0].full_structure)
-
     assert len(transformed_patterns) == 1, "Test notAndPatternTransformation Failed"
     assert transformed_patterns[0].full_structure == expected_pattern.full_structure, \
         "Test notAndPatternTransformation Failed"
@@ -175,18 +152,11 @@ def notOrPatternTransformationTest():
         TrueCondition(),
         timedelta(minutes=5)
     )
-
     rules_directive = [RuleTransformationTypes.NOT_OR_PATTERN]
     params = RuleTransformationParameters()
     params.rules_directive = rules_directive
     pattern_transformation = PatternTransformation([pattern], params)
     transformed_patterns = pattern_transformation.transform_patterns()
-
-    print()
-    print("Original Pattern:\t\t", pattern.full_structure)
-    print("Expected Pattern:\t\t", expected_pattern.full_structure)
-    print("Transformed Pattern:\t", transformed_patterns[0].full_structure)
-
     assert len(transformed_patterns) == 1, "Test notOrPatternTransformation Failed"
     assert transformed_patterns[0].full_structure == expected_pattern.full_structure, \
         "Test notOrPatternTransformation Failed"
@@ -214,18 +184,11 @@ def topmostOrPatternTransformationTest():
         TrueCondition(),
         timedelta(minutes=5)
     )
-
     rules_directive = [RuleTransformationTypes.TOPMOST_OR_PATTERN]
     params = RuleTransformationParameters()
     params.rules_directive = rules_directive
     pattern_transformation = PatternTransformation([pattern], params)
     transformed_patterns = pattern_transformation.transform_patterns()
-
-    print()
-    print("Original Pattern:\t\t", pattern.full_structure)
-    print("Expected Pattern:\t\t", expected_pattern.full_structure)
-    print("Transformed Pattern:\t", transformed_patterns[0].full_structure)
-
     assert len(transformed_patterns) == 1, "Test topmostOrPatternTransformation Failed"
     assert transformed_patterns[0].full_structure == expected_pattern.full_structure, \
         "Test topmostOrPatternTransformation Failed"
@@ -244,15 +207,8 @@ def notNotPatternTransformationTest():
         TrueCondition(),
         timedelta(minutes=5)
     )
-
     pattern_transformation = PatternTransformation([pattern])
     transformed_patterns = pattern_transformation.transform_patterns()
-
-    print()
-    print("Original Pattern:\t\t", pattern.full_structure)
-    print("Expected Pattern:\t\t", expected_pattern.full_structure)
-    print("Transformed Pattern:\t", transformed_patterns[0].full_structure)
-
     assert len(transformed_patterns) == 1, "Test notNotPatternTransformation Failed"
     assert transformed_patterns[0].full_structure == expected_pattern.full_structure, \
         "Test notNotPatternTransformation Failed"
