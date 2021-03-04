@@ -4,7 +4,6 @@ This file contains various useful functions utilized by different project module
 
 from datetime import datetime
 from typing import List, Container, Iterator, Sequence, TypeVar
-import re
 
 from base.Pattern import Pattern
 from base.PatternStructure import PrimitiveEventStructure
@@ -56,24 +55,21 @@ def is_float(x: str):
         return True
 
 
-INT_REGEX = re.compile(r"^\s*[\+\-]?\d(_?\d)*\s*$")
-
 def is_int(x: str) -> bool:
-    return INT_REGEX.fullmatch(x) is not None
+    try:
+        _ = int(x)
+    except ValueError:
+        return False
+    else:
+        return True
 
 
 def str_to_number(x: str):
     if is_int(x):
-      try:
-          a = int(x)
-      except ValueError:
-          return int(float(x))
-      else:
-          return int(x)
-    elif is_float(x):
+        return int(x)
+    if is_float(x):
         return float(x)
-    else:
-        return x
+    return x
 
 
 def get_order_by_occurrences(primitive_events: List[PrimitiveEventStructure], occurrences: dict):

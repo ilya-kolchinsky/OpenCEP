@@ -1,5 +1,5 @@
 from functools import reduce
-from typing import List, Optional, Set
+from typing import List
 
 from base.Event import Event
 from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
@@ -24,7 +24,7 @@ class Pattern:
     tree construction mechanisms - this is hopefully a temporary hack.
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Condition,
-                 time_window: timedelta, consumption_policy: Optional[ConsumptionPolicy] = None, pattern_id: Optional[int] = None):
+                 time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None):
         self.id = pattern_id
 
         self.full_structure = pattern_structure
@@ -50,7 +50,7 @@ class Pattern:
             if consumption_policy.contiguous_names is not None:
                 self.__init_strict_conditions(pattern_structure)
 
-    def set_statistics(self, statistics_type: StatisticsTypes, statistics: object) -> None:
+    def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         """
         Sets the statistical properties related to the events and conditions of this pattern.
         """
@@ -86,7 +86,7 @@ class Pattern:
             self.positive_structure.get_args().remove(arg)
         return negative_structure
 
-    def get_index_by_event_name(self, event_name: str) -> int:
+    def get_index_by_event_name(self, event_name: str):
         """
         Returns the position of the given event name in the pattern.
         Note: nested patterns are not yet supported.
@@ -99,13 +99,13 @@ class Pattern:
             raise Exception("Multiple appearances of the event name %s are found in the pattern" % (event_name,))
         return found_positions[0]
 
-    def get_all_event_types(self) -> Set[str]:
+    def get_all_event_types(self):
         """
         Returns all event types in the pattern.
         """
         return set(self.__get_all_event_types_aux(self.full_structure))
 
-    def __get_all_event_types_aux(self, structure: PatternStructure) -> List[str]:
+    def __get_all_event_types_aux(self, structure: PatternStructure):
         """
         An auxiliary method for returning all event types in the pattern.
         """
@@ -113,7 +113,7 @@ class Pattern:
             return [structure.type]
         return reduce(lambda x, y: x+y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
 
-    def __init_strict_conditions(self, pattern_structure: PatternStructure) -> None:
+    def __init_strict_conditions(self, pattern_structure: PatternStructure):
         """
         Augment the pattern with the contiguity constraints specified as a part of the consumption policy.
         """
@@ -137,7 +137,7 @@ class Pattern:
                                         "%s must follow %s" % (contiguous_sequence[i], contiguous_sequence[i + 1]))
                     self.__add_contiguity_condition(args[i].name, args[i + 1].name)
 
-    def __add_contiguity_condition(self, first_name: str, second_name: str) -> None:
+    def __add_contiguity_condition(self, first_name: str, second_name: str):
         """
         Augment the pattern condition with a contiguity constraint between the given event names.
         """
@@ -146,7 +146,7 @@ class Pattern:
                                                lambda x, y: x == y - 1)
         self.condition.add_atomic_condition(contiguity_condition)
 
-    def extract_flat_sequences(self) -> Optional[List[List[str]]]:
+    def extract_flat_sequences(self) -> List[List[str]]:
         """
         Returns a list of all flat sequences in the pattern.
         For now, nested operators inside the scope of a sequence are not supported. For example,
@@ -155,7 +155,7 @@ class Pattern:
         """
         return self.__extract_flat_sequences_aux(self.positive_structure)
 
-    def __extract_flat_sequences_aux(self, pattern_structure: PatternStructure) -> Optional[List[List[str]]]:
+    def __extract_flat_sequences_aux(self, pattern_structure: PatternStructure) -> List[List[str]] or None:
         """
         An auxiliary method for extracting flat sequences from the pattern.
         """
@@ -172,5 +172,7 @@ class Pattern:
                 result.extend(nested_sequences)
         return result
 
-    def __repr__(self) -> str:
-        return f"Pattern structure: {self.full_structure}\nCondition: {self.condition}\nTime window: {self.window}"
+    def __repr__(self):
+        return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.full_structure,
+                                                                                self.condition,
+                                                                                self.window)
