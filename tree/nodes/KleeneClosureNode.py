@@ -4,7 +4,7 @@ from typing import List, Set
 from base.Event import Event
 from condition.CompositeCondition import CompositeCondition
 from base.PatternMatch import PatternMatch
-from misc.Utils import recursive_powerset_generator
+from misc.Utils import powerset_generator
 from tree.nodes.Node import Node
 from tree.nodes.UnaryNode import UnaryNode
 
@@ -64,7 +64,7 @@ class KleeneClosureNode(UnaryNode):
         last_partial_match = child_partial_matches[-1]
         # create subsets for all but the last element
         actual_max_size = self.__max_size if self.__max_size is not None else len(child_partial_matches)
-        generated_powerset = recursive_powerset_generator(child_partial_matches[:-1], actual_max_size - 1)
+        generated_powerset = powerset_generator(child_partial_matches[:-1], actual_max_size - 1)
         # add the last item to all previously created subsets
         result_powerset = [item + [last_partial_match] for item in generated_powerset]
         # enforce minimal size limit
