@@ -46,6 +46,9 @@ class HirzelAlgorithm(DataParallelAlgorithm, ABC):
         for stream in self._events_list:
             stream.close()
 
-    def _eval_unit(self, thread_id: int, data_formatter: DataFormatter):
-        self._eval_trees[thread_id].eval(self._events_list[thread_id],
-                                         self._matches, data_formatter, False)
+    def _eval_unit(self, id_unit: int, data_formatter: DataFormatter):
+        """
+                Activates the unit evaluation mechanism according to the values of the key
+        """
+        self._eval_trees[id_unit].eval(self._events_list[id_unit],
+                                       self._matches, data_formatter, False)

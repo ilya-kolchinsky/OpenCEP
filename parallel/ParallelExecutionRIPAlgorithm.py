@@ -96,12 +96,14 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
         for i in range(0, self._units_number):
             self.__start_list[i].close()
 
-    def _eval_unit(self, thread_id: int, data_formatter: DataFormatter):
-
-        for _ in self.__start_list[thread_id]:
-            self._eval_trees[thread_id].eval(self._events_list[thread_id], self.__matches_handler, data_formatter, False)
-            self._eval_trees[thread_id] = EvaluationMechanismFactory.build_eval_mechanism(self.__eval_mechanism_params, self._patterns)
-            self.__units_pool.put(thread_id)
+    def _eval_unit(self, id_unit: int, data_formatter: DataFormatter):
+        """
+            Activates the unit evaluation mechanism according to times slots
+        """
+        for _ in self.__start_list[id_unit]:
+            self._eval_trees[id_unit].eval(self._events_list[id_unit], self.__matches_handler, data_formatter, False)
+            self._eval_trees[id_unit] = EvaluationMechanismFactory.build_eval_mechanism(self.__eval_mechanism_params, self._patterns)
+            self.__units_pool.put(id_unit)
 
     def __check_duplicated_matches(self, match):
         """
@@ -142,7 +144,9 @@ class RIPAlgorithm(DataParallelAlgorithm, ABC):
         self._matches.close()
 
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
-
+        """
+            Activates the algorithm evaluation mechanism
+        """
         super().eval_algorithm(events, matches, data_formatter)
         self.__matches_unit.start()
         self._stream_divide()

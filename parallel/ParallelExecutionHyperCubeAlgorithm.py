@@ -9,7 +9,6 @@ from evaluation.EvaluationMechanismFactory import \
     EvaluationMechanismParameters
 from base.DataFormatter import DataFormatter
 from base.PatternMatch import *
-from threading import Lock
 from stream.Stream import *
 
 
@@ -28,13 +27,13 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
         self.groups_num = math.ceil(self._units_number ** (1 / len(self.__types)))
         self.__matches_handler = Stream()
         self.__matches_unit = self._platform.create_parallel_execution_unit(
-            unit_id=units_number - 1,
+            unit_id=self._units_number,
             callback_function=self.__make_output_matches_stream)
 
-        self.__finished_threads = [0]
-        self.__mutex = Lock()
-
     def eval_algorithm(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+        """
+            Activates the algorithm evaluation mechanism
+        """
         super().eval_algorithm(events, matches, data_formatter)
         self.__matches_unit.start()
         self._stream_divide()
@@ -48,6 +47,9 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
         self._matches.close()
 
     def _stream_divide(self):
+        """
+            Divides the input stream by attributes types
+        """
         for event_raw in self._events:
             event = Event(event_raw, self._data_formatter)
             event_type = event.type
@@ -79,10 +81,16 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
         for stream in self._events_list:
             stream.close()
 
-    def _eval_unit(self, thread_id: int, data_formatter: DataFormatter):
-        self._eval_trees[thread_id].eval(self._events_list[thread_id], self.__matches_handler, data_formatter, False)
+    def _eval_unit(self, id_unit: int, data_formatter: DataFormatter):
+        """
+            Activates the unit evaluation mechanism
+        """
+        self._eval_trees[id_unit].eval(self._events_list[id_unit], self.__matches_handler, data_formatter, False)
 
     def _finding_type_index_considering_duplications(self, index_among_type, event_type):
+        """
+            finding the exact index for a given type considering multiple appearances of types
+        """
         count = 0
         i = 0
         while list(self.__attributes_dict.keys())[i] != event_type:
@@ -94,6 +102,9 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
 
     @staticmethod
     def __check_duplicates_in_match(match):
+        """
+            checks if the match as a duplicate in the output stream
+        """
         events_in_match = [event.__str__() for event in match.events]
         events_set = set()
         for event in events_in_match:
@@ -103,6 +114,9 @@ class HyperCubeAlgorithm(DataParallelAlgorithm, ABC):
         return True
 
     def __make_output_matches_stream(self):
+        """
+            remove duplicated matches and send the matches to the output stream
+        """
         duplicates = list()
         count = 0
         for match in self.__matches_handler:

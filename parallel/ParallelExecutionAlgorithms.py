@@ -44,12 +44,12 @@ class DataParallelAlgorithm(ABC):
             unit = self._platform.create_parallel_execution_unit(
                 unit_id=i,
                 callback_function=self._eval_unit,
-                thread_id=i,
+                id_unit=i,
                 data_formatter=data_formatter)
             self._units.append(unit)
             unit.start()
 
-    def _eval_unit(self, thread_id: int, data_formatter: DataFormatter):
+    def _eval_unit(self, id_unit: int, data_formatter: DataFormatter):
         """
             Activates the unit evaluation mechanism
         """

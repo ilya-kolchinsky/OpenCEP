@@ -16,7 +16,9 @@ class ParallelExecutionParameters:
 
 
 class DataParallelExecutionParameters(ParallelExecutionParameters):
-
+    """
+        Parameters for data parallel algorithms.
+    """
     def __init__(self,
                  execution_mode: ParallelExecutionModes = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_MODE,
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM,
@@ -28,7 +30,9 @@ class DataParallelExecutionParameters(ParallelExecutionParameters):
 
 
 class DataParallelExecutionParametersHirzelAlgorithm(DataParallelExecutionParameters):
-
+    """
+        Parameters for Hirzel algorithm.
+    """
     def __init__(self,
                  execution_mode: ParallelExecutionModes = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_MODE,
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM,
@@ -41,7 +45,9 @@ class DataParallelExecutionParametersHirzelAlgorithm(DataParallelExecutionParame
 
 
 class DataParallelExecutionParametersRIPAlgorithm(DataParallelExecutionParameters):
-
+    """
+            Parameters for RIP algorithm.
+    """
     def __init__(self,
                  execution_mode: ParallelExecutionModes = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_MODE,
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM,
@@ -54,7 +60,9 @@ class DataParallelExecutionParametersRIPAlgorithm(DataParallelExecutionParameter
 
 
 class DataParallelExecutionParametersHyperCubeAlgorithm(DataParallelExecutionParameters):
-
+    """
+            Parameters for HyperCube algorithm
+    """
     def __init__(self,
                  execution_mode: ParallelExecutionModes = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_MODE,
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM,

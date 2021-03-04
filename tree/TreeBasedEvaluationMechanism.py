@@ -152,13 +152,3 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
 
     def __repr__(self):
         return self.get_structure_summary()
-
-    def _check_duplicates_in_match(self,match):
-        events_in_match = [event.__str__() for event in match.events]
-        events_set=set()
-        for event in events_in_match:
-            events_set.add(event)
-        if len(events_in_match) == len(events_set):
-            return False
-        return True
-
