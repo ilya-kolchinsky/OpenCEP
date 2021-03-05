@@ -666,7 +666,7 @@ def run_all(tests: List[callable]):
         print('SUCCESS')
 
 
-if __name__ == '__main__':
+def run_MPT_Neighborhood_Tests():
     tests = [
         shareable_all_pairs_unit_test,
         Nedge_test_1,

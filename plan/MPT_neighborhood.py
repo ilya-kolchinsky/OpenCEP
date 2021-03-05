@@ -19,6 +19,19 @@ from plan.multi.MultiPatternUnifiedTreeLocalSearchApproaches import MultiPattern
 
 class algoA(TreePlanBuilder):
     def create_tree_topology_aux(self, pattern: Pattern, items, args_num):
+        # this function is used as an auxiliary functions in 3 different functions:
+        # create_tree_topology , _create_topology_with_const_sub_order and _create_pattern_topology
+        """
+        @params:
+            TreePlanBuilder instance
+        @returns:
+            creates and returns a treePlan for  the given pattern
+            we do that using dynamic programming , in each iteration we calculate the sub plan cost
+            and pick the the one with the cheapest cost , the best sub plan is what we consider to
+            build from for the next iterations , note that cost(plan) is calculated by the pattern statistics ,
+            if no statistics passed then there is no meaning to the cheapest plan ,
+            we simply build any plan and return it
+        """
         sub_trees = {frozenset({i}): (TreePlanLeafNode(i),
                                       self._get_plan_cost(pattern, TreePlanLeafNode(i)),
                                       items.difference({i}))
@@ -51,11 +64,9 @@ class algoA(TreePlanBuilder):
 
     def create_tree_topology(self, pattern: Pattern):
         """
-        Description: this function returns a treePlan for the given pattern
-        we do that using dynamic programming , in each iteration we calculate the sub plan cost
-        and pick the the one with the cheapest cost , the best sub plan is what we consider to build from for the next
-        iterations , note that cost(plan) is calculated by the pattern statistics , if no statistics passed then there
-         is no meaning to the cheapest plan , we simply build any plan and return it
+        @params :
+            pattern
+        @returns:  treePlan topolgy for the given pattern
         """
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivity_matrix, arrival_rates) = pattern.statistics

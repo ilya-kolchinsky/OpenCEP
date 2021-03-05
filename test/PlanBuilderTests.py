@@ -665,7 +665,7 @@ def events_type_test_1():
     run_tree_plan_union_test(patterns=patterns, expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
-if __name__ == '__main__':
+def runPlanBuilderTest():
     print_result("TEST", "UNION APPROACH", "RESULT")
     print("=" * 100)
     same_leaves_test()
