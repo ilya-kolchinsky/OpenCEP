@@ -25,6 +25,8 @@ class CompositeCondition(Condition, ABC):
         return not self.__terminating_result
 
     def __eq__(self, other):
+        if self == other:
+            return True
         if type(self) != type(other) or self.get_num_conditions() != other.get_num_conditions():
             return False
         for condition in self.__conditions:

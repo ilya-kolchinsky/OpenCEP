@@ -183,14 +183,6 @@ class Pattern:
     def set_time_window(self, new_time_window):
         self.window = new_time_window
 
-    def is_equivalent(self, other):
-        """
-        Returns True if this pattern and the given pattern are equivalent and False otherwise.
-        Two pattern are considered equivalent if they possess equivalent structures and the these structures
-        contain equivalent conditions.
-        """
-        return self.full_structure == other.full_structure and self.condition == other.condition
-
     def __repr__(self):
         return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.full_structure,
                                                                                 self.condition,

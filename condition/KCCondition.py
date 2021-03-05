@@ -42,7 +42,7 @@ class KCCondition(AtomicCondition, ABC):
         return "KC [" + ", ".join(self._names) + "]"
 
     def __eq__(self, other):
-        return type(self) == type(other) and self._names == other._names and \
+        return self == other or type(self) == type(other) and self._names == other._names and \
                self._getattr_func == other._getattr_func and self._relation_op == other._relation_op
 
 

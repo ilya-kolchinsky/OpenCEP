@@ -62,7 +62,8 @@ class Variable:
         return self.name
 
     def __eq__(self, other):
-        return type(other) == Variable and self.name == other.name and self.getattr_func.__code__.co_code == other.getattr_func.__code__.co_code
+        return type(
+            other) == Variable and self.name == other.name and self.getattr_func.__code__.co_code == other.getattr_func.__code__.co_code
 
 
 class Condition(ABC):
@@ -153,7 +154,8 @@ class SimpleCondition(AtomicCondition):
         return "[" + separator.join(term_list) + "]"
 
     def __eq__(self, other):
-        return type(self) == type(other) and self.terms == other.terms and self.relation_op == other.relation_op
+        return self == other or type(self) == type(
+            other) and self.terms == other.terms and self.relation_op == other.relation_op
 
 
 class BinaryCondition(SimpleCondition):
