@@ -5,8 +5,6 @@ mechanisms based on tree structure.
 from abc import ABC
 from enum import Enum
 
-from misc import DefaultConfig
-
 
 class OperatorTypes(Enum):
     """

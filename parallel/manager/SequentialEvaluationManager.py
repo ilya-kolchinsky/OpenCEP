@@ -1,16 +1,16 @@
 """
 This file contains an implementation of the "trivial" evaluation manager with no parallelization capabilities.
 """
+from typing import List
+
+from base.DataFormatter import DataFormatter
+from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import (
     EvaluationMechanismParameters,
     EvaluationMechanismFactory,
 )
 from parallel.manager.EvaluationManager import EvaluationManager
 from stream.Stream import InputStream, OutputStream
-from base.Pattern import Pattern
-from base.DataFormatter import DataFormatter
-
-from typing import List
 
 
 class SequentialEvaluationManager(EvaluationManager):

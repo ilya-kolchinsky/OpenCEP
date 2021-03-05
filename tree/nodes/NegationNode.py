@@ -3,14 +3,13 @@ from datetime import timedelta, datetime
 from typing import List, Set, Type
 
 from base.Event import Event
-from condition.Condition import RelopTypes, EquationSides
-from condition.CompositeCondition import CompositeCondition
 from base.PatternMatch import PatternMatch
 from base.PatternStructure import AndOperator, SeqOperator
+from condition.Condition import RelopTypes, EquationSides
 from misc.Utils import find_partial_match_by_timestamp, merge, is_sorted, merge_according_to
+from tree.PatternMatchStorage import TreeStorageParameters
 from tree.nodes.BinaryNode import BinaryNode
 from tree.nodes.Node import Node, PrimitiveEventDefinition
-from tree.PatternMatchStorage import TreeStorageParameters
 
 
 class NegationNode(BinaryNode, ABC):

@@ -1,13 +1,13 @@
-import itertools
+from datetime import timedelta
 from datetime import timedelta
 from typing import List, Dict
-from copy import deepcopy
 
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, CompositeStructure, UnaryStructure, \
     KleeneClosureOperator, PrimitiveEventStructure, NegationOperator
 from misc.ConsumptionPolicy import ConsumptionPolicy
 from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanBinaryNode, OperatorTypes
+from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeVisualizationUtility import GraphVisualization
 from tree.nodes.AndNode import AndNode
 from tree.nodes.BinaryNode import BinaryNode
@@ -15,7 +15,6 @@ from tree.nodes.KleeneClosureNode import KleeneClosureNode
 from tree.nodes.LeafNode import LeafNode
 from tree.nodes.NegationNode import NegativeSeqNode, NegativeAndNode, NegationNode
 from tree.nodes.Node import Node
-from tree.PatternMatchStorage import TreeStorageParameters
 from tree.nodes.SeqNode import SeqNode
 from tree.nodes.UnaryNode import UnaryNode
 

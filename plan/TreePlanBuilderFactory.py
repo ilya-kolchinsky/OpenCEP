@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from plan.BushyTreeBuilders import *
 from plan.LeftDeepTreeBuilders import *
 from plan.TreeCostModels import TreeCostModels

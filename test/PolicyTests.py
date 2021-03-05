@@ -1,10 +1,12 @@
-from test.testUtils import *
-from misc.ConsumptionPolicy import *
 from datetime import timedelta
-from condition.Condition import Variable
-from condition.BaseRelationCondition import GreaterThanCondition
-from base.PatternStructure import SeqOperator, PrimitiveEventStructure
+
 from base.Pattern import Pattern
+from base.PatternStructure import SeqOperator, PrimitiveEventStructure
+from condition.BaseRelationCondition import GreaterThanCondition
+from condition.Condition import Variable
+from misc.ConsumptionPolicy import *
+from test.testUtils import *
+
 
 def singleType1PolicyPatternSearchTest(createTestFile = False):
     """

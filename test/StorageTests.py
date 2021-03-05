@@ -1,11 +1,12 @@
 from datetime import timedelta
 
-from condition.BaseRelationCondition import GreaterThanCondition, GreaterThanEqCondition
-from test.testUtils import *
-from condition.Condition import Variable
-from condition.CompositeCondition import AndCondition
-from base.PatternStructure import AndOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
+from base.PatternStructure import AndOperator, PrimitiveEventStructure
+from condition.BaseRelationCondition import GreaterThanCondition, GreaterThanEqCondition
+from condition.CompositeCondition import AndCondition
+from condition.Condition import Variable
+from test.testUtils import *
+
 
 def sortedStorageTest(createTestFile=False):
     pattern = Pattern(

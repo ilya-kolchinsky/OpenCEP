@@ -1,8 +1,8 @@
-from base.PatternMatch import PatternMatch
-from tree.PatternMatchStorage import SortedPatternMatchStorage, UnsortedPatternMatchStorage, EquationSides
 from datetime import datetime, timedelta
-from condition.Condition import RelopTypes
 
+from base.PatternMatch import PatternMatch
+from condition.Condition import RelopTypes
+from tree.PatternMatchStorage import SortedPatternMatchStorage, UnsortedPatternMatchStorage, EquationSides
 
 """
 Event for these tests only

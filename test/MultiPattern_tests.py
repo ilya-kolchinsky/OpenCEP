@@ -1,13 +1,11 @@
-from plan.MPT_neighborhood import algoA
-from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
-from test.testUtils import *
 from datetime import timedelta
-from condition.Condition import Variable
-from condition.CompositeCondition import AndCondition
+
+from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, NegationOperator
 from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCondition, GreaterThanEqCondition, \
     SmallerThanEqCondition
-from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, NegationOperator
-from base.Pattern import Pattern
+from condition.CompositeCondition import AndCondition
+from condition.Condition import Variable
+from test.testUtils import *
 
 currentPath = pathlib.Path(os.path.dirname(__file__))
 absolutePath = str(currentPath.parent)
