@@ -336,7 +336,7 @@ class Node(ABC):
         """
         raise NotImplementedError()
 
-    def create_parent_to_info_dict(self, is_shared=False):
+    def create_parent_to_info_dict(self):
         """
         Traverses the subtree of this node and initializes the internal dictionaries mapping each parent node to the
         corresponding event definitions.

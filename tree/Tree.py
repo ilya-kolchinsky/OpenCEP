@@ -41,6 +41,9 @@ class Tree:
                                                                         pattern.positive_structure),
                                                                     pattern.window, None, pattern.consumption_policy,
                                                                     plan_nodes_to_nodes_map)
+
+        shared_nodes_types = self.get_shared_nodes_types(self.__root, pattern_id)
+
         if pattern.consumption_policy is not None and \
                 pattern.consumption_policy.should_register_event_type_as_single(True):
             for event_type in pattern.consumption_policy.single_types:
@@ -50,31 +53,32 @@ class Tree:
             self.__adjust_leaf_indices(pattern)
             self.__add_negative_tree_structure(pattern)
 
-        self.__apply_condition(pattern)
+        self.__apply_condition(pattern, shared_nodes_types)
+        self.__root.set_is_output_node(True)
 
         self.__root.create_storage_unit(storage_params)
-
-        if plan_nodes_to_nodes_map is None:
-            self.__root.create_parent_to_info_dict()
-
-        else:
-            self.__root.create_parent_to_info_dict(is_shared=True)
-
-        self.__root.set_is_output_node(True)
+        self.__root.create_parent_to_info_dict()
         if pattern_id is not None:
             pattern.id = pattern_id
             self.__root.propagate_pattern_id(pattern_id)
 
-    def __apply_condition(self, pattern: Pattern):
+    def __apply_condition(self, pattern: Pattern, shared_nodes_types: set):
         """
         Applies the condition of the given pattern on the evaluation tree.
         The condition is copied since it is modified inside the recursive apply_condition call.
         """
         condition_copy = deepcopy(pattern.condition)
         self.__root.apply_condition(condition_copy)
-        #if condition_copy.get_num_conditions() > 0:
-            #raise Exception("Unused conditions after condition propagation: {}".format(
-             #   condition_copy.get_conditions_list()))
+        if condition_copy.get_num_conditions() > 0:
+            pattern_args = pattern.positive_structure.get_args()
+            conditions_event_names = condition_copy.get_names()
+            events_indices = [pattern.get_index_by_event_name(name) for name in conditions_event_names]
+            event_types = [pattern_args[i].type for i in events_indices]
+            if len(set(event_types) - shared_nodes_types) == 0:
+                return
+
+            raise Exception("Unused conditions after condition propagation: {}".format(
+                condition_copy.get_conditions_list()))
 
     def __adjust_leaf_indices(self, pattern: Pattern):
         """
@@ -328,3 +332,19 @@ class Tree:
         G = GraphVisualization(title)
         G.build_from_leaves(self.get_leaves())
         G.visualize()
+
+    @staticmethod
+    def get_shared_nodes_types(node: Node, pattern_id):
+        types = set()
+        if len(node.get_pattern_ids() | {pattern_id}) > 1:
+            leaves = node.get_leaves()
+            types = types.union(leaf.get_event_type() for leaf in leaves)
+            return types
+        if issubclass(type(node), LeafNode):
+            return types
+        elif issubclass(type(node), BinaryNode):
+            return Tree.get_shared_nodes_types(node.get_right_subtree(), pattern_id) | \
+                   Tree.get_shared_nodes_types(node.get_left_subtree(), pattern_id)
+        else:
+            assert issubclass(type(node), UnaryNode)
+            return Tree.get_shared_nodes_types(node.get_child(), pattern_id)

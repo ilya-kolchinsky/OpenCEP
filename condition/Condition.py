@@ -88,6 +88,11 @@ class Condition(ABC):
         """ Return self==value. """
         raise NotImplementedError()
 
+    def get_names(self):
+        """
+        Returns the event names associated with this condition.
+        """
+        return set()
 
 class AtomicCondition(Condition, ABC):
     """
@@ -157,6 +162,11 @@ class SimpleCondition(AtomicCondition):
         return self == other or type(self) == type(
             other) and self.terms == other.terms and self.relation_op == other.relation_op
 
+    def get_names(self):
+        """
+        Returns the event names associated with this condition.
+        """
+        return set(term.name for term in self.terms)
 
 class BinaryCondition(SimpleCondition):
     """

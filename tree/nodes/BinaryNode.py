@@ -23,14 +23,14 @@ class BinaryNode(InternalNode, ABC):
         self._left_subtree = left
         self._right_subtree = right
 
-    def create_parent_to_info_dict(self, is_shared=False):
+    def create_parent_to_info_dict(self):
         # we pass the is is_shared argument in create_parent_to_info_dict in order to pass the assert that check
         # if every node got only one parent in case we are in shared approach
         if self._left_subtree is not None:
-            self._left_subtree.create_parent_to_info_dict(is_shared)
+            self._left_subtree.create_parent_to_info_dict()
         if self._right_subtree is not None:
-            self._right_subtree.create_parent_to_info_dict(is_shared)
-        super().create_parent_to_info_dict(is_shared)
+            self._right_subtree.create_parent_to_info_dict()
+        super().create_parent_to_info_dict()
 
     def get_leaves(self):
         """

@@ -287,58 +287,6 @@ def severalPatternShareSubtree(createTestFile=False):
 
     runMultiTest("threeSharingSubtrees", [pattern, pattern2, pattern3], createTestFile, eval_mechanism_params)
 
-"""
-multi-pattern test patterns sharing inner nodes and not leaves
-"""
-
-
-def notInTheBeginningShare(createTestFile=False):
-    pattern1 = Pattern(
-        SeqOperator(NegationOperator(PrimitiveEventStructure("TYP1", "x")),
-                    NegationOperator(PrimitiveEventStructure("TYP2", "y")),
-                    NegationOperator(PrimitiveEventStructure("TYP3", "z")), PrimitiveEventStructure("AAPL", "a"),
-                    PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
-        AndCondition(
-            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                                 Variable("b", lambda x: x["Opening Price"])),
-            SmallerThanCondition(Variable("b", lambda x: x["Opening Price"]),
-                                 Variable("c", lambda x: x["Opening Price"]))),
-        timedelta(minutes=5)
-    )
-
-    pattern2 = Pattern(
-        SeqOperator(NegationOperator(PrimitiveEventStructure("TYP1", "x")),
-                    NegationOperator(PrimitiveEventStructure("TYP2", "y")),
-                    PrimitiveEventStructure("AAPL", "a"),
-                    PrimitiveEventStructure("AMZN", "b")),
-        GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                             Variable("b", lambda x: x["Opening Price"])),
-        timedelta(minutes=5)
-    )
-
-    pattern3 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"),
-                    PrimitiveEventStructure("AMZN", "b"),
-                    PrimitiveEventStructure("GOOG", "c")),
-        AndCondition(
-            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                                 Variable("b", lambda x: x["Opening Price"])),
-            GreaterThanCondition(Variable("c", lambda x: x["Opening Price"]),
-                                 Variable("b", lambda x: x["Opening Price"]))
-        ),
-        timedelta(minutes=5)
-    )
-
-    eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL,
-                                  MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
-        TreeStorageParameters(sort_storage=False,
-                              clean_up_interval=10,
-                              prioritize_sorting_by_timestamp=True))
-
-    runMultiTest("MultipleNotBeginningShare", [pattern1, pattern2, pattern3], createTestFile, eval_mechanism_params)
-
 
 """
 multi-pattern test sharing internal node between patterns

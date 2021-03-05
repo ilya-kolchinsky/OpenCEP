@@ -9,7 +9,7 @@ from test.UnitTests.test_storage import run_storage_tests
 
 
 runTest.over_all_time = 0
-# basic functionality tests
+# # basic functionality tests
 oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
@@ -56,40 +56,34 @@ structuralTest5()
 structuralTest6()
 structuralTest7()
 
-# tree plan generation algorithms
-arrivalRatesPatternSearchTest()
-nonFrequencyPatternSearchTest()
-frequencyPatternSearchTest()
-nonFrequencyPatternSearch2Test()
-frequencyPatternSearch2Test()
-nonFrequencyPatternSearch3Test()
-frequencyPatternSearch3Test()
-nonFrequencyPatternSearch4Test()
-frequencyPatternSearch4Test()
-nonFrequencyPatternSearch5Test()
-frequencyPatternSearch5Test()
-frequencyPatternSearch6Test()
-greedyPatternSearchTest()
-iiRandomPatternSearchTest()
-iiRandom2PatternSearchTest()
-iiGreedyPatternSearchTest()
-iiGreedy2PatternSearchTest()
-zStreamOrdPatternSearchTest()
-zStreamPatternSearchTest()
-dpBPatternSearchTest()
-dpLdPatternSearchTest()
-nonFrequencyTailoredPatternSearchTest()
-frequencyTailoredPatternSearchTest()
+# Kleene closure tests
+oneArgumentsearchTestKleeneClosure()
+MinMax_0_TestKleeneClosure()
+MinMax_1_TestKleeneClosure()
+MinMax_2_TestKleeneClosure()
+KC_AND()
 
-# tree structure tests - CEP object only created not used
-structuralTest1()
-structuralTest2()
-structuralTest3()
-structuralTest4()
-structuralTest5()
-structuralTest6()
-structuralTest7()
-#
+# Kleene Condition tests
+KC_AND_IndexCondition_01()
+KC_AND_IndexCondition_02()
+KC_AND_NegOffSet_01()
+KC_AllValues()
+KC_Specific_Value()
+KC_Mixed()
+KC_Condition_Failure_01()
+KC_Condition_Failure_02()
+KC_Condition_Failure_03()
+
+# negation tests
+simpleNotTest()
+multipleNotInTheMiddleTest()
+oneNotAtTheBeginningTest()
+multipleNotAtTheBeginningTest()
+oneNotAtTheEndTest()
+multipleNotAtTheEndTest()
+multipleNotBeginAndEndTest()
+testWithMultipleNotAtBeginningMiddleEnd()
+
 # consumption policies tests
 singleType1PolicyPatternSearchTest()
 singleType2PolicyPatternSearchTest()

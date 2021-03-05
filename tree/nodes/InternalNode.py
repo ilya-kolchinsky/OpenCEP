@@ -34,7 +34,7 @@ class InternalNode(Node, ABC):
         }
         return self._condition.eval(binding)
 
-    def create_parent_to_info_dict(self, is_shared=False):
+    def create_parent_to_info_dict(self):
         """
         Creates the dictionary that maps parent to event type, event name and index.
         This dictionary helps to pass the parents a partial match with the right definitions.
@@ -42,8 +42,6 @@ class InternalNode(Node, ABC):
         if len(self._parents) == 0:
             return
         # we call this method before we share nodes so each node has at most one parent
-        if len(self._parents) > 1 and not is_shared:
-            raise Exception("This method should not be called when there is more than one parent.")
         for parent in self._parents:
             self._parent_to_info_dict[parent] = self.get_positive_event_definitions()
 

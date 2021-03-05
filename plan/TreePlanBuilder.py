@@ -74,12 +74,12 @@ class TreePlanBuilder(ABC):
         event1_name_type = {event.name: event.type for event in pattern1_events}
         event2_name_type = {event.name: event.type for event in pattern2_events}
 
-        for e in condition1._CompositeCondition__conditions:
+        for e in condition1.get_conditions_list():
             if type(e.left_term_repr) == Variable:
                 e.left_term_repr.name = event1_name_type[e.left_term_repr.name]
             if type(e.right_term_repr) == Variable:
                 e.right_term_repr.name = event1_name_type[e.right_term_repr.name]
-        for e in condition2._CompositeCondition__conditions:
+        for e in condition2.get_conditions_list():
             if type(e.left_term_repr) == Variable:
                 e.left_term_repr.name = event2_name_type[e.left_term_repr.name]
             if type(e.right_term_repr) == Variable:
