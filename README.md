@@ -150,6 +150,47 @@ pattern = Pattern(
     timedelta(minutes=5)
 )
 ```
+
+### Evaluation tree optimization
+For multi-pattern usages, you can chose one of many algorithms to share common sub-pattern over the patterns list.
+The various approaches for constructing a unified tree plan builder:
+* `TRIVIAL_SHARING_LEAVES`: gets a list of patterns and builds a merged tree for each pattern, while sharing equivalent leaves from different tree plans.
+* `TREE_PLAN_SUBTREES_UNION`: gets a list of patterns and builds a unified tree by sharing equivalent subtrees of different tree plans.
+* `TREE_PLAN_DIFFERENT_TOPOLOGY_UNION`: same as SUBTREES_UNION, but builds a unified tree by modifying the tree topology trying to get maximum intersection.
+* `TREE_PLAN_LOCAL_SEARCH_ANNEALING`: build CEP evaluation tree with minimum tree cost, using [local search](https://assaf.net.technion.ac.il/files/2019/03/Real-Time-Multi-Pattern-Detection-over-Event-Streams.pdf) (appendix B).
+
+For additional details, please see `DefaultConfig.py` file.
+
+```
+
+first_pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"),
+                    PrimitiveEventStructure("AAPL", "c")),
+        AndCondition(
+            SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]),
+                                 Variable("b", lambda x: x["Peak Price"])),
+            GreaterThanCondition(Variable("b", lambda x: x["Peak Price"]),
+                                 Variable("c", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+second_pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b")),
+        SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]),
+                             Variable("b", lambda x: x["Peak Price"]))
+        ,
+        timedelta(minutes=3)
+)    
+
+eval_mechanism_params = TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                                                                             TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL,
+                                                                                             MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION))
+
+
+# Then, running activating cep engine: 
+cep = CEP([first_pattern, second_pattern] , eval_mechanism_params)
+```
+
 ### Negation Operator 
 
 The following is the example of a pattern containing a negation operator:
