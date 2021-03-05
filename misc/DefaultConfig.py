@@ -36,9 +36,6 @@ ITERATIVE_IMPROVEMENT_INIT_TYPE = IterativeImprovementInitType.RANDOM
 
 SELECT_NEIGHBOR_PATTERNS = 3
 
-# multi-pattern visualization defaults
-VISUALIZATION = True
-
 # local search defaults
 LOCAL_SEARCH_APPROACH = MultiPatternTreePlanUnionApproaches.TREE_PLAN_LOCAL_SEARCH_ANNEALING
 NEIGHBOR_FUNC = MultiPatternUnifiedTreeLocalSearchApproaches.EDGE_NEIGHBOR

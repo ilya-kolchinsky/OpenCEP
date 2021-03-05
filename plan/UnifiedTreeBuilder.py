@@ -13,7 +13,6 @@ from plan.TreePlan import TreePlanLeafNode, TreePlan, TreePlanNode, TreePlanUnar
     TreePlanBinaryNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from plan.TreePlanBuilderOrders import TreePlanBuilderOrder
-from tree.TreeVisualizationUtility import GraphVisualization
 
 
 class UnifiedTreeBuilder(TreePlanBuilder):
@@ -49,19 +48,6 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         to a single event attribute.
         """
         raise NotImplementedError()
-
-    def visualize(self, visualize_data: TreePlanNode or Dict[Pattern, TreePlan], title=None,
-                  visualize_flag=DefaultConfig.VISUALIZATION):
-        if visualize_flag and isinstance(visualize_data, TreePlanNode):
-            G = GraphVisualization(title)
-            G.build_from_root_treePlan(visualize_data, node_level=visualize_data.height)
-            G.visualize()
-
-        if visualize_flag and isinstance(visualize_data, dict):
-            G = GraphVisualization(title)
-            for i, (_, tree_plan) in enumerate(visualize_data.items()):
-                G.build_from_root_treePlan(tree_plan.root, node_level=tree_plan.root.height)
-            G.visualize()
 
     @staticmethod
     def _sub_tree_size(root):

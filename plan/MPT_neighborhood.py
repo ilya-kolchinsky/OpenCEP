@@ -3,7 +3,6 @@ import random
 from copy import deepcopy
 from typing import List, Dict, Tuple
 
-from SimulatedAnnealing import SimulatedAnnealing
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, OrOperator, AndOperator, KleeneClosureOperator, NegationOperator, \
     PrimitiveEventStructure
@@ -11,11 +10,9 @@ from misc import DefaultConfig
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_all_disjoint_sets
 from plan.TopologyChangeSharingTreeBuilder import TopologyChangeSharingTreeBuilder
-from plan.TreeCostModel import TreeCostModelFactory, TreeCostModel
 from plan.TreePlan import *
 from plan.TreePlanBuilder import TreePlanBuilder
 from plan.UnifiedTreeBuilder import UnifiedTreeBuilder
-from plan.multi.MultiPatternUnifiedTreeLocalSearchApproaches import MultiPatternUnifiedTreeLocalSearchApproaches
 
 
 class algoA(TreePlanBuilder):
@@ -601,18 +598,4 @@ def tree_plan_state_get_summary(state: Tuple[Dict[Pattern, TreePlan], List[List]
     return "iter " + str(iter_num) + " common pairs size = " + str(sum_common_pairs)
 
 
-def tree_plan_equal(state1: Tuple[Dict[Pattern, TreePlan], List[List]],
-                    state2: Tuple[Dict[Pattern, TreePlan], List[List]]):
-    patterns = list(state1[0].keys())
 
-    leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(state1[0])
-
-    tree_plans1 = list([tree_plan for _, tree_plan in state1[0].items()])
-    tree_plans2 = list([tree_plan for _, tree_plan in state2[0].items()])
-
-    for idx, pattern in enumerate(patterns):
-        tree_plans1_root = tree_plans1[idx].root
-        tree_plans2_root = tree_plans2[idx].root
-        if not UnifiedTreeBuilder.is_equivalent(tree_plans1_root, pattern, tree_plans2_root, pattern, leaves_dict):
-            return False
-    return True

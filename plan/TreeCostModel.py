@@ -1,18 +1,20 @@
+import itertools
 from abc import ABC
-from typing import List
+from typing import List, Tuple, Dict
 
 from base.Pattern import Pattern
 from misc.DefaultConfig import DEFAULT_TREE_COST_MODEL
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlan import TreePlanNode, TreePlanLeafNode
+from plan.TreePlan import TreePlanNode, TreePlanLeafNode, TreePlan
 
 
 class TreeCostModel(ABC):
     """
     An abstract class for the cost model used by cost-based tree-structured evaluation plan generation algorithms.
     """
+
     def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode):
         """
         Returns the cost of a given plan for a given pattern.
@@ -24,6 +26,7 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
     """
     Calculates the plan cost based on the expected size of intermediate results (partial matches).
     """
+
     def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivity_matrix, arrival_rates) = pattern.statistics
@@ -41,6 +44,9 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
         """
         # calculate base case: tree is a leaf.
         if isinstance(tree, TreePlanLeafNode):
+            if tree.event_index >= len(selectivity_matrix) or tree.event_index >= len(selectivity_matrix[0]) or tree.event_index >= len(
+                    arrival_rates):
+                return [tree.event_index], 0, 0
             cost = pm = time_window * arrival_rates[tree.event_index] * \
                         selectivity_matrix[tree.event_index][tree.event_index]
             return [tree.event_index], pm, cost
@@ -68,6 +74,7 @@ class TreeCostModelFactory:
     """
     A factory for instantiating the cost model object.
     """
+
     @staticmethod
     def create_cost_model(cost_model_type: TreeCostModels = DEFAULT_TREE_COST_MODEL):
         """
@@ -76,3 +83,62 @@ class TreeCostModelFactory:
         if cost_model_type == TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL:
             return IntermediateResultsTreeCostModel()
         raise Exception("Unknown cost model type: %s" % (cost_model_type,))
+
+
+class TreePlanCostCalculator:
+
+    def __init__(self, pattern: Pattern, tree_plan_root: TreePlanNode, cost_model: TreeCostModel):
+        self.pattern = pattern
+        self.tree_plan_root = tree_plan_root
+        self.cost_model = cost_model
+
+    def get_cost(self):
+        try:
+            cost = self.cost_model.get_plan_cost(self.pattern, self.tree_plan_root)
+            return cost
+        except:
+            return 0
+
+    @staticmethod
+    def get_duplicated_cost(pattern_i, tree_plan_i_root, pattern_j, tree_plan_j_root, cost_model: TreeCostModel):
+        node1, node2 = None, None
+        if tree_plan_i_root == tree_plan_j_root:
+            node1 = tree_plan_i_root
+            node2 = tree_plan_j_root
+        elif tree_plan_i_root.left_child == tree_plan_j_root:
+            node1 = tree_plan_i_root.left_child
+            node2 = tree_plan_j_root
+        elif tree_plan_i_root == tree_plan_j_root.left_child:
+            node1 = tree_plan_i_root
+            node2 = tree_plan_j_root.left_child
+        elif tree_plan_i_root.left_child == tree_plan_j_root.left_child:
+            node1 = tree_plan_i_root.left_child
+            node2 = tree_plan_j_root.left_child
+
+        if node1 is None or node2 is None:
+            return 0
+
+        cost_i = TreePlanCostCalculator(pattern_i, tree_plan_i_root, cost_model).get_cost()
+        cost_j = TreePlanCostCalculator(pattern_j, tree_plan_j_root, cost_model).get_cost()
+        duplicated_cost = min(cost_i, cost_j)
+        return duplicated_cost
+
+    @staticmethod
+    def tree_plan_cost_function(state: Tuple[Dict[Pattern, TreePlan], List[List]]):
+        pattern_to_tree_plan_map, _ = state
+        cost_model = TreeCostModelFactory.create_cost_model()
+        patterns = list(pattern_to_tree_plan_map.keys())
+
+        tree_plan_total_cost = sum(
+            [TreePlanCostCalculator(p, tree_plan.root, cost_model).get_cost() for p, tree_plan in pattern_to_tree_plan_map.items()])
+        for i, j in itertools.product(range(len(patterns)), range(len(patterns))):
+            if i >= j:
+                continue
+            pattern_i = patterns[i]
+            pattern_j = patterns[j]
+            tree_plan_i_root = pattern_to_tree_plan_map[pattern_i].root
+            tree_plan_j_root = pattern_to_tree_plan_map[pattern_j].root
+            duplicated_cost = TreePlanCostCalculator.get_duplicated_cost(pattern_i, tree_plan_i_root, pattern_j, tree_plan_j_root, cost_model)
+            tree_plan_total_cost -= duplicated_cost
+
+        return tree_plan_total_cost

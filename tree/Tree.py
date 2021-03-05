@@ -9,7 +9,6 @@ from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, Co
 from misc.ConsumptionPolicy import ConsumptionPolicy
 from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanBinaryNode, OperatorTypes
 from tree.PatternMatchStorage import TreeStorageParameters
-from tree.TreeVisualizationUtility import GraphVisualization
 from tree.nodes.AndNode import AndNode
 from tree.nodes.BinaryNode import BinaryNode
 from tree.nodes.KleeneClosureNode import KleeneClosureNode
@@ -327,11 +326,6 @@ class Tree:
         Returns the root node of the tree.
         """
         return self.__root
-
-    def visualize(self, title):
-        G = GraphVisualization(title)
-        G.build_from_leaves(self.get_leaves())
-        G.visualize()
 
     @staticmethod
     def get_shared_nodes_types(node: Node, pattern_id):
