@@ -10,6 +10,7 @@ from condition.Condition import Variable
 from misc.StatisticsTypes import StatisticsTypes
 from plan.MPT_neighborhood import algoA, patterns_initialize_function, tree_plan_state_get_summary, tree_plan_equal, \
     tree_plan_cost_function, tree_plan_vertex_neighbour, tree_plan_edge_neighbour
+from plan.TreePlanBuilderOrders import TreePlanBuilderOrder
 from test.testUtils import *
 
 

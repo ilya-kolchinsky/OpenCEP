@@ -7,6 +7,7 @@ from SimulatedAnnealing import SimulatedAnnealing
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, OrOperator, AndOperator, KleeneClosureOperator, NegationOperator, \
     PrimitiveEventStructure
+from misc import DefaultConfig
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_all_disjoint_sets
 from plan.TopologyChangeSharingTreeBuilder import TopologyChangeSharingTreeBuilder
