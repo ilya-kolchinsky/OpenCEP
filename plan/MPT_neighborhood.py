@@ -89,9 +89,12 @@ class algoA(TreePlanBuilder):
 
     def _create_topology_with_const_sub_order(self, pattern: Pattern, const_sub_ord: list):
         """
-        Description :the same as create_tree_topology , only that this time we build the plan for the
-        complementary pattern the complementary pattern is defined by the pattern events indexes minus
-        the events indexes in const_sub_order
+        @params:
+            1) pattern : to build the topology for.
+            2) const_sub_ord: list of events indexes that shouldn't be considered in creating the pattern topology
+        @returns: the same as create_tree_topology , only that this time we build the plan for the
+            complementary pattern, the complementary pattern is defined by the pattern events indexes minus
+            the events indexes in const_sub_order
         """
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivity_matrix, arrival_rates) = pattern.statistics
@@ -112,10 +115,16 @@ class algoA(TreePlanBuilder):
 
     def _create_pattern_topology(self, sub_pattern_data: Tuple):
         """
-        Description: like create_tree_topology function , only that this time we pass the
-        sub pattern data which is a tuble of 3 :  sub_pattern, sub_pattern event indexes, sub_pattern event names
-        we use this information to build the sub_pattern we custom build where we choose what the events are in the sub tree
-        because we want those same indexes of the big pattern that includes the sub pattern and not some new indexes
+        @params:
+            sub_pattern_data: a tuple of 3 :
+             * first entry is the sub_pattern itself
+             * second entry is a list of all event indexes of this pattern
+             * third entry is a list of all event names of this pattern
+        Returns :
+            return a tree topology for the sub_pattern , we pass  the sub_pattern_data
+            to build the sub_pattern we custom build where we choose what the events are in the sub tree
+            because we want those same indexes of the big pattern that includes the sub pattern
+            and not some the automatically generated indexes
         """
         pattern, sub_pattern_indexes, sub_pattern_names = sub_pattern_data
         if pattern.statistics_type != StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
@@ -136,8 +145,14 @@ class algoA(TreePlanBuilder):
         return self.create_tree_topology_aux(pattern, items, args_num)
 
     def _create_tree_topology_shared_subpattern(self, pattern: Pattern, sub_pattern_data: Tuple):
-        """this function builds the best tree topology such that the pattern starts with the subpattern order
-         and the remained pattern built with best order"""
+        """
+        @params:
+            pattern: to build a tree topolgy for
+            sub_pattern_data: look at _create_pattern_topology for this parameter documentation
+        @returns:
+            this function builds and returns the best tree topology with one restriction in mind:
+            the pattern has to starts with the subpattern order
+            ,remained pattern we build according to best order possible i.e. the order with the minimal cost"""
         sub_pattern, sub_pattern_indexes, sub_pattern_names = sub_pattern_data
         if sub_pattern is None:
             return self._create_topology_with_const_sub_order(pattern, [])
@@ -153,7 +168,11 @@ class algoA(TreePlanBuilder):
 
     @staticmethod
     def get_all_nodes(plan_node: TreePlanNode):
-        """simply returns all plan nodes in the tree with the root = the argument plan node"""
+        """
+        params:
+            TreePlanNode : the node we need to traverse it and return all nodes in his subtree
+        @returns:
+            all plan nodes in the sub tree of the  plan_node"""
         if isinstance(plan_node, TreePlanLeafNode):
             return [plan_node]
         elif isinstance(plan_node, TreePlanUnaryNode):
@@ -166,7 +185,12 @@ class algoA(TreePlanBuilder):
 
     @staticmethod
     def get_event_args(node: TreePlanNode, pattern: Pattern):
-        """ Discription: we pass a leaf node that got event index/type/name , we return all those data"""
+        """
+        param:
+            node: a plan node of the type TreePlanLeafNode
+            pattern: the Pattern that contains the data of the above node
+        @returns : the data of this leaf node :event index , type and name, all this data is extracted from the pattern
+        """
         pattern_event_names = [event.name for event in pattern.positive_structure.get_args()]
         pattern_event_types = [event.type for event in pattern.positive_structure.get_args()]
         pattern_event_indexes = [pattern.get_index_by_event_name(name) for name in pattern_event_names]
@@ -175,15 +199,24 @@ class algoA(TreePlanBuilder):
         return wanted_event_index, pattern_event_types[index_in_list], pattern_event_names[index_in_list]
 
     @staticmethod
-    def build_pattern_from_plan_node(node: TreePlanNode, pattern1: Pattern, leaves_dict, first_time=False):
-        """Disciption: given an internal tree plan node we build recursively the pattern that describe the tree plan
-            with root=node and this will be the sub pattern of the big pattern"""
+    def build_pattern_from_plan_node(node: TreePlanNode, pattern: Pattern, leaves_dict, first_call=False):
+        """
+            params:
+                node: internal tree plan node
+                pattern: pattern that describe the tree plan with root=node
+                leaves_dict: we use the Pattern constructor in this function that needs this argument
+                first_call: since we build the Pattern recursively we need to identify the first call of this function
+                            because the first build we use the Pattern constructor and the rest of calls we build
+                            according to the type of currnode
+            @returns:
+                A compatible for the given node subtree
+            """
         # first time we use Pattern construct unlike applying operator constructors in the next iterations
-        if first_time:
-            condition = UnifiedTreeBuilder.get_condition_from_pattern_in_one_sub_tree(node, pattern1, leaves_dict)
-            pattern = Pattern(algoA.build_pattern_from_plan_node(node, pattern1, leaves_dict), condition,
-                              pattern1.window, pattern1.consumption_policy, pattern1.id)
-            pattern.set_statistics(pattern1.statistics_type, pattern1.statistics)
+        if first_call:
+            condition = UnifiedTreeBuilder.get_condition_from_pattern_in_one_sub_tree(node, pattern, leaves_dict)
+            pattern = Pattern(algoA.build_pattern_from_plan_node(node, pattern, leaves_dict), condition,
+                              pattern.window, pattern.consumption_policy, pattern.id)
+            pattern.set_statistics(pattern.statistics_type, pattern.statistics)
             return pattern
 
         node_type = type(node)
@@ -191,60 +224,72 @@ class algoA(TreePlanBuilder):
             leaves_in_plan_node_1 = node.get_leaves()
             assert len(leaves_in_plan_node_1) == 1
 
-            index, event_type, event_name = algoA.get_event_args(node, pattern1)
+            index, event_type, event_name = algoA.get_event_args(node, pattern)
             return PrimitiveEventStructure(event_type, event_name)
 
         elif issubclass(node_type, TreePlanInternalNode):  # internal node
             node_operator: OperatorTypes = node.get_operator()
             if node_operator == OperatorTypes.SEQ:
-                return SeqOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1, leaves_dict),
-                                   algoA.build_pattern_from_plan_node(node.right_child, pattern1, leaves_dict))
+                return SeqOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
+                                   algoA.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict))
             elif node_operator == OperatorTypes.OR:
-                return OrOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1, leaves_dict),
-                                  algoA.build_pattern_from_plan_node(node.right_child, pattern1, leaves_dict))
+                return OrOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
+                                  algoA.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict))
             elif node_operator == OperatorTypes.AND:
-                return AndOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1, leaves_dict),
-                                   algoA.build_pattern_from_plan_node(node.right_child, pattern1, leaves_dict))
+                return AndOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
+                                   algoA.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict))
             elif node_operator == OperatorTypes.KC:
                 return KleeneClosureOperator(
-                    algoA.build_pattern_from_plan_node(node.child, pattern1, leaves_dict))
+                    algoA.build_pattern_from_plan_node(node.child, pattern, leaves_dict))
             elif node_operator == OperatorTypes.NSEQ:
                 return NegationOperator(
-                    SeqOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1, leaves_dict),
-                                algoA.build_pattern_from_plan_node(node.right_child, pattern1, leaves_dict)))
+                    SeqOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
+                                algoA.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict)))
             elif node_operator == OperatorTypes.NAND:
                 return NegationOperator(
-                    AndOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern1, leaves_dict),
-                                algoA.build_pattern_from_plan_node(node.right_child, pattern1, leaves_dict)))
+                    AndOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
+                                algoA.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict)))
             else:
                 raise NotImplementedError
 
     @staticmethod
-    def get_all_sharable_sub_patterns(tree_plan1: TreePlan, pattern1: Pattern, tree_plan2: TreePlan, pattern2: Pattern):
-        """Description: we pass two patterns,and return a list with all
-        the subpattern that are sharable between both pattern"""
-        tree1_subtrees = algoA.get_all_nodes(tree_plan1.root)
-        tree2_subtrees = algoA.get_all_nodes(tree_plan2.root)
+    def get_all_sharable_sub_patterns(first_tree_plan: TreePlan, first_pattern: Pattern, second_tree_plan: TreePlan,
+                                      second_pattern: Pattern):
+        """
+        @params:
+            two plans with their compatible patterns
+        @returns:
+            A list with all the subpattern that are sharable between the given patterns"""
+        fisrt_tree_subtrees = algoA.get_all_nodes(first_tree_plan.root)
+        second_tree_subtrees = algoA.get_all_nodes(second_tree_plan.root)
         sharable = []
-        pattern_to_tree_plan_map = {pattern1: tree_plan1, pattern2: tree_plan2}
+        pattern_to_tree_plan_map = {first_pattern: first_tree_plan, second_pattern: second_tree_plan}
         leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(pattern_to_tree_plan_map)
 
-        for node1, node2 in itertools.product(tree1_subtrees, tree2_subtrees):
-            if TreePlanBuilder.is_equivalent(node1, pattern1, node2, pattern2, leaves_dict):
-                names1, _, event_indexes1 = TreePlanBuilder.extract_pattern_condition(node1, pattern1, leaves_dict)
-                names2, _, event_indexes2 = TreePlanBuilder.extract_pattern_condition(node2, pattern2, leaves_dict)
-                sharable_sub_pattern = algoA.build_pattern_from_plan_node(node1, pattern1, leaves_dict, first_time=True)
+        for node1, node2 in itertools.product(fisrt_tree_subtrees, second_tree_subtrees):
+            if TreePlanBuilder.is_equivalent(node1, first_pattern, node2, second_pattern, leaves_dict):
+                first_names, _, fist_event_indexes = TreePlanBuilder.extract_pattern_condition(node1, first_pattern,
+                                                                                               leaves_dict)
+                second_names, _, second_event_indexes = TreePlanBuilder.extract_pattern_condition(node2, second_pattern,
+                                                                                                  leaves_dict)
+                sharable_sub_pattern = algoA.build_pattern_from_plan_node(node1, first_pattern, leaves_dict,
+                                                                          first_time=True)
                 # time window is set to be the min between them by defintion
-                sharable_sub_pattern.set_time_window(min(pattern1.window,
-                                                         pattern2.window))
-                sharable_sub_pattern_data = (sharable_sub_pattern, event_indexes1, names1, event_indexes2, names2)
+                sharable_sub_pattern.set_time_window(min(first_pattern.window,
+                                                         second_pattern.window))
+                sharable_sub_pattern_data = (
+                sharable_sub_pattern, fist_event_indexes, first_names, second_event_indexes, second_names)
                 sharable.append(sharable_sub_pattern_data)
         return sharable
 
     @staticmethod
-    def get_shareable_pairs(patterns: List[Pattern] or TreePlan):
-        """we build a [n][n] matrix we store [i][j] a list with all sharable
-            sub patterns between pattern i and pattern j"""
+    def get_shareable_pairs(patterns: List[Pattern] or Pattern):
+        """
+            @params:
+                patterns: a list of all patterns or one pattern
+            @returns:
+                return [n][n] matrix, we store in [i][j] a list with all sharable
+                sub patterns between pattern i and pattern j"""
         number_of_patterns = len(patterns)
         # shape = (number_of_patterns, number_of_patterns)
         # shareable_pairs_array = np.empty(shape=shape, dtype=list)
@@ -347,10 +392,14 @@ class algoA(TreePlanBuilder):
         """
         the Nedge neighborhood function as explained in the article Section 4.2
 
-        :param pattern_to_tree_plan_map : dict that maps every pattern in the MPT to his TreePlan
-        :param sub_pattern_shareable_array : a [n][n] matrix (n is number of patterns in MPT ) ,
-                   where sub_pattern_shareable_array[i][j] = the list of all equal  sub patterns between patterni and patternj
-        :return: creates new tree plans where sub pattern of two patterns merged
+        @params
+            pattern_to_tree_plan_map : dict that maps every pattern in the MPT to his TreePlan
+            sub_pattern_shareable_array : a [n][n] matrix (n is number of patterns in MPT ) ,
+                                            where sub_pattern_shareable_array[i][j] = the list of all equal
+                                            sub patterns between patterni and patternj
+        @return: creates new tree plans where sub pattern of two patterns merged
+                    and returns the new created pattern_to_tree_plan_map ,
+                    in addition we return the sub_pattern_shareable_array
 
         """
         if isinstance(pattern_to_tree_plan_map, TreePlan) or len(pattern_to_tree_plan_map) <= 1:
@@ -420,11 +469,17 @@ class algoA(TreePlanBuilder):
     @staticmethod
     def construct_subtrees_local_search_tree_plan(pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
                                                   tree_plan_local_search_params: Tuple[
-                                                      MultiPatternUnifiedTreeLocalSearchApproaches, int]
-                                                  ):
+                                                      MultiPatternUnifiedTreeLocalSearchApproaches, int]):
         """
-        This method gets patterns, builds a single-pattern tree to each one of them,
-        and merges equivalent subtrees from different trees using simulated annealing local search algorithm.
+        @ params:
+            1)pattern_to_tree_plan_map :dict between the Patter and his treePlan
+            2)tree_plan_local_search_params: a tuple of 2:
+                * first entry is the local_search_neighbor_approach either Nedge or Nvertex approach
+                * second entry is the time limit for the local search to run
+        @returns:
+            the new pattern_to_tree_plan_map
+            This method gets patterns, builds a single-pattern tree to each one of them,
+            and merges equivalent subtrees from different trees using simulated annealing local search algorithm.
         """
         local_search_neighbor_approach, time_limit = tree_plan_local_search_params
         patterns = list(pattern_to_tree_plan_map.keys())
