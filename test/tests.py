@@ -1,12 +1,11 @@
 from test.BasicTests import *
-from test.TreeConstructionTests import *
 from test.KC_tests import *
+from test.MultiPattern_tests import *
 from test.NegationTests import *
 from test.PolicyTests import *
-from test.MultiPattern_tests import *
 from test.StorageTests import *
+from test.TreeConstructionTests import *
 from test.UnitTests.test_storage import run_storage_tests
-
 
 runTest.over_all_time = 0
 # # basic functionality tests

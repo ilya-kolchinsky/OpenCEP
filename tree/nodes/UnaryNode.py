@@ -3,9 +3,9 @@ from datetime import timedelta
 from typing import List, Set
 
 from condition.Condition import Condition, RelopTypes, EquationSides
+from tree.PatternMatchStorage import TreeStorageParameters
 from tree.nodes.InternalNode import InternalNode
 from tree.nodes.Node import Node, PrimitiveEventDefinition
-from tree.PatternMatchStorage import TreeStorageParameters
 
 
 class UnaryNode(InternalNode, ABC):

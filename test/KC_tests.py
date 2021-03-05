@@ -1,11 +1,12 @@
-from test.testUtils import *
 from datetime import timedelta
+
+from base.Pattern import Pattern
+from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, KleeneClosureOperator
+from condition.BaseRelationCondition import SmallerThanCondition
+from condition.CompositeCondition import AndCondition
 from condition.Condition import Variable, SimpleCondition
 from condition.KCCondition import KCIndexCondition, KCValueCondition
-from condition.CompositeCondition import AndCondition
-from condition.BaseRelationCondition import SmallerThanCondition
-from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, KleeneClosureOperator
-from base.Pattern import Pattern
+from test.testUtils import *
 
 
 def structuralTest1():

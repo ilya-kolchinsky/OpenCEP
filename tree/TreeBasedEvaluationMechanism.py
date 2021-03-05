@@ -2,16 +2,16 @@ from typing import Dict
 
 from base.DataFormatter import DataFormatter
 from base.Event import Event
-from plan.TreePlan import TreePlan
-from stream.Stream import InputStream, OutputStream
-from misc.Utils import *
-from tree.nodes.LeafNode import LeafNode
-from tree.PatternMatchStorage import TreeStorageParameters
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
+from misc.Utils import *
+from plan.TreePlan import TreePlan
+from stream.Stream import InputStream, OutputStream
 from tree.MultiPatternTree import MultiPatternTree
-from tree.TreeVisualizationUtility import GraphVisualization
+from tree.PatternMatchStorage import TreeStorageParameters
 from tree.Tree import Tree
+from tree.TreeVisualizationUtility import GraphVisualization
+from tree.nodes.LeafNode import LeafNode
 
 
 class TreeBasedEvaluationMechanism(EvaluationMechanism):

@@ -1,9 +1,10 @@
-from base.PatternMatch import PatternMatch
-from misc import DefaultConfig
-from misc.Utils import get_first_index, get_last_index
 from datetime import datetime
-from misc.Utils import find_partial_match_by_timestamp
+
+from base.PatternMatch import PatternMatch
 from condition.Condition import RelopTypes, EquationSides
+from misc import DefaultConfig
+from misc.Utils import find_partial_match_by_timestamp
+from misc.Utils import get_first_index, get_last_index
 
 
 class PatternMatchStorage:

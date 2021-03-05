@@ -1,6 +1,7 @@
-from datetime import datetime
-from base.DataFormatter import DataFormatter, EventTypeClassifier
 import json
+from datetime import datetime
+
+from base.DataFormatter import DataFormatter, EventTypeClassifier
 
 TWEET_MANDATORY_FIELDS = ["id", "created_at", "text", "truncated", "in_reply_to_status_id", "in_reply_to_user_id",
                           "in_reply_to_screen_name", "user", "is_quote_status", "retweet_count", "favorite_count",

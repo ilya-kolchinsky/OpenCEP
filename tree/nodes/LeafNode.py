@@ -2,11 +2,11 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from condition.Condition import Condition, RelopTypes, EquationSides
 from base.PatternStructure import PrimitiveEventStructure
+from condition.Condition import Condition, RelopTypes, EquationSides
+from tree.PatternMatchStorage import TreeStorageParameters, SortedPatternMatchStorage
 from tree.nodes.Node import Node
 from tree.nodes.Node import PrimitiveEventDefinition
-from tree.PatternMatchStorage import TreeStorageParameters, SortedPatternMatchStorage
 
 
 class LeafNode(Node):

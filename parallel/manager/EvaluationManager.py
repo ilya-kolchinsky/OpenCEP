@@ -5,8 +5,8 @@ It internally activates and uses a CEP evaluation mechanism.
 """
 from abc import ABC
 
-from stream.Stream import InputStream, OutputStream
 from base.DataFormatter import DataFormatter
+from stream.Stream import InputStream, OutputStream
 
 
 class EvaluationManager(ABC):

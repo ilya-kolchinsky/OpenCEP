@@ -1,7 +1,8 @@
-import pandas as pd
-import networkx as nx
-import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+import networkx as nx
+import pandas as pd
+
 from plan.TreePlan import TreePlanNode, TreePlanUnaryNode, TreePlanLeafNode, TreePlanBinaryNode
 from tree.nodes.Node import Node
 

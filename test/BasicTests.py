@@ -1,10 +1,12 @@
-from test.testUtils import *
 from datetime import timedelta
-from condition.Condition import Variable, TrueCondition, BinaryCondition, SimpleCondition
-from condition.CompositeCondition import AndCondition
-from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, GreaterThanEqCondition, SmallerThanEqCondition
-from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure
+
 from base.Pattern import Pattern
+from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure
+from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, GreaterThanEqCondition, SmallerThanEqCondition
+from condition.CompositeCondition import AndCondition
+from condition.Condition import Variable, TrueCondition, BinaryCondition, SimpleCondition
+from test.testUtils import *
+
 
 def oneArgumentsearchTest(createTestFile=False):
     pattern = Pattern(

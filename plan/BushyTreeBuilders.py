@@ -1,16 +1,16 @@
 """
 This file contains the implementations of algorithms constructing a generic (bushy) tree-based evaluation mechanism.
 """
+from itertools import combinations
 from typing import List
 
-from plan.TreePlan import TreePlanLeafNode
-from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
-from misc.Utils import get_all_disjoint_sets
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
+from misc.Utils import get_all_disjoint_sets
 from plan.LeftDeepTreeBuilders import GreedyLeftDeepTreeBuilder
-from itertools import combinations
+from plan.TreePlan import TreePlanLeafNode
+from plan.TreePlanBuilder import TreePlanBuilder
 
 
 class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
