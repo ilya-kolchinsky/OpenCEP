@@ -167,6 +167,9 @@ class UnifiedTreeBuilder(TreePlanBuilder):
 
     @staticmethod
     def get_pattern_leaves_dict(pattern_to_tree_plan_map: Dict[Pattern, TreePlan]):
+        """
+                A helper method for return a [pattern -> [ [treePlanNode, Event] ...]] mapper.
+        """
         leaves_dict = {}
         for i, pattern in enumerate(pattern_to_tree_plan_map):
             tree_plan_leaves_pattern = pattern_to_tree_plan_map[pattern].root.get_leaves()
