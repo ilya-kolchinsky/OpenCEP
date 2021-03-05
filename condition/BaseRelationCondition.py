@@ -48,7 +48,7 @@ class BaseRelationCondition(BinaryCondition, ABC):
                self.left_term_repr == other.right_term_repr and self.right_term_repr == other.left_term_repr
 
     def __eq__(self, other):
-        return self == other or self.__eq_same_type(other) or self.__eq_opposite_type(other)
+        return id(self) == id(other) or self.__eq_same_type(other) or self.__eq_opposite_type(other)
 
 
 class EqCondition(BaseRelationCondition):

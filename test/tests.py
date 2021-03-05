@@ -105,7 +105,6 @@ run_storage_tests()
 # multi-pattern tests
 # first approach: sharing leaves
 leafIsRoot()
-leafIsRoot2()
 distinctPatterns()
 threePatternsTest()
 samePatternDifferentTimeStamps()

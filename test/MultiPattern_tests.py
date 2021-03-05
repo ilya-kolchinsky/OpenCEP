@@ -36,28 +36,6 @@ def leafIsRoot(createTestFile = False):
 
     runMultiTest("FirstMultiPattern", [pattern1, pattern2], createTestFile)
 
-def leafIsRoot2(createTestFile = False):
-    pattern1 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZ", "b")),
-        AndCondition(
-        GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
-        GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
-                             Variable("b", lambda x: x["Opening Price"]))),
-        timedelta(minutes=5)
-    )
-    pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "x"), PrimitiveEventStructure("AMZN", "y"),
-                    PrimitiveEventStructure("GOOG", "z")),
-        AndCondition(
-            GreaterThanCondition(Variable("x", lambda x: x["Peak Price"]), 135),
-            GreaterThanCondition(Variable("x", lambda x: x["Opening Price"]),
-                                 Variable("y", lambda x: x["Opening Price"])),
-            SmallerThanCondition(Variable("y", lambda x: x["Opening Price"]),
-                                 Variable("z", lambda x: x["Opening Price"]))),
-        timedelta(minutes=5)
-    )
-
-    runMultiTest("FirstMultiPattern", [pattern1, pattern2], createTestFile)
 
 """
 multi-pattern test 2 completely distinct patterns
