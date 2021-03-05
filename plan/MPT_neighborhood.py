@@ -4,8 +4,6 @@ from copy import deepcopy
 from itertools import combinations
 from typing import List, Dict, Tuple
 
-import numpy as np
-
 from SimulatedAnnealing import timed_annealing, acceptance_probability
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, OrOperator, AndOperator, KleeneClosureOperator, NegationOperator, \
@@ -252,9 +250,9 @@ class algoA(TreePlanBuilder):
         """we build a [n][n] matrix we store [i][j] a list with all sharable
             sub patterns between pattern i and pattern j"""
         number_of_patterns = len(patterns)
-        shape = (number_of_patterns, number_of_patterns)
-        shareable_pairs_array = np.empty(shape=shape, dtype=list)
-
+        # shape = (number_of_patterns, number_of_patterns)
+        # shareable_pairs_array = np.empty(shape=shape, dtype=list)
+        shareable_pairs_array = [[None for _ in range(number_of_patterns)] for _ in range(number_of_patterns)]
         for i, patterni in enumerate(patterns):
             for j, patternj in enumerate(patterns):
                 if j == i:
@@ -289,7 +287,7 @@ class algoA(TreePlanBuilder):
                 tmp = random_patterns_pair[0]
                 i, patterni = random_patterns_pair[1]
                 j, patternj = tmp
-            shareable_pairs_i_j = sub_pattern_shareable_array[i, j]
+            shareable_pairs_i_j = sub_pattern_shareable_array[i][j]
             random_patterns_pair = random.sample(patterns_list, k=2)
         return i, patterni, j, patternj, shareable_pairs_i_j
 
@@ -307,7 +305,7 @@ class algoA(TreePlanBuilder):
 
     @staticmethod
     def Nedge_neighborhood(pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
-                           sub_pattern_shareable_array: np.array):
+                           sub_pattern_shareable_array):
         """
         the Nedge neighborhood function as explained in the article Section 4.2
         :param pattern_to_tree_plan_map : dict that maps every pattern in the MPT to his TreePlan
@@ -349,7 +347,7 @@ class algoA(TreePlanBuilder):
 
     @staticmethod
     def Nvertex_neighborhood(pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
-                             sub_pattern_shareable_array: np.array, k=DefaultConfig.SELECT_NEIGHBOR_PATTERNS):
+                             sub_pattern_shareable_array, k=DefaultConfig.SELECT_NEIGHBOR_PATTERNS):
         """
         the Nedge neighborhood function as explained in the article Section 4.2
 
@@ -381,23 +379,23 @@ class algoA(TreePlanBuilder):
         for idx in range(len(patterns_list)):
             if idx == i:
                 continue
-            patterns_i_idx_data = sub_pattern_shareable_array_copy[i, idx]
+            patterns_i_idx_data = sub_pattern_shareable_array_copy[i][idx]
             if len(patterns_i_idx_data) == 0:
                 continue
 
-            sub_patterns_i_idx = np.array(patterns_i_idx_data)
+            # sub_patterns_i_idx = np.array(patterns_i_idx_data)
             if len(sub_patterns_i_idx) > 0:  # get patterns from patterns_i_j_data (first column)
-                sub_patterns_i_idx = sub_patterns_i_idx[:, 0]
+
+                sub_patterns_i_idx = [sub_data[0] for sub_data in sub_patterns_i_idx]
             is_j_contain_sub_pattern = len(
                 list(filter(lambda pattern1: pattern1.is_equivalent(sub_pattern), sub_patterns_i_idx))) > 0
             if is_j_contain_sub_pattern:
                 all_pattern_indexes_contains_sub_pattern.append(idx)
-        all_pattern_indexes_contains_sub_pattern = np.array(sorted(all_pattern_indexes_contains_sub_pattern))
+        all_pattern_indexes_contains_sub_pattern = sorted(all_pattern_indexes_contains_sub_pattern)
         max_sharing = min(k, len(all_pattern_indexes_contains_sub_pattern))
         alg = algoA()
         sub_pattern_data_1 = (sub_pattern, event_indexes1, names1)
         new_tree_plani = alg._create_tree_topology_shared_subpattern(patterni, sub_pattern_data_1)
-        new_tree_planj = alg._create_tree_topology_shared_subpattern(patternj, sub_pattern_data_1)
         pattern_to_tree_plan_map_copy[patterni] = new_tree_plani
         for p_idx in all_pattern_indexes_contains_sub_pattern[:max_sharing]:
             if p_idx == i:
@@ -425,7 +423,8 @@ class algoA(TreePlanBuilder):
 
     @staticmethod
     def construct_subtrees_local_search_tree_plan(pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
-                                                  tree_plan_local_search_params: Tuple[MultiPatternUnifiedTreeLocalSearchApproaches, int]
+                                                  tree_plan_local_search_params: Tuple[
+                                                      MultiPatternUnifiedTreeLocalSearchApproaches, int]
                                                   ):
         """
         This method gets patterns, builds a single-pattern tree to each one of them,
@@ -487,7 +486,7 @@ def get_duplicated_cost(pattern_i, tree_plan_i_root, pattern_j, tree_plan_j_root
     return duplicated_cost
 
 
-def tree_plan_cost_function(state: Tuple[Dict[Pattern, TreePlan], np.array]):
+def tree_plan_cost_function(state: Tuple[Dict[Pattern, TreePlan], List[List]]):
     pattern_to_tree_plan_map, _ = state
     cost_model = TreeCostModelFactory.create_cost_model()
     patterns = list(pattern_to_tree_plan_map.keys())
@@ -514,23 +513,25 @@ def patterns_initialize_function(patterns: List[Pattern]):
     return pattern_to_tree_plan_map, shareable_pairs
 
 
-def tree_plan_edge_neighbour(state: Tuple[Dict[Pattern, TreePlan], np.array]):
+def tree_plan_edge_neighbour(state: Tuple[Dict[Pattern, TreePlan], List[List]]):
     """Move a little bit x, from the left or the right."""
     pattern_to_tree_plan_map, shareable_pairs = state
     alg = algoA()
     count_common_pairs = lambda lst: len(lst) if lst is not None else 0
-    if np.sum([count_common_pairs(lst) for lst in shareable_pairs.reshape(-1)]) == 0:
+    count_common_pairs_lst = lambda lst_of_lists: sum([count_common_pairs(lst) for lst in lst_of_lists])
+    if sum([count_common_pairs_lst(lst_of_lists) for lst_of_lists in shareable_pairs]) == 0:
         return state
     neighbour = alg.Nedge_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
     return neighbour
 
 
-def tree_plan_vertex_neighbour(state: Tuple[Dict[Pattern, TreePlan], np.array]):
+def tree_plan_vertex_neighbour(state: Tuple[Dict[Pattern, TreePlan], List[List]]):
     """Move a little bit x, from the left or the right."""
     pattern_to_tree_plan_map, shareable_pairs = state
     alg = algoA()
     count_common_pairs = lambda lst: len(lst) if lst is not None else 0
-    if np.sum([count_common_pairs(lst) for lst in shareable_pairs.reshape(-1)]) == 0:
+    count_common_pairs_lst = lambda lst_of_lists: sum([count_common_pairs(lst) for lst in lst_of_lists])
+    if sum([count_common_pairs_lst(lst_of_lists) for lst_of_lists in shareable_pairs]) == 0:
         return state
     neighbour = alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
     return neighbour
@@ -539,18 +540,20 @@ def tree_plan_vertex_neighbour(state: Tuple[Dict[Pattern, TreePlan], np.array]):
 iter_num = 1
 
 
-def tree_plan_state_get_summary(state: Tuple[Dict[Pattern, TreePlan], np.array]):
+def tree_plan_state_get_summary(state: Tuple[Dict[Pattern, TreePlan], List[List]]):
     _, shareable_pairs = state
     count_common_pairs = lambda lst: len(lst) if lst is not None else 0
+    count_common_pairs_lst = lambda lst_of_lists: sum([count_common_pairs(lst) for lst in lst_of_lists])
+
     global iter_num
     iter_num += 1
     # dividing by 2 cause the shareable_pairs is a symmetric matrix
-    return "iter " + str(iter_num) + " common pairs size = " + str(
-        np.sum([count_common_pairs(lst) for lst in shareable_pairs.reshape(-1)]) // 2)
+    sum_common_pairs = sum([count_common_pairs_lst(lst_of_lists) for lst_of_lists in shareable_pairs]) // 2
+    return "iter " + str(iter_num) + " common pairs size = " + str(sum_common_pairs)
 
 
-def tree_plan_equal(state1: Tuple[Dict[Pattern, TreePlan], np.array],
-                    state2: Tuple[Dict[Pattern, TreePlan], np.array]):
+def tree_plan_equal(state1: Tuple[Dict[Pattern, TreePlan], List[List]],
+                    state2: Tuple[Dict[Pattern, TreePlan], List[List]]):
     patterns = list(state1[0].keys())
 
     leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(state1[0])
