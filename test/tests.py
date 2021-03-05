@@ -1,14 +1,13 @@
 from test.BasicTests import *
-from test.PlanBuilderTests import runPlanBuilderTest
-from test.TreeConstructionTests import *
 from test.KC_tests import *
-from test.NegationTests import *
-from test.PolicyTests import *
 from test.MultiPattern_tests import *
+from test.NegationTests import *
+from test.PlanBuilderTests import runPlanBuilderTest
+from test.PolicyTests import *
 from test.StorageTests import *
+from test.TreeConstructionTests import *
 from test.UnitTests.MPT_neighborhoodTests import run_MPT_Neighborhood_Tests
 from test.UnitTests.test_storage import run_storage_tests
-
 
 runTest.over_all_time = 0
 # basic functionality tests

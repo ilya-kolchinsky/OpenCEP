@@ -9,7 +9,7 @@ from condition.BaseRelationCondition import GreaterThanCondition
 from condition.CompositeCondition import AndCondition
 from condition.Condition import Variable
 from misc.StatisticsTypes import StatisticsTypes
-from plan.MPT_neighborhood import algoA, TreePlan
+from plan.MPT_neighborhood import MinimalOrderTopology, TreePlan
 from plan.TreeCostModel import TreePlanCostCalculator
 from plan.TreePlanBuilderOrders import TreePlanBuilderOrder
 from plan.UnifiedTreeBuilder import UnifiedTreeBuilder
@@ -34,9 +34,9 @@ def tree_plan_equal(first_state: Tuple[Dict[Pattern, TreePlan], List[List]],
     return True
 
 def patterns_initialize_function(patterns: List[Pattern]):
-    alg = algoA()
+    alg = MinimalOrderTopology()
     pattern_to_tree_plan_map = {p: alg.create_tree_topology(p) for p in patterns}
-    shareable_pairs = algoA.get_shareable_pairs(patterns)
+    shareable_pairs = MinimalOrderTopology.get_shareable_pairs(patterns)
     return pattern_to_tree_plan_map, shareable_pairs
 
 
@@ -49,7 +49,7 @@ def sharable_patterns_num(shareable_pairs):
 def tree_plan_edge_neighbour(state: Tuple[Dict[Pattern, TreePlan], List[List]]):
     """Move a little bit x, from the left or the right."""
     pattern_to_tree_plan_map, shareable_pairs = state
-    alg = algoA()
+    alg = MinimalOrderTopology()
     if sharable_patterns_num(shareable_pairs) == 0:
         return state
     neighbour = alg.Nedge_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
@@ -59,7 +59,7 @@ def tree_plan_edge_neighbour(state: Tuple[Dict[Pattern, TreePlan], List[List]]):
 def tree_plan_vertex_neighbour(state: Tuple[Dict[Pattern, TreePlan], List[List]]):
     """Move a little bit x, from the left or the right."""
     pattern_to_tree_plan_map, shareable_pairs = state
-    alg = algoA()
+    alg = MinimalOrderTopology()
 
     if sharable_patterns_num(shareable_pairs) == 0:
         return state
@@ -114,8 +114,8 @@ def shareable_all_pairs_unit_test():
 
     pattern_to_tree_plan_map = {p: tree_plan_builder.build_tree_plan(p) for p in patterns}
 
-    shareable_pairs = algoA.get_all_sharable_sub_patterns(pattern_to_tree_plan_map[patterns[0]], patterns[0],
-                                                          pattern_to_tree_plan_map[patterns[1]], patterns[0])
+    shareable_pairs = MinimalOrderTopology.get_all_sharable_sub_patterns(pattern_to_tree_plan_map[patterns[0]], patterns[0],
+                                                                         pattern_to_tree_plan_map[patterns[1]], patterns[0])
 
     return pattern_to_tree_plan_map
 
@@ -134,7 +134,7 @@ def create_topology_test():
                          [1.0, 0.15989723367389616, 1.0, 0.9992557393942864], [1.0, 1.0, 0.9992557393942864, 1.0]]
     arrivalRates = [0.016597077244258872, 0.01454418928322895, 0.013917884481558803, 0.012421711899791231]
     pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    algoA_instance = algoA()
+    algoA_instance = MinimalOrderTopology()
     _ = algoA_instance._create_topology_with_const_sub_order(pattern1, [0, 3])
 
 
@@ -164,7 +164,7 @@ def create_topology_const_sub_pattern_test():
     selectivityMatrix = [[1.0, 0.9457796098355941, 1.0, 1.0], [0.9457796098355941, 1.0, 0.15989723367389616, 1.0]]
     arrivalRates = [0.016597077244258872, 0.01454418928322895]
     pattern2.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
-    algoA_instance = algoA()
+    algoA_instance = MinimalOrderTopology()
     type = list(pattern2.get_all_event_types())
 
     # indexes = [index for index in range(len(pattern2.get_all_event_types()))]
@@ -206,14 +206,14 @@ def create_topology_sub_pattern_eq_pattern_test():
     tree_plan = tree_plan_builder.build_tree_plan(pattern1)
     pattern_to_tree_plan_map = {p: tree_plan_builder.build_tree_plan(p) for p in patterns}
 
-    algoA_instance = algoA()
+    algoA_instance = MinimalOrderTopology()
     pattern2_data = (pattern2, range(4), {'a', 'b', 'c', 'd'})
     pattern_to_tree_plan_map = algoA_instance._create_tree_topology_shared_subpattern(pattern1, pattern2_data)
 
     return pattern_to_tree_plan_map
 
 
-def Nedge_test_1():
+def Basic_Nedge_test():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
                     PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("GOOG", "d")),
@@ -240,13 +240,13 @@ def Nedge_test_1():
 
     state = patterns_initialize_function(patterns)
     pattern_to_tree_plan_map, shareable_pairs = state
-    alg = algoA()
+    alg = MinimalOrderTopology()
     alg.Nedge_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
 
     return pattern_to_tree_plan_map
 
 
-def Nedge_test_2():
+def advanced_Nedge_test():
     events = ["AAPL", "AMZN", "GOOG"]
     patterns = []
     for i in range(0, 3):
@@ -277,13 +277,13 @@ def Nedge_test_2():
 
     state = patterns_initialize_function(patterns)
     pattern_to_tree_plan_map, shareable_pairs = state
-    alg = algoA()
+    alg = MinimalOrderTopology()
     alg.Nedge_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
 
     return pattern_to_tree_plan_map
 
 
-def annealing_basic_test_1():
+def annealing_first_basic_test():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
                     PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("GOO", "d")),
@@ -319,7 +319,7 @@ def annealing_basic_test_1():
                                        neighbour_function=tree_plan_vertex_neighbour, time_limit=10000000)
 
 
-def annealing_basic_test_2():
+def annealing_second_basic_test():
     events = ["AAPL", "AMZN", "GOOG", "FB"]
     patterns = []
     for i in range(0, 2):
@@ -358,7 +358,7 @@ def annealing_basic_test_2():
                                        time_limit=10)
 
 
-def annealing_med_test_1():
+def annealing_first_mid_basic_test():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
                     PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
@@ -410,7 +410,7 @@ def annealing_med_test_1():
                                        time_limit=10)
 
 
-def annealing_med_test_2():
+def annealing_second_mid_basic_test():
     events = ["AAPL", "AMZN", "GOOG", "FB", "MIC"]
     patterns = []
     for i in range(0, 8):
@@ -440,7 +440,7 @@ def annealing_med_test_2():
                                        time_limit=10)
 
 
-def Nvertex_test_1():
+def Nvertex_basic_test():
     events = ["AAPL", "AMZN", "GOOG", "FB", "MIC"]
     patterns = []
     for i in range(0, 20):
@@ -464,11 +464,11 @@ def Nvertex_test_1():
                                    (selectivityMatrix, arrivalRates))
     state = patterns_initialize_function(patterns)
     pattern_to_tree_plan_map, shareable_pairs = state
-    alg = algoA()
+    alg = MinimalOrderTopology()
     alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 3)
 
 
-def Nvertex_test_2():
+def Nvertex_med_test():
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
                     PrimitiveEventStructure("GOOG", "c"), PrimitiveEventStructure("SALEH", "d")),
@@ -504,7 +504,7 @@ def Nvertex_test_2():
     patterns = [pattern1, pattern2, pattern3]
     state = patterns_initialize_function(patterns)
     pattern_to_tree_plan_map, shareable_pairs = state
-    alg = algoA()
+    alg = MinimalOrderTopology()
     alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 3)
 
     return pattern_to_tree_plan_map
@@ -588,7 +588,7 @@ def advanced_Nvertex_no_conditions_test():
     patterns = [pattern1, pattern2, pattern3, pattern4, pattern5, pattern6, pattern7]
     state = patterns_initialize_function(patterns)
     pattern_to_tree_plan_map, shareable_pairs = state
-    alg = algoA()
+    alg = MinimalOrderTopology()
     alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 7)
 
     return pattern_to_tree_plan_map
@@ -698,7 +698,7 @@ def advanced_Nvertex_test():
     patterns = [pattern1, pattern2, pattern3, pattern4, pattern5, pattern6, pattern7, pattern8, pattern9]
     state = patterns_initialize_function(patterns)
     pattern_to_tree_plan_map, shareable_pairs = state
-    alg = algoA()
+    alg = MinimalOrderTopology()
     pattern_to_tree_plan_map, _ = alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 9)
 
     return pattern_to_tree_plan_map
@@ -714,14 +714,14 @@ def run_all(tests: List[callable]):
 def run_MPT_Neighborhood_Tests():
     tests = [
         shareable_all_pairs_unit_test,
-        Nedge_test_1,
-        Nedge_test_2,
-        annealing_basic_test_1,
-        annealing_basic_test_2,
-        annealing_med_test_1,
-        annealing_med_test_2,
-        Nvertex_test_1,
-        Nvertex_test_2,
+        Basic_Nedge_test,
+        advanced_Nedge_test,
+        annealing_first_basic_test,
+        annealing_second_basic_test,
+        annealing_first_mid_basic_test,
+        annealing_second_mid_basic_test,
+        Nvertex_basic_test,
+        Nvertex_med_test,
         advanced_Nvertex_no_conditions_test,
         advanced_Nvertex_test,
     ]

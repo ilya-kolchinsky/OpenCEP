@@ -1,6 +1,5 @@
 from copy import deepcopy
 from datetime import timedelta
-from datetime import timedelta
 from typing import List, Dict
 
 from base.Pattern import Pattern
@@ -29,32 +28,19 @@ class Tree:
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
                  pattern_id: int = None, plan_nodes_to_nodes_map: Dict[TreePlanNode, Node] = None):
 
-        if plan_nodes_to_nodes_map is None:
-            self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
-                                                Tree.__get_operator_arg_list(pattern.positive_structure),
-                                                pattern.window, None, pattern.consumption_policy)
-
-        else:  # new approach
-            self.__root = self.__construct_tree_unified_with_others(pattern.positive_structure, tree_plan.root,
-                                                                    Tree.__get_operator_arg_list(
-                                                                        pattern.positive_structure),
-                                                                    pattern.window, None, pattern.consumption_policy,
-                                                                    plan_nodes_to_nodes_map)
-
+        self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
+                                            Tree.__get_operator_arg_list(pattern.positive_structure),
+                                            pattern.window, None, pattern.consumption_policy,plan_nodes_to_nodes_map)
         shared_nodes_types = self.get_shared_nodes_types(self.__root, pattern_id)
-
         if pattern.consumption_policy is not None and \
                 pattern.consumption_policy.should_register_event_type_as_single(True):
             for event_type in pattern.consumption_policy.single_types:
                 self.__root.register_single_event_type(event_type)
-
         if pattern.negative_structure is not None:
             self.__adjust_leaf_indices(pattern)
             self.__add_negative_tree_structure(pattern)
-
         self.__apply_condition(pattern, shared_nodes_types)
         self.__root.set_is_output_node(True)
-
         self.__root.create_storage_unit(storage_params)
         self.__root.create_parent_to_info_dict()
         if pattern_id is not None:
@@ -181,53 +167,25 @@ class Tree:
             # the current operator is a unary operator hiding a nested pattern structure
             unary_node = self.__create_internal_node_by_operator(current_operator, sliding_window, parent)
             nested_operator = current_operator.arg
-            child = self.__construct_tree_unified_with_others(nested_operator,
-                                                              Tree.__create_nested_structure(nested_operator),
-                                                              Tree.__get_operator_arg_list(nested_operator),
-                                                              sliding_window, unary_node,
-                                                              consumption_policy, plan_nodes_to_nodes_map)
+            child = self.__construct_tree(nested_operator,
+                                          Tree.__create_nested_structure(nested_operator),
+                                          Tree.__get_operator_arg_list(nested_operator),
+                                          sliding_window, unary_node,
+                                          consumption_policy, plan_nodes_to_nodes_map)
             unary_node.set_subtree(child)
             return unary_node
 
         # the current operator is a nested binary operator
-        return self.__construct_tree_unified_with_others(current_operator,
-                                                         Tree.__create_nested_structure(current_operator),
-                                                         current_operator.args, sliding_window, parent,
-                                                         consumption_policy, plan_nodes_to_nodes_map)
+        return self.__construct_tree(current_operator,
+                                     Tree.__create_nested_structure(current_operator),
+                                     current_operator.args, sliding_window, parent,
+                                     consumption_policy, plan_nodes_to_nodes_map)
+
 
     def __construct_tree(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
                          args: List[PatternStructure], sliding_window: timedelta, parent: Node,
-                         consumption_policy: ConsumptionPolicy):
-        """
-        Recursively builds an evaluation tree according to the specified structure.
-        """
-        if isinstance(root_operator, UnaryStructure) and parent is None:
-            # a special case where the top operator of the entire pattern is an unary operator
-            return self.__handle_primitive_event_or_nested_structure(tree_plan, root_operator,
-                                                                     sliding_window, parent, consumption_policy)
-
-        if type(tree_plan) == TreePlanLeafNode:
-            # either a leaf node or an unary operator encapsulating a nested structure
-            # TODO: must implement a mechanism for actually creating nested tree plans instead of a flat plan
-            # with leaves hiding nested structure
-            return self.__handle_primitive_event_or_nested_structure(tree_plan, args[tree_plan.event_index],
-                                                                     sliding_window, parent, consumption_policy)
-
-        # an internal node
-        current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
-        left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
-                                             sliding_window, current, consumption_policy)
-        right_subtree = self.__construct_tree(root_operator, tree_plan.right_child, args,
-                                              sliding_window, current, consumption_policy)
-
-        current.set_subtrees(left_subtree, right_subtree)
-
-        return current
-
-    def __construct_tree_unified_with_others(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
-                                             args: List[PatternStructure], sliding_window: timedelta, parent: Node,
-                                             consumption_policy: ConsumptionPolicy,
-                                             plan_nodes_to_nodes_map: Dict[TreePlanNode, Node]):
+                         consumption_policy: ConsumptionPolicy,
+                         plan_nodes_to_nodes_map: Dict[TreePlanNode, Node]):
         """
         Recursively builds an evaluation tree according to the specified structure.
         """
@@ -262,12 +220,12 @@ class Tree:
         current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
         if plan_nodes_to_nodes_map is not None:
             plan_nodes_to_nodes_map[tree_plan] = current
-        left_subtree = self.__construct_tree_unified_with_others(root_operator, tree_plan.left_child, args,
-                                                                 sliding_window, current, consumption_policy,
-                                                                 plan_nodes_to_nodes_map)
-        right_subtree = self.__construct_tree_unified_with_others(root_operator, tree_plan.right_child, args,
-                                                                  sliding_window, current, consumption_policy,
-                                                                  plan_nodes_to_nodes_map)
+        left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
+                                             sliding_window, current, consumption_policy,
+                                             plan_nodes_to_nodes_map)
+        right_subtree = self.__construct_tree(root_operator, tree_plan.right_child, args,
+                                              sliding_window, current, consumption_policy,
+                                              plan_nodes_to_nodes_map)
         current.set_subtrees(left_subtree, right_subtree)
         return current
 

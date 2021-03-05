@@ -15,7 +15,7 @@ from plan.TreePlanBuilder import TreePlanBuilder
 from plan.UnifiedTreeBuilder import UnifiedTreeBuilder
 
 
-class algoA(TreePlanBuilder):
+class MinimalOrderTopology(TreePlanBuilder, ABC):
     def create_tree_topology_aux(self, pattern: Pattern, items, args_num):
         # this function is used as an auxiliary functions in 3 different functions:
         # create_tree_topology , _create_topology_with_const_sub_order and _create_pattern_topology
@@ -40,18 +40,18 @@ class algoA(TreePlanBuilder):
                 subset = frozenset(tSubset)
                 disjoint_sets_iter = get_all_disjoint_sets(subset)  # iterator for all disjoint splits of a set.
                 # use first option as speculative best.
-                set1_, set2_ = next(disjoint_sets_iter)
-                tree1_, _, _ = sub_trees[set1_]
-                tree2_, _, _ = sub_trees[set2_]
-                new_tree_ = TreePlanBuilder._instantiate_binary_node(pattern, tree1_, tree2_)
+                first_set, second_test = next(disjoint_sets_iter)
+                first_tree, _, _ = sub_trees[first_set]
+                second_tree, _, _ = sub_trees[second_test]
+                new_tree_ = TreePlanBuilder._instantiate_binary_node(pattern, first_tree, second_tree)
                 new_cost_ = self._get_plan_cost(pattern, new_tree_)
                 new_left_ = items.difference({subset})
                 sub_trees[subset] = new_tree_, new_cost_, new_left_
                 # find the best topology based on previous topologies for smaller subsets.
-                for set1, set2 in disjoint_sets_iter:
-                    tree1, _, _ = sub_trees[set1]
-                    tree2, _, _ = sub_trees[set2]
-                    new_tree = TreePlanBuilder._instantiate_binary_node(pattern, tree1, tree2)
+                for first_set, second_test in disjoint_sets_iter:
+                    first_tree, _, _ = sub_trees[first_set]
+                    second_tree, _, _ = sub_trees[second_test]
+                    new_tree = TreePlanBuilder._instantiate_binary_node(pattern, first_tree, second_tree)
                     new_cost = self._get_plan_cost(pattern, new_tree)
                     _, cost, left = sub_trees[subset]
                     # if new subset's topology is better, then update to it.
@@ -173,12 +173,12 @@ class algoA(TreePlanBuilder):
         if isinstance(plan_node, TreePlanLeafNode):
             return [plan_node]
         elif isinstance(plan_node, TreePlanUnaryNode):
-            return [plan_node] + algoA.get_all_nodes(plan_node.child)
+            return [plan_node] + MinimalOrderTopology.get_all_nodes(plan_node.child)
         else:
             assert isinstance(plan_node, TreePlanBinaryNode)
         return [plan_node] \
-               + algoA.get_all_nodes(plan_node.left_child) \
-               + algoA.get_all_nodes(plan_node.right_child)
+               + MinimalOrderTopology.get_all_nodes(plan_node.left_child) \
+               + MinimalOrderTopology.get_all_nodes(plan_node.right_child)
 
     @staticmethod
     def get_event_args(node: TreePlanNode, pattern: Pattern):
@@ -211,41 +211,46 @@ class algoA(TreePlanBuilder):
         # first time we use Pattern construct unlike applying operator constructors in the next iterations
         if first_call:
             condition = UnifiedTreeBuilder.get_condition_from_pattern_in_one_sub_tree(node, pattern, leaves_dict)
-            pattern = Pattern(algoA.build_pattern_from_plan_node(node, pattern, leaves_dict), condition,
+            pattern = Pattern(MinimalOrderTopology.build_pattern_from_plan_node(node, pattern, leaves_dict), condition,
                               pattern.window, pattern.consumption_policy, pattern.id)
             pattern.set_statistics(pattern.statistics_type, pattern.statistics)
             return pattern
 
         node_type = type(node)
         if issubclass(node_type, TreePlanLeafNode):
-            leaves_in_plan_node_1 = node.get_leaves()
-            assert len(leaves_in_plan_node_1) == 1
+            leaves_in_plan_node = node.get_leaves()
+            assert len(leaves_in_plan_node) == 1
 
-            index, event_type, event_name = algoA.get_event_args(node, pattern)
+            index, event_type, event_name = MinimalOrderTopology.get_event_args(node, pattern)
             return PrimitiveEventStructure(event_type, event_name)
 
         elif issubclass(node_type, TreePlanInternalNode):  # internal node
             node_operator: OperatorTypes = node.get_operator()
             if node_operator == OperatorTypes.SEQ:
-                return SeqOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
-                                   algoA.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict))
+                return SeqOperator(
+                    MinimalOrderTopology.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
+                    MinimalOrderTopology.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict))
             elif node_operator == OperatorTypes.OR:
-                return OrOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
-                                  algoA.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict))
+                return OrOperator(
+                    MinimalOrderTopology.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
+                    MinimalOrderTopology.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict))
             elif node_operator == OperatorTypes.AND:
-                return AndOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
-                                   algoA.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict))
+                return AndOperator(
+                    MinimalOrderTopology.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
+                    MinimalOrderTopology.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict))
             elif node_operator == OperatorTypes.KC:
                 return KleeneClosureOperator(
-                    algoA.build_pattern_from_plan_node(node.child, pattern, leaves_dict))
+                    MinimalOrderTopology.build_pattern_from_plan_node(node.child, pattern, leaves_dict))
             elif node_operator == OperatorTypes.NSEQ:
                 return NegationOperator(
-                    SeqOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
-                                algoA.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict)))
+                    SeqOperator(
+                        MinimalOrderTopology.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
+                        MinimalOrderTopology.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict)))
             elif node_operator == OperatorTypes.NAND:
                 return NegationOperator(
-                    AndOperator(algoA.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
-                                algoA.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict)))
+                    AndOperator(
+                        MinimalOrderTopology.build_pattern_from_plan_node(node.left_child, pattern, leaves_dict),
+                        MinimalOrderTopology.build_pattern_from_plan_node(node.right_child, pattern, leaves_dict)))
             else:
                 raise NotImplementedError
 
@@ -257,20 +262,26 @@ class algoA(TreePlanBuilder):
             two plans with their compatible patterns
         @returns:
             A list with all the subpattern that are sharable between the given patterns"""
-        fisrt_tree_subtrees = algoA.get_all_nodes(first_tree_plan.root)
-        second_tree_subtrees = algoA.get_all_nodes(second_tree_plan.root)
+        fisrt_tree_subtrees = MinimalOrderTopology.get_all_nodes(first_tree_plan.root)
+        second_tree_subtrees = MinimalOrderTopology.get_all_nodes(second_tree_plan.root)
         sharable = []
         pattern_to_tree_plan_map = {first_pattern: first_tree_plan, second_pattern: second_tree_plan}
         leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(pattern_to_tree_plan_map)
 
-        for node1, node2 in itertools.product(fisrt_tree_subtrees, second_tree_subtrees):
-            if TreePlanBuilder.is_equivalent(node1, first_pattern, node2, second_pattern, leaves_dict):
-                first_names, _, fist_event_indexes = TreePlanBuilder.extract_pattern_condition(node1, first_pattern, leaves_dict)
-                second_names, _, second_event_indexes = TreePlanBuilder.extract_pattern_condition(node2, second_pattern, leaves_dict)
-                sharable_sub_pattern = algoA.build_pattern_from_plan_node(node1, first_pattern, leaves_dict, first_call=True)
+        for first_node, second_node in itertools.product(fisrt_tree_subtrees, second_tree_subtrees):
+            if TreePlanBuilder.is_equivalent(first_node, first_pattern, second_node, second_pattern, leaves_dict):
+                first_names, _, fist_event_indexes = TreePlanBuilder.extract_pattern_condition(first_node,
+                                                                                               first_pattern,
+                                                                                               leaves_dict)
+                second_names, _, second_event_indexes = TreePlanBuilder.extract_pattern_condition(second_node,
+                                                                                                  second_pattern,
+                                                                                                  leaves_dict)
+                sharable_sub_pattern = MinimalOrderTopology.build_pattern_from_plan_node(first_node, first_pattern,
+                                                                                         leaves_dict, first_call=True)
                 # time window is set to be the min between them by defintion
                 sharable_sub_pattern.set_time_window(min(first_pattern.window, second_pattern.window))
-                sharable_sub_pattern_data = (sharable_sub_pattern, fist_event_indexes, first_names, second_event_indexes, second_names)
+                sharable_sub_pattern_data = (
+                sharable_sub_pattern, fist_event_indexes, first_names, second_event_indexes, second_names)
                 sharable.append(sharable_sub_pattern_data)
         return sharable
 
@@ -298,9 +309,10 @@ class algoA(TreePlanBuilder):
                 tree_plan_j = unified_builder.build_tree_plan(patternj)
                 """
                 pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans([patterni, patternj])
-                tree_plan1 = pattern_to_tree_plan_map_ordered[patterni]
-                tree_plan2 = pattern_to_tree_plan_map_ordered[patternj]
-                sharable_sub_patterns = algoA.get_all_sharable_sub_patterns(tree_plan1, patterni, tree_plan2, patternj)
+                first_tree_plan = pattern_to_tree_plan_map_ordered[patterni]
+                second_tree_plan = pattern_to_tree_plan_map_ordered[patternj]
+                sharable_sub_patterns = MinimalOrderTopology.get_all_sharable_sub_patterns(first_tree_plan, patterni,
+                                                                                           second_tree_plan, patternj)
                 shareable_pairs_array[i][j] = sharable_sub_patterns
         return shareable_pairs_array
 
@@ -354,7 +366,7 @@ class algoA(TreePlanBuilder):
         sub_pattern_shareable_array_copy = deepcopy(sub_pattern_shareable_array)
         # select random two patterns and all the common sub patterns between them
         # we do that to select later a random sub pattern that is sharable between them
-        i, patterni, j, patternj, shareable_pairs_i_j = algoA.get_random_patterns_with_their_common_sub_patterns(
+        i, patterni, j, patternj, shareable_pairs_i_j = MinimalOrderTopology.get_random_patterns_with_their_common_sub_patterns(
             patterns_list, sub_pattern_shareable_array_copy)
         if len(shareable_pairs_i_j) == 0:  # no share exists
             return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
@@ -362,14 +374,14 @@ class algoA(TreePlanBuilder):
         random_idx = random.choice(range(len(shareable_pairs_i_j)))  # TODO
         # random_idx = 0
         assert random_idx < len(shareable_pairs_i_j)
-        sub_pattern, event_indexes1, names1, event_indexes2, names2 = shareable_pairs_i_j[random_idx]
-        alg = algoA()
-        sub_pattern_data_1 = (sub_pattern, event_indexes1, names1)
-        sub_pattern_data_2 = (sub_pattern, event_indexes2, names2)
-        new_tree_plan_i = alg._create_tree_topology_shared_subpattern(patterni, sub_pattern_data_1)
-        new_tree_plan_j = alg._create_tree_topology_shared_subpattern(patternj, sub_pattern_data_2)
+        sub_pattern, first_event_indexes, first_names, second_event_indexes, second_names = shareable_pairs_i_j[random_idx]
+        alg = MinimalOrderTopology()
+        first_sub_pattern_data = (sub_pattern, first_event_indexes, first_names)
+        second_sub_pattern_data = (sub_pattern, second_event_indexes, second_names)
+        new_tree_plan_i = alg._create_tree_topology_shared_subpattern(patterni, first_sub_pattern_data)
+        new_tree_plan_j = alg._create_tree_topology_shared_subpattern(patternj, second_sub_pattern_data)
         # merge
-        algoA.share_tree_plans(sub_pattern, patterni, new_tree_plan_i, patternj, new_tree_plan_j)
+        MinimalOrderTopology.share_tree_plans(sub_pattern, patterni, new_tree_plan_i, patternj, new_tree_plan_j)
         pattern_to_tree_plan_map_copy[patterni] = new_tree_plan_i
         pattern_to_tree_plan_map_copy[patternj] = new_tree_plan_j
 
@@ -402,13 +414,13 @@ class algoA(TreePlanBuilder):
             pattern_to_tree_plan_map_copy[p] = new_tree
         # select random two patterns and all the common sub patterns between them
         # we do that to select later a random sub pattern that is sharable between them
-        i, patterni, j, patternj, shareable_pairs_i_j = algoA.get_random_patterns_with_their_common_sub_patterns(
+        i, patterni, j, patternj, shareable_pairs_i_j = MinimalOrderTopology.get_random_patterns_with_their_common_sub_patterns(
             patterns_list, sub_pattern_shareable_array_copy)
         if len(shareable_pairs_i_j) == 0:  # no share exists
             return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
         # here we select the random sub pattern to share
         random_idx = random.choices(range(len(shareable_pairs_i_j)), k=1)[0]
-        sub_pattern, event_indexes1, names1, event_indexes2, names2 = shareable_pairs_i_j[random_idx]
+        sub_pattern, first_event_indexes, first_names, second_event_indexes, second_names = shareable_pairs_i_j[random_idx]
         # now we must share this sub_ pattern with all patterns containing this sub_pattern
         all_pattern_indexes_contains_sub_pattern = [i]
         for idx in range(len(patterns_list)):
@@ -423,14 +435,14 @@ class algoA(TreePlanBuilder):
 
                 sub_patterns_i_idx = [sub_data[0] for sub_data in sub_patterns_i_idx]
             is_j_contain_sub_pattern = len(
-                list(filter(lambda pattern1: pattern1.is_equivalent(sub_pattern), sub_patterns_i_idx))) > 0
+                list(filter(lambda pattern: pattern.is_equivalent(sub_pattern), sub_patterns_i_idx))) > 0
             if is_j_contain_sub_pattern:
                 all_pattern_indexes_contains_sub_pattern.append(idx)
         all_pattern_indexes_contains_sub_pattern = sorted(all_pattern_indexes_contains_sub_pattern)
         max_sharing = min(k, len(all_pattern_indexes_contains_sub_pattern))
-        alg = algoA()
-        sub_pattern_data_1 = (sub_pattern, event_indexes1, names1)
-        new_tree_plani = alg._create_tree_topology_shared_subpattern(patterni, sub_pattern_data_1)
+        alg = MinimalOrderTopology()
+        first_sub_pattern_data = (sub_pattern, first_event_indexes, first_names)
+        new_tree_plani = alg._create_tree_topology_shared_subpattern(patterni, first_sub_pattern_data)
         pattern_to_tree_plan_map_copy[patterni] = new_tree_plani
         for p_idx in all_pattern_indexes_contains_sub_pattern[:max_sharing]:
             if p_idx == i:
@@ -446,12 +458,12 @@ class algoA(TreePlanBuilder):
                     break
             if sub_pattern_index == -1:
                 raise Exception("Error , must find the sub pattern index")
-            sub_pattern, event_indexes1, names1, curr_event_indexes, curr_names = shareable_pairs_i_p_idx[
+            sub_pattern, first_event_indexes, names1, curr_event_indexes, curr_names = shareable_pairs_i_p_idx[
                 sub_pattern_index]
             curr_sub_pattern_data = (sub_pattern, curr_event_indexes, curr_names)
             curr_new_plan = alg._create_tree_topology_shared_subpattern(pattern, curr_sub_pattern_data)
             # do the sharing process
-            algoA.share_tree_plans(sub_pattern, patterni, new_tree_plani, pattern, curr_new_plan)
+            MinimalOrderTopology.share_tree_plans(sub_pattern, patterni, new_tree_plani, pattern, curr_new_plan)
             pattern_to_tree_plan_map_copy[pattern] = curr_new_plan
             del sub_pattern_shareable_array_copy[i][p_idx][sub_pattern_index]
         return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy

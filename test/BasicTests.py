@@ -1,8 +1,8 @@
 from datetime import timedelta
 
-from base.Pattern import Pattern
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure
-from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, GreaterThanEqCondition, SmallerThanEqCondition
+from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, GreaterThanEqCondition, \
+    SmallerThanEqCondition
 from condition.CompositeCondition import AndCondition
 from condition.Condition import Variable, TrueCondition, BinaryCondition, SimpleCondition
 from test.testUtils import *

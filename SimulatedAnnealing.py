@@ -6,7 +6,7 @@ from random import random
 from typing import Dict, Tuple, List
 
 from base.Pattern import Pattern
-from plan.MPT_neighborhood import algoA
+from plan.MPT_neighborhood import MinimalOrderTopology
 from plan.TreeCostModel import TreePlanCostCalculator
 from plan.TreePlan import TreePlan
 from plan.TreePlanBuilder import TreePlanBuilder
@@ -112,7 +112,7 @@ class SimulatedAnnealing:
     def get_neighbour_function(local_search_neighbor_approach):
         def _neighbour_function(state: Tuple[Dict[Pattern, TreePlan], List[List]]):
             pattern_to_tree_plan_map, shareable_pairs = state
-            alg = algoA()
+            alg = MinimalOrderTopology()
             if sharable_patterns_num(shareable_pairs) == 0:
                 return state
             if local_search_neighbor_approach == MultiPatternUnifiedTreeLocalSearchApproaches.EDGE_NEIGHBOR:
@@ -128,9 +128,9 @@ class SimulatedAnnealing:
 
     @staticmethod
     def patterns_initialize_function(patterns: List[Pattern]):
-        alg = algoA()
+        alg = MinimalOrderTopology()
         pattern_to_tree_plan_map = {p: alg.create_tree_topology(p) for p in patterns}
-        shareable_pairs = algoA.get_shareable_pairs(patterns)
+        shareable_pairs = MinimalOrderTopology.get_shareable_pairs(patterns)
         return pattern_to_tree_plan_map, shareable_pairs
 
     @staticmethod

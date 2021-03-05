@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-from base.Pattern import Pattern
 from base.PatternStructure import AndOperator, PrimitiveEventStructure
 from condition.BaseRelationCondition import GreaterThanCondition, GreaterThanEqCondition
 from condition.CompositeCondition import AndCondition

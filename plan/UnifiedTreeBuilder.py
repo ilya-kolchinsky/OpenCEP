@@ -6,7 +6,6 @@ from typing import List, Dict
 
 from base.Pattern import Pattern
 from base.PatternStructure import CompositeStructure
-from misc import DefaultConfig
 from misc.DefaultConfig import DEFAULT_TREE_COST_MODEL
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlanLeafNode, TreePlan, TreePlanNode, TreePlanUnaryNode, \
