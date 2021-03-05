@@ -234,7 +234,6 @@ class Tree:
         current = plan_nodes_to_nodes_map.get(tree_plan) if plan_nodes_to_nodes_map is not None else None
         if current is not None:
             current.propagate_sliding_window(max(current.get_sliding_window(), sliding_window))
-            self.__add_node_to_childs(current)
             if parent is not None:
                 current.add_parent(parent)
             return current
@@ -268,22 +267,6 @@ class Tree:
                                                                   plan_nodes_to_nodes_map)
         current.set_subtrees(left_subtree, right_subtree)
         return current
-
-    def __add_node_to_childs(self, node: Node):
-        if node is None or isinstance(node, LeafNode):
-            return
-        if isinstance(node, UnaryNode):
-            if node._child is not None:
-                node._child.add_parent(node)
-                self.__add_node_to_childs(node._child)
-            return
-        if isinstance(node, BinaryNode):
-            if node._left_subtree is not None:
-                node._left_subtree.add_parent(node)
-                self.__add_node_to_childs(node._left_subtree)
-            if node._right_subtree is not None:
-                node._right_subtree.add_parent(node)
-                self.__add_node_to_childs(node._right_subtree)
 
     def get_last_matches(self):
         """

@@ -8,7 +8,8 @@ from condition.Condition import Variable
 from misc import DefaultConfig
 from plan.TreeCostModel import TreeCostModelFactory
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode, TreePlanInternalNode, TreePlanUnaryNode, TreePlanLeafNode
+from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode, TreePlanInternalNode, \
+    TreePlanUnaryNode, TreePlanLeafNode
 from tree.TreeVisualizationUtility import GraphVisualization
 
 
@@ -26,7 +27,8 @@ class TreePlanBuilder(ABC):
         """
         return TreePlan(self._create_tree_topology(pattern))
 
-    def visualize(self, visualize_data: TreePlanNode or Dict[Pattern, TreePlan], title=None, visualize_flag=DefaultConfig.VISUALIZATION):
+    def visualize(self, visualize_data: TreePlanNode or Dict[Pattern, TreePlan], title=None,
+                  visualize_flag=DefaultConfig.VISUALIZATION):
         if visualize_flag and isinstance(visualize_data, TreePlanNode):
             G = GraphVisualization(title)
             G.build_from_root_treePlan(visualize_data, node_level=visualize_data.height)
@@ -68,7 +70,7 @@ class TreePlanBuilder(ABC):
     def replace_name_by_type_condition(condition1, condition2, pattern1_events: List[PrimitiveEventStructure],
                                        pattern2_events: List[PrimitiveEventStructure]):
 
-        # replace every event's name in condition by his type in opder to compare between condition.
+        # replace every event's name in condition by his type in order to compare between condition.
         event1_name_type = {event.name: event.type for event in pattern1_events}
         event2_name_type = {event.name: event.type for event in pattern2_events}
 
@@ -85,31 +87,28 @@ class TreePlanBuilder(ABC):
 
         return condition1, condition2
 
+    @staticmethod
+    def extract_pattern_condition(plan_node, pattern, leaves_dict):
+        leaves_in_plan_node = plan_node.get_leaves()
+        if leaves_in_plan_node is None:
+            return None
+
+        pattern_leaves, pattern_events = list(zip(*list(leaves_dict.get(pattern).items())))
+
+        event_indexes = list(map(lambda e: e.event_index, leaves_in_plan_node))
+        plan_node_events = list(
+            filter(lambda i: pattern_leaves[i].event_index in event_indexes, range(len(pattern_leaves))))
+
+        names = {pattern_events[event_index].name for event_index in plan_node_events}
+        return names, pattern_events, event_indexes
 
     @staticmethod
     def get_condition_from_pattern_in_sub_tree(plan_node1: TreePlanNode, pattern1: Pattern, plan_node2: TreePlanNode,
                                                pattern2: Pattern,
                                                leaves_dict):
 
-        leaves_in_plan_node_1 = plan_node1.get_leaves()
-        leaves_in_plan_node_2 = plan_node2.get_leaves()
-        if leaves_in_plan_node_1 is None or leaves_in_plan_node_2 is None:
-            return None, None
-
-        pattern1_leaves, pattern1_events = list(zip(*list(leaves_dict.get(pattern1).items())))
-        pattern2_leaves, pattern2_events = list(zip(*list(leaves_dict.get(pattern2).items())))
-
-        event_indexes1 = list(map(lambda e: e.event_index, leaves_in_plan_node_1))
-        plan_node_1_events = list(
-            filter(lambda i: pattern1_leaves[i].event_index in event_indexes1, range(len(pattern1_leaves))))
-
-        event_indexes2 = list(map(lambda e: e.event_index, leaves_in_plan_node_2))
-        plan_node_2_events = list(
-            filter(lambda i: pattern2_leaves[i].event_index in event_indexes2, range(len(pattern2_leaves))))
-
-        names1 = {pattern1_events[event_index].name for event_index in plan_node_1_events}
-        names2 = {pattern2_events[event_index].name for event_index in plan_node_2_events}
-
+        names1, pattern1_events, _ = TreePlanBuilder.extract_pattern_condition(plan_node1, pattern1, leaves_dict)
+        names2, pattern2_events, _ = TreePlanBuilder.extract_pattern_condition(plan_node2, pattern2, leaves_dict)
         condition1 = deepcopy(pattern1.condition.get_condition_of(names1, get_kleene_closure_conditions=False,
                                                                   consume_returned_conditions=False))
         condition2 = deepcopy(pattern2.condition.get_condition_of(names2, get_kleene_closure_conditions=False,
@@ -118,7 +117,7 @@ class TreePlanBuilder(ABC):
         if condition1 == condition2:
             return condition1, condition2
         return TreePlanBuilder.replace_name_by_type_condition(condition1, condition2, pattern1_events,
-                                                                 pattern2_events)
+                                                              pattern2_events)
 
     @staticmethod
     def is_equivalent(plan_node1: TreePlanNode, pattern1: Pattern, plan_node2: TreePlanNode, pattern2: Pattern,
@@ -126,13 +125,17 @@ class TreePlanBuilder(ABC):
 
         """
         find if two subtree_plans are euivalent and check that by recursion on left subtree_plans and right subtree_plans
+        the way this function works is comparing one node in pattern1 with its corresponding node in pattern2 , in addition to comparing
+        the hierarchy we compare the conditions too, if we counter two nodes with different condition set or different subtrees hierarchy
+        , we return false
         """
         if type(plan_node1) != type(plan_node2) or plan_node1 is None or plan_node2 is None:
             return False
-
+        # we have to extract both condition lists since it's not possible to implement this function using __eq__
+        # hierarchy because the input is not and instance of this class .
         condition1, condition2 = TreePlanBuilder.get_condition_from_pattern_in_sub_tree(plan_node1, pattern1,
-                                                                                           plan_node2, pattern2,
-                                                                                           leaves_dict)
+                                                                                        plan_node2, pattern2,
+                                                                                        leaves_dict)
 
         if condition1 is None or condition2 is None or condition1 != condition2:
             return False
@@ -144,13 +147,13 @@ class TreePlanBuilder(ABC):
                 return False
             if nodes_type == TreePlanUnaryNode:
                 return TreePlanBuilder.is_equivalent(plan_node1.child, pattern1, plan_node2.child, pattern2,
-                                                        leaves_dict)
+                                                     leaves_dict)
 
             if nodes_type == TreePlanBinaryNode:
                 return TreePlanBuilder.is_equivalent(plan_node1.left_child, pattern1, plan_node2.left_child,
-                                                        pattern2, leaves_dict) \
+                                                     pattern2, leaves_dict) \
                        and TreePlanBuilder.is_equivalent(plan_node1.right_child, pattern1, plan_node2.right_child,
-                                                            pattern2, leaves_dict)
+                                                         pattern2, leaves_dict)
 
         if nodes_type == TreePlanLeafNode:
             event1 = leaves_dict.get(pattern1).get(plan_node1)

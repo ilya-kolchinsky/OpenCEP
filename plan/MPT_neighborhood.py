@@ -220,23 +220,8 @@ class algoA(TreePlanBuilder):
 
         for node1, node2 in itertools.product(tree1_subtrees, tree2_subtrees):
             if TreePlanBuilder.is_equivalent(node1, pattern1, node2, pattern2, leaves_dict):
-                leaves_in_plan_node_1 = node1.get_leaves()
-                leaves_in_plan_node_2 = node2.get_leaves()
-                if leaves_in_plan_node_1 is None or leaves_in_plan_node_2 is None:
-                    return None, None
-                pattern1_leaves, pattern1_events = list(zip(*list(leaves_dict.get(pattern1).items())))
-                pattern2_leaves, pattern2_events = list(zip(*list(leaves_dict.get(pattern2).items())))
-
-                event_indexes1 = list(map(lambda e: e.event_index, leaves_in_plan_node_1))
-                plan_node_1_events = list(
-                    filter(lambda i: pattern1_leaves[i].event_index in event_indexes1, range(len(pattern1_leaves))))
-
-                event_indexes2 = list(map(lambda e: e.event_index, leaves_in_plan_node_2))
-                plan_node_2_events = list(
-                    filter(lambda i: pattern2_leaves[i].event_index in event_indexes2, range(len(pattern2_leaves))))
-
-                names1 = {pattern1_events[event_index].name for event_index in plan_node_1_events}
-                names2 = {pattern2_events[event_index].name for event_index in plan_node_2_events}
+                names1, _, event_indexes1 = TreePlanBuilder.extract_pattern_condition(node1, pattern1, leaves_dict)
+                names2, _, event_indexes2 = TreePlanBuilder.extract_pattern_condition(node2, pattern2, leaves_dict)
                 sharable_sub_pattern = algoA.build_pattern_from_plan_node(node1, pattern1, leaves_dict, first_time=True)
                 # time window is set to be the min between them by defintion
                 sharable_sub_pattern.set_time_window(min(pattern1.window,
