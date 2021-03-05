@@ -1,4 +1,4 @@
-import itertools
+import math
 import math
 import traceback
 from datetime import datetime
@@ -7,8 +7,8 @@ from typing import Dict, Tuple, List
 
 from base.Pattern import Pattern
 from plan.MPT_neighborhood import algoA
-from plan.TreeCostModel import TreeCostModelFactory, TreeCostModel, TreePlanCostCalculator
-from plan.TreePlan import TreePlan, TreePlanNode
+from plan.TreeCostModel import TreePlanCostCalculator
+from plan.TreePlan import TreePlan
 from plan.TreePlanBuilder import TreePlanBuilder
 from plan.TreePlanBuilderOrders import TreePlanBuilderOrder
 from plan.UnifiedTreeBuilder import UnifiedTreeBuilder
@@ -156,10 +156,14 @@ class SimulatedAnnealing:
                                                       MultiPatternUnifiedTreeLocalSearchApproaches, int]
                                                   ):
         """
-        This method gets patterns, builds a single-pattern tree to each one of them,
-        and merges equivalent subtrees from different trees using simulated annealing local search algorithm.
+        @param pattern_to_tree_plan_map :dict between the Patter and his treePlan
+        @param tree_plan_local_search_params: a tuple of 2:
+                    * first entry is the local_search_neighbor_approach either Nedge or Nvertex approach
+                    * second entry is the time limit for the local search to run
+        @return: the new pattern_to_tree_plan_map
+                This method gets patterns, builds a single-pattern tree to each one of them,
+                and merges equivalent subtrees from different trees using simulated annealing local search algorithm.
         """
-
         local_search_neighbor_approach, time_limit = tree_plan_local_search_params
         patterns = list(pattern_to_tree_plan_map.keys())
         neighbour_function = SimulatedAnnealing.get_neighbour_function(local_search_neighbor_approach)

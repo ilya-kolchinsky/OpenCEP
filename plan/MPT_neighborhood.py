@@ -265,17 +265,12 @@ class algoA(TreePlanBuilder):
 
         for node1, node2 in itertools.product(fisrt_tree_subtrees, second_tree_subtrees):
             if TreePlanBuilder.is_equivalent(node1, first_pattern, node2, second_pattern, leaves_dict):
-                first_names, _, fist_event_indexes = TreePlanBuilder.extract_pattern_condition(node1, first_pattern,
-                                                                                               leaves_dict)
-                second_names, _, second_event_indexes = TreePlanBuilder.extract_pattern_condition(node2, second_pattern,
-                                                                                                  leaves_dict)
-                sharable_sub_pattern = algoA.build_pattern_from_plan_node(node1, first_pattern, leaves_dict,
-                                                                          first_time=True)
+                first_names, _, fist_event_indexes = TreePlanBuilder.extract_pattern_condition(node1, first_pattern, leaves_dict)
+                second_names, _, second_event_indexes = TreePlanBuilder.extract_pattern_condition(node2, second_pattern, leaves_dict)
+                sharable_sub_pattern = algoA.build_pattern_from_plan_node(node1, first_pattern, leaves_dict, first_call=True)
                 # time window is set to be the min between them by defintion
-                sharable_sub_pattern.set_time_window(min(first_pattern.window,
-                                                         second_pattern.window))
-                sharable_sub_pattern_data = (
-                sharable_sub_pattern, fist_event_indexes, first_names, second_event_indexes, second_names)
+                sharable_sub_pattern.set_time_window(min(first_pattern.window, second_pattern.window))
+                sharable_sub_pattern_data = (sharable_sub_pattern, fist_event_indexes, first_names, second_event_indexes, second_names)
                 sharable.append(sharable_sub_pattern_data)
         return sharable
 
@@ -288,8 +283,6 @@ class algoA(TreePlanBuilder):
                 return [n][n] matrix, we store in [i][j] a list with all sharable
                 sub patterns between pattern i and pattern j"""
         number_of_patterns = len(patterns)
-        # shape = (number_of_patterns, number_of_patterns)
-        # shareable_pairs_array = np.empty(shape=shape, dtype=list)
         shareable_pairs_array = [[None for _ in range(number_of_patterns)] for _ in range(number_of_patterns)]
         for i, patterni in enumerate(patterns):
             for j, patternj in enumerate(patterns):
@@ -462,140 +455,3 @@ class algoA(TreePlanBuilder):
             pattern_to_tree_plan_map_copy[pattern] = curr_new_plan
             del sub_pattern_shareable_array_copy[i][p_idx][sub_pattern_index]
         return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
-
-    @staticmethod
-    def construct_subtrees_local_search_tree_plan(pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
-                                                  tree_plan_local_search_params: Tuple[
-                                                      MultiPatternUnifiedTreeLocalSearchApproaches, int]):
-        """
-        @ params:
-            1)pattern_to_tree_plan_map :dict between the Patter and his treePlan
-            2)tree_plan_local_search_params: a tuple of 2:
-                * first entry is the local_search_neighbor_approach either Nedge or Nvertex approach
-                * second entry is the time limit for the local search to run
-        @returns:
-            the new pattern_to_tree_plan_map
-            This method gets patterns, builds a single-pattern tree to each one of them,
-            and merges equivalent subtrees from different trees using simulated annealing local search algorithm.
-        """
-        local_search_neighbor_approach, time_limit = tree_plan_local_search_params
-        patterns = list(pattern_to_tree_plan_map.keys())
-        neighbour_function = None
-        if local_search_neighbor_approach == MultiPatternUnifiedTreeLocalSearchApproaches.EDGE_NEIGHBOR:
-            neighbour_function = tree_plan_edge_neighbour
-        elif local_search_neighbor_approach == MultiPatternUnifiedTreeLocalSearchApproaches.VERTEX_NEIGHBOR:
-            neighbour_function = tree_plan_vertex_neighbour
-        elif local_search_neighbor_approach == MultiPatternUnifiedTreeLocalSearchApproaches.VERTEX_NEIGHBOR:
-            raise Exception("Unsupported local search successor function")
-        simulated_annealing_instance = SimulatedAnnealing(patterns=patterns,
-                                                          initialize_function=patterns_initialize_function,
-                                                          cost_function=tree_plan_cost_function,
-                                                          neighbour_function=neighbour_function,
-                                                          state_equal_function=tree_plan_equal,
-                                                          state_repr_function=tree_plan_state_get_summary,
-                                                          time_limit=time_limit)
-
-        state, c, states, costs = simulated_annealing_instance.timed_annealing()
-        pattern_to_tree_plan_map, _ = state
-        return pattern_to_tree_plan_map
-
-
-def single_pattern_cost(pattern: Pattern, tree_plan_root: TreePlanNode, cost_model: TreeCostModel):
-    try:
-        cost = cost_model.get_plan_cost(pattern, tree_plan_root)
-        return cost
-    except:
-        return 0  # TODO??
-
-
-def get_duplicated_cost(pattern_i, tree_plan_i_root, pattern_j, tree_plan_j_root, cost_model: TreeCostModel):
-    node1, node2 = None, None
-    if tree_plan_i_root == tree_plan_j_root:
-        node1 = tree_plan_i_root
-        node2 = tree_plan_j_root
-    elif tree_plan_i_root.left_child == tree_plan_j_root:
-        node1 = tree_plan_i_root.left_child
-        node2 = tree_plan_j_root
-    elif tree_plan_i_root == tree_plan_j_root.left_child:
-        node1 = tree_plan_i_root
-        node2 = tree_plan_j_root.left_child
-    elif tree_plan_i_root.left_child == tree_plan_j_root.left_child:
-        node1 = tree_plan_i_root.left_child
-        node2 = tree_plan_j_root.left_child
-
-    if node1 is None or node2 is None:
-        return 0
-
-    cost_i = single_pattern_cost(pattern_i, tree_plan_i_root, cost_model)
-    cost_j = single_pattern_cost(pattern_j, tree_plan_j_root, cost_model)
-    duplicated_cost = min(cost_i, cost_j)
-    return duplicated_cost
-
-
-def tree_plan_cost_function(state: Tuple[Dict[Pattern, TreePlan], List[List]]):
-    pattern_to_tree_plan_map, _ = state
-    cost_model = TreeCostModelFactory.create_cost_model()
-    patterns = list(pattern_to_tree_plan_map.keys())
-
-    tree_plan_total_cost = sum(
-        [single_pattern_cost(p, tree_plan.root, cost_model) for p, tree_plan in pattern_to_tree_plan_map.items()])
-    for i, j in itertools.product(range(len(patterns)), range(len(patterns))):
-        if i >= j:
-            continue
-        pattern_i = patterns[i]
-        pattern_j = patterns[j]
-        tree_plan_i_root = pattern_to_tree_plan_map[pattern_i].root
-        tree_plan_j_root = pattern_to_tree_plan_map[pattern_j].root
-        duplicated_cost = get_duplicated_cost(pattern_i, tree_plan_i_root, pattern_j, tree_plan_j_root, cost_model)
-        tree_plan_total_cost -= duplicated_cost
-
-    return tree_plan_total_cost
-
-
-def patterns_initialize_function(patterns: List[Pattern]):
-    alg = algoA()
-    pattern_to_tree_plan_map = {p: alg.create_tree_topology(p) for p in patterns}
-    shareable_pairs = algoA.get_shareable_pairs(patterns)
-    return pattern_to_tree_plan_map, shareable_pairs
-
-
-def tree_plan_edge_neighbour(state: Tuple[Dict[Pattern, TreePlan], List[List]]):
-    """Move a little bit x, from the left or the right."""
-    pattern_to_tree_plan_map, shareable_pairs = state
-    alg = algoA()
-    count_common_pairs = lambda lst: len(lst) if lst is not None else 0
-    count_common_pairs_lst = lambda lst_of_lists: sum([count_common_pairs(lst) for lst in lst_of_lists])
-    if sum([count_common_pairs_lst(lst_of_lists) for lst_of_lists in shareable_pairs]) == 0:
-        return state
-    neighbour = alg.Nedge_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
-    return neighbour
-
-
-def tree_plan_vertex_neighbour(state: Tuple[Dict[Pattern, TreePlan], List[List]]):
-    """Move a little bit x, from the left or the right."""
-    pattern_to_tree_plan_map, shareable_pairs = state
-    alg = algoA()
-    count_common_pairs = lambda lst: len(lst) if lst is not None else 0
-    count_common_pairs_lst = lambda lst_of_lists: sum([count_common_pairs(lst) for lst in lst_of_lists])
-    if sum([count_common_pairs_lst(lst_of_lists) for lst_of_lists in shareable_pairs]) == 0:
-        return state
-    neighbour = alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
-    return neighbour
-
-
-iter_num = 1
-
-
-def tree_plan_state_get_summary(state: Tuple[Dict[Pattern, TreePlan], List[List]]):
-    _, shareable_pairs = state
-    count_common_pairs = lambda lst: len(lst) if lst is not None else 0
-    count_common_pairs_lst = lambda lst_of_lists: sum([count_common_pairs(lst) for lst in lst_of_lists])
-
-    global iter_num
-    iter_num += 1
-    # dividing by 2 cause the shareable_pairs is a symmetric matrix
-    sum_common_pairs = sum([count_common_pairs_lst(lst_of_lists) for lst_of_lists in shareable_pairs]) // 2
-    return "iter " + str(iter_num) + " common pairs size = " + str(sum_common_pairs)
-
-
-
