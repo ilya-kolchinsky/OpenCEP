@@ -4,7 +4,7 @@ from copy import deepcopy
 from itertools import combinations
 from typing import List, Dict, Tuple
 
-from SimulatedAnnealing import timed_annealing, acceptance_probability
+from SimulatedAnnealing import SimulatedAnnealing
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, OrOperator, AndOperator, KleeneClosureOperator, NegationOperator, \
     PrimitiveEventStructure
@@ -342,7 +342,7 @@ class algoA(TreePlanBuilder):
         pattern_to_tree_plan_map_copy[patterni] = new_tree_plan_i
         pattern_to_tree_plan_map_copy[patternj] = new_tree_plan_j
 
-        del sub_pattern_shareable_array_copy[i, j][random_idx]
+        del sub_pattern_shareable_array_copy[i][j][random_idx]
         return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
 
     @staticmethod
@@ -383,7 +383,7 @@ class algoA(TreePlanBuilder):
             if len(patterns_i_idx_data) == 0:
                 continue
 
-            # sub_patterns_i_idx = np.array(patterns_i_idx_data)
+            sub_patterns_i_idx = patterns_i_idx_data
             if len(sub_patterns_i_idx) > 0:  # get patterns from patterns_i_j_data (first column)
 
                 sub_patterns_i_idx = [sub_data[0] for sub_data in sub_patterns_i_idx]
@@ -401,7 +401,7 @@ class algoA(TreePlanBuilder):
             if p_idx == i:
                 continue
             sub_pattern_index = -1
-            shareable_pairs_i_p_idx = sub_pattern_shareable_array_copy[i, p_idx]
+            shareable_pairs_i_p_idx = sub_pattern_shareable_array_copy[i][p_idx]
             # find sub pattern index at shareable[i][p_idx]
             pattern = patterns_list[p_idx][1]
             # find sub pattern index at shareable[i][p_idx]
@@ -418,7 +418,7 @@ class algoA(TreePlanBuilder):
             # do the sharing process
             algoA.share_tree_plans(sub_pattern, patterni, new_tree_plani, pattern, curr_new_plan)
             pattern_to_tree_plan_map_copy[pattern] = curr_new_plan
-            del sub_pattern_shareable_array_copy[i, p_idx][sub_pattern_index]
+            del sub_pattern_shareable_array_copy[i][p_idx][sub_pattern_index]
         return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
 
     @staticmethod
@@ -439,17 +439,15 @@ class algoA(TreePlanBuilder):
             neighbour_function = tree_plan_vertex_neighbour
         elif local_search_neighbor_approach == MultiPatternUnifiedTreeLocalSearchApproaches.VERTEX_NEIGHBOR:
             raise Exception("Unsupported local search successor function")
+        simulated_annealing_instance = SimulatedAnnealing(patterns=patterns,
+                                                          initialize_function=patterns_initialize_function,
+                                                          cost_function=tree_plan_cost_function,
+                                                          neighbour_function=neighbour_function,
+                                                          state_equal_function=tree_plan_equal,
+                                                          state_repr_function=tree_plan_state_get_summary,
+                                                          time_limit=time_limit)
 
-        state, c, states, costs = timed_annealing(patterns=patterns,
-                                                  random_start=patterns_initialize_function,
-                                                  cost_function=tree_plan_cost_function,
-                                                  random_neighbour=neighbour_function,
-                                                  state_equal_function=tree_plan_equal,
-                                                  state_repr_function=tree_plan_state_get_summary,
-                                                  acceptance=acceptance_probability,
-                                                  time_limit=time_limit,
-                                                  max_steps=1000,
-                                                  debug=False)
+        state, c, states, costs = simulated_annealing_instance.timed_annealing()
         pattern_to_tree_plan_map, _ = state
         return pattern_to_tree_plan_map
 

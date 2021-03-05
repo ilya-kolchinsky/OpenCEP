@@ -127,3 +127,4 @@ class TreePlan:
     def __init__(self, root: TreePlanNode):
         self.root = root
         self.height = root.height
+
