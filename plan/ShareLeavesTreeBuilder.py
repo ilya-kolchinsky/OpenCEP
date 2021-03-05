@@ -49,17 +49,17 @@ class ShareLeavesTreeBuilder(UnifiedTreeBuilder):
                 for leaf in shared_leaves_dict.keys():
                     leaf_pattern, _ = shared_leaves_dict[leaf]
                     curr_leaf_pattern = pattern
-                    event1 = leaves_dict[curr_leaf_pattern][curr_leaf]
-                    event2 = leaves_dict[leaf_pattern][leaf]
+                    first_event = leaves_dict[curr_leaf_pattern][curr_leaf]
+                    second_event = leaves_dict[leaf_pattern][leaf]
                     # get the condition for every leaf
-                    condition1, condition2 = UnifiedTreeBuilder.get_condition_from_pattern_in_sub_tree(curr_leaf,
+                    first_condition, second_condition = UnifiedTreeBuilder.get_condition_from_pattern_in_sub_tree(curr_leaf,
                                                                                                        curr_leaf_pattern,
                                                                                                        leaf,
                                                                                                        leaf_pattern,
                                                                                                        leaves_dict)
-                    if condition1 is None or condition2 is None:
+                    if first_condition is None or second_condition is None:
                         continue
-                    if condition1 == condition2 and event1.type == event2.type:
+                    if first_condition == second_condition and first_event.type == second_event.type:
                         self.trees_number_nodes_shared += 1
                         _, leaf_tree_plan_node = shared_leaves_dict[leaf]
                         break

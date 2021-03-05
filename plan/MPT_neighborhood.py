@@ -420,7 +420,7 @@ class MinimalOrderTopology(TreePlanBuilder, ABC):
             return pattern_to_tree_plan_map_copy, sub_pattern_shareable_array_copy
         # here we select the random sub pattern to share
         random_idx = random.choices(range(len(shareable_pairs_i_j)), k=1)[0]
-        sub_pattern, first_event_indexes, first_names, second_event_indexes, second_names = shareable_pairs_i_j[random_idx]
+        sub_pattern, first_event_indexes, first_sub_pattern_names, second_event_indexes, second_names = shareable_pairs_i_j[random_idx]
         # now we must share this sub_ pattern with all patterns containing this sub_pattern
         all_pattern_indexes_contains_sub_pattern = [i]
         for idx in range(len(patterns_list)):
@@ -441,7 +441,7 @@ class MinimalOrderTopology(TreePlanBuilder, ABC):
         all_pattern_indexes_contains_sub_pattern = sorted(all_pattern_indexes_contains_sub_pattern)
         max_sharing = min(k, len(all_pattern_indexes_contains_sub_pattern))
         alg = MinimalOrderTopology()
-        first_sub_pattern_data = (sub_pattern, first_event_indexes, first_names)
+        first_sub_pattern_data = (sub_pattern, first_event_indexes, first_sub_pattern_names)
         new_tree_plani = alg._create_tree_topology_shared_subpattern(patterni, first_sub_pattern_data)
         pattern_to_tree_plan_map_copy[patterni] = new_tree_plani
         for p_idx in all_pattern_indexes_contains_sub_pattern[:max_sharing]:
@@ -458,7 +458,7 @@ class MinimalOrderTopology(TreePlanBuilder, ABC):
                     break
             if sub_pattern_index == -1:
                 raise Exception("Error , must find the sub pattern index")
-            sub_pattern, first_event_indexes, names1, curr_event_indexes, curr_names = shareable_pairs_i_p_idx[
+            sub_pattern, first_event_indexes, first_sub_pattern_names, curr_event_indexes, curr_names = shareable_pairs_i_p_idx[
                 sub_pattern_index]
             curr_sub_pattern_data = (sub_pattern, curr_event_indexes, curr_names)
             curr_new_plan = alg._create_tree_topology_shared_subpattern(pattern, curr_sub_pattern_data)

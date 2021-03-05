@@ -1,5 +1,6 @@
 from typing import List, Dict
 
+from SimulatedAnnealing import SimulatedAnnealing
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc import DefaultConfig
@@ -76,8 +77,8 @@ class EvaluationMechanismFactory:
         pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
         unified_tree_map = {}
         if eval_mechanism_params.tree_plan_params.tree_plan_union_type == MultiPatternTreePlanUnionApproaches.TREE_PLAN_LOCAL_SEARCH_ANNEALING:
-            unified_tree_map = MinimalOrderTopology.construct_subtrees_local_search_tree_plan(pattern_to_tree_plan_map,
-                                                                                              eval_mechanism_params.tree_plan_params.tree_plan_local_search_params)
+            unified_tree_map = SimulatedAnnealing.construct_subtrees_local_search_tree_plan(pattern_to_tree_plan_map,
+                                                                               eval_mechanism_params.tree_plan_params.tree_plan_local_search_params)
         else:
             unified_tree_map = EvaluationMechanismFactory.__create_union_tree_plans(pattern_to_tree_plan_map,
                                                            eval_mechanism_params.tree_plan_params.tree_plan_union_type)

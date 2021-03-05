@@ -54,25 +54,25 @@ class TreePlanBuilder(ABC):
         return TreePlanBinaryNode(operator_type, left_subtree, right_subtree)
 
     @staticmethod
-    def replace_name_by_type_condition(condition1, condition2, pattern1_events: List[PrimitiveEventStructure],
-                                       pattern2_events: List[PrimitiveEventStructure]):
+    def replace_name_by_type_condition(first_condition, second_condition, first_pattern_events: List[PrimitiveEventStructure],
+                                       second_pattern_events: List[PrimitiveEventStructure]):
 
         # replace every event's name in condition by his type in order to compare between condition.
-        event1_name_type = {event.name: event.type for event in pattern1_events}
-        event2_name_type = {event.name: event.type for event in pattern2_events}
+        first_events_name_type = {event.name: event.type for event in first_pattern_events}
+        second_events_name_type = {event.name: event.type for event in second_pattern_events}
 
-        for e in condition1.get_conditions_list():
+        for e in first_condition.get_conditions_list():
             if type(e.left_term_repr) == Variable:
-                e.left_term_repr.name = event1_name_type[e.left_term_repr.name]
+                e.left_term_repr.name = first_events_name_type[e.left_term_repr.name]
             if type(e.right_term_repr) == Variable:
-                e.right_term_repr.name = event1_name_type[e.right_term_repr.name]
-        for e in condition2.get_conditions_list():
+                e.right_term_repr.name = first_events_name_type[e.right_term_repr.name]
+        for e in second_condition.get_conditions_list():
             if type(e.left_term_repr) == Variable:
-                e.left_term_repr.name = event2_name_type[e.left_term_repr.name]
+                e.left_term_repr.name = second_events_name_type[e.left_term_repr.name]
             if type(e.right_term_repr) == Variable:
-                e.right_term_repr.name = event2_name_type[e.right_term_repr.name]
+                e.right_term_repr.name = second_events_name_type[e.right_term_repr.name]
 
-        return condition1, condition2
+        return first_condition, second_condition
 
     @staticmethod
     def extract_pattern_condition(plan_node, pattern, leaves_dict):
@@ -90,24 +90,24 @@ class TreePlanBuilder(ABC):
         return names, pattern_events, event_indexes
 
     @staticmethod
-    def get_condition_from_pattern_in_sub_tree(plan_node1: TreePlanNode, pattern1: Pattern, plan_node2: TreePlanNode,
-                                               pattern2: Pattern,
+    def get_condition_from_pattern_in_sub_tree(first_plan_node: TreePlanNode, first_pattern: Pattern, second_plan_node: TreePlanNode,
+                                               second_pattern: Pattern,
                                                leaves_dict):
 
-        names1, pattern1_events, _ = TreePlanBuilder.extract_pattern_condition(plan_node1, pattern1, leaves_dict)
-        names2, pattern2_events, _ = TreePlanBuilder.extract_pattern_condition(plan_node2, pattern2, leaves_dict)
-        condition1 = deepcopy(pattern1.condition.get_condition_of(names1, get_kleene_closure_conditions=False,
-                                                                  consume_returned_conditions=False))
-        condition2 = deepcopy(pattern2.condition.get_condition_of(names2, get_kleene_closure_conditions=False,
-                                                                  consume_returned_conditions=False))
+        first_names, first_pattern_events, _ = TreePlanBuilder.extract_pattern_condition(first_plan_node, first_pattern, leaves_dict)
+        second_names, second_pattern_events, _ = TreePlanBuilder.extract_pattern_condition(second_plan_node, second_pattern, leaves_dict)
+        first_condition = deepcopy(first_pattern.condition.get_condition_of(first_names, get_kleene_closure_conditions=False,
+                                                                       consume_returned_conditions=False))
+        second_condition = deepcopy(second_pattern.condition.get_condition_of(second_names, get_kleene_closure_conditions=False,
+                                                                        consume_returned_conditions=False))
 
-        if condition1 == condition2:
-            return condition1, condition2
-        return TreePlanBuilder.replace_name_by_type_condition(condition1, condition2, pattern1_events,
-                                                              pattern2_events)
+        if first_condition == second_condition:
+            return first_condition, second_condition
+        return TreePlanBuilder.replace_name_by_type_condition(first_condition, second_condition, first_pattern_events,
+                                                              second_pattern_events)
 
     @staticmethod
-    def is_equivalent(plan_node1: TreePlanNode, pattern1: Pattern, plan_node2: TreePlanNode, pattern2: Pattern,
+    def is_equivalent(first_plan_node: TreePlanNode, first_pattern: Pattern, second_plan_node: TreePlanNode, second_pattern: Pattern,
                       leaves_dict: Dict[Pattern, Dict[TreePlanNode, PrimitiveEventStructure]]):
 
         """
@@ -116,36 +116,36 @@ class TreePlanBuilder(ABC):
         the hierarchy we compare the conditions too, if we counter two nodes with different condition set or different subtrees hierarchy
         , we return false
         """
-        if type(plan_node1) != type(plan_node2) or plan_node1 is None or plan_node2 is None:
+        if type(first_plan_node) != type(second_plan_node) or first_plan_node is None or second_plan_node is None:
             return False
         # we have to extract both condition lists since it's not possible to implement this function using __eq__
         # hierarchy because the input is not and instance of this class .
-        condition1, condition2 = TreePlanBuilder.get_condition_from_pattern_in_sub_tree(plan_node1, pattern1,
-                                                                                        plan_node2, pattern2,
-                                                                                        leaves_dict)
+        first_condition, second_condition = TreePlanBuilder.get_condition_from_pattern_in_sub_tree(first_plan_node, first_pattern,
+                                                                                                   second_plan_node, second_pattern,
+                                                                                                   leaves_dict)
 
-        if condition1 is None or condition2 is None or condition1 != condition2:
+        if first_condition is None or second_condition is None or first_condition != second_condition:
             return False
 
-        nodes_type = type(plan_node1)
+        nodes_type = type(first_plan_node)
 
         if issubclass(nodes_type, TreePlanInternalNode):
-            if plan_node1.operator != plan_node2.operator:
+            if first_plan_node.operator != second_plan_node.operator:
                 return False
             if nodes_type == TreePlanUnaryNode:
-                return TreePlanBuilder.is_equivalent(plan_node1.child, pattern1, plan_node2.child, pattern2,
+                return TreePlanBuilder.is_equivalent(first_plan_node.child, first_pattern, second_plan_node.child, second_pattern,
                                                      leaves_dict)
 
             if nodes_type == TreePlanBinaryNode:
-                return TreePlanBuilder.is_equivalent(plan_node1.left_child, pattern1, plan_node2.left_child,
-                                                     pattern2, leaves_dict) \
-                       and TreePlanBuilder.is_equivalent(plan_node1.right_child, pattern1, plan_node2.right_child,
-                                                         pattern2, leaves_dict)
+                return TreePlanBuilder.is_equivalent(first_plan_node.left_child, first_pattern, second_plan_node.left_child,
+                                                     second_pattern, leaves_dict) \
+                       and TreePlanBuilder.is_equivalent(first_plan_node.right_child, first_pattern, second_plan_node.right_child,
+                                                         second_pattern, leaves_dict)
 
         if nodes_type == TreePlanLeafNode:
-            event1 = leaves_dict.get(pattern1).get(plan_node1)
-            event2 = leaves_dict.get(pattern2).get(plan_node2)
-            if event1 and event2:
-                return event1.type == event2.type
+            first_event = leaves_dict.get(first_pattern).get(first_plan_node)
+            second_event = leaves_dict.get(second_pattern).get(second_plan_node)
+            if first_event and second_event:
+                return first_event.type == second_event.type
 
         return False

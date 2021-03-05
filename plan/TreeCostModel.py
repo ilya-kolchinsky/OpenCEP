@@ -101,21 +101,21 @@ class TreePlanCostCalculator:
 
     @staticmethod
     def get_duplicated_cost(pattern_i, tree_plan_i_root, pattern_j, tree_plan_j_root, cost_model: TreeCostModel):
-        node1, node2 = None, None
+        first_node, second_node = None, None
         if tree_plan_i_root == tree_plan_j_root:
-            node1 = tree_plan_i_root
-            node2 = tree_plan_j_root
+            first_node = tree_plan_i_root
+            second_node = tree_plan_j_root
         elif tree_plan_i_root.left_child == tree_plan_j_root:
-            node1 = tree_plan_i_root.left_child
-            node2 = tree_plan_j_root
+            first_node = tree_plan_i_root.left_child
+            second_node = tree_plan_j_root
         elif tree_plan_i_root == tree_plan_j_root.left_child:
-            node1 = tree_plan_i_root
-            node2 = tree_plan_j_root.left_child
+            first_node = tree_plan_i_root
+            second_node = tree_plan_j_root.left_child
         elif tree_plan_i_root.left_child == tree_plan_j_root.left_child:
-            node1 = tree_plan_i_root.left_child
-            node2 = tree_plan_j_root.left_child
+            first_node = tree_plan_i_root.left_child
+            second_node = tree_plan_j_root.left_child
 
-        if node1 is None or node2 is None:
+        if first_node is None or second_node is None:
             return 0
 
         cost_i = TreePlanCostCalculator(pattern_i, tree_plan_i_root, cost_model).get_cost()

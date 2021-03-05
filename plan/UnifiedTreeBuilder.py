@@ -104,9 +104,9 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         """
         if len(order) <= 1:
             return TreePlanLeafNode(order[0])
-        tree_topology1 = UnifiedTreeBuilder._order_to_tree_topology_balanced(order[0:len(order) // 2], pattern)
-        tree_topology2 = UnifiedTreeBuilder._order_to_tree_topology_balanced(order[len(order) // 2:], pattern)
-        tree_topology = UnifiedTreeBuilder._instantiate_binary_node(pattern, tree_topology1, tree_topology2)
+        first_tree_topology = UnifiedTreeBuilder._order_to_tree_topology_balanced(order[0:len(order) // 2], pattern)
+        second_tree_topology = UnifiedTreeBuilder._order_to_tree_topology_balanced(order[len(order) // 2:], pattern)
+        tree_topology = UnifiedTreeBuilder._instantiate_binary_node(pattern, first_tree_topology, second_tree_topology)
         return tree_topology
 
     @staticmethod
@@ -144,9 +144,9 @@ class UnifiedTreeBuilder(TreePlanBuilder):
         if len(order) <= 1:
             return TreePlanLeafNode(order[0])
 
-        tree_topology1 = UnifiedTreeBuilder._order_to_tree_topology_left(order[0:len(order) // 2], pattern)
-        tree_topology2 = UnifiedTreeBuilder._order_to_tree_topology_balanced(order[len(order) // 2:], pattern)
-        tree_topology = UnifiedTreeBuilder._instantiate_binary_node(pattern, tree_topology1, tree_topology2)
+        first_tree_topology = UnifiedTreeBuilder._order_to_tree_topology_left(order[0:len(order) // 2], pattern)
+        second_tree_topology = UnifiedTreeBuilder._order_to_tree_topology_balanced(order[len(order) // 2:], pattern)
+        tree_topology = UnifiedTreeBuilder._instantiate_binary_node(pattern, first_tree_topology, second_tree_topology)
         return tree_topology
 
 
@@ -168,17 +168,17 @@ class UnifiedTreeBuilder(TreePlanBuilder):
     @staticmethod
     def get_condition_from_pattern_in_one_sub_tree(plan_node: TreePlanNode, pattern: Pattern, leaves_dict):
 
-        leaves_in_plan_node_1 = plan_node.get_leaves()
-        if leaves_in_plan_node_1 is None:
+        first_plan_node_leaves = plan_node.get_leaves()
+        if first_plan_node_leaves is None:
             return None
 
-        pattern1_leaves, pattern1_events = list(zip(*list(leaves_dict.get(pattern).items())))
+        first_pattern_leaves, first_pattern_events = list(zip(*list(leaves_dict.get(pattern).items())))
 
-        event_indexes1 = list(map(lambda e: e.event_index, leaves_in_plan_node_1))
-        plan_node_1_events = list(
-            filter(lambda i: pattern1_leaves[i].event_index in event_indexes1, range(len(pattern1_leaves))))
-        names1 = {pattern1_events[event_index].name for event_index in plan_node_1_events}
-        return deepcopy(pattern.condition.get_condition_of(names1, get_kleene_closure_conditions=False,
+        first_event_indexes = list(map(lambda e: e.event_index, first_plan_node_leaves))
+        first_plan_node_events = list(
+            filter(lambda i: first_pattern_leaves[i].event_index in first_event_indexes, range(len(first_pattern_leaves))))
+        first_names = {first_pattern_events[event_index].name for event_index in first_plan_node_events}
+        return deepcopy(pattern.condition.get_condition_of(first_names, get_kleene_closure_conditions=False,
                                                            consume_returned_conditions=False))
 
 

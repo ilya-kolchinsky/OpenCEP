@@ -71,7 +71,7 @@ class TopologyChangeSharingTreeBuilder(UnifiedTreeBuilder):
             self.trees_number_nodes_shared += max_intersection
         return unified_tree_map
 
-    def _two_patterns_max_merge(self, pattern1: Pattern, pattern2: Pattern):
+    def _two_patterns_max_merge(self, first_pattern: Pattern, second_pattern: Pattern):
         """
         This method gets two patterns, and tree to each one of them,
         and merges equivalent subtrees from different trees. then we try changing topology and merge again
@@ -79,26 +79,26 @@ class TopologyChangeSharingTreeBuilder(UnifiedTreeBuilder):
         """
         builders = UnifiedTreeBuilder.create_ordered_tree_builders()
         tree_plan_build_approaches = builders.keys()
-        order1, order2 = self.find_matches_orders([pattern1, pattern2])
+        first_order, second_order = self.find_matches_orders([first_pattern, second_pattern])
 
         union_builder = SubTreeSharingTreeBuilder()
         max_intersection = - math.inf
 
         best_unified = None
-        for approach1, approach2 in product(tree_plan_build_approaches, tree_plan_build_approaches):
-            builder1 = builders.get(approach1)
-            builder2 = builders.get(approach2)
-            tree1 = TreePlan(builder1._order_to_tree_topology(order1, pattern1))
-            tree2 = TreePlan(builder2._order_to_tree_topology(order2, pattern2))
-            tree1_size = builder1._sub_tree_size(tree1.root)
-            tree2_size = builder2._sub_tree_size(tree2.root)
-            pattern_to_tree_plan_map = {pattern1: tree1, pattern2: tree2}
+        for first_approach, second_approach in product(tree_plan_build_approaches, tree_plan_build_approaches):
+            first_builder = builders.get(first_approach)
+            second_builder = builders.get(second_approach)
+            first_tree = TreePlan(first_builder._order_to_tree_topology(first_order, first_pattern))
+            second_tree = TreePlan(second_builder._order_to_tree_topology(second_order, second_pattern))
+            first_tree_size = first_builder._sub_tree_size(first_tree.root)
+            tree2_size = second_builder._sub_tree_size(second_tree.root)
+            pattern_to_tree_plan_map = {first_pattern: first_tree, second_pattern: second_tree}
             unified = union_builder._union_tree_plans(pattern_to_tree_plan_map)
             trees_number_nodes_shared = union_builder.trees_number_nodes_shared
             if trees_number_nodes_shared > max_intersection:
-                max_intersection, best_approach1, best_approach2 = trees_number_nodes_shared, approach1, approach2
+                max_intersection = trees_number_nodes_shared
                 best_unified = unified
-            if max_intersection >= min(tree1_size, tree2_size):
+            if max_intersection >= min(first_tree_size, tree2_size):
                 # we got the max intersection that could be
                 break
 
@@ -158,38 +158,38 @@ class TopologyChangeSharingTreeBuilder(UnifiedTreeBuilder):
         return orders
 
     @staticmethod
-    def find_orders_for_two_patterns(pattern1: Pattern, pattern2: Pattern):
+    def find_orders_for_two_patterns(first_pattern: Pattern, second_pattern: Pattern):
         """
         """
 
-        pattern1_events = pattern1.positive_structure.get_args()
-        pattern2_events = pattern2.positive_structure.get_args()
+        first_pattern_events = first_pattern.positive_structure.get_args()
+        second_pattern_events = second_pattern.positive_structure.get_args()
         shared = []
 
-        for event1 in pattern1_events:
-            for event2 in pattern2_events:
-                if event1.type == event2.type and TopologyChangeSharingTreeBuilder.are_conditions_equal(pattern1, event1.name,
-                                                                                          pattern2, event2.name):
-                    shared += [(event1.name, event2.name, pattern1_events.index(event1), pattern2_events.index(event2))]
+        for event1 in first_pattern_events:
+            for event2 in second_pattern_events:
+                if event1.type == event2.type and TopologyChangeSharingTreeBuilder.are_conditions_equal(first_pattern, event1.name,
+                                                                                          second_pattern, event2.name):
+                    shared += [(event1.name, event2.name, first_pattern_events.index(event1), second_pattern_events.index(event2))]
                     break
 
         if len(shared) == 0:
-            order1 = list(range(len(pattern1.positive_structure.args)))
-            order2 = list(range(len(pattern2.positive_structure.args)))
-            return [order1, order2]
+            first_order = list(range(len(first_pattern.positive_structure.args)))
+            second_order = list(range(len(second_pattern.positive_structure.args)))
+            return [first_order, second_order]
 
-        names1, names2, order1, order2 = list(zip(*shared))
-        order1 = unique_list(order1) + list(filter(lambda x: x not in order1, range(len(pattern1_events))))
-        order2 = unique_list(order2) + list(filter(lambda x: x not in order2, range(len(pattern2_events))))
-        return [order1, order2]
+        _, _, first_order, second_order = list(zip(*shared))
+        first_order = unique_list(first_order) + list(filter(lambda x: x not in first_order, range(len(first_pattern_events))))
+        second_order = unique_list(second_order) + list(filter(lambda x: x not in second_order, range(len(second_pattern_events))))
+        return [first_order, second_order]
 
     @staticmethod
-    def are_conditions_equal(pattern1, event_name1, pattern2, event_name2):
-        condition1 = pattern1.condition.get_condition_of(event_name1, get_kleene_closure_conditions=False,
-                                                         consume_returned_conditions=False)
-        condition2 = pattern2.condition.get_condition_of(event_name2, get_kleene_closure_conditions=False,
-                                                         consume_returned_conditions=False)
-        return condition1 == condition2
+    def are_conditions_equal(first_pattern, first_event_name, second_pattern, second_event_name):
+        first_condition = first_pattern.condition.get_condition_of(first_event_name, get_kleene_closure_conditions=False,
+                                                                   consume_returned_conditions=False)
+        second_condition = second_pattern.condition.get_condition_of(second_event_name, get_kleene_closure_conditions=False,
+                                                                     consume_returned_conditions=False)
+        return first_condition == second_condition
 
     @staticmethod
     def find_order_for_new_pattern(patterns: List[Pattern], new_pattern: Pattern):
@@ -199,9 +199,9 @@ class TopologyChangeSharingTreeBuilder(UnifiedTreeBuilder):
         max_order_len = - math.inf
         best_order = []
         for i, pattern in enumerate(patterns):
-            _, order2 = TopologyChangeSharingTreeBuilder.find_orders_for_two_patterns(pattern, new_pattern)
-            if len(order2) >= max_order_len:
-                max_order_len = len(order2)
-                best_order = order2
+            _, order = TopologyChangeSharingTreeBuilder.find_orders_for_two_patterns(pattern, new_pattern)
+            if len(order) >= max_order_len:
+                max_order_len = len(order)
+                best_order = order
 
         return best_order
