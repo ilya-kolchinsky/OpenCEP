@@ -361,8 +361,7 @@ def union_intersection_size(patterns: List[Pattern], approach: MultiPatternTreeP
         pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans(patterns)
         unified = unified_builder._union_tree_plans(pattern_to_tree_plan_map_ordered, approach)
         size_of_intersection = unified_builder.trees_number_nodes_shared
-        unified_tree = TreeBasedEvaluationMechanism(unified, eval_mechanism_params.storage_params,
-                                                    eval_mechanism_params.multi_pattern_eval_params)
+        unified_tree = TreeBasedEvaluationMechanism(unified, eval_mechanism_params.storage_params)
         # unified_builder.visualize(visualize_data=pattern_to_tree_plan_map)
         unified_tree.visualize(title=r'$Unified \ Tree$')
 

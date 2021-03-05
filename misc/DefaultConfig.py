@@ -7,7 +7,6 @@ from misc.SelectionStrategies import SelectionStrategies
 from parallel.ParallelExecutionModes import ParallelExecutionModes
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType
-from plan.multi.MultiPatternEvaluationApproaches import MultiPatternEvaluationApproaches
 from plan.multi.MultiPatternUnifiedTreeLocalSearchApproaches import MultiPatternUnifiedTreeLocalSearchApproaches
 from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 from plan.TreeCostModels import TreeCostModels
@@ -34,9 +33,6 @@ PRIORITIZE_SORTING_BY_TIMESTAMP = True
 # iterative improvement defaults
 ITERATIVE_IMPROVEMENT_TYPE = IterativeImprovementType.SWAP_BASED
 ITERATIVE_IMPROVEMENT_INIT_TYPE = IterativeImprovementInitType.RANDOM
-
-# multi-pattern optimization defaults
-MULTI_PATTERN_APPROACH = MultiPatternEvaluationApproaches.TREE_PLAN_UNIFIED_TREE
 
 SELECT_NEIGHBOR_PATTERNS = 3
 

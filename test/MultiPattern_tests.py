@@ -8,7 +8,6 @@ from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCon
     SmallerThanEqCondition
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, NegationOperator
 from base.Pattern import Pattern
-from plan.multi.MultiPatternEvaluationParameters import *
 
 currentPath = pathlib.Path(os.path.dirname(__file__))
 absolutePath = str(currentPath.parent)
@@ -190,9 +189,7 @@ def onePatternIncludesOther(createTestFile=False):
                                                                                              MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
                                                                    TreeStorageParameters(sort_storage=False,
                                                                                          clean_up_interval=10,
-                                                                                         prioritize_sorting_by_timestamp=True),
-                                                                   MultiPatternEvaluationParameters(
-                                                                       MultiPatternEvaluationApproaches.TREE_PLAN_UNIFIED_TREE))
+                                                                                         prioritize_sorting_by_timestamp=True))
     runMultiTest("onePatternIncludesOther", [pattern1, pattern2], createTestFile, eval_mechanism_params)
 
 """
@@ -241,8 +238,7 @@ def samePatternSharingRoot(createTestFile = False):
                                   MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
         TreeStorageParameters(sort_storage=False,
                               clean_up_interval=10,
-                              prioritize_sorting_by_timestamp=True),
-        MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.TREE_PLAN_UNIFIED_TREE))
+                              prioritize_sorting_by_timestamp=True))
 
     runMultiTest('hierarchyMultiPattern', [hierarchyPattern, hierarchyPattern2, hierarchyPattern3], createTestFile, eval_mechanism_params)
 
@@ -287,8 +283,7 @@ def severalPatternShareSubtree(createTestFile=False):
                                   MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
         TreeStorageParameters(sort_storage=False,
                               clean_up_interval=10,
-                              prioritize_sorting_by_timestamp=True),
-        MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.TREE_PLAN_UNIFIED_TREE))
+                              prioritize_sorting_by_timestamp=True))
 
     runMultiTest("threeSharingSubtrees", [pattern, pattern2, pattern3], createTestFile, eval_mechanism_params)
 
@@ -340,8 +335,7 @@ def notInTheBeginningShare(createTestFile=False):
                                   MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
         TreeStorageParameters(sort_storage=False,
                               clean_up_interval=10,
-                              prioritize_sorting_by_timestamp=True),
-        MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.TREE_PLAN_UNIFIED_TREE))
+                              prioritize_sorting_by_timestamp=True))
 
     runMultiTest("MultipleNotBeginningShare", [pattern1, pattern2, pattern3], createTestFile, eval_mechanism_params)
 
@@ -404,7 +398,6 @@ def multipleParentsForInternalNode(createTestFile=False):
                                   MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
         TreeStorageParameters(sort_storage=False,
                               clean_up_interval=10,
-                              prioritize_sorting_by_timestamp=True),
-        MultiPatternEvaluationParameters(MultiPatternEvaluationApproaches.TREE_PLAN_UNIFIED_TREE))
+                              prioritize_sorting_by_timestamp=True))
 
     runMultiTest("multipleParentsForInternalNode", [pattern1, pattern2, pattern3, pattern4], createTestFile, eval_mechanism_params)

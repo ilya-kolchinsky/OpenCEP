@@ -6,7 +6,6 @@ from misc import DefaultConfig
 from plan.MPT_neighborhood import algoA
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
 from plan.UnifiedTreeBuilder import UnifiedTreeBuilder
-from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
@@ -27,12 +26,10 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
     """
 
     def __init__(self, tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
-                 storage_params: TreeStorageParameters = TreeStorageParameters(),
-                 multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
+                 storage_params: TreeStorageParameters = TreeStorageParameters()):
         super().__init__(EvaluationMechanismTypes.TREE_BASED)
         self.tree_plan_params = tree_plan_params
         self.storage_params = storage_params
-        self.multi_pattern_eval_params = multi_pattern_eval_params
 
 
 class EvaluationMechanismFactory:
@@ -70,8 +67,7 @@ class EvaluationMechanismFactory:
         if isinstance(patterns, Pattern):
             patterns = [patterns]
             pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
-            tree = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params,
-                                                        eval_mechanism_params.multi_pattern_eval_params)
+            tree = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params)
             return tree
 
         pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
@@ -84,8 +80,7 @@ class EvaluationMechanismFactory:
             unified_tree_map = union_builder._union_tree_plans(pattern_to_tree_plan_map.copy(),
                                                            eval_mechanism_params.tree_plan_params.tree_plan_union_type)
 
-        unified_tree = TreeBasedEvaluationMechanism(unified_tree_map, eval_mechanism_params.storage_params,
-                                                    eval_mechanism_params.multi_pattern_eval_params)
+        unified_tree = TreeBasedEvaluationMechanism(unified_tree_map, eval_mechanism_params.storage_params)
         return unified_tree
 
     @staticmethod

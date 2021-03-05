@@ -9,7 +9,6 @@ from tree.nodes.LeafNode import LeafNode
 from tree.PatternMatchStorage import TreeStorageParameters
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
-from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from tree.MultiPatternTree import MultiPatternTree
 from tree.TreeVisualizationUtility import GraphVisualization
 from tree.Tree import Tree
@@ -21,12 +20,11 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
 
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
-                 storage_params: TreeStorageParameters,
-                 multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
+                 storage_params: TreeStorageParameters):
 
         is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
         if is_multi_pattern_mode:
-            self.__tree = MultiPatternTree(pattern_to_tree_plan_map, storage_params, multi_pattern_eval_params)
+            self.__tree = MultiPatternTree(pattern_to_tree_plan_map, storage_params)
         else:
             self.__tree = Tree(list(pattern_to_tree_plan_map.values())[0],
                                list(pattern_to_tree_plan_map)[0], storage_params)
