@@ -12,7 +12,6 @@ from test.testUtils import *
 from plan.MPT_neighborhood import algoA, patterns_initialize_function, tree_plan_state_get_summary, tree_plan_equal, \
     tree_plan_cost_function, tree_plan_vertex_neighbour, tree_plan_edge_neighbour
 
-# ======================================================================
 
 def split_approach_string(approach: TreePlanBuilderOrder):
     return '{:10s}'.format(str(approach).split(".")[1])
@@ -22,27 +21,20 @@ def state_get_summary_aux(orders: List[int], approach: TreePlanBuilderOrder):
     return str(orders) + split_approach_string(approach)
 
 
-# def see_annealing(states, costs, title="Evolution of states and costs of the simulated annealing"):
-#     plt.title("States")
-#     plt.xlabel("Step")
-#     plt.plot(costs, 'b')
-#     plt.title(title)
-#     plt.subplots_adjust(top=0.85)
-#     plt.show()
-
 def visualize_annealing_timed(patterns: List[Pattern], initialize_function, state_equal_function, state_repr_function, cost_function,
                               neighbour_function, time_limit=100):
     simulated_annealing_instance = SimulatedAnnealing(patterns=patterns,
-                                              initialize_function=initialize_function,
-                                              cost_function=cost_function,
-                                              neighbour_function=neighbour_function,
-                                              state_equal_function=state_equal_function,
-                                              state_repr_function=state_repr_function,
-                                              time_limit=time_limit)
+                                                      initialize_function=initialize_function,
+                                                      cost_function=cost_function,
+                                                      neighbour_function=neighbour_function,
+                                                      state_equal_function=state_equal_function,
+                                                      state_repr_function=state_repr_function,
+                                                      time_limit=time_limit)
 
     state, c, states, costs = simulated_annealing_instance.timed_annealing()
     # see_annealing(states, costs, title="Evolution of states and costs of the time limited simulated annealing")
     return state, c
+
 
 # -------------------------------------------- Tests for MPT_neighborhood --------------------------------------------
 
@@ -71,7 +63,7 @@ def shareable_all_pairs_unit_test():
 
     shareable_pairs = algoA.get_all_sharable_sub_patterns(pattern_to_tree_plan_map[patterns[0]], patterns[0],
                                                           pattern_to_tree_plan_map[patterns[1]], patterns[0])
-    
+
     return pattern_to_tree_plan_map
 
 
@@ -91,7 +83,6 @@ def create_topology_test():
     pattern1.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, (selectivityMatrix, arrivalRates))
     algoA_instance = algoA()
     _ = algoA_instance._create_topology_with_const_sub_order(pattern1, [0, 3])
-    
 
 
 def create_topology_const_sub_pattern_test():
@@ -127,7 +118,7 @@ def create_topology_const_sub_pattern_test():
     # names = [pattern2.full_structure.args[i].name for i in indexes]
     tuple1 = (pattern2, range(2), {'a', 'b'})
     pattern_to_tree_plan_map = algoA_instance._create_tree_topology_shared_subpattern(pattern1, tuple1)
-    
+
     return pattern_to_tree_plan_map
 
 
@@ -165,7 +156,7 @@ def create_topology_sub_pattern_eq_pattern_test():
     algoA_instance = algoA()
     pattern2_data = (pattern2, range(4), {'a', 'b', 'c', 'd'})
     pattern_to_tree_plan_map = algoA_instance._create_tree_topology_shared_subpattern(pattern1, pattern2_data)
-    
+
     return pattern_to_tree_plan_map
 
 
@@ -198,7 +189,7 @@ def Nedge_test_1():
     pattern_to_tree_plan_map, shareable_pairs = state
     alg = algoA()
     alg.Nedge_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
-    
+
     return pattern_to_tree_plan_map
 
 
@@ -235,7 +226,7 @@ def Nedge_test_2():
     pattern_to_tree_plan_map, shareable_pairs = state
     alg = algoA()
     alg.Nedge_neighborhood(pattern_to_tree_plan_map, shareable_pairs)
-    
+
     return pattern_to_tree_plan_map
 
 
@@ -277,7 +268,6 @@ def annealing_basic_test_1():
                                          neighbour_function=tree_plan_vertex_neighbour, time_limit=10000000)
 
     pattern_to_tree_plan_map, shareable_pairs = state
-    
 
 
 def annealing_basic_test_2():
@@ -320,7 +310,6 @@ def annealing_basic_test_2():
                                          neighbour_function=tree_plan_vertex_neighbour,
                                          time_limit=10)
     pattern_to_tree_plan_map, shareable_pairs = state
-    
 
 
 def annealing_med_test_1():
@@ -375,7 +364,6 @@ def annealing_med_test_1():
                                          cost_function=tree_plan_cost_function,
                                          neighbour_function=tree_plan_vertex_neighbour,
                                          time_limit=10)
-    
 
 
 def annealing_med_test_2():
@@ -407,7 +395,6 @@ def annealing_med_test_2():
                                          cost_function=tree_plan_cost_function,
                                          neighbour_function=tree_plan_vertex_neighbour,
                                          time_limit=10)
-    
 
 
 def Nvertex_test_1():
@@ -436,7 +423,6 @@ def Nvertex_test_1():
     pattern_to_tree_plan_map, shareable_pairs = state
     alg = algoA()
     alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 3)
-
 
 
 def Nvertex_test_2():
@@ -475,7 +461,7 @@ def Nvertex_test_2():
     pattern_to_tree_plan_map, shareable_pairs = state
     alg = algoA()
     alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 3)
-    
+
     return pattern_to_tree_plan_map
 
 
@@ -559,7 +545,7 @@ def advanced_Nvertex_no_conditions_test():
     pattern_to_tree_plan_map, shareable_pairs = state
     alg = algoA()
     alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 7)
-    
+
     return pattern_to_tree_plan_map
 
 
@@ -669,7 +655,7 @@ def advanced_Nvertex_test():
     pattern_to_tree_plan_map, shareable_pairs = state
     alg = algoA()
     pattern_to_tree_plan_map, _ = alg.Nvertex_neighborhood(pattern_to_tree_plan_map, shareable_pairs, 9)
-    
+
     return pattern_to_tree_plan_map
 
 
