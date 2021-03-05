@@ -399,7 +399,7 @@ def three_patterns_ordered_events_test_2():
         timedelta(minutes=5)
     )
 
-    run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=8,
+    run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=10,
                              approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
@@ -430,7 +430,7 @@ def three_patterns_ordered_events_test_3():
         timedelta(minutes=5)
     )
 
-    run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=8,
+    run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=10,
                              approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
@@ -493,7 +493,7 @@ def three_patterns_ordered_events_test_5():
         SmallerThanCondition(Variable("a", get_peak_price), Variable("e", get_peak_price)),
         timedelta(minutes=5)
     )
-    run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=6,
+    run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=7,
                              approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
@@ -572,7 +572,7 @@ def four_patterns_ordered_events_test_2():
         SmallerThanCondition(Variable("a", get_peak_price), Variable("b", get_peak_price)),
         timedelta(minutes=5)
     )
-    run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3, pattern4], expected=13,
+    run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3, pattern4], expected=15,
                              approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
@@ -599,7 +599,7 @@ def equal_patterns_test():
                              approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     run_tree_plan_union_test(patterns=patterns, expected=16,
                              approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-    run_tree_plan_union_test(patterns=patterns, expected=33,
+    run_tree_plan_union_test(patterns=patterns, expected=35,
                              approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 

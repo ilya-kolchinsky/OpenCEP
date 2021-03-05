@@ -1,7 +1,6 @@
 import itertools
 import random
 from copy import deepcopy
-from itertools import combinations
 from typing import List, Dict, Tuple
 
 from SimulatedAnnealing import SimulatedAnnealing
@@ -10,10 +9,10 @@ from base.PatternStructure import SeqOperator, OrOperator, AndOperator, KleeneCl
     PrimitiveEventStructure
 from misc.StatisticsTypes import StatisticsTypes
 from misc.Utils import get_all_disjoint_sets
+from plan.TopologyChangeSharingTreeBuilder import TopologyChangeSharingTreeBuilder
 from plan.TreeCostModel import TreeCostModelFactory, TreeCostModel
 from plan.TreePlan import *
 from plan.TreePlanBuilder import TreePlanBuilder
-from plan.TreePlanBuilderOrders import TreePlanBuilderOrder
 from plan.UnifiedTreeBuilder import UnifiedTreeBuilder
 from plan.multi.MultiPatternUnifiedTreeLocalSearchApproaches import MultiPatternUnifiedTreeLocalSearchApproaches
 
@@ -26,7 +25,7 @@ class algoA(TreePlanBuilder):
                      for i in items}
         # for each subset of size i, find optimal topology for these subsets according to size (i-1) subsets.
         for i in range(2, args_num + 1):
-            for tSubset in combinations(items, i):
+            for tSubset in itertools.combinations(items, i):
                 subset = frozenset(tSubset)
                 disjoint_sets_iter = get_all_disjoint_sets(subset)  # iterator for all disjoint splits of a set.
                 # use first option as speculative best.
@@ -245,7 +244,7 @@ class algoA(TreePlanBuilder):
                 if j < i:  # because shareable_pairs_array[i][j] = shareable_pairs_array[j][i]
                     shareable_pairs_array[i][j] = shareable_pairs_array[j][i]
                     continue
-                unified_builder = UnifiedTreeBuilder(tree_plan_order_approach=TreePlanBuilderOrder.LEFT_TREE)
+                unified_builder = TopologyChangeSharingTreeBuilder()
                 """
                 unified_builder = UnifiedTreeBuilder(tree_plan_order_approach=TreePlanBuilderOrder.LEFT_TREE)
                 tree_plan_i = unified_builder.build_tree_plan(patterni)

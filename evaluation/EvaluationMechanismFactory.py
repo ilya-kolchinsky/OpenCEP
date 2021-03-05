@@ -1,11 +1,14 @@
-from typing import List
+from typing import List, Dict
 
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc import DefaultConfig
 from plan.MPT_neighborhood import algoA
+from plan.ShareLeavesTreeBuilder import ShareLeavesTreeBuilder
+from plan.SubTreeSharingTreeBuilder import SubTreeSharingTreeBuilder
+from plan.TopologyChangeSharingTreeBuilder import TopologyChangeSharingTreeBuilder
+from plan.TreePlan import TreePlan
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
-from plan.UnifiedTreeBuilder import UnifiedTreeBuilder
 from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
@@ -76,12 +79,33 @@ class EvaluationMechanismFactory:
             unified_tree_map = algoA.construct_subtrees_local_search_tree_plan(pattern_to_tree_plan_map,
                                                                                eval_mechanism_params.tree_plan_params.tree_plan_local_search_params)
         else:
-            union_builder = UnifiedTreeBuilder()
-            unified_tree_map = union_builder._union_tree_plans(pattern_to_tree_plan_map.copy(),
+            unified_tree_map = EvaluationMechanismFactory.__create_union_tree_plans(pattern_to_tree_plan_map,
                                                            eval_mechanism_params.tree_plan_params.tree_plan_union_type)
 
         unified_tree = TreeBasedEvaluationMechanism(unified_tree_map, eval_mechanism_params.storage_params)
         return unified_tree
+
+    @staticmethod
+    def __create_union_tree_plans(pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
+                          tree_plan_union_approach: MultiPatternTreePlanUnionApproaches):
+        if isinstance(pattern_to_tree_plan_map, TreePlan) or len(pattern_to_tree_plan_map) <= 1:
+            return pattern_to_tree_plan_map
+
+        pattern_to_tree_plan_map_copy = pattern_to_tree_plan_map.copy()
+
+        if tree_plan_union_approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES:
+            union_builder = ShareLeavesTreeBuilder()
+            return union_builder._union_tree_plans(pattern_to_tree_plan_map_copy)
+
+        if tree_plan_union_approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION:
+            union_builder = SubTreeSharingTreeBuilder()
+            return union_builder._union_tree_plans(pattern_to_tree_plan_map_copy)
+
+        if tree_plan_union_approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION:
+            union_builder = TopologyChangeSharingTreeBuilder()
+            return union_builder._union_tree_plans(pattern_to_tree_plan_map_copy)
+        else:
+            raise Exception("Unsupported union algorithm, yet")
 
     @staticmethod
     def __create_default_eval_parameters():

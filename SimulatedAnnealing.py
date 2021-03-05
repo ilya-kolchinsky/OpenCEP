@@ -1,9 +1,8 @@
 import math
-import sys
 import traceback
 from datetime import datetime
+from random import random
 from typing import Dict, Tuple, List
-import numpy.random as rn
 
 from base.Pattern import Pattern
 from plan.TreePlan import TreePlan
@@ -84,7 +83,7 @@ class SimulatedAnnealing:
                     if self.state_equal_function(new_state, state):
                         return state, self.cost_function(state), states, costs
 
-                    if self.acceptance(cost, new_cost, T) > rn.random():
+                    if self.acceptance(cost, new_cost, T) > random():
                         state, cost = new_state, new_cost
                         states.append(step)
                         costs.append(cost)

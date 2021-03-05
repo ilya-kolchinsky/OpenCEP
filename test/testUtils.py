@@ -7,6 +7,9 @@ from typing import List
 
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
+from plan.ShareLeavesTreeBuilder import ShareLeavesTreeBuilder
+from plan.SubTreeSharingTreeBuilder import SubTreeSharingTreeBuilder
+from plan.TopologyChangeSharingTreeBuilder import TopologyChangeSharingTreeBuilder
 from plan.TreePlanBuilderOrders import TreePlanBuilderOrder
 from plan.UnifiedTreeBuilder import UnifiedTreeBuilder
 from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
@@ -355,11 +358,11 @@ def union_intersection_size(patterns: List[Pattern], approach: MultiPatternTreeP
     tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
     pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
 
-    unified_builder = UnifiedTreeBuilder(tree_plan_order_approach=TreePlanBuilderOrder.LEFT_TREE)
 
     if approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION:
+        unified_builder = TopologyChangeSharingTreeBuilder()
         pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans(patterns)
-        unified = unified_builder._union_tree_plans(pattern_to_tree_plan_map_ordered, approach)
+        unified = unified_builder._union_tree_plans(pattern_to_tree_plan_map_ordered)
         size_of_intersection = unified_builder.trees_number_nodes_shared
         unified_tree = TreeBasedEvaluationMechanism(unified, eval_mechanism_params.storage_params)
         # unified_builder.visualize(visualize_data=pattern_to_tree_plan_map)
@@ -367,9 +370,15 @@ def union_intersection_size(patterns: List[Pattern], approach: MultiPatternTreeP
 
         return size_of_intersection
 
-    ut = unified_builder._union_tree_plans(pattern_to_tree_plan_map, approach)
-    tree_plan_builder.visualize(ut, title=f'SMT unified Tree Plan')
+    unified_builder = None
+    if approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES:
+        unified_builder = ShareLeavesTreeBuilder()
 
+    if approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION:
+        unified_builder = SubTreeSharingTreeBuilder()
+
+    unified = unified_builder._union_tree_plans(pattern_to_tree_plan_map)
+    tree_plan_builder.visualize(unified, title=f'SMT unified Tree Plan')
     size_of_intersection = unified_builder.trees_number_nodes_shared
     return size_of_intersection
 
