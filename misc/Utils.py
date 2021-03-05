@@ -83,6 +83,11 @@ def product(*args,):
     for prod in result:
         yield tuple(prod)
 
+
+def flatten_list(seq):
+    flat_list = [item for sublist in seq for item in sublist]
+    return flat_list
+
 def unique_list(seq):
     seen = set()
     seen_add = seen.add
@@ -244,7 +249,7 @@ def does_match_exist(matches: list, match: list):
                 return True
     return False
 
-  
+
 def recursive_powerset_generator(seq, max_size):
     """
     A recursive generator returning all subsets of the given item sequence of size limited to max_size.
@@ -257,7 +262,7 @@ def recursive_powerset_generator(seq, max_size):
         for item in recursive_powerset_generator(seq[1:], max_size):
             yield item
 
-            
+
 def get_index(container: Container, to_find_value: int, key: callable, return_first_index: bool):
     """
     Returns the index (either the first o the last one depending on the corresponding parameter) of the to_find_value
@@ -299,7 +304,7 @@ def get_first_index(container: Container, to_find_value: int, key: callable):
     """
     return get_index(container, to_find_value, key, True)
 
-    
+
 def get_last_index(container: Container, to_find_value: int, key: callable):
     """
     Returns the last instance of the to_find_value in a sequence that's sorted increasingly according to key.

@@ -33,7 +33,6 @@ class ShareLeavesTreeBuilder(UnifiedTreeBuilder):
     def __share_leaves(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan):
         """ this function is the core implementation for the trivial_sharing_trees algorithm """
         self.trees_number_nodes_shared = 0
-        leaves_dict = {}
         first_pattern = list(pattern_to_tree_plan_map.keys())[0]
 
         leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(pattern_to_tree_plan_map)
