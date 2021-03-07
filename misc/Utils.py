@@ -293,11 +293,11 @@ def get_last_index(container: Container, to_find_value: int, key: callable):
     """
     return get_index(container, to_find_value, key, False)
 
-def calculate_joined_probability(p1: Optional[float], p2: Optional[float]) -> Optional[float]:
+
+def calculate_joint_probability(p1: Optional[float], p2: Optional[float]) -> Optional[float]:
     """
-        calculate the joined probability of two events with probabilities p1 and p2.
-        the probability of a certain event is `None`
-        @returns: `None` if the joined event is certain, otherwise the joined probability
+    Calculates the joint probability of two events with given occurrence probabilities p1 and p2.
+    If both probabilities come from certain events (i.e., p1=p2=None), None is returned.
     """
     if p1 is None:
         return p2

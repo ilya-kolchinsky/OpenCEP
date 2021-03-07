@@ -1,16 +1,15 @@
 from abc import ABC
-from datetime import timedelta, datetime
-from typing import List, Set, Type, Optional
+from datetime import datetime
+from typing import List, Set, Type
 
 from base.Event import Event
 from condition.Condition import RelopTypes, EquationSides
-from condition.CompositeCondition import CompositeCondition
 from base.PatternMatch import PatternMatch
-from base.Pattern import PatternParameters
 from base.PatternStructure import AndOperator, SeqOperator
-from misc.Utils import find_partial_match_by_timestamp, merge, is_sorted, merge_according_to
+from misc.Utils import find_partial_match_by_timestamp, merge, \
+    is_sorted, merge_according_to, calculate_joint_probability
 from tree.nodes.BinaryNode import BinaryNode
-from tree.nodes.Node import Node, PrimitiveEventDefinition
+from tree.nodes.Node import Node, PrimitiveEventDefinition, PatternParameters
 from tree.PatternMatchStorage import TreeStorageParameters
 
 
@@ -111,16 +110,16 @@ class NegationNode(BinaryNode, ABC):
             negative_events = partial_match.events
             combined_event_list = self._merge_events_for_new_match(first_event_defs, second_event_defs,
                                                                    positive_events, negative_events)
-            if self._validate_new_match(combined_event_list):
-                if partial_match.probability is not None:
-                    # the negative events are uncertain so the probability of `new_partial_match` should be reduced
-                    if probability is None:
-                        probability = 1
-                    probability *= 1 - partial_match.probability
-                else:
-                    # this match should not be transferred
-                    # TODO: the rejected positive partial match should be explicitly removed to save space
-                    return
+            if not self._validate_new_match(combined_event_list):
+                continue
+            # a negative partial match affecting the potential positive partial match was found
+            if partial_match.probability is not None:
+                # an uncertain negative partial match - the probability of the new match should be reduced
+                probability = calculate_joint_probability(probability, 1 - partial_match.probability)
+            else:
+                # this match should not be transferred
+                # TODO: the rejected positive partial match should be explicitly removed to save space
+                return
         # no negative match invalidated the positive one - we can go on
         self._propagate_partial_match(positive_events, probability)
 

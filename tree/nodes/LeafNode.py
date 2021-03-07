@@ -1,13 +1,11 @@
 from datetime import timedelta
-from typing import List, Set, Optional
+from typing import List, Set
 
 from base.Event import Event
 from condition.Condition import Condition, RelopTypes, EquationSides
 from base.PatternStructure import PrimitiveEventStructure
 from tree.nodes.Node import Node
-from tree.nodes.Node import PrimitiveEventDefinition
-from base.PatternMatch import PatternMatch
-from base.Pattern import PatternParameters
+from tree.nodes.Node import PrimitiveEventDefinition, PatternParameters
 from tree.PatternMatchStorage import TreeStorageParameters, SortedPatternMatchStorage
 
 
@@ -70,8 +68,6 @@ class LeafNode(Node):
         """
         Inserts the given event to this leaf.
         """
-        # NOTE: this assert is here because you can't tell whether a stream is probabilistic without reading an event from it
-        assert event.probability is None or self._confidence is not None, "a pattern over a probabilistic stream must have a confidence parameter"
         self.clean_expired_partial_matches(event.timestamp)
         self._validate_and_propagate_partial_match([event], event.probability)
 
@@ -111,11 +107,8 @@ class LeafNode(Node):
         """
         return super().is_equivalent(other) and self.__event_type == other.get_event_type()
 
-    def propagate_sliding_window(self, sliding_window: timedelta):
-        """
-        Updates the sliding window of this leaf node.
-        """
-        self.set_sliding_window(sliding_window)
+    def _propagate_pattern_parameters(self, pattern_params: PatternParameters):
+        pass
 
     def propagate_pattern_id(self, pattern_id: int):
         self.add_pattern_ids({pattern_id})

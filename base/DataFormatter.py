@@ -1,5 +1,4 @@
 from abc import ABC
-from typing import Dict, Optional
 
 
 class EventTypeClassifier(ABC):
@@ -43,5 +42,10 @@ class DataFormatter(ABC):
         """
         return self.__event_type_classifier.get_event_type(event_payload)
 
-    def get_probability(self, event_payload: dict) -> Optional[float]:
-        raise NotImplementedError()
+    def get_probability(self, event_payload: dict):
+        """
+        Deduces and returns the occurrence probability of the event specified by the given payload. None is returned if
+        the event is non-probabilistic.
+        This method is optional for a DataFormatter subclass. By default, all event occurrences are non-probabilistic.
+        """
+        return None

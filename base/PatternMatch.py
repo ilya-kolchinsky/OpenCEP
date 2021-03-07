@@ -1,5 +1,5 @@
 from base.Event import Event
-from typing import List, Optional
+from typing import List
 
 
 class PatternMatch:
@@ -8,13 +8,13 @@ class PatternMatch:
     An instance of this class could correspond either to a full pattern match, or to any intermediate result
     created during the evaluation process.
     """
-    def __init__(self, events: List[Event]):
+    def __init__(self, events: List[Event], probability: float = None):
         self.events = events
         self.last_timestamp = max(events, key=lambda x: x.timestamp).timestamp
         self.first_timestamp = min(events, key=lambda x: x.timestamp).timestamp
         # this field is only used for full pattern matches
         self.pattern_ids = []
-        self.probability: Optional[float] = None
+        self.probability = probability
 
     def __eq__(self, other):
         return isinstance(other, PatternMatch) and set(self.events) == set(other.events) and \

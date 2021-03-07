@@ -1,11 +1,10 @@
 from abc import ABC
-from base.Pattern import PatternParameters
 from datetime import timedelta
-from typing import List, Set, Optional
+from typing import List, Set
 
 from condition.Condition import Condition, RelopTypes, EquationSides
 from tree.nodes.InternalNode import InternalNode
-from tree.nodes.Node import Node, PrimitiveEventDefinition
+from tree.nodes.Node import Node, PrimitiveEventDefinition, PatternParameters
 from tree.PatternMatchStorage import TreeStorageParameters
 
 
@@ -34,22 +33,19 @@ class UnaryNode(InternalNode, ABC):
         # only the positive child definitions should be applied on this node
         self._event_defs = child.get_positive_event_definitions()
 
-    def propagate_sliding_window(self, sliding_window: timedelta):
-        self.set_sliding_window(sliding_window)
-        self._child.propagate_sliding_window(sliding_window)
+    def _propagate_pattern_parameters(self, pattern_params: PatternParameters):
+        self._child.set_and_propagate_pattern_parameters(pattern_params)
 
     def propagate_pattern_id(self, pattern_id: int):
         self.add_pattern_ids({pattern_id})
         self._child.propagate_pattern_id(pattern_id)
 
-    def replace_subtree(self, old_node: Node, new_node: Node) -> None:
+    def replace_subtree(self, child: Node):
         """
         Replaces the child of this node with the given node.
         """
-        if self._child != old_node:
-            raise Exception("old_node must be the node's child")
-        self.set_subtree(new_node)
-        new_node.add_parent(self)
+        self.set_subtree(child)
+        child.add_parent(self)
 
     def create_parent_to_info_dict(self):
         if self._child is not None:

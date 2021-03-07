@@ -1,11 +1,9 @@
 from abc import ABC
-from datetime import timedelta
-from typing import List, Set, Optional
+from typing import List, Set
 
 from base.Event import Event
-from base.Pattern import PatternParameters
 from condition.Condition import RelopTypes, EquationSides
-from tree.nodes.Node import Node, PrimitiveEventDefinition
+from tree.nodes.Node import Node, PrimitiveEventDefinition, PatternParameters
 from tree.PatternMatchStorage import TreeStorageParameters, UnsortedPatternMatchStorage, SortedPatternMatchStorage
 
 

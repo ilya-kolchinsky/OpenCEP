@@ -1,15 +1,14 @@
 from abc import ABC
 from datetime import timedelta
-from typing import List, Optional, Set
+from typing import List, Set
 
 from base.Event import Event
-from misc.Utils import calculate_joined_probability
+from misc.Utils import calculate_joint_probability
 from condition.Condition import Condition, Variable, EquationSides
 from condition.BaseRelationCondition import BaseRelationCondition
 from base.PatternMatch import PatternMatch
-from base.Pattern import PatternParameters
 from tree.nodes.InternalNode import InternalNode
-from tree.nodes.Node import Node, PrimitiveEventDefinition
+from tree.nodes.Node import Node, PrimitiveEventDefinition, PatternParameters
 
 
 class BinaryNode(InternalNode, ABC):
@@ -75,10 +74,9 @@ class BinaryNode(InternalNode, ABC):
         self._set_event_definitions(self._left_subtree.get_positive_event_definitions(),
                                     self._right_subtree.get_positive_event_definitions())
 
-    def propagate_sliding_window(self, sliding_window: timedelta):
-        self.set_sliding_window(sliding_window)
-        self._left_subtree.propagate_sliding_window(sliding_window)
-        self._right_subtree.propagate_sliding_window(sliding_window)
+    def _propagate_pattern_parameters(self, pattern_params: PatternParameters):
+        self._left_subtree.set_and_propagate_pattern_parameters(pattern_params)
+        self._right_subtree.set_and_propagate_pattern_parameters(pattern_params)
 
     def propagate_pattern_id(self, pattern_id: int):
         self.add_pattern_ids({pattern_id})
@@ -131,9 +129,9 @@ class BinaryNode(InternalNode, ABC):
         necessary conditions creates new partial matches if all constraints are satisfied.
         """
         for partial_match in partial_matches_to_compare:
-            probability = calculate_joined_probability(new_partial_match.probability, partial_match.probability)
             events_for_new_match = self._merge_events_for_new_match(first_event_defs, second_event_defs,
                                                                     new_partial_match.events, partial_match.events)
+            probability = calculate_joint_probability(new_partial_match.probability, partial_match.probability)
             self._validate_and_propagate_partial_match(events_for_new_match, probability)
 
     def _merge_events_for_new_match(self,

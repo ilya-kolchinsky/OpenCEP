@@ -2,9 +2,9 @@ from abc import ABC
 from datetime import timedelta, datetime
 from queue import Queue
 from typing import List, Set, Optional
+from dataclasses import dataclass
 
 from base.Event import Event
-from base.Pattern import PatternParameters
 from condition.Condition import RelopTypes, EquationSides
 from condition.CompositeCondition import CompositeCondition, AndCondition
 from base.PatternMatch import PatternMatch
@@ -19,6 +19,15 @@ class PrimitiveEventDefinition:
         self.type = event_type
         self.name = event_name
         self.index = event_index
+
+
+@dataclass(frozen=True)
+class PatternParameters:
+    """
+    The parameters of a pattern that are propagated down during evaluation tree during the construction process.
+    """
+    window: timedelta
+    confidence: Optional[float]
 
 
 class Node(ABC):
@@ -48,12 +57,11 @@ class Node(ABC):
 
     ###################################### Initialization
     def __init__(self, pattern_params: PatternParameters, parents, pattern_ids: int or Set[int] = None):
-        self._parents: List[Node] = []
+        self._parents = []
         self._sliding_window = pattern_params.window
+        self._confidence = pattern_params.confidence
         self._partial_matches = None
         self._condition = AndCondition()
-
-        self._confidence = pattern_params.confidence
 
         # Full pattern matches that were not yet reported. Only relevant for an output node, that is, for a node
         # corresponding to a full pattern definition.
@@ -115,8 +123,6 @@ class Node(ABC):
         In case of SortedPatternMatchStorage the insertion is by timestamp or condition, O(log n).
         In case of UnsortedPatternMatchStorage the insertion is directly at the end, O(1).
         """
-        if self._confidence is not None and pm.probability is not None and pm.probability < self._confidence:
-            return
         self._partial_matches.add(pm)
         for parent in self._parents:
             self._parent_to_unhandled_queue_dict[parent].put(pm)
@@ -127,9 +133,17 @@ class Node(ABC):
     def __can_add_partial_match(self, pm: PatternMatch) -> bool:
         """
         Returns True if the given partial match can be passed up the tree and False otherwise.
-        As of now, only the activation of the "single" consumption policy might prevent this method from returning True.
-        In addition, this method updates the filtered events set.
+        As of now, checks two things:
+        (1) If the stream is probabilistic, validates the confidence threshold;
+        (2) If "single" consumption policy is enabled, validates that the partial match contains no already used events.
         """
+        if pm.probability is not None:
+            # this is a probabilistic stream
+            if self._confidence is None:
+                raise Exception("Patterns applied on probabilistic event streams must have a confidence threshold")
+            if pm.probability < self._confidence:
+                # the partial match probability does not match the confidence threshold
+                return False
         if len(self._single_event_types) == 0:
             return True
         new_filtered_events = set()
@@ -145,25 +159,21 @@ class Node(ABC):
         self._filtered_events |= new_filtered_events
         return True
 
-    def _validate_and_propagate_partial_match(self, events: List[Event], probability: Optional[float] = None):
+    def _validate_and_propagate_partial_match(self, events: List[Event], match_probability: float = None):
         """
         Creates a new partial match from the list of events, validates it, and propagates it up the tree.
-
-        @param events: the events of the new partial match
-        @param probability: the joined probability of the events of the partial match
-
-        NOTE: the probability should not be calculated here as each node can calculate it differently (for example see `NegationNode._try_create_new_matches()`)
+        For probabilistic streams, receives the pre-calculated probability of the potential pattern match.
         """
         if not self._validate_new_match(events):
             return
-        self._propagate_partial_match(events, probability)
+        self._propagate_partial_match(events, match_probability)
 
-    def _propagate_partial_match(self, events: List[Event], probability: Optional[float] = None):
+    def _propagate_partial_match(self, events: List[Event], match_probability: float = None):
         """
         Receives an already verified list of events for new partial match and propagates it up the tree.
+        For probabilistic streams, receives the pre-calculated probability of the potential pattern match.
         """
-        new_partial_match = PatternMatch(events)
-        new_partial_match.probability = probability
+        new_partial_match = PatternMatch(events, match_probability)
         if self.__can_add_partial_match(new_partial_match):
             self._add_partial_match(new_partial_match)
 
@@ -224,7 +234,7 @@ class Node(ABC):
         if not on_init:
             self._parent_to_info_dict[parent] = self.get_positive_event_definitions()
 
-    def get_parents(self) -> List["Node"]:
+    def get_parents(self):
         """
         Returns the parents of this node.
         """
@@ -240,18 +250,6 @@ class Node(ABC):
 
 
     ###################################### Various setters and getters
-    def get_sliding_window(self):
-        """
-        Returns the sliding window of this node.
-        """
-        return self._sliding_window
-
-    def set_sliding_window(self, new_sliding_window: timedelta):
-        """
-        Sets the sliding window of this node.
-        """
-        self._sliding_window = new_sliding_window
-
     def get_pattern_ids(self):
         """
         Returns the pattern ids of this node.
@@ -295,6 +293,12 @@ class Node(ABC):
         """
         return self.get_event_definitions()
 
+    def get_basic_filtering_parameters(self):
+        """
+        Returns the basic filtering parameters (sliding window and confidence threshold as of now).
+        """
+        return PatternParameters(self._sliding_window, self._confidence)
+
 
     ###################################### Miscellaneous
     def register_single_event_type(self, event_type: str):
@@ -326,6 +330,23 @@ class Node(ABC):
         """
         raise Exception("get_first_unbounded_negative_node invoked on a non-negative node")
 
+    def set_and_propagate_pattern_parameters(self, pattern_params: PatternParameters):
+        """
+        Updates and propagates the basic filtering parameters (sliding window and confidence threshold as of now)
+        down the subtree of this node.
+        Each parameter is only set if it is less restrictive than the currently defined one.
+        """
+        should_propagate = False
+        if pattern_params.window > self._sliding_window:
+            should_propagate = True
+            self._sliding_window = pattern_params.window
+        if self._confidence is not None and \
+                (pattern_params.confidence is None or pattern_params.confidence > self._confidence):
+            should_propagate = True
+            self._confidence = pattern_params.confidence
+        if should_propagate:
+            self._propagate_pattern_parameters(pattern_params)
+
     def is_equivalent(self, other):
         """
         Returns True if this node and the given node are equivalent and False otherwise.
@@ -336,31 +357,7 @@ class Node(ABC):
         """
         return type(self) == type(other) and self._condition == other.get_condition()
 
-    def merge_with(self, other: "Node") -> None:
-        """
-            Merge two nodes, and update all the required information
-        """
-        # merges `other` into `self`
-        if self.get_sliding_window() < other.get_sliding_window():
-            self.propagate_sliding_window(other.get_sliding_window())
-        self.add_pattern_ids(other.get_pattern_ids())
-        for parent in other.get_parents():
-            parent.replace_subtree(other, self)
-        
-        # the confidence of `self` is set to the least restrictive one (i.e. the higher confidence)
-        # the more restrictive bounds are left for the parents to validate
-        if other._confidence is not None:
-            if self._confidence is not None:
-                self._confidence = max(self._confidence, other._confidence)
-        else:
-            self._confidence = None
-
     ###################################### To be implemented by subclasses
-    def propagate_sliding_window(self, sliding_window: timedelta):
-        """
-        Propagates the given sliding window down the subtree of this node.
-        """
-        raise NotImplementedError()
 
     def propagate_pattern_id(self, pattern_id: int):
         """
@@ -379,6 +376,13 @@ class Node(ABC):
     def get_leaves(self):
         """
         Returns all leaves in this tree - to be implemented by subclasses.
+        """
+        raise NotImplementedError()
+
+    def _propagate_pattern_parameters(self, pattern_params: PatternParameters):
+        """
+        Propagates the basic filtering parameters (sliding window and confidence threshold as of now)
+        down the subtree of this node.
         """
         raise NotImplementedError()
 
@@ -405,12 +409,5 @@ class Node(ABC):
                             sort_by_first_timestamp: bool = False):
         """
         An abstract method for recursive partial match storage initialization.
-        """
-        raise NotImplementedError()
-
-    def replace_subtree(self, old_node: "Node", new_node: "Node") -> None:
-        """
-        An abstract method.
-        replaces the current subtree `old_node` with `new_node` and sets `new_node`'s parent
         """
         raise NotImplementedError()
