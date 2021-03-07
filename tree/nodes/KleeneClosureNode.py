@@ -1,11 +1,12 @@
-from datetime import timedelta
 from typing import List, Set
+from functools import reduce
+from misc.Utils import calculate_joint_probability
 
 from base.Event import Event
 from condition.CompositeCondition import CompositeCondition
 from base.PatternMatch import PatternMatch
 from misc.Utils import powerset_generator
-from tree.nodes.Node import Node
+from tree.nodes.Node import Node, PatternParameters
 from tree.nodes.UnaryNode import UnaryNode
 
 
@@ -14,9 +15,9 @@ class KleeneClosureNode(UnaryNode):
     An internal node representing a Kleene closure operator.
     It generates and propagates sets of partial matches provided by its sole child.
     """
-    def __init__(self, sliding_window: timedelta, min_size, max_size,
+    def __init__(self, pattern_params: PatternParameters, min_size, max_size,
                  parents: List[Node] = None, pattern_ids: int or Set[int] = None):
-        super().__init__(sliding_window, parents, pattern_ids)
+        super().__init__(pattern_params, parents, pattern_ids)
         self.__min_size = min_size
         self.__max_size = max_size
 
@@ -39,7 +40,9 @@ class KleeneClosureNode(UnaryNode):
         for partial_match_set in child_matches_powerset:
             # create and propagate the new match
             events_for_partial_match = KleeneClosureNode.__partial_match_set_to_event_list(partial_match_set)
-            self._validate_and_propagate_partial_match(events_for_partial_match)
+            probability = None if self._confidence is None else \
+                reduce(calculate_joint_probability, (pm.probability for pm in partial_match_set), None)
+            self._validate_and_propagate_partial_match(events_for_partial_match, probability)
 
     def _validate_new_match(self, events_for_new_match: List[Event]):
         """

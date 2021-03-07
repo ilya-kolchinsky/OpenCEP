@@ -1,0 +1,39 @@
+2: {'Stock Ticker': 'MSFT', 'Date': 200802010924, 'Opening Price': 31.06, 'Peak Price': 31.1, 'Lowest Price': 31.04, 'Close Price': 31.06, 'Volume': 251710, 'Probability': 0.96}
+{'Stock Ticker': 'DRIV', 'Date': 200802010931, 'Opening Price': 30.7, 'Peak Price': 31.17, 'Lowest Price': 30.47, 'Close Price': 31.13, 'Volume': 141668, 'Probability': 0.91}
+{'Stock Ticker': 'MSFT', 'Date': 200802010932, 'Opening Price': 31.04, 'Peak Price': 31.22, 'Lowest Price': 31.01, 'Close Price': 31.21, 'Volume': 1603271, 'Probability': 0.82}
+{'Stock Ticker': 'DRIV', 'Date': 200802010932, 'Opening Price': 31.1, 'Peak Price': 31.4499, 'Lowest Price': 30.97, 'Close Price': 31.05, 'Volume': 152642, 'Probability': 0.97}
+{'Stock Ticker': 'MSFT', 'Date': 200802010933, 'Opening Price': 31.22, 'Peak Price': 31.45, 'Lowest Price': 31.05, 'Close Price': 31.345, 'Volume': 1808536, 'Probability': 0.92}
+
+2: {'Stock Ticker': 'MSFT', 'Date': 200802010926, 'Opening Price': 31.1, 'Peak Price': 31.1, 'Lowest Price': 31.05, 'Close Price': 31.05, 'Volume': 38500, 'Probability': 0.93}
+{'Stock Ticker': 'DRIV', 'Date': 200802010931, 'Opening Price': 30.7, 'Peak Price': 31.17, 'Lowest Price': 30.47, 'Close Price': 31.13, 'Volume': 141668, 'Probability': 0.91}
+{'Stock Ticker': 'MSFT', 'Date': 200802010932, 'Opening Price': 31.04, 'Peak Price': 31.22, 'Lowest Price': 31.01, 'Close Price': 31.21, 'Volume': 1603271, 'Probability': 0.82}
+{'Stock Ticker': 'DRIV', 'Date': 200802010932, 'Opening Price': 31.1, 'Peak Price': 31.4499, 'Lowest Price': 30.97, 'Close Price': 31.05, 'Volume': 152642, 'Probability': 0.97}
+{'Stock Ticker': 'MSFT', 'Date': 200802010933, 'Opening Price': 31.22, 'Peak Price': 31.45, 'Lowest Price': 31.05, 'Close Price': 31.345, 'Volume': 1808536, 'Probability': 0.92}
+
+2: {'Stock Ticker': 'MSFT', 'Date': 200802010928, 'Opening Price': 31.08, 'Peak Price': 31.11, 'Lowest Price': 31.04, 'Close Price': 31.08, 'Volume': 270571, 'Probability': 0.99}
+{'Stock Ticker': 'DRIV', 'Date': 200802010931, 'Opening Price': 30.7, 'Peak Price': 31.17, 'Lowest Price': 30.47, 'Close Price': 31.13, 'Volume': 141668, 'Probability': 0.91}
+{'Stock Ticker': 'MSFT', 'Date': 200802010932, 'Opening Price': 31.04, 'Peak Price': 31.22, 'Lowest Price': 31.01, 'Close Price': 31.21, 'Volume': 1603271, 'Probability': 0.82}
+{'Stock Ticker': 'DRIV', 'Date': 200802010932, 'Opening Price': 31.1, 'Peak Price': 31.4499, 'Lowest Price': 30.97, 'Close Price': 31.05, 'Volume': 152642, 'Probability': 0.97}
+{'Stock Ticker': 'MSFT', 'Date': 200802010933, 'Opening Price': 31.22, 'Peak Price': 31.45, 'Lowest Price': 31.05, 'Close Price': 31.345, 'Volume': 1808536, 'Probability': 0.92}
+
+2: {'Stock Ticker': 'MSFT', 'Date': 200802010931, 'Opening Price': 31.13, 'Peak Price': 31.15, 'Lowest Price': 31.03, 'Close Price': 31.05, 'Volume': 2000177, 'Probability': 0.98}
+{'Stock Ticker': 'DRIV', 'Date': 200802010931, 'Opening Price': 30.7, 'Peak Price': 31.17, 'Lowest Price': 30.47, 'Close Price': 31.13, 'Volume': 141668, 'Probability': 0.91}
+{'Stock Ticker': 'MSFT', 'Date': 200802010932, 'Opening Price': 31.04, 'Peak Price': 31.22, 'Lowest Price': 31.01, 'Close Price': 31.21, 'Volume': 1603271, 'Probability': 0.82}
+{'Stock Ticker': 'DRIV', 'Date': 200802010932, 'Opening Price': 31.1, 'Peak Price': 31.4499, 'Lowest Price': 30.97, 'Close Price': 31.05, 'Volume': 152642, 'Probability': 0.97}
+{'Stock Ticker': 'MSFT', 'Date': 200802010933, 'Opening Price': 31.22, 'Peak Price': 31.45, 'Lowest Price': 31.05, 'Close Price': 31.345, 'Volume': 1808536, 'Probability': 0.92}
+
+2: {'Stock Ticker': 'MSFT', 'Date': 200802010929, 'Opening Price': 31.08, 'Peak Price': 31.1, 'Lowest Price': 31.04, 'Close Price': 31.06, 'Volume': 252641, 'Probability': 0.88}
+{'Stock Ticker': 'DRIV', 'Date': 200802010931, 'Opening Price': 30.7, 'Peak Price': 31.17, 'Lowest Price': 30.47, 'Close Price': 31.13, 'Volume': 141668, 'Probability': 0.91}
+{'Stock Ticker': 'MSFT', 'Date': 200802010932, 'Opening Price': 31.04, 'Peak Price': 31.22, 'Lowest Price': 31.01, 'Close Price': 31.21, 'Volume': 1603271, 'Probability': 0.82}
+{'Stock Ticker': 'DRIV', 'Date': 200802010932, 'Opening Price': 31.1, 'Peak Price': 31.4499, 'Lowest Price': 30.97, 'Close Price': 31.05, 'Volume': 152642, 'Probability': 0.97}
+{'Stock Ticker': 'MSFT', 'Date': 200802010939, 'Opening Price': 31, 'Peak Price': 31.45, 'Lowest Price': 30.97, 'Close Price': 30.97, 'Volume': 1599012, 'Probability': 0.97}
+
+2: {'Stock Ticker': 'MSFT', 'Date': 200802010931, 'Opening Price': 31.13, 'Peak Price': 31.15, 'Lowest Price': 31.03, 'Close Price': 31.05, 'Volume': 2000177, 'Probability': 0.98}
+{'Stock Ticker': 'DRIV', 'Date': 200802010931, 'Opening Price': 30.7, 'Peak Price': 31.17, 'Lowest Price': 30.47, 'Close Price': 31.13, 'Volume': 141668, 'Probability': 0.91}
+{'Stock Ticker': 'MSFT', 'Date': 200802010932, 'Opening Price': 31.04, 'Peak Price': 31.22, 'Lowest Price': 31.01, 'Close Price': 31.21, 'Volume': 1603271, 'Probability': 0.82}
+{'Stock Ticker': 'DRIV', 'Date': 200802010932, 'Opening Price': 31.1, 'Peak Price': 31.4499, 'Lowest Price': 30.97, 'Close Price': 31.05, 'Volume': 152642, 'Probability': 0.97}
+{'Stock Ticker': 'MSFT', 'Date': 200802010939, 'Opening Price': 31, 'Peak Price': 31.45, 'Lowest Price': 30.97, 'Close Price': 30.97, 'Volume': 1599012, 'Probability': 0.97}
+
+1: {'Stock Ticker': 'AAPL', 'Date': 200802011113, 'Opening Price': 133.18, 'Peak Price': 133.31, 'Lowest Price': 133.11, 'Close Price': 133.27, 'Volume': 122384, 'Probability': 0.99}
+{'Stock Ticker': 'AMZN', 'Date': 200802011114, 'Opening Price': 74.55, 'Peak Price': 74.81, 'Lowest Price': 74.55, 'Close Price': 74.66, 'Volume': 38903, 'Probability': 0.99}
+

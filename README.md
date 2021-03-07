@@ -237,12 +237,33 @@ pattern = Pattern(
 )
 ```
 
-#### Optimizing evaluation performance with custom TreeStorageParameters
+### Optimizing evaluation performance with custom TreeStorageParameters
 ```
 storage_params = TreeStorageParameters(sort_storage=True,
                                        attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
 eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params)
 cep = CEP(pattern, eval_mechanism_params)
+```
+
+### Probabilistic streams and confidence parameters
+
+OpenCEP supports probabilistic streams, where each incoming event is associated
+with an occurrence probability. In this scenario, a pattern should contain a
+"confidence threshold" specifying what is the lowest acceptable probability of
+a match of this pattern.
+
+Probabilistic patterns are specified with the confidence threshold as follows:
+
+```
+pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("GOOG", "a"), 
+            PrimitiveEventStructure("GOOG", "b")
+        ),
+        SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
+        timedelta(minutes=5),
+        confidence=0.9
+    )
 ```
 
 ## Twitter API support
@@ -256,3 +277,4 @@ event_stream = TwitterInputStream(['corona'])
 ```
 ### Tweet formation in CEP
 The format of a tweet is defined in Tweets.py (see documentation). The tweet keys are described there based on the overview of a tweet in https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object
+

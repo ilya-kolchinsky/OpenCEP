@@ -3,7 +3,8 @@ This file contains various useful functions utilized by different project module
 """
 
 from datetime import datetime
-from typing import List, Container, Iterator, Sequence, TypeVar
+from typing import Iterator, Sequence, TypeVar
+from typing import List, Container, Optional
 
 from base.Pattern import Pattern
 from base.PatternStructure import PrimitiveEventStructure
@@ -241,6 +242,7 @@ def powerset_generator(seq: Sequence[T], max_size: int, min_size: int=0) -> Iter
         ),
     )
 
+            
 def get_index(container: Container, to_find_value: int, key: callable, return_first_index: bool):
     """
     Returns the index (either the first o the last one depending on the corresponding parameter) of the to_find_value
@@ -290,3 +292,14 @@ def get_last_index(container: Container, to_find_value: int, key: callable):
     """
     return get_index(container, to_find_value, key, False)
 
+
+def calculate_joint_probability(p1: Optional[float], p2: Optional[float]) -> Optional[float]:
+    """
+    Calculates the joint probability of two events with given occurrence probabilities p1 and p2.
+    If both probabilities come from certain events (i.e., p1=p2=None), None is returned.
+    """
+    if p1 is None:
+        return p2
+    if p2 is None:
+        return p1
+    return p1 * p2

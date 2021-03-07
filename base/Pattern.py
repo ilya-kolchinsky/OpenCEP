@@ -19,12 +19,17 @@ class Pattern:
     during evaluation.
     - A condition to be satisfied by the primitive events. This condition might encapsulate multiple nested conditions.
     - A time window for the pattern matches to occur within.
-    - a ConsumptionPolicy object that contains the policies that filter certain partial matches.
-    A pattern can also carry statistics with it, in order to enable advanced
-    tree construction mechanisms - this is hopefully a temporary hack.
+    - A ConsumptionPolicy object that contains the policies that filter certain partial matches.
+    - An optional confidence parameter, intended to indicate the minimal acceptable probability of a pattern match. This
+    parameter is only applicable for probabilistic data streams.
+    A pattern can also carry statistics with it, in order to enable advanced tree construction mechanisms - this is
+    hopefully a temporary hack.
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Condition,
-                 time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None):
+                 time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None,
+                 confidence: float = None):
+        if confidence is not None and (confidence < 0.0 or confidence > 1.0):
+            raise Exception("Invalid value for pattern confidence:%s" % (confidence,))
         self.id = pattern_id
 
         self.full_structure = pattern_structure
@@ -49,6 +54,8 @@ class Pattern:
                 consumption_policy.single_types = self.get_all_event_types()
             if consumption_policy.contiguous_names is not None:
                 self.__init_strict_conditions(pattern_structure)
+
+        self.confidence = confidence
 
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         """
