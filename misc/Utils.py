@@ -67,7 +67,12 @@ def is_int(x: str):
 
 def str_to_number(x: str):
     if is_int(x):
-        return int(x)
+      try:
+          a = int(x)
+      except ValueError:
+          return int(float(x))
+      else:
+          return int(x)
     elif is_float(x):
         return float(x)
     else:
