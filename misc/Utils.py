@@ -3,11 +3,12 @@ This file contains various useful functions utilized by different project module
 """
 
 from datetime import datetime
+from typing import Iterator, Sequence, TypeVar
 from typing import List, Container, Optional
 
 from base.Pattern import Pattern
 from base.PatternStructure import PrimitiveEventStructure
-from itertools import combinations
+from itertools import combinations, chain
 from base.PatternStructure import SeqOperator
 from base.PatternMatch import PatternMatch
 from copy import deepcopy
@@ -55,28 +56,21 @@ def is_float(x: str):
         return True
 
 
-def is_int(x: str):
+def is_int(x: str) -> bool:
     try:
-        a = float(x)
-        b = int(a)
+        _ = int(x)
     except ValueError:
         return False
     else:
-        return a == b
+        return True
 
 
 def str_to_number(x: str):
     if is_int(x):
-      try:
-          a = int(x)
-      except ValueError:
-          return int(float(x))
-      else:
-          return int(x)
-    elif is_float(x):
+        return int(x)
+    if is_float(x):
         return float(x)
-    else:
-        return x
+    return x
 
 
 def get_order_by_occurrences(primitive_events: List[PrimitiveEventStructure], occurrences: dict):
@@ -235,18 +229,18 @@ def does_match_exist(matches: list, match: list):
                 return True
     return False
 
-  
-def recursive_powerset_generator(seq, max_size):
+T = TypeVar("T")
+def powerset_generator(seq: Sequence[T], max_size: int, min_size: int=0) -> Iterator[List[T]]:
     """
-    A recursive generator returning all subsets of the given item sequence of size limited to max_size.
+    A generator returning all subsets of the given item sequence of size limited to `max_size`
     """
-    if len(seq) == 0 or max_size == 0:
-        yield []
-    else:
-        for item in recursive_powerset_generator(seq[1:], max_size - 1):
-            yield [seq[0]] + item
-        for item in recursive_powerset_generator(seq[1:], max_size):
-            yield item
+    return map(
+        list,
+        chain.from_iterable(
+            # NOTE: the subsets are ordered by size in descending order to maintain backwards compatability (specifically, some tests depend on it)
+            (combinations(seq, i) for i in range(max_size, min_size - 1, -1))
+        ),
+    )
 
             
 def get_index(container: Container, to_find_value: int, key: callable, return_first_index: bool):
