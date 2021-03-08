@@ -10,8 +10,8 @@ from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from typing import List
 from datetime import datetime
-from base.transformation.RuleTransformationParameters import RuleTransformationParameters
-from base.transformation.PatternTransformation import PatternTransformation
+from transformation.PatternPreprocessingParameters import PatternPreprocessingParameters
+from transformation.PatternPreprocessor import PatternPreprocessor
 
 
 class CEP:
@@ -22,22 +22,12 @@ class CEP:
     """
     def __init__(self, patterns: Pattern or List[Pattern], eval_mechanism_params: EvaluationMechanismParameters = None,
                  parallel_execution_params: ParallelExecutionParameters = None,
-                 rule_transformation_params: RuleTransformationParameters = RuleTransformationParameters()
-                 ):
+                 pattern_preprocessing_params: PatternPreprocessingParameters = None):
         """
         Constructor of the class.
         """
-        if patterns is None or len(patterns) == 0:
-            raise Exception("No patterns are provided")
-        transformed_patterns = []
-        if type(patterns) == Pattern:
-            pattern_list = [patterns]
-        else:
-            pattern_list = patterns
-            pattern_transformation = PatternTransformation(pattern_list, rule_transformation_params)
-            tmp_transformed_patterns = pattern_transformation.transform_patterns()
-            transformed_patterns.extend(tmp_transformed_patterns)
-        self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(transformed_patterns,
+        actual_patterns = PatternPreprocessor(pattern_preprocessing_params).transform_patterns(patterns)
+        self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(actual_patterns,
                                                                                        eval_mechanism_params,
                                                                                        parallel_execution_params)
 

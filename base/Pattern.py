@@ -5,7 +5,7 @@ from base.Event import Event
 from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
 from condition.CompositeCondition import CompositeCondition, AndCondition
 from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
-    SeqOperator, NegationOperator
+    SeqOperator, NegationOperator, UnaryStructure
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
 from misc.ConsumptionPolicy import ConsumptionPolicy
@@ -20,12 +20,12 @@ class Pattern:
     - A condition to be satisfied by the primitive events. This condition might encapsulate multiple nested conditions.
     - A time window for the pattern matches to occur within.
     - a ConsumptionPolicy object that contains the policies that filter certain partial matches.
-    A pattern can also carry statistics with it, in order to enable advanced
-    tree construction mechanisms - this is hopefully a temporary hack.
+    A pattern can also carry statistics with it, in order to enable advanced tree construction mechanisms - this is
+    hopefully a temporary hack.
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Condition,
                  time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None,
-                 statistics_type = StatisticsTypes.NO_STATISTICS, statistics = None):
+                 statistics_type=StatisticsTypes.NO_STATISTICS, statistics=None):
         self.id = pattern_id
 
         self.full_structure = pattern_structure
@@ -112,29 +112,9 @@ class Pattern:
         """
         if isinstance(structure, PrimitiveEventStructure):
             return [structure.type]
-        if type(structure) == NegationOperator:
-            structure_args = [structure.arg]
-        else:
-            structure_args = structure.args
-        return reduce(lambda x, y: x + y, [self.__get_all_event_types_aux(arg) for arg in structure_args])
-
-    def get_all_event_names(self):
-        """
-        Returns all event names in the pattern.
-        """
-        return set(self.__get_all_event_names_aux(self.full_structure))
-
-    def __get_all_event_names_aux(self, structure: PatternStructure):
-        """
-        An auxiliary method for returning all event names in the pattern.
-        """
-        if isinstance(structure, PrimitiveEventStructure):
-            return [structure.name]
-        if type(structure) == NegationOperator:
-            structure_args = [structure.arg]
-        else:
-            structure_args = structure.args
-        return reduce(lambda x, y: x + y, [self.__get_all_event_names_aux(arg) for arg in structure_args])
+        if isinstance(structure, UnaryStructure):
+            return self.__get_all_event_types_aux(structure.arg)
+        return reduce(lambda x, y: x + y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
 
     def __init_strict_conditions(self, pattern_structure: PatternStructure):
         """
@@ -199,4 +179,3 @@ class Pattern:
         return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.structure,
                                                                                 self.condition,
                                                                                 self.window)
-

@@ -56,7 +56,6 @@ structuralTest3()
 structuralTest4()
 structuralTest5()
 structuralTest6()
-structuralTest7()
 
 # Kleene closure tests
 oneArgumentsearchTestKleeneClosure()
