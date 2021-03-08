@@ -266,31 +266,6 @@ pattern = Pattern(
     )
 ```
 
-### Pattern transformation
-
-OpenCEP supports complex patterns, using a transformation engine to produce a simplified pattern.
-Transformation rules are defined and can be enabled, disabled and prioritized.
-
-Setting a customized priority list requires creating the CEP object with the new settings:
-```
-cep = CEP((patterns, eval_mechanism_params, parallel_execution_params, rule_transformation_params)
-```
-
-A new rule construction requires a TransformationRule subclass and a RuleTransformationTypes definition.
-Activating a rule is performed by including its corresponding type in the transformation parameters,
-while the order in which rules are listed will determine the order in which they will be applied:
-```
-rule_transformation_params = RuleTransformationParameters()
-rule_transformation_params.rules_directive = [
-    RuleTransformationTypes.AND_AND_PATTERN,
-    RuleTransformationTypes.NOT_OR_PATTERN,
-    RuleTransformationTypes.NOT_AND_PATTERN,
-    RuleTransformationTypes.TOPMOST_OR_PATTERN,
-    RuleTransformationTypes.INNER_OR_PATTERN,
-    RuleTransformationTypes.NOT_NOT_PATTERN
-]
-```
-
 ## Twitter API support
 ### Authentication
 To receive a Twitter stream via Twitter API, provide your credentials in plugin/twitter/TwitterCredentials.py
