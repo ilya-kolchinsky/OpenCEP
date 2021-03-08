@@ -3,7 +3,7 @@ This file contains the implementations of algorithms constructing a generic (bus
 """
 from typing import List
 
-from plan.TreePlan import TreePlanLeafNode, TreePlanNode, TreePlanNestedNode
+from plan.TreePlan import TreePlanNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.Utils import get_all_disjoint_sets
@@ -17,10 +17,7 @@ class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
     """
     Creates a bushy tree using a dynamic programming algorithm.
     """
-    def _create_tree_topology(self, pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
-        """
-        Implementation of the virtual method for the Dynamic Programming Bushy Tree case
-        """
+    def _create_tree_topology(self, pattern: Pattern, leaves: List[TreePlanNode]):
         if pattern.statistics_type != StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             raise MissingStatisticsException()
 
@@ -32,13 +29,8 @@ class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
         items = frozenset(range(args_num))
         # Save subsets' optimal topologies, the cost and the left to add items.
         # In case of a nested node and not a real Primitive, creates nested node instead
-        sub_trees = {frozenset({i}): (TreePlanLeafNode(i) if
-                                      (nested_topologies is None or nested_topologies[i] is None)
-                                      else TreePlanNestedNode(i, nested_topologies[i], nested_args[i], nested_cost[i]),
-                                      self._get_plan_cost(pattern,
-                                      TreePlanLeafNode(i) if
-                                      (nested_topologies is None or nested_topologies[i] is None)
-                                      else TreePlanNestedNode(i, nested_topologies[i], nested_args[i], nested_cost[i])),
+        sub_trees = {frozenset({i}): (leaves[i],
+                                      self._get_plan_cost(pattern, leaves[i]),
                                       items.difference({i}))
                      for i in items}
 
@@ -72,7 +64,7 @@ class ZStreamTreeBuilder(TreePlanBuilder):
     """
     Creates a bushy tree using ZStream algorithm.
     """
-    def _create_tree_topology(self, pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
+    def _create_tree_topology(self, pattern: Pattern, leaves: List[TreePlanNode]):
         """
         Implementation of the virtual method for the ZStream Bushy Tree case
         """
@@ -83,16 +75,7 @@ class ZStreamTreeBuilder(TreePlanBuilder):
         order = self._get_initial_order(selectivity_matrix, arrival_rates)
         args_num = len(order)
         items = tuple(order)
-        # In suborders, creates a nested node with the required parameters instead of primitive when needed
-        suborders = {
-            (i,): (TreePlanLeafNode(i) if
-                   (nested_topologies is None or nested_topologies[i] is None)
-                   else TreePlanNestedNode(i, nested_topologies[i], nested_args[i], nested_cost[i]),
-                   self._get_plan_cost(pattern, TreePlanLeafNode(i) if
-                   (nested_topologies is None or nested_topologies[i] is None)
-                   else TreePlanNestedNode(i, nested_topologies[i], nested_args[i], nested_cost[i])))
-            for i in items
-        }
+        suborders = {(i,): (leaves[i], self._get_plan_cost(pattern, leaves[i])) for i in items}
 
         # iterate over suborders' sizes
         for i in range(2, args_num + 1):

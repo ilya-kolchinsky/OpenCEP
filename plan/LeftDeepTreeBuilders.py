@@ -9,7 +9,7 @@ from misc import DefaultConfig
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType, \
     IterativeImprovementAlgorithmBuilder
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlan import TreePlanLeafNode, TreePlanNode, TreePlanNestedNode
+from plan.TreePlan import TreePlanNode, TreePlanLeafNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
@@ -20,33 +20,25 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-    def _create_tree_topology(self, pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
+    def _create_tree_topology(self, pattern: Pattern, leaves: List[TreePlanNode]):
         """
-        Implementation of the virtual method for the left deep trees cases
+        Invokes an algorithm (to be implemented by subclasses) that builds an evaluation order of the operands, and
+        converts it into a left-deep tree topology.
         """
         order = self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure,
                                                                      CompositeStructure) else [0]
-        return LeftDeepTreeBuilder._order_to_tree_topology(order, pattern, nested_topologies, nested_args, nested_cost)
+        return LeftDeepTreeBuilder._order_to_tree_topology(order, pattern, leaves)
 
     @staticmethod
-    def _order_to_tree_topology(order: List[int], pattern: Pattern, nested_topologies: List[TreePlanNode] = None, nested_args = None, nested_cost = None):
+    def _order_to_tree_topology(order: List[int], pattern: Pattern, leaves: List[TreePlanNode] = None):
         """
         A helper method for converting a given order to a tree topology.
-        If a node is in fact nested node and not a primitive one, a nested node is created instead,
-        and keeps there the subtree's parameters.
         """
-        if nested_topologies is None or nested_topologies[order[0]] is None:
-            tree_topology = TreePlanLeafNode(order[0])
-        else:
-            tree_topology = TreePlanNestedNode(order[0], nested_topologies[order[0]],
-                                               nested_args[order[0]], nested_cost[order[0]])
+        if leaves is None:
+            leaves = [TreePlanLeafNode(i) for i in range(max(order)+1)]
+        tree_topology = leaves[order[0]]
         for i in range(1, len(order)):
-            if nested_topologies is None or nested_topologies[order[i]] is None:
-                new_node = TreePlanLeafNode(order[i])
-            else:
-                new_node = TreePlanNestedNode(order[i], nested_topologies[order[i]], nested_args[order[i]],
-                                              nested_cost[order[i]])
-            tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, new_node)
+            tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, leaves[order[i]])
         return tree_topology
 
     def _get_order_cost(self, pattern: Pattern, order: List[int]):

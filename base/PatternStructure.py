@@ -4,7 +4,7 @@ As of now, OpenCEP supports three n-ary operators (SEQ, AND, OR) and two unary o
 could be added in the future.
 """
 from abc import ABC
-from typing import List
+from functools import reduce
 
 KC_MIN_SIZE = 1
 KC_MAX_SIZE = None
@@ -33,15 +33,9 @@ class PatternStructure(ABC):
         """
         raise NotImplementedError()
 
-    def count_primitive_events(self):
+    def get_all_event_names(self):
         """
-        Returns the number of primitive events under this structure
-        """
-        raise NotImplementedError()
-
-    def get_primitive_events_names(self):
-        """
-        Returns a list of all the events' names contained in this pattern
+        Returns all event names participating in this structure.
         """
         raise NotImplementedError()
 
@@ -66,10 +60,7 @@ class PrimitiveEventStructure(PatternStructure):
     def __repr__(self):
         return "%s %s" % (self.type, self.name)
 
-    def count_primitive_events(self):
-        return 1
-
-    def get_primitive_events_names(self):
+    def get_all_event_names(self):
         return [self.name]
 
 
@@ -86,14 +77,8 @@ class UnaryStructure(PatternStructure, ABC):
     def contains_event(self, event_name: str):
         return self.arg.contains_event(event_name)
 
-    def count_primitive_events(self):
-        return self.arg.count_primitive_events()
-
-    def get_primitive_events_names(self):
-        return self.arg.get_primitive_events_names()
-
-    def get_args(self):
-        return [self.arg]
+    def get_all_event_names(self):
+        return self.arg.get_all_event_names()
 
 
 class CompositeStructure(PatternStructure, ABC):
@@ -128,33 +113,8 @@ class CompositeStructure(PatternStructure, ABC):
                 return True
         return False
 
-    def count_primitive_events(self, sons_only=False):
-        """
-        This functions counts the total primitive offsprings of a composite structure,
-        either all of them(default)
-        or only the direct sons(sons_only=True)
-        """
-        n = 0
-        for arg in self.args:
-            if not isinstance(arg, PatternStructure):
-                raise Exception("unexpected arg")
-            if sons_only:
-                if isinstance(arg, PrimitiveEventStructure):
-                    n += 1
-            else:
-                n += arg.count_primitive_events()
-        return n
-
-    def get_primitive_events_names(self):
-        """
-        Returns a list containing the names of all primitive offsprings of the composite structure.
-        """
-        names = []
-        for arg in self.args:
-            if not isinstance(arg, PatternStructure):
-                raise Exception("unexpected arg")
-            names = names + arg.get_primitive_events_names()
-        return names
+    def get_all_event_names(self):
+        return reduce(lambda x, y: x+y, [arg.get_all_event_names() for arg in self.args])
 
 
 class AndOperator(CompositeStructure):

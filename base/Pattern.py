@@ -5,7 +5,7 @@ from base.Event import Event
 from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
 from condition.CompositeCondition import CompositeCondition, AndCondition
 from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
-    SeqOperator, NegationOperator
+    SeqOperator, NegationOperator, UnaryStructure
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
 from misc.ConsumptionPolicy import ConsumptionPolicy
@@ -172,10 +172,37 @@ class Pattern:
                 result.extend(nested_sequences)
         return result
 
+    def count_primitive_events(self, positive_only=False, negative_only=False):
+        """
+        Returns the total number of primitive events in this pattern.
+        """
+        if positive_only and negative_only:
+            raise Exception("Wrong method usage")
+        if positive_only:
+            return len(self.positive_structure.get_all_event_names())
+        if negative_only:
+            return len(self.negative_structure.get_all_event_names())
+        return len(self.full_structure.get_all_event_names())
+
+    def get_top_level_structure_args(self, positive_only=False, negative_only=False):
+        """
+        Returns the highest-level arguments of the pattern structure.
+        """
+        if positive_only and negative_only:
+            raise Exception("Wrong method usage")
+        if positive_only:
+            target_structure = self.positive_structure
+        elif negative_only:
+            target_structure = self.negative_structure
+        else:
+            target_structure = self.full_structure
+        if isinstance(target_structure, UnaryStructure):
+            return [target_structure.arg]
+        if isinstance(target_structure, CompositeStructure):
+            return target_structure.args
+        raise Exception("Invalid top-level pattern structure")
+
     def __repr__(self):
         return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.structure,
                                                                                 self.condition,
                                                                                 self.window)
-
-    def count_primitive_positive_events(self):
-        return self.positive_structure.count_primitive_events()  # counts primitive offsprings
