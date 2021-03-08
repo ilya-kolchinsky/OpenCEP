@@ -5,7 +5,7 @@ from base.Event import Event
 from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
 from condition.CompositeCondition import CompositeCondition, AndCondition
 from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
-    SeqOperator, NegationOperator
+    SeqOperator, NegationOperator, UnaryStructure
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
 from misc.ConsumptionPolicy import ConsumptionPolicy
@@ -27,7 +27,7 @@ class Pattern:
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Condition,
                  time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None,
-                 confidence: float = None):
+                 confidence: float = None, statistics_type=StatisticsTypes.NO_STATISTICS, statistics=None):
         if confidence is not None and (confidence < 0.0 or confidence > 1.0):
             raise Exception("Invalid value for pattern confidence:%s" % (confidence,))
         self.id = pattern_id
@@ -44,8 +44,8 @@ class Pattern:
 
         self.window = time_window
 
-        self.statistics_type = StatisticsTypes.NO_STATISTICS
-        self.statistics = None
+        self.statistics_type = statistics_type
+        self.statistics = statistics
         self.consumption_policy = consumption_policy
 
         if consumption_policy is not None:
@@ -118,7 +118,9 @@ class Pattern:
         """
         if isinstance(structure, PrimitiveEventStructure):
             return [structure.type]
-        return reduce(lambda x, y: x+y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
+        if isinstance(structure, UnaryStructure):
+            return self.__get_all_event_types_aux(structure.arg)
+        return reduce(lambda x, y: x + y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
 
     def __init_strict_conditions(self, pattern_structure: PatternStructure):
         """

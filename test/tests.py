@@ -7,6 +7,7 @@ from test.MultiPattern_tests import *
 from test.StorageTests import *
 import test.EventProbabilityTests
 from test.UnitTests.test_storage import run_storage_tests
+from test.UnitTests.RuleTransformationTests import ruleTransformationTests
 
 
 runTest.over_all_time = 0
@@ -56,7 +57,6 @@ structuralTest3()
 structuralTest4()
 structuralTest5()
 structuralTest6()
-structuralTest7()
 
 # Kleene closure tests
 oneArgumentsearchTestKleeneClosure()
@@ -118,10 +118,12 @@ test.EventProbabilityTests.oneArgumentsearchTestKleeneClosure()
 test.EventProbabilityTests.simpleNotTest()
 test.EventProbabilityTests.threePatternsTest()
 
+# rule transformation unit tests
+ruleTransformationTests()
+
 # benchmarks
 if INCLUDE_BENCHMARKS:
     sortedStorageBenchMarkTest()
-
 
 # Twitter tests
 if INCLUDE_TWITTER:
