@@ -97,29 +97,6 @@ def structuralTest5():
 
 def structuralTest6():
     """
-    Seq([a, Seq([ b, And([c, d]), e])])
-    """
-    structural_test_pattern = Pattern(
-        SeqOperator(
-            PrimitiveEventStructure("GOOG", "a"),
-            SeqOperator(
-                PrimitiveEventStructure("GOOG", "b"),
-                AndOperator(
-                    PrimitiveEventStructure("GOOG", "c"),
-                    PrimitiveEventStructure("GOOG", "d")
-                ),
-                PrimitiveEventStructure("GOOG", "e")
-            ),
-        ),
-        SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 135),
-        timedelta(minutes=3)
-    )
-    expected_result = ('Seq', 'a', ('Seq', ('Seq', 'b', ('And', 'c', 'd')), 'e'))
-    runStructuralTest('structuralTest6', [structural_test_pattern], expected_result)
-
-
-def structuralTest7():
-    """
     And([a, b, c, Seq([
                         d, KC(And([
                                 e, KC(f), g
@@ -156,7 +133,7 @@ def structuralTest7():
     expected_result = ('And', ('And', ('And', ('And', ('And', 'a', 'b'), 'c'),
                                        ('Seq', ('Seq', 'd', ('KC', ('And', ('And', 'e', ('KC', 'f')), 'g'))),
                                         ('And', ('KC', 'h'), ('KC', ('Seq', 'i', 'j'))))), 'k'), 'l')
-    runStructuralTest('structuralTest7', [structural_test_pattern], expected_result)
+    runStructuralTest('structuralTest6', [structural_test_pattern], expected_result)
 
 
 """

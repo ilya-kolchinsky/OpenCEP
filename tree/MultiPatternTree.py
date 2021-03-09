@@ -1,5 +1,6 @@
 from typing import Dict
 from base.Pattern import Pattern
+from base.PatternMatch import PatternMatch
 from plan.multi.MultiPatternEvaluationParameters import *
 from tree.Tree import Tree
 from tree.nodes.Node import Node
@@ -146,9 +147,7 @@ class MultiPatternTree:
         """
         Merge two nodes, and update all the required information
         """
-        # merges other into node
-        if node.get_sliding_window() < other.get_sliding_window():
-            node.propagate_sliding_window(other.get_sliding_window())
+        node.set_and_propagate_pattern_parameters(other.get_basic_filtering_parameters())
         node.add_pattern_ids(other.get_pattern_ids())
         other_parents = other.get_parents()
         if other_parents is not None:
@@ -162,7 +161,7 @@ class MultiPatternTree:
             if not node.is_output_node():
                 node.set_is_output_node(True)
                 self.__output_nodes.append(node)
-                # other is already in self.__output_nodes, therefore we need to remove it
+            # other is already in self.__output_nodes, therefore we need to remove it
             self.__output_nodes.remove(other)
             other_id = list(other.get_pattern_ids())[0]
             self.__pattern_to_output_node_dict[other_id] = node
@@ -175,6 +174,15 @@ class MultiPatternTree:
         for output_node in self.__output_nodes:
             leaves |= set(output_node.get_leaves())
         return leaves
+
+    def __should_attach_match_to_pattern(self, match: PatternMatch, pattern: Pattern):
+        """
+        Returns True if the given match satisfies the window/confidence constraints of the given pattern
+        and False otherwise.
+        """
+        if match.last_timestamp - match.first_timestamp > pattern.window:
+            return False
+        return pattern.confidence is None or match.probability is None or match.probability >= pattern.confidence
 
     def get_matches(self):
         """
@@ -192,7 +200,7 @@ class MultiPatternTree:
                         continue
                     # check if timestamp is correct for this pattern id.
                     # the pattern indices start from 1.
-                    if match.last_timestamp - match.first_timestamp <= self.__id_to_pattern_map[pattern_id].window:
+                    if self.__should_attach_match_to_pattern(match, self.__id_to_pattern_map[pattern_id]):
                         match.add_pattern_id(pattern_id)
                 matches.append(match)
         return matches

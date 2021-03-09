@@ -1,4 +1,3 @@
-from datetime import timedelta
 from typing import List
 from copy import deepcopy
 
@@ -11,7 +10,7 @@ from tree.nodes.AndNode import AndNode
 from tree.nodes.KleeneClosureNode import KleeneClosureNode
 from tree.nodes.LeafNode import LeafNode
 from tree.nodes.NegationNode import NegativeSeqNode, NegativeAndNode, NegationNode
-from tree.nodes.Node import Node
+from tree.nodes.Node import Node, PatternParameters
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.nodes.SeqNode import SeqNode
 
@@ -24,10 +23,10 @@ class Tree:
     """
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
                  pattern_id: int = None):
+        pattern_parameters = PatternParameters(pattern.window, pattern.confidence)
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
                                             Tree.__get_operator_arg_list(pattern.positive_structure),
-                                            pattern.window, None, pattern.consumption_policy)
-
+                                            pattern_parameters, None, pattern.consumption_policy)
         if pattern.consumption_policy is not None and \
                 pattern.consumption_policy.should_register_event_type_as_single(True):
             for event_type in pattern.consumption_policy.single_types:
@@ -35,7 +34,7 @@ class Tree:
 
         if pattern.negative_structure is not None:
             self.__adjust_leaf_indices(pattern)
-            self.__add_negative_tree_structure(pattern)
+            self.__add_negative_tree_structure(pattern, pattern_parameters)
 
         self.__apply_condition(pattern)
 
@@ -74,7 +73,7 @@ class Tree:
         for event_def in self.__root.get_event_definitions():
             event_def.index = leaf_mapping[event_def.index]
 
-    def __add_negative_tree_structure(self, pattern: Pattern):
+    def __add_negative_tree_structure(self, pattern: Pattern, pattern_params: PatternParameters):
         """
         Adds the negative nodes at the root of the tree.
         """
@@ -83,16 +82,16 @@ class Tree:
         current_root = self.__root
         for negation_operator in negative_event_list:
             if top_operator == SeqOperator:
-                new_root = NegativeSeqNode(pattern.window,
+                new_root = NegativeSeqNode(pattern_params,
                                            is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
             elif top_operator == AndOperator:
-                new_root = NegativeAndNode(pattern.window,
+                new_root = NegativeAndNode(pattern_params,
                                            is_unbounded=Tree.__is_unbounded_negative_event(pattern, negation_operator))
             else:
                 raise Exception("Unsupported operator for negation: %s" % (top_operator,))
             negative_event = negation_operator.arg
             leaf_index = pattern.get_index_by_event_name(negative_event.name)
-            negative_leaf = LeafNode(pattern.window, leaf_index, negative_event, new_root)
+            negative_leaf = LeafNode(pattern_params, leaf_index, negative_event, new_root)
             new_root.set_subtrees(current_root, negative_leaf)
             negative_leaf.set_parent(new_root)
             current_root.set_parent(new_root)
@@ -125,7 +124,8 @@ class Tree:
         return [operator]
 
     @staticmethod
-    def __create_internal_node_by_operator(operator: PatternStructure, sliding_window: timedelta, parent: Node = None):
+    def __create_internal_node_by_operator(operator: PatternStructure, pattern_params: PatternParameters,
+                                           parent: Node = None):
         """
         Creates an internal node representing a given operator.
         Note that negation node types are intentionally not supported here since the negative part of a pattern is
@@ -133,15 +133,15 @@ class Tree:
         """
         operator_type = operator.get_top_operator()
         if operator_type == SeqOperator:
-            return SeqNode(sliding_window, parent)
+            return SeqNode(pattern_params, parent)
         if operator_type == AndOperator:
-            return AndNode(sliding_window, parent)
+            return AndNode(pattern_params, parent)
         if operator_type == KleeneClosureOperator:
-            return KleeneClosureNode(sliding_window, operator.min_size, operator.max_size, parent)
+            return KleeneClosureNode(pattern_params, operator.min_size, operator.max_size, parent)
         raise Exception("Unknown or unsupported operator %s" % (operator_type,))
 
     def __handle_primitive_event(self, tree_plan_leaf: TreePlanLeafNode, primitive_event_structure: PatternStructure,
-                                 sliding_window: timedelta, parent: Node, consumption_policy: ConsumptionPolicy):
+                                 pattern_params: PatternParameters, parent: Node, consumption_policy: ConsumptionPolicy):
         """
         Creates a leaf node for a primitive events.
         """
@@ -150,11 +150,11 @@ class Tree:
         if consumption_policy is not None and \
                 consumption_policy.should_register_event_type_as_single(False, primitive_event_structure.type):
             parent.register_single_event_type(primitive_event_structure.type)
-        return LeafNode(sliding_window, tree_plan_leaf.event_index, primitive_event_structure, parent)
+        return LeafNode(pattern_params, tree_plan_leaf.event_index, primitive_event_structure, parent)
 
     def __handle_unary_structure(self, unary_tree_plan: TreePlanUnaryNode,
                                  root_operator: PatternStructure, args: List[PatternStructure],
-                                 sliding_window: timedelta, parent: Node, consumption_policy: ConsumptionPolicy):
+                                 pattern_params: PatternParameters, parent: Node, consumption_policy: ConsumptionPolicy):
         """
         Creates an internal unary node possibly containing nested operators.
         """
@@ -168,17 +168,17 @@ class Tree:
         if not isinstance(current_operator, UnaryStructure):
             raise Exception("Illegal operator for a unary tree node: %s" % (current_operator,))
 
-        unary_node = self.__create_internal_node_by_operator(current_operator, sliding_window, parent)
+        unary_node = self.__create_internal_node_by_operator(current_operator, pattern_params, parent)
         nested_operator = current_operator.arg
         unary_operator_child = unary_tree_plan.child
         if isinstance(unary_operator_child, TreePlanLeafNode):
             # non-nested unary operator
             child = self.__construct_tree(current_operator, unary_operator_child,
-                                      [nested_operator], sliding_window, unary_node, consumption_policy)
+                                      [nested_operator], pattern_params, unary_node, consumption_policy)
         elif isinstance(unary_operator_child, TreePlanNestedNode):
             # a nested unary operator
             child = self.__construct_tree(nested_operator, unary_operator_child.sub_tree_plan,
-                                          Tree.__get_operator_arg_list(nested_operator), sliding_window, unary_node,
+                                          Tree.__get_operator_arg_list(nested_operator), pattern_params, unary_node,
                                           consumption_policy)
         else:
             raise Exception("Invalid tree plan node under an unary node")
@@ -186,7 +186,7 @@ class Tree:
         return unary_node
 
     def __construct_tree(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
-                         args: List[PatternStructure], sliding_window: timedelta, parent: Node,
+                         args: List[PatternStructure], pattern_params: PatternParameters, parent: Node,
                          consumption_policy: ConsumptionPolicy):
         """
         Recursively builds an evaluation tree according to the specified structure.
@@ -194,24 +194,24 @@ class Tree:
         if type(tree_plan) == TreePlanUnaryNode:
             # this is an unary operator (possibly encapsulating a nested structure)
             return self.__handle_unary_structure(tree_plan, root_operator, args,
-                                                 sliding_window, parent, consumption_policy)
+                                                 pattern_params, parent, consumption_policy)
 
         if type(tree_plan) == TreePlanLeafNode:
             # This is a leaf
             return self.__handle_primitive_event(tree_plan, args[tree_plan.original_event_index],
-                                                 sliding_window, parent, consumption_policy)
+                                                 pattern_params, parent, consumption_policy)
 
         if type(tree_plan) == TreePlanNestedNode:
             # This is a nested node, therefore needs to use construct a subtree of this nested tree, recursively.
             return self.__construct_tree(args[tree_plan.nested_event_index], tree_plan.sub_tree_plan, tree_plan.args,
-                                         sliding_window, parent, consumption_policy)
+                                         pattern_params, parent, consumption_policy)
 
         # type(tree_plan) == TreePlanBinaryNode
-        current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
+        current = self.__create_internal_node_by_operator(root_operator, pattern_params, parent)
         left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
-                                             sliding_window, current, consumption_policy)
+                                             pattern_params, current, consumption_policy)
         right_subtree = self.__construct_tree(root_operator, tree_plan.right_child, args,
-                                              sliding_window, current, consumption_policy)
+                                              pattern_params, current, consumption_policy)
         current.set_subtrees(left_subtree, right_subtree)
         return current
 
