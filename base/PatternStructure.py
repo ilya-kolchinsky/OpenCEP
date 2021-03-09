@@ -64,6 +64,9 @@ class PrimitiveEventStructure(PatternStructure):
     def __repr__(self):
         return "%s %s" % (self.type, self.name)
 
+    def get_all_event_names(self):
+        return [self.name]
+
 
 class UnaryStructure(PatternStructure, ABC):
     """

@@ -6,6 +6,7 @@ from test.PolicyTests import *
 from test.MultiPattern_tests import *
 from test.StorageTests import *
 import test.EventProbabilityTests
+from test.NestedTests import *
 from test.UnitTests.test_storage import run_storage_tests
 from test.UnitTests.RuleTransformationTests import ruleTransformationTests
 
@@ -120,6 +121,23 @@ test.EventProbabilityTests.threePatternsTest()
 
 # rule transformation unit tests
 ruleTransformationTests()
+
+# nested operator tests
+basicNestedTest()
+nestedAscendingTest()
+nestedAscendingStructuralTest()
+greedyNestedTest()
+greedyNestedStructuralTest()
+iiGreedyNestedPatternSearchTest()
+iiGreedyNestedStructuralTest()
+greedyNestedComplexStructuralTest()
+dpLdNestedPatternSearchTest()
+dpLdNestedStructuralTest()
+dpBNestedPatternSearchTest()
+dpBNestedStructuralTest()
+dpLdNestedComplexStructuralTest()
+zstreamOrdNestedComplexStructuralTest()
+KCNestedStructuralTest()
 
 # benchmarks
 if INCLUDE_BENCHMARKS:
