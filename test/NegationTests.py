@@ -7,7 +7,7 @@ from base.PatternStructure import SeqOperator, PrimitiveEventStructure, Negation
 from base.Pattern import Pattern
 from misc.StatisticsTypes import StatisticsTypes
 import copy
-from numpy import random, fill_diagonal
+import random
 from itertools import permutations
 from negationAlgorithms.NegationAlgorithm import NegationAlgorithmTypes
 from misc import DefaultConfig
@@ -35,21 +35,23 @@ class Statistics:
         If it succeeds, it returns the statistics, otherwise it returns None.
         """
         events_num = self.events_num
-        arrival_rates = [*random.rand(events_num)]
+        arrival_rates = [random.random() for _ in range(events_num)]
         counter = 0
         # Maximum searching loops for a new combination
         max_loops = 5
         is_valid = self.is_statistic_valid(arrival_rates)
         while counter < max_loops and is_valid is False:
-            arrival_rates = [*random.rand(events_num)]
+            arrival_rates = [random.random() for _ in range(events_num)]
             counter = counter + 1
             is_valid = self.is_statistic_valid(arrival_rates)
         if counter == max_loops and is_valid is False:
             return None, None, False
-        selectivity_matrix_a = random.rand(events_num, events_num)
-        selectivity_matrix = selectivity_matrix_a.T * selectivity_matrix_a
-        fill_diagonal(selectivity_matrix, 1)
-        selectivity_matrix = selectivity_matrix.tolist()
+        selectivity_matrix = [[random.random() for _ in range(events_num)] for _ in range(events_num)]
+        for i in range(1, events_num):
+            for j in range(i):
+                selectivity_matrix[i][j] = selectivity_matrix[j][i]
+        for i in range(events_num):
+            selectivity_matrix[i][i] = 1.0
 
         # Documentation of the new statistics.
         with open(self.path, 'a') as file:
