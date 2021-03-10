@@ -8,8 +8,7 @@ from misc.DefaultConfig import DEFAULT_TREE_COST_MODEL
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlanLeafNode, TreePlan, TreePlanNode, TreePlanInternalNode, TreePlanUnaryNode, \
     TreePlanBinaryNode
-from plan.TreePlanBuilderOrders import TreePlanBuilderOrder
-from plan.UnifiedTreeBuilder import UnifiedTreeBuilder
+from plan.multi.UnifiedTreeBuilder import UnifiedTreeBuilder
 
 
 class ShareLeavesTreeBuilder(UnifiedTreeBuilder):
@@ -17,13 +16,10 @@ class ShareLeavesTreeBuilder(UnifiedTreeBuilder):
     A class for deep tree builders.
     """
 
-    def __init__(self, cost_model_type: TreeCostModels = DEFAULT_TREE_COST_MODEL,
-                 tree_plan_order_approach: TreePlanBuilderOrder = TreePlanBuilderOrder.LEFT_TREE):
-        super(UnifiedTreeBuilder, self).__init__(cost_model_type)
-        self.tree_plan_build_approach = tree_plan_order_approach
+    def __init__(self):
         self.trees_number_nodes_shared = 0
 
-    def _union_tree_plans(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan):
+    def unite_tree_plans(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan):
         if isinstance(pattern_to_tree_plan_map, TreePlan) or len(pattern_to_tree_plan_map) <= 1:
             return pattern_to_tree_plan_map
 

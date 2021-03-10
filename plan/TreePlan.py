@@ -28,12 +28,6 @@ class TreePlanNode(ABC):
         """
         raise NotImplementedError()
 
-    def get_node_copy(self):
-        """
-        Returns node copy instance
-        """
-        raise NotImplementedError()
-
 
 class TreePlanLeafNode(TreePlanNode):
     """
@@ -48,10 +42,6 @@ class TreePlanLeafNode(TreePlanNode):
     def get_leaves(self):
         assert self.height == 0
         return [self]
-
-    def get_node_copy(self):
-        node = TreePlanLeafNode(self.event_index, self.event_type, self.event_name)
-        return node
 
 
 class TreePlanInternalNode(TreePlanNode):
@@ -76,11 +66,6 @@ class TreePlanUnaryNode(TreePlanInternalNode):
     def get_leaves(self):
         return self.child.get_leaves()
 
-    def get_node_copy(self):
-        child = self.child.get_node_copy()
-        node = TreePlanUnaryNode(self.operator, child)
-        return node
-
 
 class TreePlanBinaryNode(TreePlanInternalNode):
     """
@@ -93,12 +78,6 @@ class TreePlanBinaryNode(TreePlanInternalNode):
 
     def get_leaves(self):
         return self.left_child.get_leaves() + self.right_child.get_leaves()
-
-    def get_node_copy(self):
-        left_child = self.left_child.get_node_copy()
-        right_child = self.right_child.get_node_copy()
-        node = TreePlanBinaryNode(self.operator, left_child, right_child)
-        return node
 
 
 class TreePlan:

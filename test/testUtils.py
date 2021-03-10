@@ -7,8 +7,8 @@ from typing import List
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
 from misc.Utils import generate_matches
-from plan.ShareLeavesTreeBuilder import ShareLeavesTreeBuilder
-from plan.SubTreeSharingTreeBuilder import SubTreeSharingTreeBuilder
+from plan.multi.ShareLeavesTreeBuilder import ShareLeavesTreeBuilder
+from plan.multi.SubTreeSharingTreeBuilder import SubTreeSharingTreeBuilder
 from plan.TopologyChangeSharingTreeBuilder import TopologyChangeSharingTreeBuilder
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, Pattern, TreePlanBuilderFactory
@@ -354,7 +354,7 @@ def union_intersection_size(patterns: List[Pattern], approach: MultiPatternTreeP
     if approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION:
         unified_builder = TopologyChangeSharingTreeBuilder()
         pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans(patterns)
-        unified = unified_builder._union_tree_plans(pattern_to_tree_plan_map_ordered)
+        unified = unified_builder.unite_tree_plans(pattern_to_tree_plan_map_ordered)
         size_of_intersection = unified_builder.trees_number_nodes_shared
         unified_tree = TreeBasedEvaluationMechanism(unified, eval_mechanism_params.storage_params)
 
@@ -367,7 +367,7 @@ def union_intersection_size(patterns: List[Pattern], approach: MultiPatternTreeP
     if approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION:
         unified_builder = SubTreeSharingTreeBuilder()
 
-    unified = unified_builder._union_tree_plans(pattern_to_tree_plan_map)
+    unified = unified_builder.unite_tree_plans(pattern_to_tree_plan_map)
     size_of_intersection = unified_builder.trees_number_nodes_shared
     return size_of_intersection
 

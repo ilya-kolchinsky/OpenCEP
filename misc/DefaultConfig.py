@@ -9,7 +9,6 @@ from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-from plan.multi.MultiPatternUnifiedTreeLocalSearchApproaches import MultiPatternUnifiedTreeLocalSearchApproaches
 from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 
 # general settings
@@ -33,13 +32,6 @@ PRIORITIZE_SORTING_BY_TIMESTAMP = True
 # iterative improvement defaults
 ITERATIVE_IMPROVEMENT_TYPE = IterativeImprovementType.SWAP_BASED
 ITERATIVE_IMPROVEMENT_INIT_TYPE = IterativeImprovementInitType.RANDOM
-
-SELECT_NEIGHBOR_PATTERNS = 3
-
-# local search defaults
-LOCAL_SEARCH_APPROACH = MultiPatternTreePlanUnionApproaches.TREE_PLAN_LOCAL_SEARCH_ANNEALING
-NEIGHBOR_FUNC = MultiPatternUnifiedTreeLocalSearchApproaches.EDGE_NEIGHBOR
-LOCAL_SEARCH_TIME_LIMIT = 20  # seconds
 
 # parallel execution settings
 DEFAULT_PARALLEL_EXECUTION_MODE = ParallelExecutionModes.SEQUENTIAL

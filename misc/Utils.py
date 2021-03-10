@@ -74,25 +74,6 @@ def str_to_number(x: str):
         return x
 
 
-def product(*args,):
-    # product('ABCD', 'xy') --> Ax Ay Bx By Cx Cy Dx Dy
-    pools = tuple(args)
-    result = [[]]
-    for pool in pools:
-        result = [x+[y] for x in result for y in pool]
-    for prod in result:
-        yield tuple(prod)
-
-
-def flatten_list(seq):
-    flat_list = [item for sublist in seq for item in sublist]
-    return flat_list
-
-def unique_list(seq):
-    seen = set()
-    seen_add = seen.add
-    return [x for x in seq if not (x in seen or seen_add(x))]
-
 def get_order_by_occurrences(primitive_events: List[PrimitiveEventStructure], occurrences: dict):
     """
     Sorts the given list according to the occurrences dictionary.

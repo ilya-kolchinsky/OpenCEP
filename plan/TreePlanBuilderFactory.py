@@ -10,12 +10,10 @@ class TreePlanBuilderParameters:
     """
     def __init__(self, builder_type: TreePlanBuilderTypes = DefaultConfig.DEFAULT_TREE_PLAN_BUILDER,
                  cost_model_type: TreeCostModels = DefaultConfig.DEFAULT_TREE_COST_MODEL,
-                 tree_plan_union_type=DefaultConfig.DEFAULT_TREE_PLAN_UNION,
-                 tree_plan_local_search_params=(DefaultConfig.NEIGHBOR_FUNC, DefaultConfig.LOCAL_SEARCH_TIME_LIMIT)):
+                 tree_plan_union_type=DefaultConfig.DEFAULT_TREE_PLAN_UNION):
         self.builder_type = builder_type
         self.cost_model_type = cost_model_type
         self.tree_plan_union_type = tree_plan_union_type
-        self.tree_plan_local_search_params = tree_plan_local_search_params
 
 
 class IterativeImprovementTreePlanBuilderParameters(TreePlanBuilderParameters):

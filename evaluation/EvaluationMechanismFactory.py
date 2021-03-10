@@ -1,13 +1,10 @@
 from typing import List, Dict
 
-from SimulatedAnnealing import SimulatedAnnealing
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc import DefaultConfig
-from plan.MPT_neighborhood import MinimalOrderTopology
-from plan.ShareLeavesTreeBuilder import ShareLeavesTreeBuilder
-from plan.SubTreeSharingTreeBuilder import SubTreeSharingTreeBuilder
-from plan.TopologyChangeSharingTreeBuilder import TopologyChangeSharingTreeBuilder
+from plan.multi.ShareLeavesTreeBuilder import ShareLeavesTreeBuilder
+from plan.multi.SubTreeSharingTreeBuilder import SubTreeSharingTreeBuilder
 from plan.TreePlan import TreePlan
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
 from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
@@ -19,7 +16,6 @@ class EvaluationMechanismParameters:
     """
     Parameters required for evaluation mechanism creation.
     """
-
     def __init__(self, eval_mechanism_type: EvaluationMechanismTypes = DefaultConfig.DEFAULT_EVALUATION_MECHANISM_TYPE):
         self.type = eval_mechanism_type
 
@@ -28,7 +24,6 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
     """
     Parameters for the creation of a tree-based evaluation mechanism.
     """
-
     def __init__(self, tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
                  storage_params: TreeStorageParameters = TreeStorageParameters()):
         super().__init__(EvaluationMechanismTypes.TREE_BASED)
@@ -68,45 +63,32 @@ class EvaluationMechanismFactory:
         TreeBasedEvaluationMechanism from the merged treePlans
         """
         tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
-        if isinstance(patterns, Pattern):
-            patterns = [patterns]
-            pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
-            tree = TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params)
-            return tree
+        if isinstance(patterns, Pattern) or len(patterns) == 1:
+            # a single-pattern case
+            pattern = patterns if isinstance(patterns, Pattern) else patterns[0]
+            pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern)}
+            return TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params)
 
         pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
-        unified_tree_map = {}
-        if eval_mechanism_params.tree_plan_params.tree_plan_union_type == MultiPatternTreePlanUnionApproaches.TREE_PLAN_LOCAL_SEARCH_ANNEALING:
-            unified_tree_map = SimulatedAnnealing.construct_subtrees_local_search_tree_plan(pattern_to_tree_plan_map,
-                                                                               eval_mechanism_params.tree_plan_params.tree_plan_local_search_params)
-        else:
-            unified_tree_map = EvaluationMechanismFactory.__create_union_tree_plans(pattern_to_tree_plan_map,
-                                                           eval_mechanism_params.tree_plan_params.tree_plan_union_type)
-
+        unified_tree_map = EvaluationMechanismFactory.__unite_tree_plans(
+            pattern_to_tree_plan_map, eval_mechanism_params.tree_plan_params.tree_plan_union_type)
         unified_tree = TreeBasedEvaluationMechanism(unified_tree_map, eval_mechanism_params.storage_params)
         return unified_tree
 
     @staticmethod
-    def __create_union_tree_plans(pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan,
-                          tree_plan_union_approach: MultiPatternTreePlanUnionApproaches):
-        if isinstance(pattern_to_tree_plan_map, TreePlan) or len(pattern_to_tree_plan_map) <= 1:
-            return pattern_to_tree_plan_map
-
-        pattern_to_tree_plan_map_copy = pattern_to_tree_plan_map.copy()
-
+    def __unite_tree_plans(pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
+                           tree_plan_union_approach: MultiPatternTreePlanUnionApproaches):
+        """
+        Merges the given tree plans of individual tree plans into a global shared structure.
+        """
         if tree_plan_union_approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES:
-            union_builder = ShareLeavesTreeBuilder()
-            return union_builder._union_tree_plans(pattern_to_tree_plan_map_copy)
-
+            return ShareLeavesTreeBuilder().unite_tree_plans(pattern_to_tree_plan_map)
         if tree_plan_union_approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION:
-            union_builder = SubTreeSharingTreeBuilder()
-            return union_builder._union_tree_plans(pattern_to_tree_plan_map_copy)
-
-        if tree_plan_union_approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION:
-            union_builder = TopologyChangeSharingTreeBuilder()
-            return union_builder._union_tree_plans(pattern_to_tree_plan_map_copy)
-        else:
-            raise Exception("Unsupported union algorithm, yet")
+            return SubTreeSharingTreeBuilder().unite_tree_plans(pattern_to_tree_plan_map)
+        if tree_plan_union_approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_LOCAL_SEARCH:
+            # TODO: not yet implemented
+            pass
+        raise Exception("Unsupported multi-pattern union algorithm %s" % (tree_plan_union_approach,))
 
     @staticmethod
     def __create_default_eval_parameters():
