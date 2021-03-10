@@ -1,0 +1,18 @@
+{'Stock Ticker': 'AAPL', 'Date': 200802010900, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700, 'Probability': 0.99}
+{'Stock Ticker': 'GOOG', 'Date': 200802010902, 'Opening Price': 530.33, 'Peak Price': 530.33, 'Lowest Price': 529.33, 'Close Price': 530.21, 'Volume': 15794, 'Probability': 0.97}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010900, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700, 'Probability': 0.99}
+{'Stock Ticker': 'GOOG', 'Date': 200802010905, 'Opening Price': 530.1, 'Peak Price': 530.1, 'Lowest Price': 528.33, 'Close Price': 529.28, 'Volume': 8163, 'Probability': 0.99}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802011013, 'Opening Price': 136.03, 'Peak Price': 136.25, 'Lowest Price': 135.92, 'Close Price': 136.14, 'Volume': 140726, 'Probability': 0.99}
+{'Stock Ticker': 'GOOG', 'Date': 200802011013, 'Opening Price': 520.2899, 'Peak Price': 520.2899, 'Lowest Price': 518.31, 'Close Price': 518.92, 'Volume': 55400, 'Probability': 0.97}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802011013, 'Opening Price': 136.03, 'Peak Price': 136.25, 'Lowest Price': 135.92, 'Close Price': 136.14, 'Volume': 140726, 'Probability': 0.99}
+{'Stock Ticker': 'GOOG', 'Date': 200802011017, 'Opening Price': 519, 'Peak Price': 519.29, 'Lowest Price': 517.6, 'Close Price': 517.7699, 'Volume': 50509, 'Probability': 0.98}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802011016, 'Opening Price': 135.87, 'Peak Price': 135.93, 'Lowest Price': 135.71, 'Close Price': 135.86, 'Volume': 130036, 'Probability': 0.98}
+{'Stock Ticker': 'GOOG', 'Date': 200802011017, 'Opening Price': 519, 'Peak Price': 519.29, 'Lowest Price': 517.6, 'Close Price': 517.7699, 'Volume': 50509, 'Probability': 0.98}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802011035, 'Opening Price': 134.165, 'Peak Price': 134.19, 'Lowest Price': 133.9275, 'Close Price': 133.9799, 'Volume': 181355, 'Probability': 0.98}
+{'Stock Ticker': 'GOOG', 'Date': 200802011036, 'Opening Price': 511.14, 'Peak Price': 513.49, 'Lowest Price': 510.96, 'Close Price': 512.69, 'Volume': 89274, 'Probability': 0.97}
+
