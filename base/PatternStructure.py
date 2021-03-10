@@ -142,7 +142,6 @@ class KleeneClosureOperator(UnaryStructure):
 
 
 class NegationOperator(UnaryStructure):
-
     def duplicate(self):
         return NegationOperator(self.arg.duplicate())
 

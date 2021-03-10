@@ -1,4 +1,3 @@
-from plan.TreePlanBuilder import TreePlanBuilder
 from negationAlgorithms.NegationAlgorithm import *
 
 
@@ -28,7 +27,7 @@ class StatisticNegationAlgorithm(NegationAlgorithm):
             order.append(indices_statistics_list[i][0] + len(pattern.positive_structure.args))
             # The negative part being added to the tree plan
         for i in range(0, negative_events_num):
-            tree_topology = TreePlanBuilder.instantiate_binary_node(pattern,
-                                                                    tree_topology, TreePlanLeafNode(order[i]))
+            tree_topology = NegationAlgorithm._instantiate_negative_node(pattern,
+                                                                         tree_topology, TreePlanLeafNode(order[i]))
         self.adjust_tree_plan_indices(tree_topology, pattern)
         return tree_topology

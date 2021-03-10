@@ -37,7 +37,7 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
         """
         tree_topology = TreePlanLeafNode(order[0])
         for i in range(1, len(order)):
-            tree_topology = TreePlanBuilder.instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(order[i]))
+            tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(order[i]))
         return tree_topology
 
     def _get_order_cost(self, pattern: Pattern, order: List[int]):

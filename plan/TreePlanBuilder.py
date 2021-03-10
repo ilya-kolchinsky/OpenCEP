@@ -2,24 +2,26 @@ from abc import ABC
 
 from base.Pattern import Pattern
 from base.PatternStructure import AndOperator, SeqOperator
+from negationAlgorithms.NegationAlgorithmFactory import NegationAlgorithmFactory
+from negationAlgorithms.NegationAlgorithmTypes import NegationAlgorithmTypes
 from plan.TreeCostModel import TreeCostModelFactory
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode, TreePlanLeafNode
-from negationAlgorithms.NegationAlgorithm import NegationAlgorithm
 
 
 class TreePlanBuilder(ABC):
     """
     The base class for the builders of tree-based plans.
     """
-    def __init__(self, cost_model_type: TreeCostModels):
+    def __init__(self, cost_model_type: TreeCostModels, negation_algorithm_type: NegationAlgorithmTypes):
         self.__cost_model = TreeCostModelFactory.create_cost_model(cost_model_type)
+        self.__negation_algorithm = NegationAlgorithmFactory.create_negation_algorithm(negation_algorithm_type)
 
-    def build_tree_plan(self, pattern: Pattern, negation_algorithm: NegationAlgorithm):
+    def build_tree_plan(self, pattern: Pattern):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
-        return TreePlan(negation_algorithm.add_negative_part(pattern, self._create_tree_topology(pattern)))
+        return TreePlan(self.__negation_algorithm.add_negative_part(pattern, self._create_tree_topology(pattern)))
 
     def _create_tree_topology(self, pattern: Pattern):
         """
@@ -34,7 +36,7 @@ class TreePlanBuilder(ABC):
         return self.__cost_model.get_plan_cost(pattern, plan)
 
     @staticmethod
-    def instantiate_binary_node(pattern: Pattern, left_subtree: TreePlanNode, right_subtree: TreePlanNode):
+    def _instantiate_binary_node(pattern: Pattern, left_subtree: TreePlanNode, right_subtree: TreePlanNode):
         """
         A helper method for the subclasses to instantiate tree plan nodes depending on the operator.
         """
@@ -45,11 +47,4 @@ class TreePlanBuilder(ABC):
             operator_type = OperatorTypes.SEQ
         else:
             raise Exception("Unsupported binary operator")
-        if pattern.negative_structure is not None:
-            if type(right_subtree) is TreePlanLeafNode:
-                if right_subtree.event_index >= len(pattern.positive_structure.args):
-                    if isinstance(pattern_structure, AndOperator):
-                        operator_type = OperatorTypes.NAND
-                    elif isinstance(pattern_structure, SeqOperator):
-                        operator_type = OperatorTypes.NSEQ
         return TreePlanBinaryNode(operator_type, left_subtree, right_subtree)

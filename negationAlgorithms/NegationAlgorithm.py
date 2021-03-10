@@ -1,7 +1,7 @@
 from base.Pattern import Pattern
 from misc.StatisticsTypes import StatisticsTypes
-from base.PatternStructure import PrimitiveEventStructure, NegationOperator
-from plan.TreePlan import TreePlanBinaryNode, TreePlanLeafNode, TreePlanNode
+from base.PatternStructure import PrimitiveEventStructure, NegationOperator, AndOperator, SeqOperator
+from plan.TreePlan import TreePlanBinaryNode, TreePlanLeafNode, TreePlanNode, OperatorTypes
 from misc import DefaultConfig
 from negationAlgorithms.NegationAlgorithmTypes import NegationAlgorithmTypes
 
@@ -85,3 +85,16 @@ class NegationAlgorithm:
         self.adjust_tree_plan_indices(tree_topology.right_child, pattern)
         self.update_indices(tree_topology.left_child, pattern)
         self.update_indices(tree_topology.right_child, pattern)
+
+    @staticmethod
+    def _instantiate_negative_node(pattern: Pattern, positive_subtree: TreePlanNode, negative_subtree: TreePlanNode):
+        """
+        Creates a node representing a negation operator over the given positive and negative subtrees.
+        """
+        if isinstance(pattern.positive_structure, AndOperator):
+            operator_type = OperatorTypes.NAND
+        elif isinstance(pattern.positive_structure, SeqOperator):
+            operator_type = OperatorTypes.NSEQ
+        else:
+            raise Exception("Unsupported operator for negation")
+        return TreePlanBinaryNode(operator_type, positive_subtree, negative_subtree)

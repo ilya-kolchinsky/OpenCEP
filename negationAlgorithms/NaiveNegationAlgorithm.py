@@ -1,4 +1,3 @@
-from plan.TreePlanBuilder import TreePlanBuilder
 from negationAlgorithms.NegationAlgorithm import *
 
 
@@ -21,8 +20,8 @@ class NaiveNegationAlgorithm(NegationAlgorithm):
         negative_events_num = len(pattern.negative_structure.args)
         order = [*range(len(pattern.positive_structure.args), len(pattern.full_structure.args))]
         for i in range(0, negative_events_num):
-            tree_topology = TreePlanBuilder.instantiate_binary_node(pattern,
-                                                                    tree_topology, TreePlanLeafNode(order[i]))
+            tree_topology = NegationAlgorithm._instantiate_negative_node(pattern,
+                                                                         tree_topology, TreePlanLeafNode(order[i]))
         self.calculate_original_indices(pattern)
         self.adjust_tree_plan_indices(tree_topology, pattern)
         return tree_topology

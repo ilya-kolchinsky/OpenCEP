@@ -1,3 +1,4 @@
+from negationAlgorithms.NegationAlgorithmTypes import NegationAlgorithmTypes
 from plan.BushyTreeBuilders import *
 from plan.LeftDeepTreeBuilders import *
 from plan.TreeCostModels import TreeCostModels
@@ -9,9 +10,11 @@ class TreePlanBuilderParameters:
     Parameters for the tree plan builder.
     """
     def __init__(self, builder_type: TreePlanBuilderTypes = DefaultConfig.DEFAULT_TREE_PLAN_BUILDER,
-                 cost_model_type: TreeCostModels = DefaultConfig.DEFAULT_TREE_COST_MODEL):
+                 cost_model_type: TreeCostModels = DefaultConfig.DEFAULT_TREE_COST_MODEL,
+                 negation_algorithm_type: NegationAlgorithmTypes = DefaultConfig.DEFAULT_NEGATION_ALGORITHM):
         self.builder_type = builder_type
         self.cost_model_type = cost_model_type
+        self.negation_algorithm_type = negation_algorithm_type
 
 
 class IterativeImprovementTreePlanBuilderParameters(TreePlanBuilderParameters):

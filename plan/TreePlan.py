@@ -22,7 +22,7 @@ class TreePlanNode(ABC):
     """
     Represents a single node of a tree-based plan.
     """
-    parent = None
+    pass
 
 
 class TreePlanLeafNode(TreePlanNode):

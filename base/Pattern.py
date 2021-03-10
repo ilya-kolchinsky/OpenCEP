@@ -37,11 +37,9 @@ class Pattern:
 
         self.window = time_window
 
-        self.statistics_type = StatisticsTypes.NO_STATISTICS
-        self.full_statistics = None
-        self.positive_statistics = None
-        self.consumption_policy = consumption_policy
+        self.set_statistics(StatisticsTypes.NO_STATISTICS, None)
 
+        self.consumption_policy = consumption_policy
         if consumption_policy is not None:
             if consumption_policy.single_event_strategy is not None and consumption_policy.single_types is None:
                 # must be initialized to contain all event types in the pattern
@@ -81,18 +79,18 @@ class Pattern:
         are not supported. Also, the extracted negative events are put in a simple flat positive_structure.
         """
         if not isinstance(self.positive_structure, CompositeStructure):
-            # Cannot contain a negative part
+            # cannot contain a negative part
             return None
         negative_structure = self.positive_structure.duplicate_top_operator()
         for arg in self.positive_structure.args:
             if type(arg) == NegationOperator:
-                # A negative event was found and needs to be extracted
+                # a negative event was found and needs to be extracted
                 negative_structure.args.append(arg)
             elif type(arg) != PrimitiveEventStructure:
                 # TODO: nested operator support should be provided here
                 pass
         if len(negative_structure.args) == 0:
-            # The given pattern is entirely positive
+            # the given pattern is entirely positive
             return None
         if len(negative_structure.args) == len(self.positive_structure.args):
             raise Exception("The pattern contains no positive events")

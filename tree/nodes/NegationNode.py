@@ -39,12 +39,6 @@ class NegationNode(BinaryNode, ABC):
         # a list of partial matches that can be invalidated by a negative event that will only arrive in future
         self.__pending_partial_matches = []
 
-    def get_is_unbounded(self):
-        return self.__is_unbounded
-
-    def get_pending_partial_matches(self):
-        return self.__pending_partial_matches
-
     def set_subtrees(self, left: Node, right: Node):
         """
         Updates the aliases following the changes in the subtrees.
@@ -61,9 +55,6 @@ class NegationNode(BinaryNode, ABC):
         """
         super()._set_event_definitions(positive_event_defs, negative_event_defs)
         self._positive_event_defs = positive_event_defs
-
-    def set_is_unbounded(self, is_unbounded: bool):
-        self.__is_unbounded = is_unbounded
 
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
@@ -127,7 +118,6 @@ class NegationNode(BinaryNode, ABC):
         If this node can receive unbounded negative events and is the deepest node in the tree to do so, a
         successfully evaluated partial match must be added to a dedicated waiting list rather than propagated normally.
         """
-
         if self.__is_first_unbounded_negative_node():
             self.__pending_partial_matches.append(pm)
         else:
@@ -167,37 +157,15 @@ class NegationNode(BinaryNode, ABC):
 
         first_unbounded_node.__pending_partial_matches = matches_to_keep
 
-    def partial_match_is_valid(self, positive_match):
-        """
-        The function checks if the positive match creates a match with a negative event.
-        If so - it is invalid match, and the return value is False.
-        """
-        new_pm_key = self.get_left_subtree().get_storage_unit().get_key_function()
-        first_event_defs = self._left_subtree.get_event_definitions_by_parent(self)
-        partial_matches_to_compare = self.get_right_subtree().get_partial_matches(new_pm_key(positive_match))
-        second_event_defs = self.get_right_subtree().get_event_definitions_by_parent(self)
-
-        for partial_match in partial_matches_to_compare:
-            negative_events = partial_match.events
-            combined_event_list = self._merge_events_for_new_match(first_event_defs, second_event_defs,
-                                                                   positive_match.events, negative_events)
-            if self._validate_new_match(combined_event_list):
-                return False
-        # no negative match invalidated the positive one - we can go on
-        return True
-
     def get_first_unbounded_negative_node(self):
         """
         Returns the deepest unbounded node in the tree. This node keeps the partial matches that are pending release
         due to the presence of unbounded negative events in the pattern.
         """
-        deepest_unbounded_so_far = None
-        current_node = self
-        while isinstance(current_node, NegativeSeqNode):
-            if current_node.__is_unbounded:
-                deepest_unbounded_so_far = current_node
-            current_node = current_node.get_left_subtree()
-        return deepest_unbounded_so_far
+        if not self.__is_unbounded:
+            return None
+        return self if self.__is_first_unbounded_negative_node() \
+            else self._positive_subtree.get_first_unbounded_negative_node()
 
     def __is_first_unbounded_negative_node(self):
         """
