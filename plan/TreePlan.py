@@ -40,7 +40,6 @@ class TreePlanLeafNode(TreePlanNode):
         self.event_name = event_name
 
     def get_leaves(self):
-        assert self.height == 0
         return [self]
 
 

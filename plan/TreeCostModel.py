@@ -1,20 +1,17 @@
-import itertools
 from abc import ABC
-from typing import List, Tuple, Dict
+from typing import List
 
 from base.Pattern import Pattern
-from misc.DefaultConfig import DEFAULT_TREE_COST_MODEL
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlan import TreePlanNode, TreePlanLeafNode, TreePlan
+from plan.TreePlan import TreePlanNode, TreePlanLeafNode
 
 
 class TreeCostModel(ABC):
     """
     An abstract class for the cost model used by cost-based tree-structured evaluation plan generation algorithms.
     """
-
     def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode):
         """
         Returns the cost of a given plan for a given pattern.
@@ -26,7 +23,6 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
     """
     Calculates the plan cost based on the expected size of intermediate results (partial matches).
     """
-
     def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             (selectivity_matrix, arrival_rates) = pattern.statistics
@@ -71,9 +67,8 @@ class TreeCostModelFactory:
     """
     A factory for instantiating the cost model object.
     """
-
     @staticmethod
-    def create_cost_model(cost_model_type: TreeCostModels = DEFAULT_TREE_COST_MODEL):
+    def create_cost_model(cost_model_type: TreeCostModels):
         """
         Returns a cost model of the specified type.
         """
