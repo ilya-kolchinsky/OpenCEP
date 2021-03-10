@@ -67,23 +67,6 @@ with open(file1, 'w') as file:
     file.write("\nDocumentation of the generated statistics for the negation tests:\n")
 file.close()
 
-def numOfLinesInPattern(file):
-    """
-    get num of lines in file until first blank line == num of lines in pattern
-    :param file: file
-    :return: int
-"""
-    counter = 0
-    for line in file:
-        if line == '\n':
-            break
-        counter = counter + 1
-    return counter
-"""
-    nonempty_lines = [line.strip("\n") for line in file if line != "\n"]
-    return len(nonempty_lines)
-"""
-
 def closeFiles(file1, file2):
     file1.close()
     file2.close()
@@ -96,35 +79,20 @@ def fileCompare(pathA, pathB):
     :param path2: path to second file
     :return: bool, True if the two files are equivalent
     """
-
-
     file1 = open(pathA)
     file2 = open(pathB)
 
-    counter1 = numOfLinesInPattern(file1)
-    counter2 = numOfLinesInPattern(file2)
-
-    file1.seek(0)
-    file2.seek(0)
-
-    # quick check, if both files don't return the same counter, or if both files are empty
-    if counter1 != counter2:
-        closeFiles(file1, file2)
-        print("size of a match is not equal\n")
-        return False
-    elif counter1 == counter2 and counter1 == 0:
-        closeFiles(file1, file2)
-        return True
-
     set1 = set()
     set2 = set()
+    fillSet(file1, set1)
+    fillSet(file2, set2)
 
-    fillSet(file1, set1, counter1)
-    fillSet(file2, set2, counter2)
+    if len(set1) != len(set2):
+        closeFiles(file1, file2)
+        return False
 
     if set1 != set2:
         closeFiles(file1, file2)
-        print("matches are not equal\n")
         return False
 
     file1.seek(0)
@@ -135,14 +103,13 @@ def fileCompare(pathA, pathB):
 
     if counterA != counterB:
         closeFiles(file1, file2)
-        print("number of lines is not equal\n")
         return False
 
     closeFiles(file1, file2)
     return True
 
 
-def fillSet(file, set: set, counter: int):
+def fillSet(file, set: set):
     """
     fill a set, each element of the set is x consecutive lines of the file, with x = counter
     :param file:
@@ -151,19 +118,16 @@ def fillSet(file, set: set, counter: int):
     :return:
     """
     list = []
-    tmp = 0
     for line in file:
         if line == '\n':
             continue
         # solve a problem when no blank lines at end of file
         line = line.strip()
         list.append(line)
-        tmp = tmp + 1
         # if we read 'counter' lines, we want to add it to the set, and continue with the next 'counter' lines
-        if tmp == counter:
+        if line == '\n':
             set.add(tuple(list))
             list = []
-            tmp = 0
 
 
 def outputTestFile(base_path: str, matches: list, output_file_name: str = 'matches.txt'):
@@ -188,11 +152,14 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
     print("Finished creating test %s" % testName)
 
 
-def runTest(expectedFileName, patterns, createTestFile = False,
-            eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS, events=None,
-            eventStream=nasdaqEventStream, test_name=None):
+def runTest(testName, patterns, createTestFile = False,
+            eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+            events=None, eventStream=nasdaqEventStream, expected_file_name=None):
+    if expected_file_name is None:
+        expected_file_name = testName
+
     if createTestFile:
-        createTest(test_name, patterns, events, eventStream=eventStream)
+        createTest(testName, patterns, events, eventStream=eventStream)
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -202,47 +169,37 @@ def runTest(expectedFileName, patterns, createTestFile = False,
     listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
     listCustom = ["MultipleNotBeginAndEnd", "NotEverywhere2"]
     listCustom2 = ["simpleNot"]
-    if expectedFileName in listShort:
+    if expected_file_name in listShort:
         events = nasdaqEventStreamShort.duplicate()
-    elif expectedFileName in listHalfShort:
+    elif expected_file_name in listHalfShort:
         events = nasdaqEventStreamHalfShort.duplicate()
-    elif expectedFileName in listCustom:
+    elif expected_file_name in listCustom:
         events = custom.duplicate()
-    elif expectedFileName in listCustom2:
+    elif expected_file_name in listCustom2:
         events = custom2.duplicate()
-    elif expectedFileName == "NotEverywhere":
+    elif expected_file_name == "NotEverywhere":
         events = custom3.duplicate()
 
     cep = CEP(patterns, eval_mechanism_params)
 
-    if test_name is None:
-        test_name = expectedFileName
-    else:
-        if eval_mechanism_params.negation_algorithm.negation_algorithm_type is NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM:
-            negation_algorithm = "Naive"
-        elif eval_mechanism_params.negation_algorithm.negation_algorithm_type is NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM:
-            negation_algorithm = "Statistic"
-        else:
-            negation_algorithm = "LowestPos"
-        test_name = expectedFileName+negation_algorithm+test_name
-
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
-    output_file_name = "%sMatches.txt" % test_name
+    output_file_name = "%sMatches.txt" % testName
+    expected_output_file_name = "%sMatches.txt" % expected_file_name
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
-    ExpectedOutputFileName = "%sMatches.txt" % expectedFileName
-    expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', ExpectedOutputFileName)
+
+    expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', expected_output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
     is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
 
-    print("Test %s result: %s, Time Passed: %s" % (test_name,
+    print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
     if is_test_successful:
         os.remove(actual_matches_path)
     else:
         num_failed_tests.increase_counter()
-        num_failed_tests.failed_tests.add(test_name)
+        num_failed_tests.failed_tests.add(testName)
 
 
 """
@@ -356,6 +313,7 @@ def runMultiTest(test_name, patterns, createTestFile = False,
     else:
         num_failed_tests.increase_counter()
         num_failed_tests.failed_tests.add(test_name)
+
 
 class DummyOutputStream(OutputStream):
     def add_item(self, item: object):

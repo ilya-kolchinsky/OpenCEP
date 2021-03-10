@@ -1,32 +1,23 @@
+from misc.StatisticsTypes import StatisticsTypes
+from plan.negation.NaiveNegationAlgorithm import NaiveNegationAlgorithm
 from plan.negation.NegationAlgorithm import *
 
 
-class StatisticNegationAlgorithm(NegationAlgorithm):
+class StatisticNegationAlgorithm(NaiveNegationAlgorithm):
     """
-    This class represents the statistic negation algorithm, and saves the data related to it.
+    This class represents the statistic negation algorithm.
     """
-    def __init__(self):
-        super().__init__(NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)
+    def _add_negative_part(self, pattern: Pattern, positive_tree_plan: TreePlanBinaryNode,
+                           all_negative_indices: List[int], unbounded_negative_indices: List[int]):
+        if pattern.statistics_type is StatisticsTypes.ARRIVAL_RATES:
+            negative_event_rates = {i: pattern.full_statistics[i] for i in all_negative_indices}
+        if pattern.statistics_type is StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
+            negative_event_rates = {i: pattern.full_statistics[1][i] for i in all_negative_indices}
+        bounded_negative_indices = [i for i in all_negative_indices if i not in unbounded_negative_indices]
 
-    def add_negative_part(self, pattern: Pattern, positive_tree_plan: TreePlanBinaryNode):
-        """
-        This method adds the negative part to the tree plan (that includes only the positive part),
-        according to the statistic algorithm, i.e. - negative nodes inserted on top of the positive tree plan, in the
-        order determined by their statistics.
-        """
-        tree_topology = positive_tree_plan
-        if pattern.negative_structure is None or pattern.full_statistics is None:
-            return tree_topology
-        self.calculate_original_indices(pattern)
-        negative_events_num = len(pattern.negative_structure.args)
-        order = []
-        indices_statistics_list = self.create_sorted_statistics_list(pattern)
-        # Arrange "order" negative events by the desired order (according to the statistics)
-        for i in range(0, negative_events_num):
-            order.append(indices_statistics_list[i][0] + len(pattern.positive_structure.args))
-            # The negative part being added to the tree plan
-        for i in range(0, negative_events_num):
-            tree_topology = NegationAlgorithm._instantiate_negative_node(pattern,
-                                                                         tree_topology, TreePlanLeafNode(order[i]))
-        self.adjust_tree_plan_indices(tree_topology, pattern)
-        return tree_topology
+        bounded_negative_indices.sort(key=lambda x: negative_event_rates[x], reverse=True)
+        unbounded_negative_indices.sort(key=lambda x: negative_event_rates[x], reverse=True)
+
+        return super()._add_negative_part(pattern, positive_tree_plan,
+                                          bounded_negative_indices + unbounded_negative_indices,
+                                          unbounded_negative_indices)

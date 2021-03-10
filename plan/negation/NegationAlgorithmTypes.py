@@ -7,4 +7,4 @@ class NegationAlgorithmTypes(Enum):
     """
     NAIVE_NEGATION_ALGORITHM = 0,
     STATISTIC_NEGATION_ALGORITHM = 1,
-    LOWEST_POSITION_NEGATION_ALGORITHM = 2
+    LOWEST_POSITION_NEGATION_ALGORITHM = 2  # not yet supported

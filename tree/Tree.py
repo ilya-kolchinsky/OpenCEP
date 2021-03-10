@@ -2,7 +2,8 @@ from typing import List
 from copy import deepcopy
 
 from base.Pattern import Pattern
-from base.PatternStructure import PatternStructure, CompositeStructure, UnaryStructure, PrimitiveEventStructure
+from base.PatternStructure import PatternStructure, CompositeStructure, UnaryStructure, PrimitiveEventStructure, \
+    NegationOperator
 from misc.ConsumptionPolicy import ConsumptionPolicy
 from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanNestedNode, TreePlanUnaryNode, \
     OperatorTypes, TreePlanInternalNode
@@ -100,6 +101,10 @@ class Tree:
         """
         Creates a leaf node for a primitive events.
         """
+        # this is a temporary hack used until the procedure is modified to extract event details from tree plan leaves
+        if isinstance(primitive_event_structure, NegationOperator):
+            primitive_event_structure = primitive_event_structure.arg
+
         if not isinstance(primitive_event_structure, PrimitiveEventStructure):
             raise Exception("Illegal operator for a tree leaf: %s" % (primitive_event_structure,))
         if consumption_policy is not None and \

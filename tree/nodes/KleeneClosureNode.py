@@ -48,6 +48,8 @@ class KleeneClosureNode(UnaryNode):
         """
         Validates the condition stored in this node on the given set of events.
         """
+        if not Node._validate_new_match(self, events_for_new_match):
+            return False
         return self._condition.eval([e.payload for e in events_for_new_match])
 
     def __create_child_matches_powerset(self):

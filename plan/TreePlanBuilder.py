@@ -37,7 +37,7 @@ class TreePlanBuilder(ABC):
         if isinstance(pattern.positive_structure, UnaryStructure):
             # an edge case where the topmost operator is a unary operator
             positive_root = self._instantiate_unary_node(pattern, positive_root)
-        root = self.__negation_algorithm.add_negative_part(pattern, positive_root)
+        root = self.__negation_algorithm.handle_pattern_negation(pattern, positive_root)
         return TreePlan(root)
 
     @staticmethod

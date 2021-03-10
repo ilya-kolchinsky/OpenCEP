@@ -78,9 +78,7 @@ KC_Condition_Failure_01()
 KC_Condition_Failure_02()
 KC_Condition_Failure_03()
 
-
 # negation tests
-"""
 simpleNotTest()
 multipleNotInTheMiddleTest()
 oneNotAtTheBeginningTest()
@@ -89,8 +87,34 @@ oneNotAtTheEndTest()
 multipleNotAtTheEndTest()
 multipleNotBeginAndEndTest()
 testWithMultipleNotAtBeginningMiddleEnd()
-testWithMultipleNotAtBeginningMiddleEnd2(check_all_combinations=False)
-"""
+testWithMultipleNotAtBeginningMiddleEnd2()
+simpleNotTestStat()
+multipleNotInTheMiddleTestStat()
+oneNotAtTheBeginningTestStat()
+multipleNotAtTheBeginningTestStat()
+oneNotAtTheEndTestStat()
+multipleNotAtTheEndTestStat()
+multipleNotBeginAndEndTestStat()
+testWithMultipleNotAtBeginningMiddleEndStat()
+testWithMultipleNotAtBeginningMiddleEnd2Stat()
+simpleNotTestDPTree()
+multipleNotInTheMiddleTestDPTree()
+oneNotAtTheBeginningTestDPTree()
+multipleNotAtTheBeginningTestDPTree()
+oneNotAtTheEndTestDPTree()
+multipleNotAtTheEndTestDPTree()
+multipleNotBeginAndEndTestDPTree()
+testWithMultipleNotAtBeginningMiddleEndDPTree()
+testWithMultipleNotAtBeginningMiddleEnd2DPTree()
+simpleNotTestStatDPTree()
+multipleNotInTheMiddleTestStatDPTree()
+oneNotAtTheBeginningTestStatDPTree()
+multipleNotAtTheBeginningTestStatDPTree()
+oneNotAtTheEndTestStatDPTree()
+multipleNotAtTheEndTestStatDPTree()
+multipleNotBeginAndEndTestStatDPTree()
+testWithMultipleNotAtBeginningMiddleEndStatDPTree()
+testWithMultipleNotAtBeginningMiddleEnd2StatDPTree()
 
 # consumption policies tests
 singleType1PolicyPatternSearchTest()
@@ -106,7 +130,7 @@ run_storage_tests()
 
 # multi-pattern tests
 # first approach: sharing leaves
-#leafIsRoot()
+leafIsRoot()
 distinctPatterns()
 threePatternsTest()
 samePatternDifferentTimeStamps()
@@ -115,13 +139,13 @@ rootAndInner()
 # second approach: sharing equivalent subtrees
 onePatternIncludesOther()
 samePatternSharingRoot()
-#severalPatternShareSubtree()
-#notInTheBeginningShare()
+severalPatternShareSubtree()
+notInTheBeginningShare()
 multipleParentsForInternalNode()
 
 test.EventProbabilityTests.oneArgumentsearchTest()
 test.EventProbabilityTests.oneArgumentsearchTestKleeneClosure()
-#test.EventProbabilityTests.simpleNotTest()
+test.EventProbabilityTests.simpleNotTest()
 test.EventProbabilityTests.threePatternsTest()
 
 # rule transformation unit tests
