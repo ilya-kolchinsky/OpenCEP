@@ -92,9 +92,6 @@ class CompositeStructure(PatternStructure, ABC):
     def __init__(self, *args):
         self.args = list(args)
 
-    def get_args(self):
-        return self.args
-
     def duplicate(self):
         new_structure = self.duplicate_top_operator()
         new_structure.args = [arg.duplicate() for arg in self.args]

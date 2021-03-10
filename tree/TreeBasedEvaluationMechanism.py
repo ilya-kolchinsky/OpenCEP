@@ -11,7 +11,6 @@ from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from tree.MultiPatternTree import MultiPatternTree
-
 from tree.Tree import Tree
 
 

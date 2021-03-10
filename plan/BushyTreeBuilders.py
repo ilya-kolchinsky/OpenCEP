@@ -21,7 +21,7 @@ class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
         if pattern.statistics_type != StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             raise MissingStatisticsException()
 
-        (selectivity_matrix, arrival_rates) = pattern.statistics
+        (selectivity_matrix, arrival_rates) = pattern.positive_statistics
         args_num = len(selectivity_matrix)
         if args_num == 1:
             return [0]
@@ -57,7 +57,8 @@ class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
                     # if new subset's topology is better, then update to it.
                     if new_cost < cost:
                         sub_trees[subset] = new_tree, new_cost, left
-        return sub_trees[items][0]  # return the best topology (index 0 at tuple) for items - the set of all arguments.
+        # the best topology (index 0 at tuple) for items - the set of all arguments
+        return sub_trees[items][0]
 
 
 class ZStreamTreeBuilder(TreePlanBuilder):
@@ -71,7 +72,7 @@ class ZStreamTreeBuilder(TreePlanBuilder):
         if pattern.statistics_type != StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             raise MissingStatisticsException()
 
-        (selectivity_matrix, arrival_rates) = pattern.statistics
+        (selectivity_matrix, arrival_rates) = pattern.positive_statistics
         order = self._get_initial_order(selectivity_matrix, arrival_rates)
         args_num = len(order)
         items = tuple(order)

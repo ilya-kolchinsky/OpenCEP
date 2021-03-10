@@ -14,6 +14,7 @@ from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
+from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
 
 
 class LeftDeepTreeBuilder(TreePlanBuilder):
@@ -70,7 +71,7 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
     """
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
-            arrival_rates = pattern.statistics
+            arrival_rates = pattern.positive_statistics
             # create an index-arrival rate binding and sort according to arrival rate.
             sorted_order = sorted([(i, arrival_rates[i]) for i in range(len(arrival_rates))], key=lambda x: x[1])
             order = [x for x, y in sorted_order]  # create order from sorted binding.
@@ -86,7 +87,7 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivityMatrix, arrivalRates) = pattern.statistics
+            (selectivityMatrix, arrivalRates) = pattern.positive_statistics
         else:
             raise MissingStatisticsException()
         return self.calculate_greedy_order(selectivityMatrix, arrivalRates)
@@ -135,17 +136,17 @@ class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree using the iterative improvement procedure.
     """
-    def __init__(self, cost_model_type: TreeCostModels, step_limit: int,
-                 ii_type: IterativeImprovementType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE,
+    def __init__(self, cost_model_type: TreeCostModels, negation_algorithm_type: NegationAlgorithmTypes,
+                 step_limit: int, ii_type: IterativeImprovementType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE,
                  init_type: IterativeImprovementInitType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE):
-        super().__init__(cost_model_type)
+        super().__init__(cost_model_type, negation_algorithm_type)
         self.__iterative_improvement = IterativeImprovementAlgorithmBuilder.create_ii_algorithm(ii_type)
         self.__initType = init_type
         self.__step_limit = step_limit
 
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivityMatrix, arrivalRates) = pattern.statistics
+            (selectivityMatrix, arrivalRates) = pattern.positive_statistics
         else:
             raise MissingStatisticsException()
         order = None
@@ -176,7 +177,7 @@ class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivity_matrix, arrival_rates) = pattern.statistics
+            (selectivity_matrix, arrival_rates) = pattern.positive_statistics
         else:
             raise MissingStatisticsException()
         args_num = len(selectivity_matrix)

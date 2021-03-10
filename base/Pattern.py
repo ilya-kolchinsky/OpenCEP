@@ -1,3 +1,4 @@
+from copy import deepcopy
 from functools import reduce
 from typing import List
 
@@ -44,10 +45,9 @@ class Pattern:
 
         self.window = time_window
 
-        self.statistics_type = statistics_type
-        self.statistics = statistics
-        self.consumption_policy = consumption_policy
+        self.set_statistics(statistics_type, statistics)
 
+        self.consumption_policy = consumption_policy
         if consumption_policy is not None:
             if consumption_policy.single_event_strategy is not None and consumption_policy.single_types is None:
                 # must be initialized to contain all event types in the pattern
@@ -62,7 +62,34 @@ class Pattern:
         Sets the statistical properties related to the events and conditions of this pattern.
         """
         self.statistics_type = statistics_type
-        self.statistics = statistics
+        self.full_statistics = statistics
+        if statistics_type not in [StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES]:
+            self.positive_statistics = statistics
+            return
+
+        # TODO: this solution only supports negative events at the top level of the pattern
+        negative_indices = []
+        actual_index = 0
+        for i, arg in enumerate(self.full_structure.args):
+            if type(arg) == NegationOperator:
+                negative_indices.append(actual_index)
+            actual_index += len(arg.get_all_event_names())
+
+        if statistics_type == StatisticsTypes.ARRIVAL_RATES:
+            self.positive_statistics = self.__remove_entries_at_indices(self.full_statistics, negative_indices)
+        else:  # statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES
+            positive_arrival_rates = self.__remove_entries_at_indices(self.full_statistics[1], negative_indices)
+            positive_selectivity_rows = self.__remove_entries_at_indices(self.full_statistics[0], negative_indices)
+            positive_selectivities = \
+                [self.__remove_entries_at_indices(row, negative_indices) for row in positive_selectivity_rows]
+            self.positive_statistics = (positive_selectivities, positive_arrival_rates)
+
+    @staticmethod
+    def __remove_entries_at_indices(target_list: List[object], indices: List[int]):
+        """
+        Returns the copy of the given list without the entries in the given indices.
+        """
+        return [item for i, item in enumerate(target_list) if i not in indices]
 
     def __extract_negative_structure(self):
         """
@@ -75,22 +102,22 @@ class Pattern:
             # cannot contain a negative part
             return None
         negative_structure = self.positive_structure.duplicate_top_operator()
-        for arg in self.positive_structure.get_args():
+        for arg in self.positive_structure.args:
             if type(arg) == NegationOperator:
                 # a negative event was found and needs to be extracted
                 negative_structure.args.append(arg)
             elif type(arg) != PrimitiveEventStructure:
                 # TODO: nested operator support should be provided here
                 pass
-        if len(negative_structure.get_args()) == 0:
+        if len(negative_structure.args) == 0:
             # the given pattern is entirely positive
             return None
-        if len(negative_structure.get_args()) == len(self.positive_structure.get_args()):
+        if len(negative_structure.args) == len(self.positive_structure.args):
             raise Exception("The pattern contains no positive events")
         # Remove all negative events from the positive structure
         # TODO: support nested operators
-        for arg in negative_structure.get_args():
-            self.positive_structure.get_args().remove(arg)
+        for arg in negative_structure.args:
+            self.positive_structure.args.remove(arg)
         return negative_structure
 
     def get_index_by_event_name(self, event_name: str):
@@ -98,7 +125,7 @@ class Pattern:
         Returns the position of the given event name in the pattern.
         Note: nested patterns are not yet supported.
         """
-        found_positions = [index for (index, curr_structure) in enumerate(self.full_structure.get_args())
+        found_positions = [index for (index, curr_structure) in enumerate(self.full_structure.args)
                            if curr_structure.contains_event(event_name)]
         if len(found_positions) == 0:
             raise Exception("Event name %s not found in pattern" % (event_name,))

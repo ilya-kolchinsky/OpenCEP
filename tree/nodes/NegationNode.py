@@ -1,7 +1,6 @@
 from abc import ABC
 from datetime import datetime
 from typing import List, Set, Type
-
 from base.Event import Event
 from condition.Condition import RelopTypes, EquationSides
 from base.PatternMatch import PatternMatch
@@ -32,7 +31,6 @@ class NegationNode(BinaryNode, ABC):
 
         # contains the event definitions of the positive subtree
         self._positive_event_defs = None
-
         # negation operators that can appear in the end of the match have this flag on
         self.__is_unbounded = is_unbounded
 

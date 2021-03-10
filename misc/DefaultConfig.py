@@ -11,7 +11,7 @@ from plan.multi.MultiPatternEvaluationApproaches import MultiPatternEvaluationAp
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
 from transformation.PatternTransformationRules import PatternTransformationRules
-
+from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
 
 # general settings
 DEFAULT_EVALUATION_MECHANISM_TYPE = EvaluationMechanismTypes.TREE_BASED
@@ -41,7 +41,9 @@ DEFAULT_PARALLEL_EXECUTION_MODE = ParallelExecutionModes.SEQUENTIAL
 DEFAULT_PARALLEL_EXECUTION_PLATFORM = ParallelExecutionPlatforms.THREADING
 
 # settings for pattern transformation rules
-PREPROCESSING_RULES_ORDER = [
+PREPROCESSING_RULES_ORDER = None # disabled for now
+"""
+[
     PatternTransformationRules.AND_AND_PATTERN,
     PatternTransformationRules.NOT_OR_PATTERN,
     PatternTransformationRules.NOT_AND_PATTERN,
@@ -49,3 +51,7 @@ PREPROCESSING_RULES_ORDER = [
     PatternTransformationRules.INNER_OR_PATTERN,
     PatternTransformationRules.NOT_NOT_PATTERN
 ]
+"""
+
+# default negation algorithm
+DEFAULT_NEGATION_ALGORITHM = NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM

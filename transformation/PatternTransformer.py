@@ -25,7 +25,7 @@ class PatternTransformer(ABC):
             return pattern
         condition_for_new_pattern = pattern.condition.get_condition_of(structure.get_all_event_names())
         return Pattern(structure, condition_for_new_pattern, pattern.window, pattern.consumption_policy, None,
-                       pattern.confidence, pattern.statistics_type, pattern.statistics)
+                       pattern.confidence, pattern.statistics_type, pattern.full_statistics)
 
     def _transform_structure(self, pattern_structure):
         """
@@ -81,7 +81,7 @@ class AndAndTransformer(RecursivePatternTransformer):
             return pattern_structure
         top_operator = pattern_structure.get_top_operator()
         new_args = []
-        for arg in pattern_structure.get_args():
+        for arg in pattern_structure.args:
             if arg.get_top_operator() == top_operator:
                 new_args.extend(arg.args)
             else:

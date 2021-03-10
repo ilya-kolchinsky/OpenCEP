@@ -1,3 +1,4 @@
+from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
 from plan.BushyTreeBuilders import *
 from plan.LeftDeepTreeBuilders import *
 from plan.TreeCostModels import TreeCostModels
@@ -9,9 +10,11 @@ class TreePlanBuilderParameters:
     Parameters for the tree plan builder.
     """
     def __init__(self, builder_type: TreePlanBuilderTypes = DefaultConfig.DEFAULT_TREE_PLAN_BUILDER,
-                 cost_model_type: TreeCostModels = DefaultConfig.DEFAULT_TREE_COST_MODEL):
+                 cost_model_type: TreeCostModels = DefaultConfig.DEFAULT_TREE_COST_MODEL,
+                 negation_algorithm_type: NegationAlgorithmTypes = DefaultConfig.DEFAULT_NEGATION_ALGORITHM):
         self.builder_type = builder_type
         self.cost_model_type = cost_model_type
+        self.negation_algorithm_type = negation_algorithm_type
 
 
 class IterativeImprovementTreePlanBuilderParameters(TreePlanBuilderParameters):
@@ -35,22 +38,30 @@ class TreePlanBuilderFactory:
     @staticmethod
     def create_tree_plan_builder(tree_plan_params: TreePlanBuilderParameters):
         if tree_plan_params.builder_type == TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE:
-            return TrivialLeftDeepTreeBuilder(tree_plan_params.cost_model_type)
+            return TrivialLeftDeepTreeBuilder(tree_plan_params.cost_model_type,
+                                              tree_plan_params.negation_algorithm_type)
         if tree_plan_params.builder_type == TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE:
-            return AscendingFrequencyTreeBuilder(tree_plan_params.cost_model_type)
+            return AscendingFrequencyTreeBuilder(tree_plan_params.cost_model_type,
+                                                 tree_plan_params.negation_algorithm_type)
         if tree_plan_params.builder_type == TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE:
-            return GreedyLeftDeepTreeBuilder(tree_plan_params.cost_model_type)
+            return GreedyLeftDeepTreeBuilder(tree_plan_params.cost_model_type,
+                                             tree_plan_params.negation_algorithm_type)
         if tree_plan_params.builder_type == TreePlanBuilderTypes.LOCAL_SEARCH_LEFT_DEEP_TREE:
             return IterativeImprovementLeftDeepTreeBuilder(tree_plan_params.cost_model_type,
+                                                           tree_plan_params.negation_algorithm_type,
                                                            tree_plan_params.step_limit,
                                                            tree_plan_params.ii_type,
                                                            tree_plan_params.init_type)
         if tree_plan_params.builder_type == TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE:
-            return DynamicProgrammingLeftDeepTreeBuilder(tree_plan_params.cost_model_type)
+            return DynamicProgrammingLeftDeepTreeBuilder(tree_plan_params.cost_model_type,
+                                                         tree_plan_params.negation_algorithm_type)
         if tree_plan_params.builder_type == TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE:
-            return DynamicProgrammingBushyTreeBuilder(tree_plan_params.cost_model_type)
+            return DynamicProgrammingBushyTreeBuilder(tree_plan_params.cost_model_type,
+                                                      tree_plan_params.negation_algorithm_type)
         if tree_plan_params.builder_type == TreePlanBuilderTypes.ZSTREAM_BUSHY_TREE:
-            return ZStreamTreeBuilder(tree_plan_params.cost_model_type)
+            return ZStreamTreeBuilder(tree_plan_params.cost_model_type,
+                                      tree_plan_params.negation_algorithm_type)
         if tree_plan_params.builder_type == TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE:
-            return ZStreamOrdTreeBuilder(tree_plan_params.cost_model_type)
+            return ZStreamOrdTreeBuilder(tree_plan_params.cost_model_type,
+                                         tree_plan_params.negation_algorithm_type)
         raise Exception("Unknown tree plan builder type: %s" % (tree_plan_params.builder_type,))

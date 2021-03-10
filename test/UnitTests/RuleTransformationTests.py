@@ -7,6 +7,14 @@ from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStruct
 from transformation.PatternTransformationRules import PatternTransformationRules
 from transformation.PatternPreprocessor import PatternPreprocessor
 
+TESTING_PREPROCESSING_RULES_ORDER = [
+    PatternTransformationRules.AND_AND_PATTERN,
+    PatternTransformationRules.NOT_OR_PATTERN,
+    PatternTransformationRules.NOT_AND_PATTERN,
+    PatternTransformationRules.TOPMOST_OR_PATTERN,
+    PatternTransformationRules.INNER_OR_PATTERN,
+    PatternTransformationRules.NOT_NOT_PATTERN
+]
 
 def ruleTransformationTests():
     andAndPatternTransformationTest()
@@ -47,7 +55,7 @@ def andAndPatternTransformationTest():
         TrueCondition(),
         timedelta(minutes=5)
     )
-    pattern_transformation = PatternPreprocessor()
+    pattern_transformation = PatternPreprocessor(PatternPreprocessingParameters(TESTING_PREPROCESSING_RULES_ORDER))
     transformed_patterns = pattern_transformation.transform_patterns([pattern])
     assert len(transformed_patterns) == 1, "Test andAndPatternTransformation Failed"
     assert expected_pattern.full_structure == transformed_patterns[0].full_structure, \
@@ -92,7 +100,7 @@ def innerOrPatternTransformationTest():
             timedelta(minutes=5)
         )
     ]
-    pattern_transformation = PatternPreprocessor()
+    pattern_transformation = PatternPreprocessor(PatternPreprocessingParameters(TESTING_PREPROCESSING_RULES_ORDER))
     transformed_patterns = pattern_transformation.transform_patterns([pattern])
     expected_patterns_structures = []
     for tmp_pattern in pattern_list:
@@ -207,7 +215,7 @@ def notNotPatternTransformationTest():
         TrueCondition(),
         timedelta(minutes=5)
     )
-    pattern_transformation = PatternPreprocessor()
+    pattern_transformation = PatternPreprocessor(PatternPreprocessingParameters(TESTING_PREPROCESSING_RULES_ORDER))
     transformed_patterns = pattern_transformation.transform_patterns([pattern])
     assert len(transformed_patterns) == 1, "Test notNotPatternTransformation Failed"
     assert transformed_patterns[0].full_structure == expected_pattern.full_structure, \
