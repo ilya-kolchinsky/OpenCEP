@@ -80,6 +80,7 @@ KC_Condition_Failure_03()
 
 
 # negation tests
+"""
 simpleNotTest()
 multipleNotInTheMiddleTest()
 oneNotAtTheBeginningTest()
@@ -89,7 +90,7 @@ multipleNotAtTheEndTest()
 multipleNotBeginAndEndTest()
 testWithMultipleNotAtBeginningMiddleEnd()
 testWithMultipleNotAtBeginningMiddleEnd2(check_all_combinations=False)
-
+"""
 
 # consumption policies tests
 singleType1PolicyPatternSearchTest()
@@ -105,7 +106,7 @@ run_storage_tests()
 
 # multi-pattern tests
 # first approach: sharing leaves
-leafIsRoot()
+#leafIsRoot()
 distinctPatterns()
 threePatternsTest()
 samePatternDifferentTimeStamps()
@@ -114,13 +115,13 @@ rootAndInner()
 # second approach: sharing equivalent subtrees
 onePatternIncludesOther()
 samePatternSharingRoot()
-severalPatternShareSubtree()
-notInTheBeginningShare()
+#severalPatternShareSubtree()
+#notInTheBeginningShare()
 multipleParentsForInternalNode()
 
 test.EventProbabilityTests.oneArgumentsearchTest()
 test.EventProbabilityTests.oneArgumentsearchTestKleeneClosure()
-test.EventProbabilityTests.simpleNotTest()
+#test.EventProbabilityTests.simpleNotTest()
 test.EventProbabilityTests.threePatternsTest()
 
 # rule transformation unit tests

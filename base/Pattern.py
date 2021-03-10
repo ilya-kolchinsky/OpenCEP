@@ -1,3 +1,4 @@
+from copy import deepcopy
 from functools import reduce
 from typing import List
 
@@ -65,20 +66,30 @@ class Pattern:
         if statistics_type not in [StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES]:
             self.positive_statistics = statistics
             return
-        positive_selectivity = []
-        positive_arrival = []
-        positive_indices = []
-        for i in range(0, len(self.full_structure.args)):
-            if type(self.full_structure.args[i]) is not NegationOperator:
-                positive_indices.append(i)
-        for i in positive_indices:
-            if statistics_type is StatisticsTypes.ARRIVAL_RATES:
-                positive_arrival.append(statistics[i])
-            else:
-                positive_selectivity.append([(statistics[0][i])[j] for j in positive_indices])
-                positive_arrival.append(statistics[1][i])
-        self.positive_statistics = positive_arrival if statistics_type is StatisticsTypes.ARRIVAL_RATES else\
-            (positive_selectivity, positive_arrival)
+
+        # TODO: this solution only supports negative events at the top level of the pattern
+        negative_indices = []
+        actual_index = 0
+        for i, arg in enumerate(self.full_structure.args):
+            if type(arg) == NegationOperator:
+                negative_indices.append(actual_index)
+            actual_index += len(arg.get_all_event_names())
+
+        if statistics_type == StatisticsTypes.ARRIVAL_RATES:
+            self.positive_statistics = self.__remove_entries_at_indices(self.full_statistics, negative_indices)
+        else:  # statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES
+            positive_arrival_rates = self.__remove_entries_at_indices(self.full_statistics[1], negative_indices)
+            positive_selectivity_rows = self.__remove_entries_at_indices(self.full_statistics[0], negative_indices)
+            positive_selectivities = \
+                [self.__remove_entries_at_indices(row, negative_indices) for row in positive_selectivity_rows]
+            self.positive_statistics = (positive_selectivities, positive_arrival_rates)
+
+    @staticmethod
+    def __remove_entries_at_indices(target_list: List[object], indices: List[int]):
+        """
+        Returns the copy of the given list without the entries in the given indices.
+        """
+        return [item for i, item in enumerate(target_list) if i not in indices]
 
     def __extract_negative_structure(self):
         """

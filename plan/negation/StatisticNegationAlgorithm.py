@@ -1,13 +1,12 @@
-from negationAlgorithms.NegationAlgorithm import *
+from plan.negation.NegationAlgorithm import *
 
 
 class StatisticNegationAlgorithm(NegationAlgorithm):
     """
     This class represents the statistic negation algorithm, and saves the data related to it.
     """
-    def __init__(self, negation_algorithm_type: NegationAlgorithmTypes = NegationAlgorithmTypes.
-                 STATISTIC_NEGATION_ALGORITHM):
-        super().__init__(negation_algorithm_type)
+    def __init__(self):
+        super().__init__(NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)
 
     def add_negative_part(self, pattern: Pattern, positive_tree_plan: TreePlanBinaryNode):
         """

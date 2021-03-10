@@ -3,7 +3,7 @@ from misc.StatisticsTypes import StatisticsTypes
 from base.PatternStructure import PrimitiveEventStructure, NegationOperator, AndOperator, SeqOperator
 from plan.TreePlan import TreePlanBinaryNode, TreePlanLeafNode, TreePlanNode, OperatorTypes
 from misc import DefaultConfig
-from negationAlgorithms.NegationAlgorithmTypes import NegationAlgorithmTypes
+from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
 
 
 class NegationAlgorithm:

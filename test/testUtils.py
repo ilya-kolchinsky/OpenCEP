@@ -10,7 +10,7 @@ from misc.Utils import generate_matches
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-from negationAlgorithms.NegationAlgorithmTypes import NegationAlgorithmTypes
+from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
 from plugin.stocks.Stocks import MetastockDataFormatter
 from tree.PatternMatchStorage import TreeStorageParameters
 

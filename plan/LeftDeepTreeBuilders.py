@@ -14,6 +14,7 @@ from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
+from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
 
 
 class LeftDeepTreeBuilder(TreePlanBuilder):
@@ -135,10 +136,10 @@ class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree using the iterative improvement procedure.
     """
-    def __init__(self, cost_model_type: TreeCostModels, step_limit: int,
-                 ii_type: IterativeImprovementType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE,
+    def __init__(self, cost_model_type: TreeCostModels, negation_algorithm_type: NegationAlgorithmTypes,
+                 step_limit: int, ii_type: IterativeImprovementType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE,
                  init_type: IterativeImprovementInitType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE):
-        super().__init__(cost_model_type)
+        super().__init__(cost_model_type, negation_algorithm_type)
         self.__iterative_improvement = IterativeImprovementAlgorithmBuilder.create_ii_algorithm(ii_type)
         self.__initType = init_type
         self.__step_limit = step_limit

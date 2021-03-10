@@ -2,10 +2,10 @@ from typing import List
 from copy import deepcopy
 
 from base.Pattern import Pattern
-from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, CompositeStructure, UnaryStructure, \
-    KleeneClosureOperator, PrimitiveEventStructure, NegationOperator
+from base.PatternStructure import PatternStructure, CompositeStructure, UnaryStructure, PrimitiveEventStructure
 from misc.ConsumptionPolicy import ConsumptionPolicy
-from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanNestedNode, TreePlanUnaryNode, TreePlanBinaryNode, OperatorTypes, TreePlanInternalNode
+from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanNestedNode, TreePlanUnaryNode, \
+    OperatorTypes, TreePlanInternalNode
 from tree.nodes.AndNode import AndNode
 from tree.nodes.KleeneClosureNode import KleeneClosureNode
 from tree.nodes.LeafNode import LeafNode
@@ -146,22 +146,22 @@ class Tree:
         """
         Recursively builds an evaluation tree according to the specified structure.
         """
-        if type(tree_plan) == TreePlanUnaryNode:
+        if isinstance(tree_plan, TreePlanUnaryNode):
             # this is an unary operator (possibly encapsulating a nested structure)
             return self.__handle_unary_structure(tree_plan, root_operator, args,
                                                  pattern_params, parent, consumption_policy)
 
-        if type(tree_plan) == TreePlanLeafNode:
+        if isinstance(tree_plan, TreePlanLeafNode):
             # This is a leaf
             return self.__handle_primitive_event(tree_plan, args[tree_plan.original_event_index],
                                                  pattern_params, parent, consumption_policy)
 
-        if type(tree_plan) == TreePlanNestedNode:
+        if isinstance(tree_plan, TreePlanNestedNode):
             # This is a nested node, therefore needs to use construct a subtree of this nested tree, recursively.
             return self.__construct_tree(args[tree_plan.nested_event_index], tree_plan.sub_tree_plan, tree_plan.args,
                                          pattern_params, parent, consumption_policy)
 
-        # type(tree_plan) == TreePlanBinaryNode
+        # isinstance(tree_plan, TreePlanBinaryNode)
         current = self.__instantiate_internal_node(tree_plan, pattern_params, parent)
         left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
                                              pattern_params, current, consumption_policy)

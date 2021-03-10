@@ -70,6 +70,16 @@ class TreePlanUnaryNode(TreePlanInternalNode):
         self.index = index
 
 
+class TreePlanKCNode(TreePlanUnaryNode):
+    """
+    Represents an internal unary node of a tree-based plan.
+    """
+    def __init__(self, child: TreePlanNode, index: int, min_size: int, max_size: int):
+        super().__init__(OperatorTypes.KC, child, index)
+        self.min_size = min_size
+        self.max_size = max_size
+
+
 class TreePlanBinaryNode(TreePlanInternalNode):
     """
     Represents an internal binary node of a tree-based plan.
@@ -78,6 +88,16 @@ class TreePlanBinaryNode(TreePlanInternalNode):
         super().__init__(operator)
         self.left_child = left_child
         self.right_child = right_child
+
+
+class TreePlanNegativeBinaryNode(TreePlanBinaryNode):
+    """
+    Represents a negative node of a tree-based plan.
+    """
+    def __init__(self, operator: OperatorTypes, positive_child: TreePlanNode, negative_child: TreePlanNode,
+                 is_unbounded: bool):
+        super().__init__(operator, positive_child, negative_child)
+        self.is_unbounded = is_unbounded
 
 
 class TreePlan:

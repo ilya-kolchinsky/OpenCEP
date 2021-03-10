@@ -9,7 +9,7 @@ from misc.StatisticsTypes import StatisticsTypes
 import copy
 import random
 from itertools import permutations
-from negationAlgorithms.NegationAlgorithm import NegationAlgorithmTypes
+from plan.negation.NegationAlgorithm import NegationAlgorithmTypes
 from misc import DefaultConfig
 
 

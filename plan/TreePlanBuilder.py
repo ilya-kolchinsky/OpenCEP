@@ -2,17 +2,17 @@ from abc import ABC
 from typing import List
 
 from base.Pattern import Pattern
-from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, PatternStructure, UnaryStructure, \
-    KleeneClosureOperator, CompositeStructure
-from plan.TreeCostModel import TreeCostModelFactory, IntermediateResultsTreeCostModel
+from base.PatternStructure import PrimitiveEventStructure, PatternStructure, UnaryStructure, KleeneClosureOperator,\
+    CompositeStructure
+from plan.TreeCostModel import IntermediateResultsTreeCostModel
 from base.PatternStructure import AndOperator, SeqOperator
-from negationAlgorithms.NegationAlgorithmFactory import NegationAlgorithmFactory
-from negationAlgorithms.NegationAlgorithmTypes import NegationAlgorithmTypes
+from plan.negation.NegationAlgorithmFactory import NegationAlgorithmFactory
+from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
 from plan.TreeCostModel import TreeCostModelFactory
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode, TreePlanUnaryNode, TreePlanNestedNode, TreePlanLeafNode
+from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode, TreePlanUnaryNode, \
+    TreePlanNestedNode, TreePlanLeafNode, TreePlanKCNode
 from misc.StatisticsTypes import StatisticsTypes
-from misc.Statistics import MissingStatisticsException
 
 
 class TreePlanBuilder(ABC):
@@ -30,14 +30,15 @@ class TreePlanBuilder(ABC):
         pattern_positive_args = pattern.get_top_level_structure_args(positive_only=True)
         if any(not isinstance(arg, PrimitiveEventStructure) for arg in pattern_positive_args):
             # the pattern contains nested parts and should be treated accordingly
-            root = TreePlanBuilder.__adjust_nested_indices(pattern, self.__create_nested_topology(pattern))
+            positive_root = TreePlanBuilder.__adjust_nested_indices(pattern, self.__create_nested_topology(pattern))
         else:
             # the pattern is entirely flat
-            root = self._create_tree_topology(pattern, self.__init_tree_leaves(pattern))
+            positive_root = self._create_tree_topology(pattern, self.__init_tree_leaves(pattern))
         if isinstance(pattern.positive_structure, UnaryStructure):
             # an edge case where the topmost operator is a unary operator
-            root = self._instantiate_unary_node(pattern, root)
-        return TreePlan(self.__negation_algorithm.add_negative_part(pattern, root))
+            positive_root = self._instantiate_unary_node(pattern, positive_root)
+        root = self.__negation_algorithm.add_negative_part(pattern, positive_root)
+        return TreePlan(root)
 
     @staticmethod
     def __adjust_nested_indices(pattern: Pattern, root, offset=0):
@@ -125,17 +126,16 @@ class TreePlanBuilder(ABC):
         """
         A helper method for instantiating unary tree plan nodes depending on the operator.
         """
-        if isinstance(pattern.positive_structure, KleeneClosureOperator):
-            operator_type = OperatorTypes.KC
-        else:
-            raise Exception("Unsupported unary operator")
         if isinstance(subtree, TreePlanLeafNode):
             unary_node_index = subtree.original_event_index
         elif isinstance(subtree, TreePlanNestedNode):
             unary_node_index = subtree.nested_event_index
         else:
             raise Exception("Invalid node type under an unary node")
-        return TreePlanUnaryNode(operator_type, subtree, unary_node_index)
+        if isinstance(pattern.positive_structure, KleeneClosureOperator):
+            return TreePlanKCNode(subtree, unary_node_index,
+                                  pattern.positive_structure.min_size, pattern.positive_structure.max_size)
+        raise Exception("Unsupported unary operator")
 
     @staticmethod
     def _instantiate_binary_node(pattern: Pattern, left_subtree: TreePlanNode, right_subtree: TreePlanNode):
@@ -200,7 +200,7 @@ class TreePlanBuilder(ABC):
         This function creates a selectivity matrix that fits the root operator (kind of flattening the selectivity
         of the nested operators, if exists).
         """
-        (selectivity_matrix, _) = pattern.statistics
+        (selectivity_matrix, _) = pattern.positive_statistics
         if pattern.count_primitive_events(positive_only=True) != len(selectivity_matrix):
             raise Exception("size mismatch")
         nested_selectivity_matrix = []
@@ -246,10 +246,10 @@ class TreePlanBuilder(ABC):
         nested_args.append(None)
         nested_cost.append(None)
         if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
-            nested_arrival_rates.append(pattern.statistics[0])
-            pattern.statistics.pop(0)
+            nested_arrival_rates.append(pattern.positive_statistics[0])
+            pattern.positive_statistics.pop(0)
         elif pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivity_matrix, arrival_rates) = pattern.statistics
+            (selectivity_matrix, arrival_rates) = pattern.positive_statistics
             # Save the original arriving rate, because it is not nested, and pop it out, so we always look
             # on the arrival rate that fits the current arg in the loop.
             nested_arrival_rates.append(arrival_rates[0])
@@ -265,10 +265,10 @@ class TreePlanBuilder(ABC):
         """
         nested_pattern = TreePlanBuilder.__create_dummy_subpattern(pattern, arg)
         if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
-            arg_arrival_rates = pattern.statistics[0:len(arg.get_all_event_names())]
+            arg_arrival_rates = pattern.positive_statistics[0:len(arg.get_all_event_names())]
             nested_pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, arg_arrival_rates)
         elif pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (_, arrival_rates) = pattern.statistics
+            (_, arrival_rates) = pattern.positive_statistics
             arg_arrival_rates = arrival_rates[0:len(arg.get_all_event_names())]
             # Take only the relevant part of the selectivity matrix:
             chopped_nested_selectivity = TreePlanBuilder.__chop_matrix(pattern, arg)
@@ -302,7 +302,7 @@ class TreePlanBuilder(ABC):
         """
         if pattern.statistics_type != StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
             raise Exception("not supported")
-        (selectivityMatrix, _) = pattern.statistics
+        (selectivityMatrix, _) = pattern.positive_statistics
         if pattern.count_primitive_events(positive_only=True) != len(selectivityMatrix):
             raise Exception("size mismatch")
         event_names = [name for name in pattern.positive_structure.get_all_event_names()]

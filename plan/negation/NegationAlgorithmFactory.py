@@ -1,7 +1,7 @@
-from negationAlgorithms.LowestPositionNegationAlgorithm import LowestPositionNegationAlgorithm
-from negationAlgorithms.NaiveNegationAlgorithm import NaiveNegationAlgorithm
-from negationAlgorithms.NegationAlgorithmTypes import NegationAlgorithmTypes
-from negationAlgorithms.StatisticNegationAlgorithm import StatisticNegationAlgorithm
+from plan.negation.LowestPositionNegationAlgorithm import LowestPositionNegationAlgorithm
+from plan.negation.NaiveNegationAlgorithm import NaiveNegationAlgorithm
+from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
+from plan.negation.StatisticNegationAlgorithm import StatisticNegationAlgorithm
 
 
 class NegationAlgorithmFactory:
@@ -14,9 +14,9 @@ class NegationAlgorithmFactory:
         Returns a cost model of the specified type.
         """
         if negation_algorithm_type == NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM:
-            return NaiveNegationAlgorithm(negation_algorithm_type)
+            return NaiveNegationAlgorithm()
         elif negation_algorithm_type == NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM:
-            return StatisticNegationAlgorithm(negation_algorithm_type)
+            return StatisticNegationAlgorithm()
         elif negation_algorithm_type == NegationAlgorithmTypes.LOWEST_POSITION_NEGATION_ALGORITHM:
-            return LowestPositionNegationAlgorithm(negation_algorithm_type)
+            return LowestPositionNegationAlgorithm()
         raise Exception("Unknown negation algorithm type: %s" % (negation_algorithm_type,))

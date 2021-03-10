@@ -1,5 +1,5 @@
-from negationAlgorithms.NegationAlgorithm import *
-from negationAlgorithms.StatisticNegationAlgorithm import StatisticNegationAlgorithm
+from plan.negation.NegationAlgorithm import *
+from plan.negation.StatisticNegationAlgorithm import StatisticNegationAlgorithm
 from base.PatternStructure import AndOperator
 from plan.TreePlan import OperatorTypes, TreePlanBinaryNode, TreePlanLeafNode
 
@@ -8,9 +8,8 @@ class LowestPositionNegationAlgorithm(NegationAlgorithm):
     """
     This class represents the lowest position negation algorithm, and saves the data related to it.
     """
-    def __init__(self, negation_algorithm_type: NegationAlgorithmTypes = NegationAlgorithmTypes.
-                 LOWEST_POSITION_NEGATION_ALGORITHM):
-        super().__init__(negation_algorithm_type)
+    def __init__(self):
+        super().__init__(NegationAlgorithmTypes.LOWEST_POSITION_NEGATION_ALGORITHM)
         self.positive_related_events_per_each_negative_event = None
         self.internal_node_descendants_map = {}
         self.pointers_to_leaves_map = {}
