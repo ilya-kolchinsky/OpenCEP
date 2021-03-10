@@ -43,7 +43,6 @@ class Variable:
     Typically, it will be of the form "x.y" where "X" corresponds to a known event name and y is an attribute available
     for events of x's type.
     """
-
     def __init__(self, name: str, getattr_func: callable):
         self.name = name
         # this callback function is used to fetch the attribute value from an event payload dict
@@ -62,15 +61,15 @@ class Variable:
         return self.name
 
     def __eq__(self, other):
-        return type(
-            other) == Variable and self.name == other.name and self.getattr_func.__code__.co_code == other.getattr_func.__code__.co_code
+        return type(other) == Variable and self.name == other.name and \
+               (self.getattr_func == other.getattr_func or
+                self.getattr_func.__code__.co_code == other.getattr_func.__code__.co_code)
 
 
 class Condition(ABC):
     """
     The base abstract class of the condition classes hierarchy.
     """
-
     def eval(self, binding: dict or list = None):
         """
         Returns True if the provided binding satisfies this condition and False otherwise.
@@ -94,11 +93,11 @@ class Condition(ABC):
         """
         return set()
 
+
 class AtomicCondition(Condition, ABC):
     """
     Represents an atomic (non-composite) condition.
     """
-
     def is_condition_of(self, names: set):
         """
         Returns True if all variable names participating in this condition appear in the given set and False otherwise.
@@ -113,7 +112,6 @@ class TrueCondition(AtomicCondition):
     """
     Represents a Boolean True condition.
     """
-
     def eval(self, binding: dict = None):
         return True
 
@@ -134,7 +132,6 @@ class SimpleCondition(AtomicCondition):
     """
     A simple (non-composite) condition over N operands (either variables or constants).
     """
-
     def __init__(self, *terms, relation_op: callable):
         self.terms = terms
         self.relation_op = relation_op
@@ -159,8 +156,7 @@ class SimpleCondition(AtomicCondition):
         return "[" + separator.join(term_list) + "]"
 
     def __eq__(self, other):
-        return self == other or type(self) == type(
-            other) and self.terms == other.terms and self.relation_op == other.relation_op
+        return self == other or type(self) == type(other) and self.terms == other.terms and self.relation_op == other.relation_op
 
     def get_names(self):
         """

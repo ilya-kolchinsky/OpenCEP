@@ -2,15 +2,14 @@
 This file contains the main class of the project. It processes streams of events and detects pattern matches
 by invoking the rest of the system components.
 """
-from datetime import datetime
-from typing import List
-
 from base.DataFormatter import DataFormatter
-from base.Pattern import Pattern
-from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from parallel.EvaluationManagerFactory import EvaluationManagerFactory
 from parallel.ParallelExecutionParameters import ParallelExecutionParameters
 from stream.Stream import InputStream, OutputStream
+from base.Pattern import Pattern
+from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
+from typing import List
+from datetime import datetime
 
 
 class CEP:

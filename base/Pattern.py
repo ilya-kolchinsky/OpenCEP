@@ -1,14 +1,14 @@
-from datetime import timedelta
 from functools import reduce
 from typing import List
 
 from base.Event import Event
+from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
+from condition.CompositeCondition import CompositeCondition, AndCondition
 from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
     SeqOperator, NegationOperator
-from condition.CompositeCondition import CompositeCondition, AndCondition
-from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
-from misc.ConsumptionPolicy import ConsumptionPolicy
+from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
+from misc.ConsumptionPolicy import ConsumptionPolicy
 
 
 class Pattern:

@@ -2,11 +2,11 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.PatternStructure import PrimitiveEventStructure
 from condition.Condition import Condition, RelopTypes, EquationSides
-from tree.PatternMatchStorage import TreeStorageParameters, SortedPatternMatchStorage
+from base.PatternStructure import PrimitiveEventStructure
 from tree.nodes.Node import Node
 from tree.nodes.Node import PrimitiveEventDefinition
+from tree.PatternMatchStorage import TreeStorageParameters, SortedPatternMatchStorage
 
 
 class LeafNode(Node):
@@ -15,7 +15,7 @@ class LeafNode(Node):
     """
     def __init__(self, sliding_window: timedelta, leaf_index: int, leaf_event: PrimitiveEventStructure,
                  parents: List[Node], pattern_ids: int or Set[int] = None):
-        super().__init__(sliding_window, parents, pattern_ids, height=0)
+        super().__init__(sliding_window, parents, pattern_ids)
         self.__leaf_index = leaf_index
         self.__event_name = leaf_event.name
         self.__event_type = leaf_event.type
@@ -34,7 +34,6 @@ class LeafNode(Node):
                                                                                 self.__leaf_index)]
 
     def get_leaves(self):
-        assert self.height == 0
         return [self]
 
     def get_event_definitions(self):
@@ -100,12 +99,6 @@ class LeafNode(Node):
 
     def get_structure_summary(self):
         return self.__event_name
-
-    def __str__(self) -> str:
-        """
-        “informal” or nicely printable string representation of an object
-        """
-        return self.__event_name + ' ' + self.__event_type + ' ' + str(hash(self))[0:3]
 
     def is_equivalent(self, other):
         """

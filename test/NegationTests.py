@@ -1,11 +1,10 @@
-from datetime import timedelta
-
-from base.PatternStructure import SeqOperator, PrimitiveEventStructure, NegationOperator
-from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCondition
-from condition.CompositeCondition import AndCondition
-from condition.Condition import Variable
 from test.testUtils import *
-
+from datetime import timedelta
+from condition.Condition import Variable
+from condition.CompositeCondition import AndCondition
+from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCondition
+from base.PatternStructure import SeqOperator, PrimitiveEventStructure, NegationOperator
+from base.Pattern import Pattern
 
 # ON CUSTOM
 def multipleNotBeginAndEndTest(createTestFile=False):

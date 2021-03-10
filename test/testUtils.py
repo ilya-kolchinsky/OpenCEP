@@ -27,9 +27,9 @@ sys.path.append(absolutePath)
 INCLUDE_BENCHMARKS = False
 INCLUDE_TWITTER = False
 
-nasdaqEventStreamTiny = FileInputStream(os. path.join(absolutePath, "test/EventFiles/NASDAQ_TINY.txt"))
+nasdaqEventStreamTiny = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_TINY.txt"))
 nasdaqEventStreamShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_SHORT.txt"))
-nasdaqEventStreamMedium = FileInputStream(os.path   .join(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt"))
+nasdaqEventStreamMedium = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt"))
 nasdaqEventStreamFrequencyTailored = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
 nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
 nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
@@ -48,7 +48,6 @@ DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
                                                                  clean_up_interval=10,
                                                                  prioritize_sorting_by_timestamp=True))
 DEFAULT_TESTING_DATA_FORMATTER = MetastockDataFormatter()
-
 
 def numOfLinesInPattern(file):
     """
@@ -138,7 +137,7 @@ def outputTestFile(base_path: str, matches: list, output_file_name: str = 'match
             f.write("\n")
 
 
-def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
+def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream):
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -149,11 +148,11 @@ def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
     print("Finished creating test %s" % testName)
 
 
-def runTest(testName, patterns, createTestFile=False,
-            eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events=None, eventStream=nasdaqEventStream):
+def runTest(testName, patterns, createTestFile = False,
+            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+            events = None, eventStream = nasdaqEventStream):
     if createTestFile:
-        createTest(testName, patterns, events, eventStream=eventStream)
+        createTest(testName, patterns, events, eventStream = eventStream)
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -190,7 +189,6 @@ def runTest(testName, patterns, createTestFile=False,
     if is_test_successful:
         os.remove(actual_matches_path)
 
-
 """
 Input:
 testName- name of the test
@@ -198,8 +196,6 @@ patterns- list of patterns
 Output:
 expected output file for the test.
 """
-
-
 def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                          events=None, eventStream=nasdaqEventStream):
     curr_events = events
@@ -218,7 +214,6 @@ def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTI
     for filename in filenames:
         single_pattern_path = os.path.join(expected_directory, filename)
         os.remove(single_pattern_path)
-
 
 def uniteFiles(testName, numOfPatterns):
     base_matches_directory = os.path.join(absolutePath, 'test', 'TestsExpected')
@@ -246,9 +241,9 @@ success or fail output.
 """
 
 
-def runMultiTest(testName, patterns, createTestFile=False,
-                 eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                 events=None, eventStream=nasdaqEventStream):
+def runMultiTest(testName, patterns, createTestFile = False,
+                 eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                 events = None, eventStream = nasdaqEventStream):
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -299,7 +294,7 @@ def runMultiTest(testName, patterns, createTestFile=False,
 
     res = (exp_set == match_set)
     print("Test %s result: %s, Time Passed: %s" % (testName,
-                                                   "Succeeded" if res else "Failed", running_time))
+          "Succeeded" if res else "Failed", running_time))
     runTest.over_all_time += running_time
     if res:
         os.remove(actual_matches_path)

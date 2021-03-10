@@ -3,9 +3,9 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.PatternMatch import PatternMatch
 from condition.BaseRelationCondition import BaseRelationCondition
 from condition.Condition import Condition, Variable, EquationSides
+from base.PatternMatch import PatternMatch
 from tree.nodes.InternalNode import InternalNode
 from tree.nodes.Node import Node, PrimitiveEventDefinition
 
@@ -14,18 +14,14 @@ class BinaryNode(InternalNode, ABC):
     """
     An internal node connects two subtrees, i.e., two subpatterns of the evaluated pattern.
     """
-
     def __init__(self, sliding_window: timedelta, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None,
                  left: Node = None, right: Node = None):
-        height = max(-1 if left is None else left.height, -1 if right is None else right.height) + 1
-        super().__init__(sliding_window, parents, pattern_ids, event_defs, height)
+        super().__init__(sliding_window, parents, pattern_ids, event_defs)
         self._left_subtree = left
         self._right_subtree = right
 
     def create_parent_to_info_dict(self):
-        # we pass the is is_shared argument in create_parent_to_info_dict in order to pass the assert that check
-        # if every node got only one parent in case we are in shared approach
         if self._left_subtree is not None:
             self._left_subtree.create_parent_to_info_dict()
         if self._right_subtree is not None:
@@ -39,12 +35,8 @@ class BinaryNode(InternalNode, ABC):
         result = []
         if self._left_subtree is not None:
             result += self._left_subtree.get_leaves()
-            for leaf in self._left_subtree.get_leaves():
-                assert leaf.height == 0
         if self._right_subtree is not None:
             result += self._right_subtree.get_leaves()
-            for leaf in self._right_subtree.get_leaves():
-                assert leaf.height == 0
         return result
 
     def _propagate_condition(self, condition: Condition):
@@ -77,7 +69,6 @@ class BinaryNode(InternalNode, ABC):
         """
         self._left_subtree = left
         self._right_subtree = right
-        self.height = max(left.height, right.height) + 1
         # only the positive children definitions should be applied on this node
         self._set_event_definitions(self._left_subtree.get_positive_event_definitions(),
                                     self._right_subtree.get_positive_event_definitions())

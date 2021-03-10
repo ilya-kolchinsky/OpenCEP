@@ -1,6 +1,5 @@
-from typing import List
-
 from base.Event import Event
+from typing import List
 
 
 class PatternMatch:

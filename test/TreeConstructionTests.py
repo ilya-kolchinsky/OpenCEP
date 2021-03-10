@@ -1,13 +1,14 @@
-from datetime import timedelta
-
-from base.PatternStructure import SeqOperator, PrimitiveEventStructure
-from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCondition
-from condition.CompositeCondition import AndCondition
-from condition.Condition import Variable, TrueCondition, BinaryCondition, SimpleCondition
-from plan.LeftDeepTreeBuilders import *
 from plan.TreePlanBuilderFactory import IterativeImprovementTreePlanBuilderParameters
 from test.testUtils import *
-
+from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
+from plan.LeftDeepTreeBuilders import *
+from plan.BushyTreeBuilders import *
+from datetime import timedelta
+from condition.Condition import Variable, TrueCondition, BinaryCondition, SimpleCondition
+from condition.CompositeCondition import AndCondition
+from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCondition
+from base.PatternStructure import SeqOperator, PrimitiveEventStructure
+from base.Pattern import Pattern
 
 def nonFrequencyPatternSearchTest(createTestFile=False):
     pattern = Pattern(

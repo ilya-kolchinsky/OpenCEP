@@ -3,9 +3,9 @@ from typing import List
 from base.Event import Event
 from condition.Condition import RelopTypes, EquationSides
 from misc.Utils import merge, merge_according_to, is_sorted
-from tree.PatternMatchStorage import TreeStorageParameters
 from tree.nodes.BinaryNode import BinaryNode
 from tree.nodes.Node import PrimitiveEventDefinition
+from tree.PatternMatchStorage import TreeStorageParameters
 
 
 class SeqNode(BinaryNode):
@@ -36,13 +36,6 @@ class SeqNode(BinaryNode):
         return ("Seq",
                 self._left_subtree.get_structure_summary(),
                 self._right_subtree.get_structure_summary())
-
-    def __str__(self) -> str:
-        """
-        “informal” or nicely printable string representation of an object
-        """
-        _prefix = 'Seq'
-        return f'{_prefix} {str(self._left_subtree).replace(_prefix, "")} -> {str(self._right_subtree).replace(_prefix, "")}'
 
     def is_equivalent(self, other):
         """

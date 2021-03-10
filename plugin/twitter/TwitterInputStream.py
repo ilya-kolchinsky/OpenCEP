@@ -1,10 +1,8 @@
+from stream.FileStream import InputStream
+import tweepy
+import plugin.twitter.TwitterCredentials
 import json
 import time
-
-import tweepy
-
-import plugin.twitter.TwitterCredentials
-from stream.FileStream import InputStream
 
 
 class TwitterInputStream(InputStream, tweepy.StreamListener):

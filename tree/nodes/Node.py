@@ -4,9 +4,9 @@ from queue import Queue
 from typing import List, Set
 
 from base.Event import Event
-from base.PatternMatch import PatternMatch
-from condition.CompositeCondition import CompositeCondition, AndCondition
 from condition.Condition import RelopTypes, EquationSides
+from condition.CompositeCondition import CompositeCondition, AndCondition
+from base.PatternMatch import PatternMatch
 from tree.PatternMatchStorage import TreeStorageParameters
 
 
@@ -14,7 +14,6 @@ class PrimitiveEventDefinition:
     """
     An internal class for capturing the information regarding a single primitive event appearing in a pattern.
     """
-
     def __init__(self, event_type: str, event_name: str, event_index: int):
         self.type = event_type
         self.name = event_name
@@ -45,9 +44,9 @@ class Node(ABC):
         """
         return Node.__enable_partial_match_expiration
 
+
     ###################################### Initialization
-    def __init__(self, sliding_window: timedelta, parents, pattern_ids: int or Set[int] = None, height: int = 0):
-        self.height = height
+    def __init__(self, sliding_window: timedelta, parents, pattern_ids: int or Set[int] = None):
         self._parents = []
         self._sliding_window = sliding_window
         self._partial_matches = None
@@ -78,6 +77,7 @@ class Node(ABC):
 
         self.set_parents(parents, on_init=True)
 
+
     ###################################### Matching-related methods
     def get_next_unreported_match(self):
         """
@@ -105,7 +105,7 @@ class Node(ABC):
             # "single" consumption policy is disabled or no event types under the policy reach this node
             return
         self._filtered_events = set([event for event in self._filtered_events
-                                     if event.timestamp >= last_timestamp - self._sliding_window])
+                                    if event.timestamp >= last_timestamp - self._sliding_window])
 
     def _add_partial_match(self, pm: PatternMatch):
         """
@@ -172,6 +172,7 @@ class Node(ABC):
         max_timestamp = max([event.timestamp for event in events_for_new_match])
         return max_timestamp - min_timestamp <= self._sliding_window
 
+
     ###################################### Parent- and topology-related methods
     def get_last_unhandled_partial_match_by_parent(self, parent):
         """
@@ -226,6 +227,7 @@ class Node(ABC):
         if parent not in self._parent_to_info_dict.keys():
             raise Exception("parent is not in the dictionary.")
         return self._parent_to_info_dict[parent]
+
 
     ###################################### Various setters and getters
     def get_sliding_window(self):
@@ -282,6 +284,7 @@ class Node(ABC):
         For non-negative nodes, this method is identical to get_event_definitions()
         """
         return self.get_event_definitions()
+
 
     ###################################### Miscellaneous
     def register_single_event_type(self, event_type: str):
@@ -341,8 +344,6 @@ class Node(ABC):
         Traverses the subtree of this node and initializes the internal dictionaries mapping each parent node to the
         corresponding event definitions.
         To be implemented by subclasses.
-        the is is_shared argument in create_parent_to_info_dict in order to pass the assert that check
-        if every node got only one parent in case we are in shared approach
         """
         raise NotImplementedError()
 
@@ -375,17 +376,5 @@ class Node(ABC):
                             sort_by_first_timestamp: bool = False):
         """
         An abstract method for recursive partial match storage initialization.
-        """
-        raise NotImplementedError()
-
-    def __str__(self) -> str:
-        """
-        “informal” or nicely printable string representation of an object
-        """
-        raise NotImplementedError()
-
-    def __repr__(self) -> str:
-        """
-        “official” string representation of an object.
         """
         raise NotImplementedError()

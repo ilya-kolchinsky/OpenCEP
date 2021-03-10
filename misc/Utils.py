@@ -2,15 +2,16 @@
 This file contains various useful functions utilized by different project modules.
 """
 
-from copy import deepcopy
 from datetime import datetime
-from itertools import combinations
 from typing import List, Container
 
 from base.Pattern import Pattern
-from base.PatternMatch import PatternMatch
 from base.PatternStructure import PrimitiveEventStructure
+from itertools import combinations
 from base.PatternStructure import SeqOperator
+from base.PatternMatch import PatternMatch
+from copy import deepcopy
+
 from stream.Stream import Stream
 
 

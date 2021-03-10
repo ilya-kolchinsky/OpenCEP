@@ -2,8 +2,8 @@ from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
-from base.PatternMatch import PatternMatch
 from condition.CompositeCondition import CompositeCondition
+from base.PatternMatch import PatternMatch
 from misc.Utils import recursive_powerset_generator
 from tree.nodes.Node import Node
 from tree.nodes.UnaryNode import UnaryNode
@@ -82,13 +82,6 @@ class KleeneClosureNode(UnaryNode):
 
     def get_structure_summary(self):
         return "KC", self._child.get_structure_summary()
-
-    def __str__(self) -> str:
-        """
-        “informal” or nicely printable string representation of an object
-        """
-        _prefix = 'KC'
-        return f'{_prefix} {str(self._child).replace(_prefix, "")}'
 
     def is_equivalent(self, other):
         """

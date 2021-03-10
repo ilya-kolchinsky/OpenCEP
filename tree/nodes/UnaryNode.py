@@ -3,9 +3,9 @@ from datetime import timedelta
 from typing import List, Set
 
 from condition.Condition import Condition, RelopTypes, EquationSides
-from tree.PatternMatchStorage import TreeStorageParameters
 from tree.nodes.InternalNode import InternalNode
 from tree.nodes.Node import Node, PrimitiveEventDefinition
+from tree.PatternMatchStorage import TreeStorageParameters
 
 
 class UnaryNode(InternalNode, ABC):
@@ -14,15 +14,12 @@ class UnaryNode(InternalNode, ABC):
     """
     def __init__(self, sliding_window: timedelta, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None, child: Node = None):
-        height = 0 if child is None else child.height
-        super().__init__(sliding_window, parents, pattern_ids, event_defs, height=height)
+        super().__init__(sliding_window, parents, pattern_ids, event_defs)
         self._child = child
 
     def get_leaves(self):
         if self._child is None:
             raise Exception("Unary Node with no child")
-        for leaf in self._child.get_leaves():
-            assert leaf.height == 0
         return self._child.get_leaves()
 
     def _propagate_condition(self, condition: Condition):
@@ -33,7 +30,6 @@ class UnaryNode(InternalNode, ABC):
         Sets the child node of this node.
         """
         self._child = child
-        self.height = child.height + 1
         # only the positive child definitions should be applied on this node
         self._event_defs = child.get_positive_event_definitions()
 

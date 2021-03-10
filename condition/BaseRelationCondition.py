@@ -10,7 +10,6 @@ class BaseRelationCondition(BinaryCondition, ABC):
     """
     This class serves as a base for commonly used binary relations: >, >=, <, <=, ==, !=.
     """
-
     def __init__(self, left_term, right_term, relation_op: callable, relop_type):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of BaseRelationCondition!")
@@ -32,7 +31,7 @@ class BaseRelationCondition(BinaryCondition, ABC):
         Returns True if self and other are of the same basic relation types and represent the same condition.
         """
         return isinstance(other, BaseRelationCondition) and self.relop_type == other.relop_type \
-               and self.left_term_repr == other.left_term_repr and self.right_term_repr == other.right_term_repr
+            and self.left_term_repr == other.left_term_repr and self.right_term_repr == other.right_term_repr
 
     def __eq_opposite_type(self, other):
         """
@@ -45,7 +44,7 @@ class BaseRelationCondition(BinaryCondition, ABC):
         if opposite_type is None:
             return False
         return other.relop_type == opposite_type and \
-               self.left_term_repr == other.right_term_repr and self.right_term_repr == other.left_term_repr
+            self.left_term_repr == other.right_term_repr and self.right_term_repr == other.left_term_repr
 
     def __eq__(self, other):
         return id(self) == id(other) or self.__eq_same_type(other) or self.__eq_opposite_type(other)
@@ -59,7 +58,6 @@ class EqCondition(BaseRelationCondition):
         EqCondition(Variable("a", lambda x: x["Opening Price"]), 135)
         EqCondition(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
-
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of EqCondition!")
@@ -81,7 +79,6 @@ class NotEqCondition(BaseRelationCondition):
         NotEqCondition(Variable("a", lambda x: x["Opening Price"]), 135)
         NotEqCondition(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
-
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of NotEqCondition!")
@@ -103,7 +100,6 @@ class GreaterThanCondition(BaseRelationCondition):
         GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), 135)
         GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
-
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of GreaterThanCondition!")
@@ -125,7 +121,6 @@ class SmallerThanCondition(BaseRelationCondition):
         SmallerThanCondition(Variable("a", lambda x: x["Opening Price"]), 135)
         SmallerThanCondition(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
-
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of SmallerThanCondition!")
@@ -147,7 +142,6 @@ class GreaterThanEqCondition(BaseRelationCondition):
         GreaterThanEqCondition(Variable("a", lambda x: x["Opening Price"]), 135)
         GreaterThanEqCondition(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
-
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of GreaterThanEqCondition!")
@@ -169,7 +163,6 @@ class SmallerThanEqCondition(BaseRelationCondition):
         SmallerThanEqCondition(Variable("a", lambda x: x["Opening Price"]), 135)
         SmallerThanEqCondition(Variable("a", lambda x: x["Opening Price"]), Variable("b", lambda x: x["Opening Price"]))
     """
-
     def __init__(self, left_term, right_term):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of SmallerThanEqCondition!")
