@@ -151,15 +151,12 @@ pattern = Pattern(
 )
 ```
 
-### Evaluation tree optimization
-For multi-pattern usages, you can chose one of many algorithms to share common sub-pattern over the patterns list.
-The various approaches for constructing a unified tree plan builder:
-* `TRIVIAL_SHARING_LEAVES`: gets a list of patterns and builds a merged tree for each pattern, while sharing equivalent leaves from different tree plans.
-* `TREE_PLAN_SUBTREES_UNION`: gets a list of patterns and builds a unified tree by sharing equivalent subtrees of different tree plans.
-* `TREE_PLAN_DIFFERENT_TOPOLOGY_UNION`: same as SUBTREES_UNION, but builds a unified tree by modifying the tree topology trying to get maximum intersection.
-* `TREE_PLAN_LOCAL_SEARCH_ANNEALING`: build CEP evaluation tree with minimum tree cost, using [local search](https://assaf.net.technion.ac.il/files/2019/03/Real-Time-Multi-Pattern-Detection-over-Event-Streams.pdf) (appendix B).
+### Multi-Pattern Support
+For multi-pattern workloads, you can choose one of the algorithms to share the common sub-patterns:
+* `TRIVIAL_SHARING_LEAVES`: shares equivalent leaves from different tree plans.
+* `TREE_PLAN_SUBTREES_UNION`: shares equivalent subtrees of different tree plans.
 
-For additional details, please see `DefaultConfig.py` file.
+More muti-pattern sharing algorithms will be supported in the future.
 
 ```
 
