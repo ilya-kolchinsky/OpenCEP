@@ -28,9 +28,8 @@ class LeafNode(Node):
         if len(self._parents) == 0:
             return
         # we call this method before we share nodes so each node has at most one parent
-        if len(self._parents) > 1:
-            raise Exception("This method should not be called when there is more than one parent.")
-        self._parent_to_info_dict[self._parents[0]] = [PrimitiveEventDefinition(self.__event_type,
+        for parent in self._parents:
+            self._parent_to_info_dict[parent] = [PrimitiveEventDefinition(self.__event_type,
                                                                                 self.__event_name,
                                                                                 self.__leaf_index)]
 

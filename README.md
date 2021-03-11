@@ -150,6 +150,44 @@ pattern = Pattern(
     timedelta(minutes=5)
 )
 ```
+
+### Multi-Pattern Support
+For multi-pattern workloads, you can choose one of the algorithms to share the common sub-patterns:
+* `TRIVIAL_SHARING_LEAVES`: shares equivalent leaves from different tree plans.
+* `TREE_PLAN_SUBTREES_UNION`: shares equivalent subtrees of different tree plans.
+
+More muti-pattern sharing algorithms will be supported in the future.
+
+```
+
+first_pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"),
+                    PrimitiveEventStructure("AAPL", "c")),
+        AndCondition(
+            SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]),
+                                 Variable("b", lambda x: x["Peak Price"])),
+            GreaterThanCondition(Variable("b", lambda x: x["Peak Price"]),
+                                 Variable("c", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+second_pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b")),
+        SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]),
+                             Variable("b", lambda x: x["Peak Price"]))
+        ,
+        timedelta(minutes=3)
+)    
+
+eval_mechanism_params = TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                                                                             TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL,
+                                                                                             MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION))
+
+
+# Then, running activating cep engine: 
+cep = CEP([first_pattern, second_pattern] , eval_mechanism_params)
+```
+
 ### Negation Operator 
 
 OpenCEP supports a variety of negation algorithms provided using the TreeBasedEvaluationMechanismParameters parameter.

@@ -32,7 +32,7 @@ class KCCondition(AtomicCondition, ABC):
         """
         return 0 <= index < len(lst)
 
-    def get_names(self):
+    def get_event_names(self):
         """
         Returns the event names associated with this condition.
         """
@@ -42,8 +42,10 @@ class KCCondition(AtomicCondition, ABC):
         return "KC [" + ", ".join(self._names) + "]"
 
     def __eq__(self, other):
-        return type(self) == type(other) and self._names == other._names and \
-               self._getattr_func == other._getattr_func and self._relation_op == other._relation_op
+        return self == other or (type(self) == type(other) and
+                                 self._names == other._names and
+                                 self._getattr_func == other._getattr_func and
+                                 self._relation_op == other._relation_op)
 
 
 class KCIndexCondition(KCCondition):

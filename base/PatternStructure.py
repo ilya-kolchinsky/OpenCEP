@@ -44,7 +44,6 @@ class PrimitiveEventStructure(PatternStructure):
     """
     Represents a simple primitive event, defined by a type and a name.
     """
-
     def __init__(self, event_type: str, name: str):
         self.type = event_type
         self.name = name
@@ -63,9 +62,6 @@ class PrimitiveEventStructure(PatternStructure):
 
     def __repr__(self):
         return "%s %s" % (self.type, self.name)
-
-    def get_all_event_names(self):
-        return [self.name]
 
 
 class UnaryStructure(PatternStructure, ABC):

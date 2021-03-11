@@ -24,6 +24,17 @@ class CompositeCondition(Condition, ABC):
                 return self.__terminating_result
         return not self.__terminating_result
 
+    def __eq__(self, other):
+        if self == other:
+            return True
+        if type(self) != type(other) or self.get_num_conditions() != other.get_num_conditions():
+            return False
+        for condition in self.__conditions:
+            if condition not in other.__conditions:
+                return False
+        return True
+
+
     def get_condition_of(self, names: set, get_kleene_closure_conditions=False, consume_returned_conditions=False):
         """
         Returns a new composite condition which only contains those conditions from this composite condition operating
@@ -118,6 +129,14 @@ class AndCondition(CompositeCondition):
 
     def __repr__(self):
         return " AND ".join(super().__repr__())
+
+    def get_event_names(self):
+        """
+        Returns the event names associated with this condition.
+        """
+        sets_of_names = list(condition.get_event_names() for condition in self.get_conditions_list())
+        flat_list = [item for sublist in sets_of_names for item in sublist]
+        return set(flat_list)
 
 
 class OrCondition(CompositeCondition):

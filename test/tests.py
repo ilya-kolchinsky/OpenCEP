@@ -10,6 +10,7 @@ from test.NestedTests import *
 from test.UnitTests.test_storage import run_storage_tests
 from test.UnitTests.RuleTransformationTests import ruleTransformationTests
 
+
 runTest.over_all_time = 0
 
 # basic functionality tests
@@ -129,20 +130,28 @@ sortedStorageTest()
 run_storage_tests()
 
 # multi-pattern tests
-# first approach: sharing leaves
 leafIsRoot()
 distinctPatterns()
 threePatternsTest()
 samePatternDifferentTimeStamps()
 rootAndInner()
-
-# second approach: sharing equivalent subtrees
 onePatternIncludesOther()
 samePatternSharingRoot()
 severalPatternShareSubtree()
 notInTheBeginningShare()
 multipleParentsForInternalNode()
+leafIsRootFullSharing()
+distinctPatternsFullSharing()
+threePatternsTestFullSharing()
+samePatternDifferentTimeStampsFullSharing()
+rootAndInnerFullSharing()
+onePatternIncludesOtherFullSharing()
+samePatternSharingRootFullSharing()
+severalPatternShareSubtreeFullSharing()
+notInTheBeginningShareFullSharing()
+multipleParentsForInternalNodeFullSharing()
 
+# event occurrence probability tests
 test.EventProbabilityTests.oneArgumentsearchTest()
 test.EventProbabilityTests.oneArgumentsearchTestKleeneClosure()
 test.EventProbabilityTests.simpleNotTest()
@@ -171,6 +180,7 @@ KCNestedStructuralTest()
 # benchmarks
 if INCLUDE_BENCHMARKS:
     sortedStorageBenchMarkTest()
+
 
 # Twitter tests
 if INCLUDE_TWITTER:

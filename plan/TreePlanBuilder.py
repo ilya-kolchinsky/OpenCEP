@@ -1,13 +1,13 @@
 from abc import ABC
+from copy import deepcopy
 from typing import List
 
 from base.Pattern import Pattern
-from base.PatternStructure import PrimitiveEventStructure, PatternStructure, UnaryStructure, KleeneClosureOperator,\
-    CompositeStructure
+from base.PatternStructure import PatternStructure, UnaryStructure, KleeneClosureOperator, CompositeStructure
 from plan.TreeCostModel import IntermediateResultsTreeCostModel
-from base.PatternStructure import AndOperator, SeqOperator
 from plan.negation.NegationAlgorithmFactory import NegationAlgorithmFactory
 from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
+from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure
 from plan.TreeCostModel import TreeCostModelFactory
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode, TreePlanUnaryNode, \
@@ -38,6 +38,8 @@ class TreePlanBuilder(ABC):
             # an edge case where the topmost operator is a unary operator
             positive_root = self._instantiate_unary_node(pattern, positive_root)
         root = self.__negation_algorithm.handle_pattern_negation(pattern, positive_root)
+        pattern_condition = deepcopy(pattern.condition)  # copied since apply_condition modifies its input parameter
+        root.apply_condition(pattern_condition)
         return TreePlan(root)
 
     @staticmethod
@@ -95,7 +97,9 @@ class TreePlanBuilder(ABC):
         pattern_positive_args = pattern.get_top_level_structure_args(positive_only=True)
         for i, arg in enumerate(pattern_positive_args):
             if nested_topologies is None or nested_topologies[i] is None:
-                new_leaf = TreePlanLeafNode(i)
+                # the current argument can either be a PrimitiveEventStructure or an UnaryOperator surrounding it
+                event_structure = arg if isinstance(arg, PrimitiveEventStructure) else arg.child
+                new_leaf = TreePlanLeafNode(i, event_structure.type, event_structure.name)
             else:
                 nested_topology = nested_topologies[i].sub_tree_plan \
                     if isinstance(nested_topologies[i], TreePlanNestedNode) else nested_topologies[i]

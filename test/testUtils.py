@@ -4,14 +4,13 @@ import sys
 
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
-from stream.Stream import OutputStream
-from stream.FileStream import FileInputStream, FileOutputStream
 from misc.Utils import generate_matches
-from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from plan.TreeCostModels import TreeCostModels
+from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
 from plugin.stocks.Stocks import MetastockDataFormatter
+from stream.FileStream import FileInputStream, FileOutputStream
+from stream.Stream import OutputStream
 from tree.PatternMatchStorage import TreeStorageParameters
 
 
@@ -61,11 +60,6 @@ class FailedCounter:
 
 
 num_failed_tests = FailedCounter()
-
-file1 = os.path.join(absolutePath, 'test/StatisticsDocumentation/statistics.txt')
-with open(file1, 'w') as file:
-    file.write("\nDocumentation of the generated statistics for the negation tests:\n")
-file.close()
 
 def closeFiles(file1, file2):
     file1.close()
@@ -248,13 +242,17 @@ def uniteFiles(testName, numOfPatterns):
             for line in setexp:
                 f.write(line)
                 f.write('\n\n')
+
+
 """
 This function runs multi-pattern CEP on the given list of patterns and prints
 success or fail output.
 """
 def runMultiTest(test_name, patterns, createTestFile = False,
             eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events = None, eventStream = nasdaqEventStream):
+            events = None, eventStream = nasdaqEventStream, expected_file_name=None):
+    if expected_file_name is None:
+        expected_file_name = test_name
 
     if events is None:
         events = eventStream.duplicate()
@@ -265,15 +263,15 @@ def runMultiTest(test_name, patterns, createTestFile = False,
     listHalfShort = ["onePatternIncludesOther", "threeSharingSubtrees"]
     listCustom = []
     listCustom2 = ["FirstMultiPattern", "RootAndInner"]
-    if test_name in listShort:
+    if expected_file_name in listShort:
         events = nasdaqEventStreamShort.duplicate()
-    elif test_name in listHalfShort:
+    elif expected_file_name in listHalfShort:
         events = nasdaqEventStreamHalfShort.duplicate()
-    elif test_name in listCustom:
+    elif expected_file_name in listCustom:
         events = custom.duplicate()
-    elif test_name in listCustom2:
+    elif expected_file_name in listCustom2:
         events = custom2.duplicate()
-    elif test_name == "NotEverywhere":
+    elif expected_file_name == "NotEverywhere":
         events = custom3.duplicate()
 
     if createTestFile:
@@ -283,8 +281,9 @@ def runMultiTest(test_name, patterns, createTestFile = False,
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % test_name
+    expected_output_file_name = "%sMatches.txt" % expected_file_name
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
-    expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
+    expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', expected_output_file_name)
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
 
@@ -341,4 +340,4 @@ def runStructuralTest(testName, patterns, expected_result,
     # print('place a breakpoint after creating the CEP object to debug it.\n')
     cep = CEP(patterns, eval_mechanism_params)
     structure_summary = cep.get_evaluation_mechanism_structure_summary()
-    print("Test %s result: %s" % (testName,"Succeeded" if structure_summary == expected_result else "Failed"))
+    print("Test %s result: %s" % (testName, "Succeeded" if structure_summary == expected_result else "Failed"))

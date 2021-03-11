@@ -41,9 +41,8 @@ class InternalNode(Node, ABC):
         if len(self._parents) == 0:
             return
         # we call this method before we share nodes so each node has at most one parent
-        if len(self._parents) > 1:
-            raise Exception("This method should not be called when there is more than one parent.")
-        self._parent_to_info_dict[self._parents[0]] = self.get_positive_event_definitions()
+        for parent in self._parents:
+            self._parent_to_info_dict[parent] = self.get_positive_event_definitions()
 
     def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                            rel_op: RelopTypes = None, equation_side: EquationSides = None,
