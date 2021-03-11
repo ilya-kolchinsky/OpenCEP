@@ -8,7 +8,6 @@ from misc.Utils import generate_matches
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
 from plugin.stocks.Stocks import MetastockDataFormatter
 from stream.FileStream import FileInputStream, FileOutputStream
 from stream.Stream import OutputStream
@@ -61,11 +60,6 @@ class FailedCounter:
 
 
 num_failed_tests = FailedCounter()
-
-file1 = os.path.join(absolutePath, 'test/StatisticsDocumentation/statistics.txt')
-with open(file1, 'w') as file:
-    file.write("\nDocumentation of the generated statistics for the negation tests:\n")
-file.close()
 
 def closeFiles(file1, file2):
     file1.close()

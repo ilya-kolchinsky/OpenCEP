@@ -199,7 +199,7 @@ class Tree:
         if tree_plan not in self.__plan_nodes_to_nodes_map:
             return None
         existing_node = self.__plan_nodes_to_nodes_map.get(tree_plan)
-        existing_node.propagate_sliding_window(max(existing_node.get_sliding_window(), sliding_window))
+        existing_node.set_and_propagate_pattern_parameters(pattern_params)
         if parent is not None:
             existing_node.add_parent(parent)
         return existing_node

@@ -738,7 +738,7 @@ def runMultiPatternPlanBuilderTests():
     same_events_different_function_test()
     same_leaves_different_time_stamps_test()
     distinct_leaves_test()
-    partially_shared_test() #Check Trivial
+    partially_shared_test()
     leaf_is_root_test()
     leaf_is_root_test_2()
     three_patterns_no_sharing_leaves_test()
@@ -751,7 +751,5 @@ def runMultiPatternPlanBuilderTests():
     four_patterns_ordered_events_test_1()
     four_patterns_ordered_events_test_2()
     equal_patterns_test()
-
-    # negation operators
     negation_operators_test()
     events_type_test_1()
