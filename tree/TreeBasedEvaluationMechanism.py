@@ -10,7 +10,6 @@ from tree.PatternMatchStorage import TreeStorageParameters
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
 from tree.MultiPatternTree import MultiPatternTree
-
 from tree.Tree import Tree
 
 

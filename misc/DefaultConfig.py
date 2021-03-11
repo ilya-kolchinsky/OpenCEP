@@ -9,10 +9,11 @@ from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
+from transformation.PatternTransformationRules import PatternTransformationRules
+from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
 from plan.multi.MultiPatternTreePlanMergeApproaches import MultiPatternTreePlanMergeApproaches
 
 # general settings
-
 DEFAULT_EVALUATION_MECHANISM_TYPE = EvaluationMechanismTypes.TREE_BASED
 
 # plan generation-related defaults
@@ -36,3 +37,19 @@ ITERATIVE_IMPROVEMENT_INIT_TYPE = IterativeImprovementInitType.RANDOM
 # parallel execution settings
 DEFAULT_PARALLEL_EXECUTION_MODE = ParallelExecutionModes.SEQUENTIAL
 DEFAULT_PARALLEL_EXECUTION_PLATFORM = ParallelExecutionPlatforms.THREADING
+
+# settings for pattern transformation rules
+PREPROCESSING_RULES_ORDER = None # disabled for now
+"""
+[
+    PatternTransformationRules.AND_AND_PATTERN,
+    PatternTransformationRules.NOT_OR_PATTERN,
+    PatternTransformationRules.NOT_AND_PATTERN,
+    PatternTransformationRules.TOPMOST_OR_PATTERN,
+    PatternTransformationRules.INNER_OR_PATTERN,
+    PatternTransformationRules.NOT_NOT_PATTERN
+]
+"""
+
+# default negation algorithm
+DEFAULT_NEGATION_ALGORITHM = NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM

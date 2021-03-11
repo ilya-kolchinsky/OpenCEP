@@ -4,6 +4,7 @@ As of now, OpenCEP supports three n-ary operators (SEQ, AND, OR) and two unary o
 could be added in the future.
 """
 from abc import ABC
+from functools import reduce
 
 KC_MIN_SIZE = 1
 KC_MAX_SIZE = None
@@ -32,6 +33,12 @@ class PatternStructure(ABC):
         """
         raise NotImplementedError()
 
+    def get_all_event_names(self):
+        """
+        Returns all event names participating in this structure.
+        """
+        raise NotImplementedError()
+
 
 class PrimitiveEventStructure(PatternStructure):
     """
@@ -50,6 +57,9 @@ class PrimitiveEventStructure(PatternStructure):
     def contains_event(self, event_name: str):
         return self.name == event_name
 
+    def get_all_event_names(self):
+        return [self.name]
+
     def __repr__(self):
         return "%s %s" % (self.type, self.name)
 
@@ -67,6 +77,9 @@ class UnaryStructure(PatternStructure, ABC):
     def contains_event(self, event_name: str):
         return self.arg.contains_event(event_name)
 
+    def get_all_event_names(self):
+        return self.arg.get_all_event_names()
+
 
 class CompositeStructure(PatternStructure, ABC):
     """
@@ -74,9 +87,6 @@ class CompositeStructure(PatternStructure, ABC):
     """
     def __init__(self, *args):
         self.args = list(args)
-
-    def get_args(self):
-        return self.args
 
     def duplicate(self):
         new_structure = self.duplicate_top_operator()
@@ -99,6 +109,9 @@ class CompositeStructure(PatternStructure, ABC):
             if arg.contains_event(event_name):
                 return True
         return False
+
+    def get_all_event_names(self):
+        return reduce(lambda x, y: x+y, [arg.get_all_event_names() for arg in self.args])
 
 
 class AndOperator(CompositeStructure):

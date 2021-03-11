@@ -8,10 +8,12 @@ from misc.Utils import generate_matches
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
+from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
 from plugin.stocks.Stocks import MetastockDataFormatter
 from stream.FileStream import FileInputStream, FileOutputStream
 from stream.Stream import OutputStream
 from tree.PatternMatchStorage import TreeStorageParameters
+
 
 currentPath = pathlib.Path(os.path.dirname(__file__))
 absolutePath = str(currentPath.parent)
@@ -42,19 +44,28 @@ DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
                                                                  prioritize_sorting_by_timestamp=True))
 DEFAULT_TESTING_DATA_FORMATTER = MetastockDataFormatter()
 
-def numOfLinesInPattern(file):
+
+class FailedCounter:
     """
-    get num of lines in file until first blank line == num of lines in pattern
-    :param file: file
-    :return: int
+    This class helps tracking failed tests (if there are any).
     """
     counter = 0
-    for line in file:
-        if line == '\n':
-            break
-        counter = counter + 1
-    return counter
+    failed_tests = set()
+    missing_combination = []
 
+    def increase_counter(self):
+        self.counter = self.counter + 1
+
+    def print_counter(self):
+        print(self.counter, "tests Failed")
+
+
+num_failed_tests = FailedCounter()
+
+file1 = os.path.join(absolutePath, 'test/StatisticsDocumentation/statistics.txt')
+with open(file1, 'w') as file:
+    file.write("\nDocumentation of the generated statistics for the negation tests:\n")
+file.close()
 
 def closeFiles(file1, file2):
     file1.close()
@@ -71,31 +82,34 @@ def fileCompare(pathA, pathB):
     file1 = open(pathA)
     file2 = open(pathB)
 
-    counter1 = numOfLinesInPattern(file1)
-    counter2 = numOfLinesInPattern(file2)
+    set1 = set()
+    set2 = set()
+    fillSet(file1, set1)
+    fillSet(file2, set2)
+
+    if len(set1) != len(set2):
+        closeFiles(file1, file2)
+        return False
+
+    if set1 != set2:
+        closeFiles(file1, file2)
+        return False
 
     file1.seek(0)
     file2.seek(0)
 
-    # quick check, if both files don't return the same counter, or if both files are empty
-    if counter1 != counter2:
+    counterA = len([line.strip("\n") for line in file1 if line != "\n"])
+    counterB = len([line.strip("\n") for line in file2 if line != "\n"])
+
+    if counterA != counterB:
         closeFiles(file1, file2)
         return False
-    elif counter1 == counter2 and counter1 == 0:
-        closeFiles(file1, file2)
-        return True
 
-    set1 = set()
-    set2 = set()
-
-    fillSet(file1, set1, counter1)
-    fillSet(file2, set2, counter2)
     closeFiles(file1, file2)
+    return True
 
-    return set1 == set2
 
-
-def fillSet(file, set: set, counter: int):
+def fillSet(file, set: set):
     """
     fill a set, each element of the set is x consecutive lines of the file, with x = counter
     :param file:
@@ -104,19 +118,16 @@ def fillSet(file, set: set, counter: int):
     :return:
     """
     list = []
-    tmp = 0
     for line in file:
         if line == '\n':
             continue
         # solve a problem when no blank lines at end of file
         line = line.strip()
         list.append(line)
-        tmp = tmp + 1
         # if we read 'counter' lines, we want to add it to the set, and continue with the next 'counter' lines
-        if tmp == counter:
+        if line == '\n':
             set.add(tuple(list))
             list = []
-            tmp = 0
 
 
 def outputTestFile(base_path: str, matches: list, output_file_name: str = 'matches.txt'):
@@ -142,10 +153,13 @@ def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream)
 
 
 def runTest(testName, patterns, createTestFile = False,
-            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-            events = None, eventStream = nasdaqEventStream):
+            eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+            events=None, eventStream=nasdaqEventStream, expected_file_name=None):
+    if expected_file_name is None:
+        expected_file_name = testName
+
     if createTestFile:
-        createTest(testName, patterns, events, eventStream = eventStream)
+        createTest(testName, patterns, events, eventStream=eventStream)
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -153,34 +167,40 @@ def runTest(testName, patterns, createTestFile = False,
 
     listShort = ["OneNotBegin", "MultipleNotBegin", "MultipleNotMiddle", "distinctPatterns"]
     listHalfShort = ["OneNotEnd", "MultipleNotEnd"]
-    listCustom = ["MultipleNotBeginAndEnd"]
+    listCustom = ["MultipleNotBeginAndEnd", "NotEverywhere2"]
     listCustom2 = ["simpleNot"]
-    if testName in listShort:
+    if expected_file_name in listShort:
         events = nasdaqEventStreamShort.duplicate()
-    elif testName in listHalfShort:
+    elif expected_file_name in listHalfShort:
         events = nasdaqEventStreamHalfShort.duplicate()
-    elif testName in listCustom:
+    elif expected_file_name in listCustom:
         events = custom.duplicate()
-    elif testName in listCustom2:
+    elif expected_file_name in listCustom2:
         events = custom2.duplicate()
-    elif testName == "NotEverywhere":
+    elif expected_file_name == "NotEverywhere":
         events = custom3.duplicate()
 
     cep = CEP(patterns, eval_mechanism_params)
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName
+    expected_output_file_name = "%sMatches.txt" % expected_file_name
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
 
-    expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
+    expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', expected_output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
     is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
+
     print("Test %s result: %s, Time Passed: %s" % (testName,
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
     if is_test_successful:
         os.remove(actual_matches_path)
+    else:
+        num_failed_tests.increase_counter()
+        num_failed_tests.failed_tests.add(testName)
+
 
 """
 Input:
@@ -189,6 +209,8 @@ patterns- list of patterns
 Output:
 expected output file for the test.
 """
+
+
 def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                          events=None, eventStream=nasdaqEventStream):
     curr_events = events
@@ -232,11 +254,10 @@ def uniteFiles(testName, numOfPatterns):
 This function runs multi-pattern CEP on the given list of patterns and prints
 success or fail output.
 """
+def runMultiTest(test_name, patterns, createTestFile = False,
+            eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+            events = None, eventStream = nasdaqEventStream):
 
-
-def runMultiTest(testName, patterns, createTestFile = False,
-                 eval_mechanism_params = DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                 events = None, eventStream = nasdaqEventStream):
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -246,24 +267,24 @@ def runMultiTest(testName, patterns, createTestFile = False,
     listHalfShort = ["onePatternIncludesOther", "threeSharingSubtrees"]
     listCustom = []
     listCustom2 = ["FirstMultiPattern", "RootAndInner"]
-    if testName in listShort:
+    if test_name in listShort:
         events = nasdaqEventStreamShort.duplicate()
-    elif testName in listHalfShort:
+    elif test_name in listHalfShort:
         events = nasdaqEventStreamHalfShort.duplicate()
-    elif testName in listCustom:
+    elif test_name in listCustom:
         events = custom.duplicate()
-    elif testName in listCustom2:
+    elif test_name in listCustom2:
         events = custom2.duplicate()
-    elif testName == "NotEverywhere":
+    elif test_name == "NotEverywhere":
         events = custom3.duplicate()
 
     if createTestFile:
-        createExpectedOutput(testName, patterns, eval_mechanism_params, events.duplicate(), eventStream)
+        createExpectedOutput(test_name, patterns, eval_mechanism_params, events.duplicate(), eventStream)
 
     cep = CEP(patterns, eval_mechanism_params)
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
-    output_file_name = "%sMatches.txt" % testName
+    output_file_name = "%sMatches.txt" % test_name
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', output_file_name)
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
@@ -286,11 +307,14 @@ def runMultiTest(testName, patterns, createTestFile = False,
             exp_set[int(match.partition(':')[0]) - 1].add(match.strip()[match.index(' ') + 1:])
 
     res = (exp_set == match_set)
-    print("Test %s result: %s, Time Passed: %s" % (testName,
+    print("Test %s result: %s, Time Passed: %s" % (test_name,
           "Succeeded" if res else "Failed", running_time))
     runTest.over_all_time += running_time
     if res:
         os.remove(actual_matches_path)
+    else:
+        num_failed_tests.increase_counter()
+        num_failed_tests.failed_tests.add(test_name)
 
 
 class DummyOutputStream(OutputStream):

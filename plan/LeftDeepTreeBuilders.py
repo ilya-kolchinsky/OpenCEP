@@ -9,34 +9,37 @@ from misc import DefaultConfig
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType, \
     IterativeImprovementAlgorithmBuilder
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlan import TreePlanLeafNode
+from plan.TreePlan import TreePlanNode, TreePlanLeafNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.Statistics import MissingStatisticsException
 from misc.StatisticsTypes import StatisticsTypes
-from misc.Utils import get_order_by_occurrences
+from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
 
 
 class LeftDeepTreeBuilder(TreePlanBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-    def _create_tree_topology(self, pattern: Pattern):
+    def _create_tree_topology(self, pattern: Pattern, leaves: List[TreePlanNode]):
         """
         Invokes an algorithm (to be implemented by subclasses) that builds an evaluation order of the operands, and
         converts it into a left-deep tree topology.
         """
-        order = self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure, CompositeStructure) else [0]
-        return LeftDeepTreeBuilder._order_to_tree_topology(order, pattern)
+        order = self._create_evaluation_order(pattern) if isinstance(pattern.positive_structure,
+                                                                     CompositeStructure) else [0]
+        return LeftDeepTreeBuilder._order_to_tree_topology(order, pattern, leaves)
 
     @staticmethod
-    def _order_to_tree_topology(order: List[int], pattern: Pattern):
+    def _order_to_tree_topology(order: List[int], pattern: Pattern, leaves: List[TreePlanNode] = None):
         """
         A helper method for converting a given order to a tree topology.
         """
-        tree_topology = TreePlanLeafNode(order[0])
+        if leaves is None:
+            leaves = [TreePlanLeafNode(i) for i in range(max(order)+1)]
+        tree_topology = leaves[order[0]]
         for i in range(1, len(order)):
-            tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(order[i]))
+            tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, leaves[order[i]])
         return tree_topology
 
     def _get_order_cost(self, pattern: Pattern, order: List[int]):
@@ -67,11 +70,8 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree following the order of ascending arrival rates of the event types.
     """
     def _create_evaluation_order(self, pattern: Pattern):
-        if pattern.statistics_type == StatisticsTypes.FREQUENCY_DICT:
-            frequency_dict = pattern.statistics
-            order = get_order_by_occurrences(pattern.positive_structure.args, frequency_dict)
-        elif pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
-            arrival_rates = pattern.statistics
+        if pattern.statistics_type == StatisticsTypes.ARRIVAL_RATES:
+            arrival_rates = pattern.positive_statistics
             # create an index-arrival rate binding and sort according to arrival rate.
             sorted_order = sorted([(i, arrival_rates[i]) for i in range(len(arrival_rates))], key=lambda x: x[1])
             order = [x for x, y in sorted_order]  # create order from sorted binding.
@@ -87,7 +87,7 @@ class GreedyLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivityMatrix, arrivalRates) = pattern.statistics
+            (selectivityMatrix, arrivalRates) = pattern.positive_statistics
         else:
             raise MissingStatisticsException()
         return self.calculate_greedy_order(selectivityMatrix, arrivalRates)
@@ -136,17 +136,17 @@ class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree using the iterative improvement procedure.
     """
-    def __init__(self, cost_model_type: TreeCostModels, step_limit: int,
-                 ii_type: IterativeImprovementType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE,
+    def __init__(self, cost_model_type: TreeCostModels, negation_algorithm_type: NegationAlgorithmTypes,
+                 step_limit: int, ii_type: IterativeImprovementType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE,
                  init_type: IterativeImprovementInitType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE):
-        super().__init__(cost_model_type)
+        super().__init__(cost_model_type, negation_algorithm_type)
         self.__iterative_improvement = IterativeImprovementAlgorithmBuilder.create_ii_algorithm(ii_type)
         self.__initType = init_type
         self.__step_limit = step_limit
 
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivityMatrix, arrivalRates) = pattern.statistics
+            (selectivityMatrix, arrivalRates) = pattern.positive_statistics
         else:
             raise MissingStatisticsException()
         order = None
@@ -177,7 +177,7 @@ class DynamicProgrammingLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     def _create_evaluation_order(self, pattern: Pattern):
         if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivity_matrix, arrival_rates) = pattern.statistics
+            (selectivity_matrix, arrival_rates) = pattern.positive_statistics
         else:
             raise MissingStatisticsException()
         args_num = len(selectivity_matrix)

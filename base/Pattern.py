@@ -1,3 +1,4 @@
+from copy import deepcopy
 from functools import reduce
 from typing import List
 
@@ -5,7 +6,7 @@ from base.Event import Event
 from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
 from condition.CompositeCondition import CompositeCondition, AndCondition
 from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
-    SeqOperator, NegationOperator
+    SeqOperator, NegationOperator, UnaryStructure
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
 from misc.ConsumptionPolicy import ConsumptionPolicy
@@ -19,12 +20,17 @@ class Pattern:
     during evaluation.
     - A condition to be satisfied by the primitive events. This condition might encapsulate multiple nested conditions.
     - A time window for the pattern matches to occur within.
-    - a ConsumptionPolicy object that contains the policies that filter certain partial matches.
-    A pattern can also carry statistics with it, in order to enable advanced
-    tree construction mechanisms - this is hopefully a temporary hack.
+    - A ConsumptionPolicy object that contains the policies that filter certain partial matches.
+    - An optional confidence parameter, intended to indicate the minimal acceptable probability of a pattern match. This
+    parameter is only applicable for probabilistic data streams.
+    A pattern can also carry statistics with it, in order to enable advanced tree construction mechanisms - this is
+    hopefully a temporary hack.
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Condition,
-                 time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None):
+                 time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None,
+                 confidence: float = None, statistics_type=StatisticsTypes.NO_STATISTICS, statistics=None):
+        if confidence is not None and (confidence < 0.0 or confidence > 1.0):
+            raise Exception("Invalid value for pattern confidence:%s" % (confidence,))
         self.id = pattern_id
 
         self.full_structure = pattern_structure
@@ -39,10 +45,9 @@ class Pattern:
 
         self.window = time_window
 
-        self.statistics_type = StatisticsTypes.NO_STATISTICS
-        self.statistics = None
-        self.consumption_policy = consumption_policy
+        self.set_statistics(statistics_type, statistics)
 
+        self.consumption_policy = consumption_policy
         if consumption_policy is not None:
             if consumption_policy.single_event_strategy is not None and consumption_policy.single_types is None:
                 # must be initialized to contain all event types in the pattern
@@ -50,12 +55,41 @@ class Pattern:
             if consumption_policy.contiguous_names is not None:
                 self.__init_strict_conditions(pattern_structure)
 
+        self.confidence = confidence
+
     def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
         """
         Sets the statistical properties related to the events and conditions of this pattern.
         """
         self.statistics_type = statistics_type
-        self.statistics = statistics
+        self.full_statistics = statistics
+        if statistics_type not in [StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES]:
+            self.positive_statistics = statistics
+            return
+
+        # TODO: this solution only supports negative events at the top level of the pattern
+        negative_indices = []
+        actual_index = 0
+        for i, arg in enumerate(self.full_structure.args):
+            if type(arg) == NegationOperator:
+                negative_indices.append(actual_index)
+            actual_index += len(arg.get_all_event_names())
+
+        if statistics_type == StatisticsTypes.ARRIVAL_RATES:
+            self.positive_statistics = self.__remove_entries_at_indices(self.full_statistics, negative_indices)
+        else:  # statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES
+            positive_arrival_rates = self.__remove_entries_at_indices(self.full_statistics[1], negative_indices)
+            positive_selectivity_rows = self.__remove_entries_at_indices(self.full_statistics[0], negative_indices)
+            positive_selectivities = \
+                [self.__remove_entries_at_indices(row, negative_indices) for row in positive_selectivity_rows]
+            self.positive_statistics = (positive_selectivities, positive_arrival_rates)
+
+    @staticmethod
+    def __remove_entries_at_indices(target_list: List[object], indices: List[int]):
+        """
+        Returns the copy of the given list without the entries in the given indices.
+        """
+        return [item for i, item in enumerate(target_list) if i not in indices]
 
     def __extract_negative_structure(self):
         """
@@ -68,22 +102,22 @@ class Pattern:
             # cannot contain a negative part
             return None
         negative_structure = self.positive_structure.duplicate_top_operator()
-        for arg in self.positive_structure.get_args():
+        for arg in self.positive_structure.args:
             if type(arg) == NegationOperator:
                 # a negative event was found and needs to be extracted
                 negative_structure.args.append(arg)
             elif type(arg) != PrimitiveEventStructure:
                 # TODO: nested operator support should be provided here
                 pass
-        if len(negative_structure.get_args()) == 0:
+        if len(negative_structure.args) == 0:
             # the given pattern is entirely positive
             return None
-        if len(negative_structure.get_args()) == len(self.positive_structure.get_args()):
+        if len(negative_structure.args) == len(self.positive_structure.args):
             raise Exception("The pattern contains no positive events")
         # Remove all negative events from the positive structure
         # TODO: support nested operators
-        for arg in negative_structure.get_args():
-            self.positive_structure.get_args().remove(arg)
+        for arg in negative_structure.args:
+            self.positive_structure.args.remove(arg)
         return negative_structure
 
     def get_index_by_event_name(self, event_name: str):
@@ -91,7 +125,7 @@ class Pattern:
         Returns the position of the given event name in the pattern.
         Note: nested patterns are not yet supported.
         """
-        found_positions = [index for (index, curr_structure) in enumerate(self.full_structure.get_args())
+        found_positions = [index for (index, curr_structure) in enumerate(self.full_structure.args)
                            if curr_structure.contains_event(event_name)]
         if len(found_positions) == 0:
             raise Exception("Event name %s not found in pattern" % (event_name,))
@@ -111,7 +145,9 @@ class Pattern:
         """
         if isinstance(structure, PrimitiveEventStructure):
             return [structure.type]
-        return reduce(lambda x, y: x+y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
+        if isinstance(structure, UnaryStructure):
+            return self.__get_all_event_types_aux(structure.arg)
+        return reduce(lambda x, y: x + y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
 
     def __init_strict_conditions(self, pattern_structure: PatternStructure):
         """
@@ -171,6 +207,36 @@ class Pattern:
             if nested_sequences is not None:
                 result.extend(nested_sequences)
         return result
+
+    def count_primitive_events(self, positive_only=False, negative_only=False):
+        """
+        Returns the total number of primitive events in this pattern.
+        """
+        if positive_only and negative_only:
+            raise Exception("Wrong method usage")
+        if positive_only:
+            return len(self.positive_structure.get_all_event_names())
+        if negative_only:
+            return len(self.negative_structure.get_all_event_names())
+        return len(self.full_structure.get_all_event_names())
+
+    def get_top_level_structure_args(self, positive_only=False, negative_only=False):
+        """
+        Returns the highest-level arguments of the pattern structure.
+        """
+        if positive_only and negative_only:
+            raise Exception("Wrong method usage")
+        if positive_only:
+            target_structure = self.positive_structure
+        elif negative_only:
+            target_structure = self.negative_structure
+        else:
+            target_structure = self.full_structure
+        if isinstance(target_structure, UnaryStructure):
+            return [target_structure.arg]
+        if isinstance(target_structure, CompositeStructure):
+            return target_structure.args
+        raise Exception("Invalid top-level pattern structure")
 
     def __repr__(self):
         return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.full_structure,

@@ -190,7 +190,10 @@ cep = CEP([first_pattern, second_pattern] , eval_mechanism_params)
 
 ### Negation Operator 
 
-The following is the example of a pattern containing a negation operator:
+OpenCEP supports a variety of negation algorithms provided using the TreeBasedEvaluationMechanismParameters parameter.
+It is an optional parameter, if the pattern includes negative events and negation algorithm was not provided, the naive negation algorithm would be used. 
+ 
+The following is an example of a pattern containing a negation operator (without providing negation algorithm):
 
 ```
 pattern = Pattern(
@@ -204,7 +207,34 @@ pattern = Pattern(
                                  Variable("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
+
 ```
+#### Optimizing evaluation performance with custom TreeBasedEvaluationMechanismParameters
+
+The following is an example of a pattern containing a negation operator specifying the statistic negation algorithm:
+
+```
+pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), 
+                    NegationOperator(PrimitiveEventStructure("AMZN", "b")), 
+                    PrimitiveEventStructure("GOOG", "c")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            SmallerThanCondition(Variable("b", lambda x: x["Opening Price"]),
+                                 Variable("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        negation_algorithm_type = NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM
+    )
+    cep = CEP(pattern, eval_mechanism_params)
+```
+There is one more negation algorithm, the lowest position algorithm. In order to use it, use the TreeBasedEvaluationMechanismParameters as demonstrated above, specifying "NegationAlgorithmTypes.LOWEST_POSITION_NEGATION_ALGORITHM" as negation algorithm type.
+
+The use of the non naive algorithms may improve system performance.
+The statistic algorithm is recommended when data stream include a large amount of negative events.
+The lowest position algorithm is recommended when some of the negative events are bounded (i.e. not located at the beginning nor the end of the events sequence in the pattern). 
 
 ### Consumption policies and selection strategies
 
@@ -275,12 +305,33 @@ pattern = Pattern(
 )
 ```
 
-#### Optimizing evaluation performance with custom TreeStorageParameters
+### Optimizing evaluation performance with custom TreeStorageParameters
 ```
 storage_params = TreeStorageParameters(sort_storage=True,
                                        attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
 eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params)
 cep = CEP(pattern, eval_mechanism_params)
+```
+
+### Probabilistic streams and confidence parameters
+
+OpenCEP supports probabilistic streams, where each incoming event is associated
+with an occurrence probability. In this scenario, a pattern should contain a
+"confidence threshold" specifying what is the lowest acceptable probability of
+a match of this pattern.
+
+Probabilistic patterns are specified with the confidence threshold as follows:
+
+```
+pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("GOOG", "a"), 
+            PrimitiveEventStructure("GOOG", "b")
+        ),
+        SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
+        timedelta(minutes=5),
+        confidence=0.9
+    )
 ```
 
 ## Twitter API support
@@ -294,3 +345,4 @@ event_stream = TwitterInputStream(['corona'])
 ```
 ### Tweet formation in CEP
 The format of a tweet is defined in Tweets.py (see documentation). The tweet keys are described there based on the overview of a tweet in https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object
+

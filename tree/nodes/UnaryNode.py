@@ -4,7 +4,7 @@ from typing import List, Set
 
 from condition.Condition import Condition, RelopTypes, EquationSides
 from tree.nodes.InternalNode import InternalNode
-from tree.nodes.Node import Node, PrimitiveEventDefinition
+from tree.nodes.Node import Node, PrimitiveEventDefinition, PatternParameters
 from tree.PatternMatchStorage import TreeStorageParameters
 
 
@@ -12,9 +12,9 @@ class UnaryNode(InternalNode, ABC):
     """
     Represents an internal tree node with a single child.
     """
-    def __init__(self, sliding_window: timedelta, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
+    def __init__(self, pattern_params: PatternParameters, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None, child: Node = None):
-        super().__init__(sliding_window, parents, pattern_ids, event_defs)
+        super().__init__(pattern_params, parents, pattern_ids, event_defs)
         self._child = child
 
     def get_leaves(self):
@@ -33,9 +33,8 @@ class UnaryNode(InternalNode, ABC):
         # only the positive child definitions should be applied on this node
         self._event_defs = child.get_positive_event_definitions()
 
-    def propagate_sliding_window(self, sliding_window: timedelta):
-        self.set_sliding_window(sliding_window)
-        self._child.propagate_sliding_window(sliding_window)
+    def _propagate_pattern_parameters(self, pattern_params: PatternParameters):
+        self._child.set_and_propagate_pattern_parameters(pattern_params)
 
     def propagate_pattern_id(self, pattern_id: int):
         self.add_pattern_ids({pattern_id})

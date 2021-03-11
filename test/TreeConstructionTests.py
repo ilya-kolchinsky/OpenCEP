@@ -76,7 +76,7 @@ def frequencyPatternSearch2Test(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AAPL": 2, "AMZN": 3, "LOCM": 1})
+    pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0076, 0.0153, 0.0159])
     eval_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
@@ -100,7 +100,7 @@ def frequencyPatternSearch3Test(createTestFile=False):
         TrueCondition(),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AAPL": 460, "LOCM": 219})
+    pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0159, 0.0159, 0.0159, 0.0076])
     eval_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
@@ -129,7 +129,7 @@ def frequencyPatternSearch4Test(createTestFile=False):
         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AVID": 1, "LOCM": 2, "AAPL": 3, "AMZN": 4})
+    pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0159, 0.0153, 0.0146, 0.0076])
     runTest("frequency4", [pattern], createTestFile, eval_mechanism_params=eval_params)
 
 
@@ -158,7 +158,7 @@ def frequencyPatternSearch5Test(createTestFile=False):
         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"LOCM": 1, "AAPL": 2})  # {"AAPL": 460, "LOCM": 219}
+    pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0159, 0.0076, 0.0159, 0.0076, 0.0159, 0.0076])
     runTest("frequency5", [pattern], createTestFile, eval_mechanism_params=eval_params)
 
 
@@ -171,7 +171,7 @@ def frequencyPatternSearch6Test(createTestFile=False):
         TrueCondition(),
         timedelta(minutes=7)
     )
-    pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, {"AAPL": 1, "LOCM": 2})  # {"AAPL": 460, "LOCM": 219}
+    pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.0159, 0.0076, 0.0159, 0.0076, 0.0159, 0.0076])
     eval_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
@@ -433,8 +433,8 @@ def frequencyTailoredPatternSearchTest(createTestFile=False):
         ),
         timedelta(minutes=360)
     )
-    frequencyDict = {"MSFT": 256, "DRIV": 257, "CBRL": 1}
-    pattern.set_statistics(StatisticsTypes.FREQUENCY_DICT, frequencyDict)
+    # frequencyDict = {"MSFT": 256, "DRIV": 257, "CBRL": 1}
+    pattern.set_statistics(StatisticsTypes.ARRIVAL_RATES, [0.01454418928322895, 0.016597077244258872, 0.012421711899791231])
     eval_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
         DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
