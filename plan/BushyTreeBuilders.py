@@ -24,8 +24,7 @@ class DynamicProgrammingBushyTreeBuilder(TreePlanBuilder):
         (selectivity_matrix, arrival_rates) = pattern.positive_statistics
         args_num = len(selectivity_matrix)
         if args_num == 1:
-            return [0]
-            # FIXME, should be Tree(root = leafNode)
+            return leaves[0]
 
         items = frozenset(range(args_num))
         # Save subsets' optimal topologies, the cost and the left to add items.

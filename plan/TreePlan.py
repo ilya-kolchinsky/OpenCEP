@@ -86,9 +86,11 @@ class TreePlanLeafNode(TreePlanNode):
 
     def is_equivalent(self, other):
         """
-        Checks if the two nodes accept the same event type.
+        Checks if the two nodes accept the same event type and have the same event name.
+        TODO: should also work for equivalent nodes with different names.
         """
-        return super().is_equivalent(other) and self.event_type == other.event_type
+        return super().is_equivalent(other) and \
+               self.event_type == other.event_type and self.event_name == other.event_name
 
 
 class TreePlanNestedNode(TreePlanNode):
@@ -133,6 +135,12 @@ class TreePlanInternalNode(TreePlanNode, ABC):
     def __init__(self, operator: OperatorTypes, condition: CompositeCondition = AndCondition()):
         super().__init__(condition)
         self.operator = operator
+
+    def is_equivalent(self, other):
+        """
+        In addition to the checks performed by the base class, verifies the equivalence of the operators.
+        """
+        return super().is_equivalent(other) and self.operator == other.operator
 
 
 class TreePlanUnaryNode(TreePlanInternalNode):

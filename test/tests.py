@@ -2,7 +2,6 @@ from test.BasicTests import *
 from test.TreeConstructionTests import *
 from test.KC_tests import *
 from test.NegationTests import *
-from test.MultiPatternPlanBuilderTests import runMultiPatternPlanBuilderTests
 from test.PolicyTests import *
 from test.MultiPattern_tests import *
 from test.StorageTests import *
@@ -131,22 +130,28 @@ sortedStorageTest()
 run_storage_tests()
 
 # multi-pattern tests
-runMultiPatternPlanBuilderTests()
-
-# first approach: sharing leaves
 leafIsRoot()
 distinctPatterns()
 threePatternsTest()
 samePatternDifferentTimeStamps()
 rootAndInner()
-
-# second approach: sharing equivalent subtrees
 onePatternIncludesOther()
 samePatternSharingRoot()
 severalPatternShareSubtree()
 notInTheBeginningShare()
 multipleParentsForInternalNode()
+leafIsRootFullSharing()
+distinctPatternsFullSharing()
+threePatternsTestFullSharing()
+samePatternDifferentTimeStampsFullSharing()
+rootAndInnerFullSharing()
+onePatternIncludesOtherFullSharing()
+samePatternSharingRootFullSharing()
+severalPatternShareSubtreeFullSharing()
+notInTheBeginningShareFullSharing()
+multipleParentsForInternalNodeFullSharing()
 
+# event occurrence probability tests
 test.EventProbabilityTests.oneArgumentsearchTest()
 test.EventProbabilityTests.oneArgumentsearchTestKleeneClosure()
 test.EventProbabilityTests.simpleNotTest()

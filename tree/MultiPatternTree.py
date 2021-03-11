@@ -29,10 +29,10 @@ class MultiPatternTree:
         plan_nodes_to_nodes_map = {}  # a cache for already created subtrees
         for pattern, plan in pattern_to_tree_plan_map.items():
             pattern.id = i
-            new_tree = Tree(plan, pattern, storage_params, plan_nodes_to_nodes_map)
-            self.__id_to_output_node_map[pattern.id] = new_tree
+            new_tree_root = Tree(plan, pattern, storage_params, plan_nodes_to_nodes_map).get_root()
+            self.__id_to_output_node_map[pattern.id] = new_tree_root
             self.__id_to_pattern_map[pattern.id] = pattern
-            self.__output_nodes.append(new_tree)
+            self.__output_nodes.append(new_tree_root)
             i += 1
 
     def get_leaves(self):

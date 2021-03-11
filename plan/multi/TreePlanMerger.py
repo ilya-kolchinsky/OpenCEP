@@ -1,12 +1,13 @@
+from abc import ABC
 from typing import Dict
 
 from base.Pattern import Pattern
 from plan.TreePlan import TreePlan
 
 
-class TreePlanMerger:
+class TreePlanMerger(ABC):
     """
-    A class for tree plan mergers utilizing various multi-pattern sharing techniques.
+    An abstract class for tree plan mergers utilizing various multi-pattern sharing techniques.
     """
     def merge_tree_plans(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan]):
         """
