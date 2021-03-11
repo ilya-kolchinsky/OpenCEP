@@ -32,7 +32,7 @@ class KCCondition(AtomicCondition, ABC):
         """
         return 0 <= index < len(lst)
 
-    def get_names(self):
+    def get_event_names(self):
         """
         Returns the event names associated with this condition.
         """

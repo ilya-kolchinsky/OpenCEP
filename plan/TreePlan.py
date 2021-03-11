@@ -33,7 +33,6 @@ class TreePlanLeafNode(TreePlanNode):
     """
     Represents a leaf of a tree-based plan.
     """
-
     def __init__(self, event_index: int, event_type: str = None, event_name: str = None):
         self.event_index = event_index
         self.event_type = event_type
@@ -43,15 +42,12 @@ class TreePlanLeafNode(TreePlanNode):
         return [self]
 
 
-class TreePlanInternalNode(TreePlanNode):
+class TreePlanInternalNode(TreePlanNode, ABC):
     """
     Represents an internal node of a tree-based plan.
     """
     def __init__(self, operator: OperatorTypes):
         self.operator = operator
-
-    def get_operator(self):
-        return self.operator
 
 
 class TreePlanUnaryNode(TreePlanInternalNode):

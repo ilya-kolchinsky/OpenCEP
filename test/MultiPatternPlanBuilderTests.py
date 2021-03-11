@@ -1,11 +1,62 @@
+import inspect
 from datetime import timedelta
+from typing import List
 
+from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure, NegationOperator, AndOperator
 from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCondition, SmallerThanEqCondition, \
     GreaterThanEqCondition
 from condition.CompositeCondition import AndCondition
 from condition.Condition import Variable
+from plan.TreePlanBuilderFactory import TreePlanBuilderFactory
+from plan.multi.MultiPatternTreePlanMergeApproaches import MultiPatternTreePlanMergeApproaches
+from plan.multi.ShareLeavesTreePlanMerger import ShareLeavesTreePlanMerger
+from plan.multi.SubTreeSharingTreePlanMerger import SubTreeSharingTreePlanMerger
 from test.testUtils import *
+
+
+def get_opening_price(x):
+    return x["Opening Price"]
+
+
+def get_peak_price(x):
+    return x["Peak Price"]
+
+
+def get_lowest_price(x):
+    return x["Lowest Price"]
+
+
+def split_union_approaches(string):
+    return '{:10s}'.format(str(string).split("TREE_PLAN_")[1].replace("_", " "))
+
+
+def union_intersection_size(patterns: List[Pattern], approach: MultiPatternTreePlanMergeApproaches):
+    eval_mechanism_params = TreeBasedEvaluationMechanismParameters()
+    tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
+    pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
+
+    unified_builder = None
+    if approach == MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES:
+        unified_builder = ShareLeavesTreePlanMerger()
+
+    if approach == MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION:
+        unified_builder = SubTreeSharingTreePlanMerger()
+
+    unified_builder.merge_tree_plans(pattern_to_tree_plan_map)
+    size_of_intersection = unified_builder.trees_number_nodes_shared
+    return size_of_intersection
+
+
+def print_result(string1, string2, string3):
+    print("{:^50s} | {:^25s} | {:^15s}".format(string1, string2, string3))
+
+
+def run_tree_plan_union_test(patterns: List[Pattern], expected: int,
+                             approach: MultiPatternTreePlanMergeApproaches = MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES):
+    actual = union_intersection_size(patterns, approach=approach)
+    result = "SUCCESS" if actual == expected else f'\tFAILED \t expected: {expected}, actual: {actual}'
+    print_result(inspect.stack()[1][3], split_union_approaches(approach), result)
 
 
 # tests for sharing leaves
@@ -36,9 +87,9 @@ def same_leaves_test():
         timedelta(minutes=5)
     )
 
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=4, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=7, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=7, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=4, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=7, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=7, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 
@@ -69,9 +120,9 @@ def same_events_different_condition_test():
         timedelta(minutes=5)
     )
 
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=4, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=4, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def sameNames_different_event_types():
@@ -100,9 +151,9 @@ def sameNames_different_event_types():
         ),
         timedelta(minutes=5)
     )
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=4, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=4, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def same_events_different_function_test():
@@ -129,9 +180,9 @@ def same_events_different_function_test():
         ),
         timedelta(minutes=5)
     )
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def same_leaves_different_time_stamps_test():
@@ -158,9 +209,9 @@ def same_leaves_different_time_stamps_test():
         timedelta(minutes=2)
     )
 
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def distinct_leaves_test():
@@ -188,9 +239,9 @@ def distinct_leaves_test():
         ),
         timedelta(days=1)
     )
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def partially_shared_test():
@@ -217,9 +268,9 @@ def partially_shared_test():
         ),
         timedelta(minutes=5)
     )
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=3, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def leaf_is_root_test():
@@ -239,9 +290,9 @@ def leaf_is_root_test():
         timedelta(minutes=5)
     )
 
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=0, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def leaf_is_root_test_2():
@@ -263,9 +314,9 @@ def leaf_is_root_test_2():
         timedelta(minutes=5)
     )
 
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=1, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=1, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=1, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=1, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=1, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=1, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def three_patterns_no_sharing_leaves_test():
@@ -305,11 +356,11 @@ def three_patterns_no_sharing_leaves_test():
     )
 
     run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=3,
-                             approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+                             approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=0,
-                             approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=0,
-                             approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+                             approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=0,
+    #                         approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def three_patterns_partial_sharing_leaves_test():
@@ -343,11 +394,11 @@ def three_patterns_partial_sharing_leaves_test():
     )
 
     run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=6,
-                           approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+                             approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=5,
-                             approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-    run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=5,
-                             approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+                             approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=5,
+    #                         approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def three_patterns_ordered_events_test_1():
@@ -369,7 +420,9 @@ def three_patterns_ordered_events_test_1():
         ),
         timedelta(minutes=10)
     )
-    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    run_tree_plan_union_test(patterns=[pattern1, pattern2], expected=5,
+                             approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def three_patterns_ordered_events_test_2():
@@ -399,8 +452,10 @@ def three_patterns_ordered_events_test_2():
         timedelta(minutes=5)
     )
 
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=10,
+    #                         approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
     run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=10,
-                             approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+                             approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def three_patterns_ordered_events_test_3():
@@ -430,8 +485,10 @@ def three_patterns_ordered_events_test_3():
         timedelta(minutes=5)
     )
 
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=10,
+    #                         approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
     run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=10,
-                             approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+                             approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def three_patterns_ordered_events_test_4():
@@ -466,7 +523,8 @@ def three_patterns_ordered_events_test_4():
         )
     ]
 
-    run_tree_plan_union_test(patterns=patterns, expected=7, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    #run_tree_plan_union_test(patterns=patterns, expected=7, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    run_tree_plan_union_test(patterns=patterns, expected=7, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def three_patterns_ordered_events_test_5():
@@ -493,8 +551,10 @@ def three_patterns_ordered_events_test_5():
         SmallerThanCondition(Variable("a", get_peak_price), Variable("e", get_peak_price)),
         timedelta(minutes=5)
     )
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=7,
+    #                         approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
     run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3], expected=7,
-                             approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+                             approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def four_patterns_ordered_events_test_1():
@@ -536,7 +596,8 @@ def four_patterns_ordered_events_test_1():
         ),
     ]
 
-    run_tree_plan_union_test(patterns=patterns, expected=12, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    #run_tree_plan_union_test(patterns=patterns, expected=12, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    run_tree_plan_union_test(patterns=patterns, expected=12, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def four_patterns_ordered_events_test_2():
@@ -572,8 +633,10 @@ def four_patterns_ordered_events_test_2():
         SmallerThanCondition(Variable("a", get_peak_price), Variable("b", get_peak_price)),
         timedelta(minutes=5)
     )
+    #run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3, pattern4], expected=15,
+    #                         approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
     run_tree_plan_union_test(patterns=[pattern1, pattern2, pattern3, pattern4], expected=15,
-                             approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+                             approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 def equal_patterns_test():
@@ -596,11 +659,11 @@ def equal_patterns_test():
         for i in range(patters_number)]
 
     run_tree_plan_union_test(patterns=patterns, expected=7 * 3,
-                             approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
+                             approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)
     run_tree_plan_union_test(patterns=patterns, expected=16,
-                             approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-    run_tree_plan_union_test(patterns=patterns, expected=35,
-                             approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+                             approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
+    #run_tree_plan_union_test(patterns=patterns, expected=35,
+    #                         approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
 def negation_operators_test():
@@ -631,7 +694,8 @@ def negation_operators_test():
         )
     ]
 
-    run_tree_plan_union_test(patterns=patterns, expected=3, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    #run_tree_plan_union_test(patterns=patterns, expected=3, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    run_tree_plan_union_test(patterns=patterns, expected=3, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
 
 
 ##event compare based in event type test
@@ -661,11 +725,11 @@ def events_type_test_1():
         ),
     ]
 
-    run_tree_plan_union_test(patterns=patterns, expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION)
-    run_tree_plan_union_test(patterns=patterns, expected=5, approach=MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
+    run_tree_plan_union_test(patterns=patterns, expected=5, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)
+    #run_tree_plan_union_test(patterns=patterns, expected=5, approach=MultiPatternTreePlanMergeApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION)
 
 
-def runPlanBuilderTest():
+def runMultiPatternPlanBuilderTests():
     print_result("TEST", "UNION APPROACH", "RESULT")
     print("=" * 100)
     same_leaves_test()

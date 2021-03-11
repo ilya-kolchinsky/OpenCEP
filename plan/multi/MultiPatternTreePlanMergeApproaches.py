@@ -1,9 +1,9 @@
 from enum import Enum
 
 
-class MultiPatternTreePlanUnionApproaches(Enum):
+class MultiPatternTreePlanMergeApproaches(Enum):
     """
-    The various approaches for constructing a unified tree plan builder.
+    The various approaches for constructing a merged tree plan builder.
     TRIVIAL_SHARING_LEAVES: only merges common leaves of the different tree plans.
     SUBTREES_UNION: builds a unified multi-tree by sharing equivalent subtrees of the different tree plans.
     TREE_PLAN_LOCAL_SEARCH: applies a local search algorithm to find even more efficient global plans by modifying

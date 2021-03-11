@@ -83,11 +83,7 @@ class Condition(ABC):
         """
         raise NotImplementedError()
 
-    def __eq__(self, other):
-        """ Return self==value. """
-        raise NotImplementedError()
-
-    def get_names(self):
+    def get_event_names(self):
         """
         Returns the event names associated with this condition.
         """
@@ -158,18 +154,18 @@ class SimpleCondition(AtomicCondition):
     def __eq__(self, other):
         return self == other or type(self) == type(other) and self.terms == other.terms and self.relation_op == other.relation_op
 
-    def get_names(self):
+    def get_event_names(self):
         """
         Returns the event names associated with this condition.
         """
         return set(term.name for term in self.terms)
+
 
 class BinaryCondition(SimpleCondition):
     """
     A binary condition containing no logic operators (e.g., A < B).
     This is a special case of a simple n-ary condition constrained to two operands.
     """
-
     def __init__(self, left_term, right_term, relation_op: callable):
         if not isinstance(left_term, Variable) and not isinstance(right_term, Variable):
             raise Exception("Invalid use of BinaryCondition!")

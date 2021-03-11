@@ -2,14 +2,14 @@ from test.BasicTests import *
 from test.TreeConstructionTests import *
 from test.KC_tests import *
 from test.NegationTests import *
-from test.PlanBuilderTests import runPlanBuilderTest
+from test.MultiPatternPlanBuilderTests import runMultiPatternPlanBuilderTests
 from test.PolicyTests import *
 from test.MultiPattern_tests import *
 from test.StorageTests import *
-from test.UnitTests.MPT_neighborhoodTests import run_MPT_Neighborhood_Tests
 from test.UnitTests.test_storage import run_storage_tests
 
 runTest.over_all_time = 0
+"""
 # basic functionality tests
 oneArgumentsearchTest()
 simplePatternSearchTest()
@@ -96,10 +96,9 @@ freezePolicy2PatternSearchTest()
 # storage tests
 sortedStorageTest()
 run_storage_tests()
-
+"""
 # multi-pattern tests
-runPlanBuilderTest()
-run_MPT_Neighborhood_Tests()
+runMultiPatternPlanBuilderTests()
 
 # first approach: sharing leaves
 leafIsRoot()

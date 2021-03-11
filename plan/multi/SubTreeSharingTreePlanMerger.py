@@ -6,10 +6,10 @@ from typing import Dict
 from base.Pattern import Pattern
 from plan.TreePlan import TreePlanLeafNode, TreePlan, TreePlanNode, TreePlanUnaryNode, TreePlanBinaryNode
 from plan.TreePlanBuilder import TreePlanBuilder
-from plan.multi.UnifiedTreeBuilder import UnifiedTreeBuilder
+from plan.multi.TreePlanMerger import TreePlanMerger
 
 
-class SubTreeSharingTreeBuilder(UnifiedTreeBuilder):
+class SubTreeSharingTreePlanMerger(TreePlanMerger):
     """
     A class for deep tree builders.
     """
@@ -17,7 +17,7 @@ class SubTreeSharingTreeBuilder(UnifiedTreeBuilder):
     def __init__(self):
         self.trees_number_nodes_shared = 0
 
-    def unite_tree_plans(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan):
+    def merge_tree_plans(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan):
         if isinstance(pattern_to_tree_plan_map, TreePlan) or len(pattern_to_tree_plan_map) <= 1:
             return pattern_to_tree_plan_map
 
@@ -33,7 +33,7 @@ class SubTreeSharingTreeBuilder(UnifiedTreeBuilder):
         """
         self.trees_number_nodes_shared = 0
 
-        leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(pattern_to_tree_plan_map)
+        leaves_dict = TreePlanMerger.get_pattern_leaves_dict(pattern_to_tree_plan_map)
 
         self.leaves_dict = leaves_dict
 
@@ -108,7 +108,7 @@ class SubTreeSharingTreeBuilder(UnifiedTreeBuilder):
                 events = self.leaves_dict[node_pattern][node]
                 self.leaves_dict[node_pattern].pop(node)
                 self.leaves_dict[node_pattern][root] = events
-            return node, SubTreeSharingTreeBuilder._sub_tree_size(node)
+            return node, SubTreeSharingTreePlanMerger._sub_tree_size(node)
 
         elif isinstance(root, TreePlanBinaryNode):
             left_find_and_merge, number_of_merged_left = self.__find_and_merge_node_into_subtree(root.left_child,
@@ -136,3 +136,23 @@ class SubTreeSharingTreeBuilder(UnifiedTreeBuilder):
             return root, is_child_merged
 
         return root, 0
+
+    @staticmethod
+    def _sub_tree_size(root):
+        """
+        get the size of subtree
+        """
+        if root is None:
+            return 0
+
+        if isinstance(root, TreePlanLeafNode):
+            return 1
+
+        if isinstance(root, TreePlanBinaryNode):
+            return 1 + TreePlanMerger._sub_tree_size(root.left_child) + TreePlanMerger._sub_tree_size(
+                root.right_child)
+
+        if isinstance(root, TreePlanUnaryNode):
+            return 1 + TreePlanMerger._sub_tree_size(root.child)
+
+        raise Exception("Unsupported tree plan node type")

@@ -3,11 +3,11 @@ from typing import List, Dict
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc import DefaultConfig
-from plan.multi.ShareLeavesTreeBuilder import ShareLeavesTreeBuilder
-from plan.multi.SubTreeSharingTreeBuilder import SubTreeSharingTreeBuilder
+from plan.multi.ShareLeavesTreePlanMerger import ShareLeavesTreePlanMerger
+from plan.multi.SubTreeSharingTreePlanMerger import SubTreeSharingTreePlanMerger
 from plan.TreePlan import TreePlan
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
-from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
+from plan.multi.MultiPatternTreePlanMergeApproaches import MultiPatternTreePlanMergeApproaches
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 
@@ -70,25 +70,25 @@ class EvaluationMechanismFactory:
             return TreeBasedEvaluationMechanism(pattern_to_tree_plan_map, eval_mechanism_params.storage_params)
 
         pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
-        unified_tree_map = EvaluationMechanismFactory.__unite_tree_plans(
-            pattern_to_tree_plan_map, eval_mechanism_params.tree_plan_params.tree_plan_union_type)
+        unified_tree_map = EvaluationMechanismFactory.__merge_tree_plans(
+            pattern_to_tree_plan_map, eval_mechanism_params.tree_plan_params.tree_plan_merge_type)
         unified_tree = TreeBasedEvaluationMechanism(unified_tree_map, eval_mechanism_params.storage_params)
         return unified_tree
 
     @staticmethod
-    def __unite_tree_plans(pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
-                           tree_plan_union_approach: MultiPatternTreePlanUnionApproaches):
+    def __merge_tree_plans(pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
+                           tree_plan_merge_approach: MultiPatternTreePlanMergeApproaches):
         """
         Merges the given tree plans of individual tree plans into a global shared structure.
         """
-        if tree_plan_union_approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES:
-            return ShareLeavesTreeBuilder().unite_tree_plans(pattern_to_tree_plan_map)
-        if tree_plan_union_approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION:
-            return SubTreeSharingTreeBuilder().unite_tree_plans(pattern_to_tree_plan_map)
-        if tree_plan_union_approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_LOCAL_SEARCH:
+        if tree_plan_merge_approach == MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES:
+            return ShareLeavesTreePlanMerger().merge_tree_plans(pattern_to_tree_plan_map)
+        if tree_plan_merge_approach == MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION:
+            return SubTreeSharingTreePlanMerger().merge_tree_plans(pattern_to_tree_plan_map)
+        if tree_plan_merge_approach == MultiPatternTreePlanMergeApproaches.TREE_PLAN_LOCAL_SEARCH:
             # TODO: not yet implemented
             pass
-        raise Exception("Unsupported multi-pattern union algorithm %s" % (tree_plan_union_approach,))
+        raise Exception("Unsupported multi-pattern merge algorithm %s" % (tree_plan_merge_approach,))
 
     @staticmethod
     def __create_default_eval_parameters():

@@ -9,61 +9,51 @@ from misc.ConsumptionPolicy import ConsumptionPolicy
 from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanBinaryNode, OperatorTypes
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.nodes.AndNode import AndNode
-from tree.nodes.BinaryNode import BinaryNode
 from tree.nodes.KleeneClosureNode import KleeneClosureNode
 from tree.nodes.LeafNode import LeafNode
 from tree.nodes.NegationNode import NegativeSeqNode, NegativeAndNode, NegationNode
 from tree.nodes.Node import Node
 from tree.nodes.SeqNode import SeqNode
-from tree.nodes.UnaryNode import UnaryNode
 
 
 class Tree:
     """
-    Represents an evaluation tree. Implements the functionality of constructing an actual tree from a "tree positive_structure"
+    Represents an evaluation tree. Implements the functionality of constructing an actual tree from tree plan
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
-    The pattern_id parameter is used in multi-pattern mode.
+    The plan_nodes_to_nodes_map is used in multi-pattern mode.
     """
-
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
-                 pattern_id: int = None, plan_nodes_to_nodes_map: Dict[TreePlanNode, Node] = None):
+                 plan_nodes_to_nodes_map: Dict[TreePlanNode, Node] = None):
 
+        self.__plan_nodes_to_nodes_map = plan_nodes_to_nodes_map
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
                                             Tree.__get_operator_arg_list(pattern.positive_structure),
-                                            pattern.window, None, pattern.consumption_policy,plan_nodes_to_nodes_map)
-        shared_nodes_types = self.get_shared_nodes_types(self.__root, pattern_id)
+                                            pattern.window, None, pattern.consumption_policy)
+
         if pattern.consumption_policy is not None and \
                 pattern.consumption_policy.should_register_event_type_as_single(True):
             for event_type in pattern.consumption_policy.single_types:
                 self.__root.register_single_event_type(event_type)
+
         if pattern.negative_structure is not None:
             self.__adjust_leaf_indices(pattern)
             self.__add_negative_tree_structure(pattern)
-        self.__apply_condition(pattern, shared_nodes_types)
+
+        self.__apply_condition(pattern)
         self.__root.set_is_output_node(True)
         self.__root.create_storage_unit(storage_params)
         self.__root.create_parent_to_info_dict()
-        if pattern_id is not None:
-            pattern.id = pattern_id
-            self.__root.propagate_pattern_id(pattern_id)
 
-    def __apply_condition(self, pattern: Pattern, shared_nodes_types: set):
+        if pattern.id is not None:
+            self.__root.propagate_pattern_id(pattern.id)
+
+    def __apply_condition(self, pattern: Pattern):
         """
         Applies the condition of the given pattern on the evaluation tree.
         The condition is copied since it is modified inside the recursive apply_condition call.
         """
         condition_copy = deepcopy(pattern.condition)
         self.__root.apply_condition(condition_copy)
-        if condition_copy.get_num_conditions() > 0:
-            pattern_args = pattern.positive_structure.get_args()
-            conditions_event_names = condition_copy.get_names()
-            events_indices = [pattern.get_index_by_event_name(name) for name in conditions_event_names]
-            event_types = [pattern_args[i].type for i in events_indices]
-            if len(set(event_types) - shared_nodes_types) == 0:
-                return
-
-            raise Exception("Unused conditions after condition propagation: {}".format(
-                condition_copy.get_conditions_list()))
 
     def __adjust_leaf_indices(self, pattern: Pattern):
         """
@@ -150,8 +140,7 @@ class Tree:
     def __handle_primitive_event_or_nested_structure(self, tree_plan_leaf: TreePlanLeafNode,
                                                      current_operator: PatternStructure,
                                                      sliding_window: timedelta, parent: Node,
-                                                     consumption_policy: ConsumptionPolicy,
-                                                     plan_nodes_to_nodes_map: Dict[TreePlanNode, Node] = None):
+                                                     consumption_policy: ConsumptionPolicy):
         """
         Constructs a single leaf node or a subtree with nested structure according to the input parameters.
         """
@@ -171,7 +160,7 @@ class Tree:
                                           Tree.__create_nested_structure(nested_operator),
                                           Tree.__get_operator_arg_list(nested_operator),
                                           sliding_window, unary_node,
-                                          consumption_policy, plan_nodes_to_nodes_map)
+                                          consumption_policy)
             unary_node.set_subtree(child)
             return unary_node
 
@@ -179,32 +168,27 @@ class Tree:
         return self.__construct_tree(current_operator,
                                      Tree.__create_nested_structure(current_operator),
                                      current_operator.args, sliding_window, parent,
-                                     consumption_policy, plan_nodes_to_nodes_map)
-
+                                     consumption_policy)
 
     def __construct_tree(self, root_operator: PatternStructure, tree_plan: TreePlanNode,
                          args: List[PatternStructure], sliding_window: timedelta, parent: Node,
-                         consumption_policy: ConsumptionPolicy,
-                         plan_nodes_to_nodes_map: Dict[TreePlanNode, Node]):
+                         consumption_policy: ConsumptionPolicy):
         """
         Recursively builds an evaluation tree according to the specified structure.
+        For some of the nodes in the tree plan, the actual tree nodes could already be constructed. This can happen
+        in the multi-pattern case where different tree plans share internal nodes. We use plan_nodes_to_nodes_map to
+        hold and maintain this information to avoid constructing duplicated nodes.
         """
-        # the base case in which we check if our current node already built in the dict ,
-        # that says we need to add another parent to this node (the given parent)
-        # with the max sliding window between the given one and the existing one
-        current = plan_nodes_to_nodes_map.get(tree_plan) if plan_nodes_to_nodes_map is not None else None
-        if current is not None:
-            current.propagate_sliding_window(max(current.get_sliding_window(), sliding_window))
-            if parent is not None:
-                current.add_parent(parent)
-            return current
+        # check whether the node corresponding to tree_plan already exists
+        node = self.__get_existing_node(tree_plan, sliding_window, parent)
+        if node is not None:
+            return node
+
         # a special case where the top operator of the entire pattern is an unary operator
         if isinstance(root_operator, UnaryStructure) and parent is None:
             node = self.__handle_primitive_event_or_nested_structure(tree_plan, root_operator,
-                                                                     sliding_window, parent, consumption_policy,
-                                                                     plan_nodes_to_nodes_map)
-            if plan_nodes_to_nodes_map is not None:
-                plan_nodes_to_nodes_map[tree_plan] = node
+                                                                     sliding_window, parent, consumption_policy)
+            self.__register_new_node(tree_plan, node)
             return node
 
         if type(tree_plan) == TreePlanLeafNode:
@@ -212,22 +196,42 @@ class Tree:
             # TODO: must implement a mechanism for actually creating nested tree plans instead of a flat plan
             # with leaves hiding nested structure
             node = self.__handle_primitive_event_or_nested_structure(tree_plan, args[tree_plan.event_index],
-                                                                     sliding_window, parent, consumption_policy,
-                                                                     plan_nodes_to_nodes_map)
-            if plan_nodes_to_nodes_map is not None:
-                plan_nodes_to_nodes_map[tree_plan] = node
+                                                                     sliding_window, parent, consumption_policy)
+            self.__register_new_node(tree_plan, node)
             return node
+
         current = self.__create_internal_node_by_operator(root_operator, sliding_window, parent)
-        if plan_nodes_to_nodes_map is not None:
-            plan_nodes_to_nodes_map[tree_plan] = current
         left_subtree = self.__construct_tree(root_operator, tree_plan.left_child, args,
-                                             sliding_window, current, consumption_policy,
-                                             plan_nodes_to_nodes_map)
+                                             sliding_window, current, consumption_policy)
         right_subtree = self.__construct_tree(root_operator, tree_plan.right_child, args,
-                                              sliding_window, current, consumption_policy,
-                                              plan_nodes_to_nodes_map)
+                                              sliding_window, current, consumption_policy)
         current.set_subtrees(left_subtree, right_subtree)
+        self.__register_new_node(tree_plan, current)
         return current
+
+    def __get_existing_node(self, tree_plan: TreePlanNode, sliding_window: timedelta, parent: Node):
+        """
+        Checks whether the node corresponding to the given tree plan was previously constructed.
+        If the answer is positive, attaches the new parent node to this existing node and returns it. Otherwise,
+        None is returned.
+        """
+        if self.__plan_nodes_to_nodes_map is None:
+            return None
+        if tree_plan not in self.__plan_nodes_to_nodes_map:
+            return None
+        existing_node = self.__plan_nodes_to_nodes_map.get(tree_plan)
+        existing_node.propagate_sliding_window(max(existing_node.get_sliding_window(), sliding_window))
+        if parent is not None:
+            existing_node.add_parent(parent)
+        return existing_node
+
+    def __register_new_node(self, tree_plan: TreePlanNode, node: Node):
+        """
+        Puts the newly created node in the hash mapping tree plan nodes to actual nodes.
+        """
+        if self.__plan_nodes_to_nodes_map is None:
+            return
+        self.__plan_nodes_to_nodes_map[tree_plan] = node
 
     def get_last_matches(self):
         """
@@ -284,19 +288,3 @@ class Tree:
         Returns the root node of the tree.
         """
         return self.__root
-
-    @staticmethod
-    def get_shared_nodes_types(node: Node, pattern_id):
-        types = set()
-        if len(node.get_pattern_ids() | {pattern_id}) > 1:
-            leaves = node.get_leaves()
-            types = types.union(leaf.get_event_type() for leaf in leaves)
-            return types
-        if issubclass(type(node), LeafNode):
-            return types
-        elif issubclass(type(node), BinaryNode):
-            return Tree.get_shared_nodes_types(node.get_right_subtree(), pattern_id) | \
-                   Tree.get_shared_nodes_types(node.get_left_subtree(), pattern_id)
-        else:
-            assert issubclass(type(node), UnaryNode)
-            return Tree.get_shared_nodes_types(node.get_child(), pattern_id)

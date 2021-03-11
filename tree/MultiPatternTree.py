@@ -14,50 +14,26 @@ class MultiPatternTree:
 
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                  storage_params: TreeStorageParameters):
-        self.__pattern_to_output_node_dict = {}
-        self.__output_nodes = self.__construct_multi_pattern_tree(pattern_to_tree_plan_map, storage_params)
-        self.__id_to_pattern_map = {pattern.id: pattern for pattern in pattern_to_tree_plan_map.keys()}
+        self.__id_to_output_node_map = {}
+        self.__id_to_pattern_map = {}
+        self.__output_nodes = []
+        self.__construct_multi_pattern_tree(pattern_to_tree_plan_map, storage_params)
 
     def __construct_multi_pattern_tree(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                                        storage_params: TreeStorageParameters):
         """
-        Constructing a multi-pattern evaluation tree according to the approach.
-        """
-        return self.__construct_tree_unified_tree_plan(pattern_to_tree_plan_map, storage_params)
-
-    def __construct_unified_trees(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
-                                  storage_params: TreeStorageParameters):
-        """
-        Creates unified treePlan corresponding to the specified tree plans.
+        Constructs a multi-pattern evaluation tree.
+        It is assumed that each pattern appears only once in patterns (which is a legitimate assumption).
         """
         i = 1  # pattern IDs starts from 1
-        trees = []
-        plan_nodes_to_nodes_map = {}
+        plan_nodes_to_nodes_map = {}  # a cache for already created subtrees
         for pattern, plan in pattern_to_tree_plan_map.items():
-            # passing another parameter (dict )  to the tree constructor
-            # means we need to merge trees with the given dict and not just creating a tree
-            trees.append(Tree(plan, pattern, storage_params, i, plan_nodes_to_nodes_map))
+            pattern.id = i
+            new_tree = Tree(plan, pattern, storage_params, plan_nodes_to_nodes_map)
+            self.__id_to_output_node_map[pattern.id] = new_tree
+            self.__id_to_pattern_map[pattern.id] = pattern
+            self.__output_nodes.append(new_tree)
             i += 1
-        return trees
-
-    def __construct_tree_unified_tree_plan(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
-                                           storage_params: TreeStorageParameters):
-        """
-        This method gets patterns, builds a single-pattern tree to each one of them,
-        and merges equivalent leaves from different trees.
-        We are not sharing leaves from the same tree.
-        We are assuming that each pattern appears only once in patterns (which is a legitimate assumption).
-        """
-        trees = self.__construct_unified_trees(pattern_to_tree_plan_map, storage_params)
-        self.__output_nodes = []
-        # a map between a leaf and the number of equal leaves that were
-        # shared to this leaf in the current iteration
-        for i, tree in enumerate(trees):
-            curr_root = tree.get_root()
-            pattern_id = i + 1
-            self.__pattern_to_output_node_dict[pattern_id] = curr_root
-            self.__output_nodes.append(curr_root)
-        return self.__output_nodes
 
     def get_leaves(self):
         """
@@ -78,7 +54,7 @@ class MultiPatternTree:
                 match = output_node.get_next_unreported_match()
                 pattern_ids = output_node.get_pattern_ids()
                 for pattern_id in pattern_ids:
-                    if self.__pattern_to_output_node_dict[pattern_id] != output_node:
+                    if self.__id_to_output_node_map[pattern_id] != output_node:
                         # the current output node is an internal node in pattern #idx, but not it's root.
                         # we don't need to check if there are any matches for this pattern id.
                         continue
@@ -102,5 +78,4 @@ class MultiPatternTree:
                 continue
             first_unbounded_negative_node.flush_pending_matches()
             # the pending matches were released and have hopefully reached the roots
-
         return self.get_matches()

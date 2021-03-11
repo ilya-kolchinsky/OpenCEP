@@ -16,8 +16,7 @@ class TreePlanBuilder(ABC):
     """
     The base class for the builders of tree-based plans.
     """
-
-    def __init__(self, cost_model_type: TreeCostModels = DefaultConfig.DEFAULT_TREE_COST_MODEL):
+    def __init__(self, cost_model_type: TreeCostModels):
         self.__cost_model = TreeCostModelFactory.create_cost_model(cost_model_type)
 
     def build_tree_plan(self, pattern: Pattern):
@@ -25,7 +24,6 @@ class TreePlanBuilder(ABC):
         Creates a tree-based evaluation plan for the given pattern.
         """
         return TreePlan(self._create_tree_topology(pattern))
-
 
     def _create_tree_topology(self, pattern: Pattern):
         """

@@ -10,10 +10,10 @@ class TreePlanBuilderParameters:
     """
     def __init__(self, builder_type: TreePlanBuilderTypes = DefaultConfig.DEFAULT_TREE_PLAN_BUILDER,
                  cost_model_type: TreeCostModels = DefaultConfig.DEFAULT_TREE_COST_MODEL,
-                 tree_plan_union_type=DefaultConfig.DEFAULT_TREE_PLAN_UNION):
+                 tree_plan_merger_type=DefaultConfig.DEFAULT_TREE_PLAN_MERGE):
         self.builder_type = builder_type
         self.cost_model_type = cost_model_type
-        self.tree_plan_union_type = tree_plan_union_type
+        self.tree_plan_merge_type = tree_plan_merger_type
 
 
 class IterativeImprovementTreePlanBuilderParameters(TreePlanBuilderParameters):

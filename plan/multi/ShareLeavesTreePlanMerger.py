@@ -4,14 +4,12 @@ This file contains the implementations of algorithms constructing a left-deep tr
 from typing import Dict
 
 from base.Pattern import Pattern
-from misc.DefaultConfig import DEFAULT_TREE_COST_MODEL
-from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlanLeafNode, TreePlan, TreePlanNode, TreePlanInternalNode, TreePlanUnaryNode, \
     TreePlanBinaryNode
-from plan.multi.UnifiedTreeBuilder import UnifiedTreeBuilder
+from plan.multi.TreePlanMerger import TreePlanMerger
 
 
-class ShareLeavesTreeBuilder(UnifiedTreeBuilder):
+class ShareLeavesTreePlanMerger(TreePlanMerger):
     """
     A class for deep tree builders.
     """
@@ -19,7 +17,7 @@ class ShareLeavesTreeBuilder(UnifiedTreeBuilder):
     def __init__(self):
         self.trees_number_nodes_shared = 0
 
-    def unite_tree_plans(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan):
+    def merge_tree_plans(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan] or TreePlan):
         if isinstance(pattern_to_tree_plan_map, TreePlan) or len(pattern_to_tree_plan_map) <= 1:
             return pattern_to_tree_plan_map
 
@@ -31,7 +29,7 @@ class ShareLeavesTreeBuilder(UnifiedTreeBuilder):
         self.trees_number_nodes_shared = 0
         first_pattern = list(pattern_to_tree_plan_map.keys())[0]
 
-        leaves_dict = UnifiedTreeBuilder.get_pattern_leaves_dict(pattern_to_tree_plan_map)
+        leaves_dict = TreePlanMerger.get_pattern_leaves_dict(pattern_to_tree_plan_map)
 
         shared_leaves_dict = {}
         for leaf in leaves_dict[first_pattern]:
@@ -48,11 +46,11 @@ class ShareLeavesTreeBuilder(UnifiedTreeBuilder):
                     first_event = leaves_dict[curr_leaf_pattern][curr_leaf]
                     second_event = leaves_dict[leaf_pattern][leaf]
                     # get the condition for every leaf
-                    first_condition, second_condition = UnifiedTreeBuilder.get_condition_from_pattern_in_sub_tree(curr_leaf,
-                                                                                                       curr_leaf_pattern,
-                                                                                                       leaf,
-                                                                                                       leaf_pattern,
-                                                                                                       leaves_dict)
+                    first_condition, second_condition = TreePlanMerger.get_condition_from_pattern_in_sub_tree(curr_leaf,
+                                                                                                              curr_leaf_pattern,
+                                                                                                              leaf,
+                                                                                                              leaf_pattern,
+                                                                                                              leaves_dict)
                     if first_condition is None or second_condition is None:
                         continue
                     if first_condition == second_condition and first_event.type == second_event.type:
@@ -60,8 +58,8 @@ class ShareLeavesTreeBuilder(UnifiedTreeBuilder):
                         _, leaf_tree_plan_node = shared_leaves_dict[leaf]
                         break
                 shared_leaves_dict[curr_leaf] = [pattern, leaf_tree_plan_node]
-        return ShareLeavesTreeBuilder._tree_plans_update_leaves(pattern_to_tree_plan_map,
-                                                            shared_leaves_dict)  # the unified tree
+        return ShareLeavesTreePlanMerger._tree_plans_update_leaves(pattern_to_tree_plan_map,
+                                                                   shared_leaves_dict)  # the unified tree
 
 
     @staticmethod
@@ -71,8 +69,8 @@ class ShareLeavesTreeBuilder(UnifiedTreeBuilder):
         (if a leaf exists in two trees , the leaf will have two parents)
         """
         for pattern, tree_plan in pattern_to_tree_plan_map.items():
-            updated_tree_plan_root = ShareLeavesTreeBuilder._single_tree_plan_update_leaves(tree_plan.root,
-                                                                                        shared_leaves_dict)
+            updated_tree_plan_root = ShareLeavesTreePlanMerger._single_tree_plan_update_leaves(tree_plan.root,
+                                                                                               shared_leaves_dict)
             pattern_to_tree_plan_map[pattern].root = updated_tree_plan_root
         return pattern_to_tree_plan_map
 
@@ -93,16 +91,16 @@ class ShareLeavesTreeBuilder(UnifiedTreeBuilder):
         assert issubclass(type(tree_plan_root_node), TreePlanInternalNode)
 
         if type(tree_plan_root_node) == TreePlanUnaryNode:
-            updated_child = ShareLeavesTreeBuilder._single_tree_plan_update_leaves(tree_plan_root_node.child,
-                                                                               shared_leaves_dict)
+            updated_child = ShareLeavesTreePlanMerger._single_tree_plan_update_leaves(tree_plan_root_node.child,
+                                                                                      shared_leaves_dict)
             tree_plan_root_node.child = updated_child
             return tree_plan_root_node
 
         if type(tree_plan_root_node) == TreePlanBinaryNode:
-            updated_left_child = ShareLeavesTreeBuilder._single_tree_plan_update_leaves(tree_plan_root_node.left_child,
-                                                                                    shared_leaves_dict)
-            updated_right_child = ShareLeavesTreeBuilder._single_tree_plan_update_leaves(tree_plan_root_node.right_child,
-                                                                                     shared_leaves_dict)
+            updated_left_child = ShareLeavesTreePlanMerger._single_tree_plan_update_leaves(tree_plan_root_node.left_child,
+                                                                                           shared_leaves_dict)
+            updated_right_child = ShareLeavesTreePlanMerger._single_tree_plan_update_leaves(tree_plan_root_node.right_child,
+                                                                                            shared_leaves_dict)
             tree_plan_root_node.left_child = updated_left_child
             tree_plan_root_node.right_child = updated_right_child
             return tree_plan_root_node

@@ -130,13 +130,14 @@ class AndCondition(CompositeCondition):
     def __repr__(self):
         return " AND ".join(super().__repr__())
 
-    def get_names(self):
+    def get_event_names(self):
         """
         Returns the event names associated with this condition.
         """
-        set_of_name = list(condition.get_names() for condition in self.get_conditions_list())
-        flat_list = [item for sublist in set_of_name for item in sublist]
+        sets_of_names = list(condition.get_event_names() for condition in self.get_conditions_list())
+        flat_list = [item for sublist in sets_of_names for item in sublist]
         return set(flat_list)
+
 
 class OrCondition(CompositeCondition):
     """

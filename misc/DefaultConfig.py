@@ -9,7 +9,7 @@ from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
+from plan.multi.MultiPatternTreePlanMergeApproaches import MultiPatternTreePlanMergeApproaches
 
 # general settings
 
@@ -18,7 +18,7 @@ DEFAULT_EVALUATION_MECHANISM_TYPE = EvaluationMechanismTypes.TREE_BASED
 # plan generation-related defaults
 DEFAULT_TREE_PLAN_BUILDER = TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE
 DEFAULT_TREE_COST_MODEL = TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL
-DEFAULT_TREE_PLAN_UNION = MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION
+DEFAULT_TREE_PLAN_MERGE = MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION
 
 # default selection strategies
 PRIMARY_SELECTION_STRATEGY = SelectionStrategies.MATCH_ANY

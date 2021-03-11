@@ -1,10 +1,12 @@
 from datetime import timedelta
 
+from base.Pattern import Pattern
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, NegationOperator
 from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCondition, GreaterThanEqCondition, \
     SmallerThanEqCondition
 from condition.CompositeCondition import AndCondition
 from condition.Condition import Variable
+from plan.multi.MultiPatternTreePlanMergeApproaches import MultiPatternTreePlanMergeApproaches
 from test.testUtils import *
 
 currentPath = pathlib.Path(os.path.dirname(__file__))
@@ -184,7 +186,7 @@ def onePatternIncludesOther(createTestFile=False):
 
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                                                                              TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL,
-                                                                                             MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
+                                                                                             MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION),
                                                                    TreeStorageParameters(sort_storage=False,
                                                                                          clean_up_interval=10,
                                                                                          prioritize_sorting_by_timestamp=True))
@@ -233,7 +235,7 @@ def samePatternSharingRoot(createTestFile = False):
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                   TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL,
-                                  MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
+                                  MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION),
         TreeStorageParameters(sort_storage=False,
                               clean_up_interval=10,
                               prioritize_sorting_by_timestamp=True))
@@ -278,7 +280,7 @@ def severalPatternShareSubtree(createTestFile=False):
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                   TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL,
-                                  MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
+                                  MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION),
         TreeStorageParameters(sort_storage=False,
                               clean_up_interval=10,
                               prioritize_sorting_by_timestamp=True))
@@ -341,7 +343,7 @@ def multipleParentsForInternalNode(createTestFile=False):
     eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
         TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                                   TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL,
-                                  MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION),
+                                  MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION),
         TreeStorageParameters(sort_storage=False,
                               clean_up_interval=10,
                               prioritize_sorting_by_timestamp=True))

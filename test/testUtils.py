@@ -1,24 +1,17 @@
-import inspect
 import os
 import pathlib
 import sys
-from typing import List
 
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
 from misc.Utils import generate_matches
-from plan.multi.ShareLeavesTreeBuilder import ShareLeavesTreeBuilder
-from plan.multi.SubTreeSharingTreeBuilder import SubTreeSharingTreeBuilder
-from plan.TopologyChangeSharingTreeBuilder import TopologyChangeSharingTreeBuilder
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, Pattern, TreePlanBuilderFactory
+from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
-from plan.multi.MultiPatternUnifiedTreePlanApproaches import MultiPatternTreePlanUnionApproaches
 from plugin.stocks.Stocks import MetastockDataFormatter
 from stream.FileStream import FileInputStream, FileOutputStream
 from stream.Stream import OutputStream
 from tree.PatternMatchStorage import TreeStorageParameters
-from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 
 currentPath = pathlib.Path(os.path.dirname(__file__))
 absolutePath = str(currentPath.parent)
@@ -327,57 +320,3 @@ def runStructuralTest(testName, patterns, expected_result,
     cep = CEP(patterns, eval_mechanism_params)
     structure_summary = cep.get_evaluation_mechanism_structure_summary()
     print("Test %s result: %s" % (testName, "Succeeded" if structure_summary == expected_result else "Failed"))
-
-
-def get_opening_price(x):
-    return x["Opening Price"]
-
-
-def get_peak_price(x):
-    return x["Peak Price"]
-
-
-def get_lowest_price(x):
-    return x["Lowest Price"]
-
-
-def split_union_approaches(string):
-    return '{:10s}'.format(str(string).split("TREE_PLAN_")[1].replace("_", " "))
-
-
-def union_intersection_size(patterns: List[Pattern], approach: MultiPatternTreePlanUnionApproaches):
-    eval_mechanism_params = TreeBasedEvaluationMechanismParameters()
-    tree_plan_builder = TreePlanBuilderFactory.create_tree_plan_builder(eval_mechanism_params.tree_plan_params)
-    pattern_to_tree_plan_map = {pattern: tree_plan_builder.build_tree_plan(pattern) for pattern in patterns}
-
-
-    if approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_CHANGE_TOPOLOGY_UNION:
-        unified_builder = TopologyChangeSharingTreeBuilder()
-        pattern_to_tree_plan_map_ordered = unified_builder.build_ordered_tree_plans(patterns)
-        unified = unified_builder.unite_tree_plans(pattern_to_tree_plan_map_ordered)
-        size_of_intersection = unified_builder.trees_number_nodes_shared
-        unified_tree = TreeBasedEvaluationMechanism(unified, eval_mechanism_params.storage_params)
-
-        return size_of_intersection
-
-    unified_builder = None
-    if approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES:
-        unified_builder = ShareLeavesTreeBuilder()
-
-    if approach == MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION:
-        unified_builder = SubTreeSharingTreeBuilder()
-
-    unified = unified_builder.unite_tree_plans(pattern_to_tree_plan_map)
-    size_of_intersection = unified_builder.trees_number_nodes_shared
-    return size_of_intersection
-
-
-def print_result(string1, string2, string3):
-    print("{:^50s} | {:^25s} | {:^15s}".format(string1, string2, string3))
-
-
-def run_tree_plan_union_test(patterns: List[Pattern], expected: int,
-                             approach: MultiPatternTreePlanUnionApproaches = MultiPatternTreePlanUnionApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES):
-    actual = union_intersection_size(patterns, approach=approach)
-    result = "SUCCESS" if actual == expected else f'\tFAILED \t expected: {expected}, actual: {actual}'
-    print_result(inspect.stack()[1][3], split_union_approaches(approach), result)
