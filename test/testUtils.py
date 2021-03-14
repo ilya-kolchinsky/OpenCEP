@@ -4,6 +4,9 @@ import sys
 
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
+from adaptive.optimizer.OptimizerFactory import StatisticsDeviationAwareOptimizerParameters
+from stream.Stream import OutputStream
+from stream.FileStream import FileInputStream, FileOutputStream
 from misc.Utils import generate_matches
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters
@@ -36,11 +39,16 @@ custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.tx
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
 DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
-    TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                                                     TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL),
-                                           TreeStorageParameters(sort_storage=False,
-                                                                 clean_up_interval=10,
-                                                                 prioritize_sorting_by_timestamp=True))
+    TreeBasedEvaluationMechanismParameters(storage_params=TreeStorageParameters(sort_storage=False,
+                                                                                clean_up_interval=10,
+                                                                                prioritize_sorting_by_timestamp=True),
+                                           optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params
+                                                                                                        =TreePlanBuilderParameters(
+                                               TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                               TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL)))
+"""
+Default testing Data formatters
+"""
 DEFAULT_TESTING_DATA_FORMATTER = MetastockDataFormatter()
 
 
@@ -135,7 +143,7 @@ def outputTestFile(base_path: str, matches: list, output_file_name: str = 'match
             f.write("\n")
 
 
-def createTest(testName, patterns, events=None, eventStream = nasdaqEventStream):
+def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
     if events is None:
         events = eventStream.duplicate()
     else:
@@ -177,16 +185,15 @@ def runTest(testName, patterns, createTestFile = False,
     cep = CEP(patterns, eval_mechanism_params)
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
-    output_file_name = "%sMatches.txt" % testName
-    expected_output_file_name = "%sMatches.txt" % expected_file_name
+    output_file_name = "%sMatches.txt" % testName.split('|')[0]
+    expected_output_file_name = "%sMatches.txt" % expected_file_name.split('|')[0]
     matches_stream = FileOutputStream(base_matches_directory, output_file_name)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
 
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', expected_output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
     is_test_successful = fileCompare(actual_matches_path, expected_matches_path)
-
-    print("Test %s result: %s, Time Passed: %s" % (testName,
+    print("Test %s result: %s, Time Passed: %s" % (testName.replace('|', ''),
                                                    "Succeeded" if is_test_successful else "Failed", running_time))
     runTest.over_all_time += running_time
     if is_test_successful:
@@ -194,6 +201,7 @@ def runTest(testName, patterns, createTestFile = False,
     else:
         num_failed_tests.increase_counter()
         num_failed_tests.failed_tests.add(testName)
+
 
 
 """
@@ -223,6 +231,7 @@ def createExpectedOutput(testName, patterns, eval_mechanism_params=DEFAULT_TESTI
     for filename in filenames:
         single_pattern_path = os.path.join(expected_directory, filename)
         os.remove(single_pattern_path)
+
 
 def uniteFiles(testName, numOfPatterns):
     base_matches_directory = os.path.join(absolutePath, 'test', 'TestsExpected')

@@ -1,6 +1,5 @@
-from copy import deepcopy
 from functools import reduce
-from typing import List
+from typing import List, Dict
 
 from base.Event import Event
 from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
@@ -8,7 +7,6 @@ from condition.CompositeCondition import CompositeCondition, AndCondition
 from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
     SeqOperator, NegationOperator, UnaryStructure
 from datetime import timedelta
-from misc.StatisticsTypes import StatisticsTypes
 from misc.ConsumptionPolicy import ConsumptionPolicy
 
 
@@ -28,7 +26,7 @@ class Pattern:
     """
     def __init__(self, pattern_structure: PatternStructure, pattern_matching_condition: Condition,
                  time_window: timedelta, consumption_policy: ConsumptionPolicy = None, pattern_id: int = None,
-                 confidence: float = None, statistics_type=StatisticsTypes.NO_STATISTICS, statistics=None):
+                 confidence: float = None, statistics: Dict = None):
         if confidence is not None and (confidence < 0.0 or confidence > 1.0):
             raise Exception("Invalid value for pattern confidence:%s" % (confidence,))
         self.id = pattern_id
@@ -45,7 +43,7 @@ class Pattern:
 
         self.window = time_window
 
-        self.set_statistics(statistics_type, statistics)
+        self.statistics = statistics
 
         self.consumption_policy = consumption_policy
         if consumption_policy is not None:
@@ -57,39 +55,11 @@ class Pattern:
 
         self.confidence = confidence
 
-    def set_statistics(self, statistics_type: StatisticsTypes, statistics: object):
+    def set_statistics(self, statistics: Dict):
         """
         Sets the statistical properties related to the events and conditions of this pattern.
         """
-        self.statistics_type = statistics_type
-        self.full_statistics = statistics
-        if statistics_type not in [StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES]:
-            self.positive_statistics = statistics
-            return
-
-        # TODO: this solution only supports negative events at the top level of the pattern
-        negative_indices = []
-        actual_index = 0
-        for i, arg in enumerate(self.full_structure.args):
-            if type(arg) == NegationOperator:
-                negative_indices.append(actual_index)
-            actual_index += len(arg.get_all_event_names())
-
-        if statistics_type == StatisticsTypes.ARRIVAL_RATES:
-            self.positive_statistics = self.__remove_entries_at_indices(self.full_statistics, negative_indices)
-        else:  # statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES
-            positive_arrival_rates = self.__remove_entries_at_indices(self.full_statistics[1], negative_indices)
-            positive_selectivity_rows = self.__remove_entries_at_indices(self.full_statistics[0], negative_indices)
-            positive_selectivities = \
-                [self.__remove_entries_at_indices(row, negative_indices) for row in positive_selectivity_rows]
-            self.positive_statistics = (positive_selectivities, positive_arrival_rates)
-
-    @staticmethod
-    def __remove_entries_at_indices(target_list: List[object], indices: List[int]):
-        """
-        Returns the copy of the given list without the entries in the given indices.
-        """
-        return [item for i, item in enumerate(target_list) if i not in indices]
+        self.statistics = statistics
 
     def __extract_negative_structure(self):
         """
@@ -148,6 +118,38 @@ class Pattern:
         if isinstance(structure, UnaryStructure):
             return self.__get_all_event_types_aux(structure.arg)
         return reduce(lambda x, y: x + y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
+
+    def get_primitive_events(self) -> List[PrimitiveEventStructure]:
+        """
+        Returns a list of primitive events that make up the pattern structure.
+        """
+        if isinstance(self.full_structure, UnaryStructure):
+            full_structure_args = self.full_structure.arg
+        else:
+            full_structure_args = self.full_structure.args
+        primitive_events = self.__get_primitive_events_aux(full_structure_args)
+        # a hack to remove unhashable duplicates from a list.
+        return list({str(x): x for x in primitive_events}.values())
+
+    def __get_primitive_events_aux(self, pattern_args) -> List[PrimitiveEventStructure]:
+        """
+        An auxiliary method for returning a list of primitive events composing the pattern structure.
+        """
+        primitive_events = []
+        while not isinstance(pattern_args, List) and not isinstance(pattern_args, PrimitiveEventStructure):
+            if isinstance(pattern_args, UnaryStructure):
+                pattern_args = pattern_args.arg
+            else:
+                pattern_args = pattern_args.args
+        if isinstance(pattern_args, PrimitiveEventStructure):
+            primitive_events.append(pattern_args)
+        else:
+            for event in pattern_args:
+                if isinstance(event, PrimitiveEventStructure):
+                    primitive_events.append(event)
+                else:
+                    primitive_events.extend(self.__get_primitive_events_aux(event))
+        return primitive_events
 
     def __init_strict_conditions(self, pattern_structure: PatternStructure):
         """

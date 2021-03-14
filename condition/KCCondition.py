@@ -74,7 +74,7 @@ class KCIndexCondition(KCCondition):
         self.__second_index = second_index
         self.__offset = offset
 
-    def eval(self, event_list: list = None):
+    def _eval(self, event_list: list = None):
         # offset is active - choose evaluation by offset mechanism
         if self.__offset is not None:
             return self.__eval_by_offset(event_list)
@@ -166,7 +166,7 @@ class KCValueCondition(KCCondition):
         self.__value = value
         self.__index = index
 
-    def eval(self, event_list: list = None):
+    def _eval(self, event_list: list = None):
         # index comparison method and invalid index - Abort.
         if self.__index is not None and not self._validate_index(self.__index, event_list):
             return False

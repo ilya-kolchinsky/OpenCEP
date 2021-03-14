@@ -5,7 +5,7 @@ class NaiveNegationAlgorithm(NegationAlgorithm):
     """
     This class represents the naive negation algorithm.
     """
-    def _add_negative_part(self, pattern: Pattern, positive_tree_plan: TreePlanBinaryNode,
+    def _add_negative_part(self, pattern: Pattern, statistics: Dict, positive_tree_plan: TreePlanBinaryNode,
                            all_negative_indices: List[int], unbounded_negative_indices: List[int]):
         for i, negative_index in enumerate(all_negative_indices):
             is_unbounded = negative_index in unbounded_negative_indices

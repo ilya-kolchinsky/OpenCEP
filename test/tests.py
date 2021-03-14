@@ -1,4 +1,5 @@
-from test.BasicTests import *
+from test.EvaluationTests import *
+from test.OptimizerTests import *
 from test.TreeConstructionTests import *
 from test.KC_tests import *
 from test.NegationTests import *
@@ -176,6 +177,89 @@ dpBNestedStructuralTest()
 dpLdNestedComplexStructuralTest()
 zstreamOrdNestedComplexStructuralTest()
 KCNestedStructuralTest()
+
+
+# Optimizer tests
+greedyInvariantOptimizerTreeChangeFailTest_1()
+greedyInvariantOptimizerTreeChangeFailTest_2()
+greedyInvariantOptimizerTreeChangeTest_1()
+zstreamInvariantOptimizerTreeChangeFailTest_1()
+zstreamInvariantOptimizerTreeChangeTest_1()
+zstreamInvariantOptimizerTreeChangeTest_2()
+
+# Adaptivity tests
+# trivial evaluation with trivial optimizer
+simple_1()
+googleAscendPatternSearchTest_1()
+amazonInstablePatternSearchTest_1()
+msftDrivRacePatternSearchTest_1()
+googleIncreasePatternSearchTest_1()
+amazonSpecificPatternSearchTest_1()
+googleAmazonLowPatternSearchTest_1()
+
+# trivial evaluation with deviation aware optimizer
+simple_2()
+googleAscendPatternSearchTest_2()
+amazonInstablePatternSearchTest_2()
+msftDrivRacePatternSearchTest_2()
+googleIncreasePatternSearchTest_2()
+amazonSpecificPatternSearchTest_2()
+googleAmazonLowPatternSearchTest_2()
+
+# trivial evaluation with greedy invariant optimizer
+simple_3()
+googleAscendPatternSearchTest_3()
+amazonInstablePatternSearchTest_3()
+msftDrivRacePatternSearchTest_3()
+googleIncreasePatternSearchTest_3()
+amazonSpecificPatternSearchTest_3()
+googleAmazonLowPatternSearchTest_3()
+
+# trivial evaluation with zstream invariant optimizer
+simple_4()
+googleAscendPatternSearchTest_4()
+amazonInstablePatternSearchTest_4()
+msftDrivRacePatternSearchTest_4()
+googleIncreasePatternSearchTest_4()
+amazonSpecificPatternSearchTest_4()
+googleAmazonLowPatternSearchTest_4()
+
+# simultaneous evaluation with trivial optimizer
+simple_5()
+googleAscendPatternSearchTest_5()
+amazonInstablePatternSearchTest_5()
+msftDrivRacePatternSearchTest_5()
+googleIncreasePatternSearchTest_5()
+amazonSpecificPatternSearchTest_5()
+googleAmazonLowPatternSearchTest_5()
+
+# simultaneous evaluation with deviation aware optimizer
+simple_6()
+googleAscendPatternSearchTest_6()
+amazonInstablePatternSearchTest_6()
+msftDrivRacePatternSearchTest_6()
+googleIncreasePatternSearchTest_6()
+amazonSpecificPatternSearchTest_6()
+googleAmazonLowPatternSearchTest_6()
+
+# simultaneous evaluation with greedy invariant optimizer
+simple_7()
+googleAscendPatternSearchTest_7()
+amazonInstablePatternSearchTest_7()
+msftDrivRacePatternSearchTest_7()
+googleIncreasePatternSearchTest_7()
+amazonSpecificPatternSearchTest_7()
+googleAmazonLowPatternSearchTest_7()
+
+# simultaneous evaluation with zstream invariant optimizer
+simple_8()
+googleAscendPatternSearchTest_8()
+amazonInstablePatternSearchTest_8()
+msftDrivRacePatternSearchTest_8()
+googleIncreasePatternSearchTest_8()
+amazonSpecificPatternSearchTest_8()
+googleAmazonLowPatternSearchTest_8()
+
 
 # benchmarks
 if INCLUDE_BENCHMARKS:

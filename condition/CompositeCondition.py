@@ -3,7 +3,8 @@ This file contains the composite condition classes.
 """
 from abc import ABC
 
-from condition.Condition import Condition
+from adaptive.statistics.StatisticsCollector import StatisticsCollector
+from condition.Condition import Condition, AtomicCondition
 from condition.KCCondition import KCCondition
 
 
@@ -15,6 +16,7 @@ class CompositeCondition(Condition, ABC):
     def __init__(self, terminating_result: bool, *condition_list):
         self.__conditions = list(condition_list)
         self.__terminating_result = terminating_result
+        self._statistics_collector = None
 
     def eval(self, binding: dict = None):
         if self.get_num_conditions() == 0:
@@ -89,11 +91,20 @@ class CompositeCondition(Condition, ABC):
             result.extend(f.extract_atomic_conditions())
         return result
 
-    def add_atomic_condition(self, condition: Condition):
+    def add_atomic_condition(self, condition: AtomicCondition):
         """
         Adds a new atomic condition to this composite condition.
         """
         self.__conditions.append(condition)
+        condition.set_statistics_collector(self._statistics_collector)
+
+    def set_statistics_collector(self, statistics_collector: StatisticsCollector):
+        """
+        Sets the statistic collector for all contained atomic conditions.
+        """
+        self._statistics_collector = statistics_collector
+        for condition in self.extract_atomic_conditions():
+            condition.set_statistics_collector(statistics_collector)
 
     def __repr__(self):
         res_list = []

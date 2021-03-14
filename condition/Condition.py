@@ -1,8 +1,10 @@
 """
 This file contains the basic Condition classes.
 """
-from abc import ABC
+from abc import ABC, abstractmethod
 from enum import Enum
+from adaptive.statistics.StatisticsTypes import StatisticsTypes
+from adaptive.statistics.StatisticsCollector import StatisticsCollector
 
 
 class RelopTypes(Enum):
@@ -93,7 +95,28 @@ class Condition(ABC):
 class AtomicCondition(Condition, ABC):
     """
     Represents an atomic (non-composite) condition.
+    An atomic condition may contain a statistic collector object that collects its evaluation history to estimate
+    the condition selectivity.
     """
+    def __init__(self):
+        # currently used to update the selectivity statistics if they are present in the statistics collector
+        self._statistics_collector = None
+
+    def eval(self, binding: dict or list = None):
+        result = self._eval(binding)
+        # updates the selectivity statistics based on the evaluated atomic condition result
+        data = (self, result)
+        if self._statistics_collector is not None:
+            self._statistics_collector.update_statistics_by_type(StatisticsTypes.SELECTIVITY_MATRIX, data)
+        return result
+
+    @abstractmethod
+    def _eval(self, binding):
+        """
+        An abstract method for the actual eval.
+        """
+        raise NotImplementedError()
+
     def is_condition_of(self, names: set):
         """
         Returns True if all variable names participating in this condition appear in the given set and False otherwise.
@@ -103,12 +126,18 @@ class AtomicCondition(Condition, ABC):
     def extract_atomic_conditions(self):
         return [self]
 
+    def set_statistics_collector(self, statistics_collector: StatisticsCollector):
+        """
+        Sets the statistic collector object for registering successful and failed condition evaluations.
+        """
+        self._statistics_collector = statistics_collector
+
 
 class TrueCondition(AtomicCondition):
     """
     Represents a Boolean True condition.
     """
-    def eval(self, binding: dict = None):
+    def _eval(self, binding: dict = None):
         return True
 
     def __repr__(self):
@@ -129,10 +158,11 @@ class SimpleCondition(AtomicCondition):
     A simple (non-composite) condition over N operands (either variables or constants).
     """
     def __init__(self, *terms, relation_op: callable):
+        super().__init__()
         self.terms = terms
         self.relation_op = relation_op
 
-    def eval(self, binding: dict = None):
+    def _eval(self, binding: dict = None):
         rel_terms = []
         for term in self.terms:
             rel_terms.append(term.eval(binding) if isinstance(term, Variable) else term)

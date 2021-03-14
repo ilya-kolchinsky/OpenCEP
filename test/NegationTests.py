@@ -1,4 +1,6 @@
-from misc.StatisticsTypes import StatisticsTypes
+from adaptive.optimizer.OptimizerFactory import OptimizerParameters
+from adaptive.optimizer.OptimizerTypes import OptimizerTypes
+from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from test.testUtils import *
 from datetime import timedelta
 from condition.Condition import Variable
@@ -18,7 +20,7 @@ def generate_statistics(events_num: int):
             selectivity_matrix[i][j] = selectivity_matrix[j][i]
     for i in range(events_num):
         selectivity_matrix[i][i] = 1.0
-    return selectivity_matrix, arrival_rates
+    return {StatisticsTypes.SELECTIVITY_MATRIX: selectivity_matrix, StatisticsTypes.ARRIVAL_RATES: arrival_rates}
 
 
 # ON CUSTOM
@@ -42,8 +44,9 @@ def multipleNotBeginAndEndTest(create_test_file=False):
         timedelta(minutes=5)
     )
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("MultipleNotBeginAndEnd", [pattern], create_test_file, eval_params)
 
 
@@ -60,8 +63,9 @@ def simpleNotTest(create_test_file=False):
         timedelta(minutes=5)
     )
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("simpleNot", [pattern], create_test_file, eval_params)
 
 
@@ -83,8 +87,9 @@ def multipleNotInTheMiddleTest(create_test_file=False):
         timedelta(minutes=4)
     )
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("MultipleNotMiddle", [pattern], create_test_file, eval_params)
 
 
@@ -101,8 +106,9 @@ def oneNotAtTheBeginningTest(create_test_file=False):
         timedelta(minutes=5)
     )
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("OneNotBegin", [pattern], create_test_file, eval_params)
 
 
@@ -121,8 +127,9 @@ def multipleNotAtTheBeginningTest(create_test_file=False):
         timedelta(minutes=5)
     )
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("MultipleNotBegin", [pattern], create_test_file, eval_params)
 
 
@@ -139,8 +146,9 @@ def oneNotAtTheEndTest(create_test_file=False):
         timedelta(minutes=5)
     )
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("OneNotEnd", [pattern], create_test_file, eval_params)
 
 
@@ -158,8 +166,9 @@ def multipleNotAtTheEndTest(create_test_file=False):
         timedelta(minutes=5)
     )
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("MultipleNotEnd", [pattern], create_test_file, eval_params)
 
 
@@ -178,8 +187,9 @@ def testWithMultipleNotAtBeginningMiddleEnd(create_test_file=False):
         timedelta(minutes=5)
     )
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("NotEverywhere", [pattern], create_test_file, eval_params)
 
 
@@ -206,8 +216,9 @@ def testWithMultipleNotAtBeginningMiddleEnd2(create_test_file=False):
         timedelta(minutes=5)
     )
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("NotEverywhere2", [pattern], create_test_file, eval_params)
 
 
@@ -231,10 +242,11 @@ def multipleNotBeginAndEndTestStat(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("MultipleNotBeginAndEndStat", [pattern], create_test_file, eval_params, expected_file_name="MultipleNotBeginAndEnd")
 
 
@@ -250,10 +262,11 @@ def simpleNotTestStat(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("simpleNotStat", [pattern], create_test_file, eval_params, expected_file_name="simpleNot")
 
 
@@ -274,10 +287,11 @@ def multipleNotInTheMiddleTestStat(create_test_file=False):
             ),
         timedelta(minutes=4)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("MultipleNotMiddleStat", [pattern], create_test_file, eval_params, expected_file_name="MultipleNotMiddle")
 
 
@@ -293,10 +307,11 @@ def oneNotAtTheBeginningTestStat(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("OneNotBeginStat", [pattern], create_test_file, eval_params, expected_file_name="OneNotBegin")
 
 
@@ -314,10 +329,11 @@ def multipleNotAtTheBeginningTestStat(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("MultipleNotBeginStat", [pattern], create_test_file, eval_params, expected_file_name="MultipleNotBegin")
 
 
@@ -333,10 +349,11 @@ def oneNotAtTheEndTestStat(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("OneNotEndStat", [pattern], create_test_file, eval_params, expected_file_name="OneNotEnd")
 
 
@@ -353,10 +370,11 @@ def multipleNotAtTheEndTestStat(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("MultipleNotEndStat", [pattern], create_test_file, eval_params, expected_file_name="MultipleNotEnd")
 
 
@@ -374,10 +392,11 @@ def testWithMultipleNotAtBeginningMiddleEndStat(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("NotEverywhereStat", [pattern], create_test_file, eval_params, expected_file_name="NotEverywhere")
 
 
@@ -403,10 +422,11 @@ def testWithMultipleNotAtBeginningMiddleEnd2Stat(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("NotEverywhere2Stat", [pattern], create_test_file, eval_params, expected_file_name="NotEverywhere2")
 
 
@@ -430,10 +450,11 @@ def multipleNotBeginAndEndTestDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("MultipleNotBeginAndEndDPTree", [pattern], create_test_file, eval_params, expected_file_name="MultipleNotBeginAndEnd")
 
 
@@ -449,10 +470,11 @@ def simpleNotTestDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("simpleNotDPTree", [pattern], create_test_file, eval_params, expected_file_name="simpleNot")
 
 
@@ -473,10 +495,11 @@ def multipleNotInTheMiddleTestDPTree(create_test_file=False):
             ),
         timedelta(minutes=4)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("MultipleNotMiddleDPTree", [pattern], create_test_file, eval_params, expected_file_name="MultipleNotMiddle")
 
 
@@ -492,10 +515,11 @@ def oneNotAtTheBeginningTestDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("OneNotBeginDPTree", [pattern], create_test_file, eval_params, expected_file_name="OneNotBegin")
 
 
@@ -513,10 +537,11 @@ def multipleNotAtTheBeginningTestDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("MultipleNotBeginDPTree", [pattern], create_test_file, eval_params, expected_file_name="MultipleNotBegin")
 
 
@@ -532,10 +557,11 @@ def oneNotAtTheEndTestDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("OneNotEndDPTree", [pattern], create_test_file, eval_params, expected_file_name="OneNotEnd")
 
 
@@ -552,10 +578,11 @@ def multipleNotAtTheEndTestDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("MultipleNotEndDPTree", [pattern], create_test_file, eval_params, expected_file_name="MultipleNotEnd")
 
 
@@ -573,10 +600,11 @@ def testWithMultipleNotAtBeginningMiddleEndDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("NotEverywhereDPTree", [pattern], create_test_file, eval_params, expected_file_name="NotEverywhere")
 
 
@@ -602,10 +630,11 @@ def testWithMultipleNotAtBeginningMiddleEnd2DPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM)))
     runTest("NotEverywhere2DPTree", [pattern], create_test_file, eval_params, expected_file_name="NotEverywhere2")
 
 
@@ -629,10 +658,11 @@ def multipleNotBeginAndEndTestStatDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("MultipleNotBeginAndEndStatDPTree", [pattern], create_test_file, eval_params, expected_file_name="MultipleNotBeginAndEnd")
 
 
@@ -648,10 +678,11 @@ def simpleNotTestStatDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("simpleNotStatDPTree", [pattern], create_test_file, eval_params, expected_file_name="simpleNot")
 
 
@@ -672,10 +703,11 @@ def multipleNotInTheMiddleTestStatDPTree(create_test_file=False):
             ),
         timedelta(minutes=4)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("MultipleNotMiddleStatDPTree", [pattern], create_test_file, eval_params, expected_file_name="MultipleNotMiddle")
 
 
@@ -691,10 +723,11 @@ def oneNotAtTheBeginningTestStatDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("OneNotBeginStatDPTree", [pattern], create_test_file, eval_params, expected_file_name="OneNotBegin")
 
 
@@ -712,10 +745,11 @@ def multipleNotAtTheBeginningTestStatDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("MultipleNotBeginStatDPTree", [pattern], create_test_file, eval_params, expected_file_name="MultipleNotBegin")
 
 
@@ -731,10 +765,11 @@ def oneNotAtTheEndTestStatDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("OneNotEndStatDPTree", [pattern], create_test_file, eval_params, expected_file_name="OneNotEnd")
 
 
@@ -751,10 +786,11 @@ def multipleNotAtTheEndTestStatDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("MultipleNotEndStatDPTree", [pattern], create_test_file, eval_params, expected_file_name="MultipleNotEnd")
 
 
@@ -772,10 +808,11 @@ def testWithMultipleNotAtBeginningMiddleEndStatDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("NotEverywhereStatDPTree", [pattern], create_test_file, eval_params, expected_file_name="NotEverywhere")
 
 
@@ -801,8 +838,9 @@ def testWithMultipleNotAtBeginningMiddleEnd2StatDPTree(create_test_file=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics(StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES, generate_statistics(pattern.count_primitive_events()))
+    pattern.set_statistics(generate_statistics(pattern.count_primitive_events()))
     eval_params = TreeBasedEvaluationMechanismParameters(
-        TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
-                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM))
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE,
+                                  negation_algorithm_type=NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM)))
     runTest("NotEverywhere2StatDPTree", [pattern], create_test_file, eval_params, expected_file_name="NotEverywhere2")
