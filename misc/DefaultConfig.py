@@ -48,7 +48,7 @@ DEFAULT_PARALLEL_ATTRIBUTES_DICT = None
 DEFAULT_PARALLEL_MULT = 3
 
 # settings for pattern transformation rules
-PREPROCESSING_RULES_ORDER = None # disabled for now
+PREPROCESSING_RULES_ORDER = None  # disabled for now
 """
 [
     PatternTransformationRules.AND_AND_PATTERN,

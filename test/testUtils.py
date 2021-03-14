@@ -349,4 +349,8 @@ def runStructuralTest(testName, patterns, expected_result,
     # print('place a breakpoint after creating the CEP object to debug it.\n')
     cep = CEP(patterns, eval_mechanism_params)
     structure_summary = cep.get_evaluation_mechanism_structure_summary()
-    print("Test %s result: %s" % (testName, "Succeeded" if structure_summary == expected_result else "Failed"))
+    success = structure_summary == expected_result
+    print("Test %s result: %s" % (testName, "Succeeded" if success else "Failed"))
+    if not success:
+        num_failed_tests.increase_counter()
+        num_failed_tests.failed_tests.add(testName)

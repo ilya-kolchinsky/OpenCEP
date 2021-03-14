@@ -136,7 +136,7 @@ def greedyNestedStructuralTest():
                                                  TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE)),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    expected_result = ('And', ('Seq', 'd', 'c'), ('Seq', 'b', 'a'))
+    expected_result = ('And', ('Seq', 'b', 'a'), ('Seq', 'd', 'c'))
     runStructuralTest('greedyNestedStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 
@@ -206,7 +206,7 @@ def iiGreedyNestedStructuralTest():
                                                  IterativeImprovementInitType.GREEDY)),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    expected_result = ('And', ('Seq', 'd', 'c'), ('Seq', 'b', 'a'))
+    expected_result = ('And', ('Seq', 'b', 'a'), ('Seq', 'd', 'c'))
     runStructuralTest('iiGreedyNestedStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 
@@ -249,7 +249,7 @@ def greedyNestedComplexStructuralTest():
                                                  TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE)),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    expected_result = ('And', ('And', ('And', ('Seq', ('Seq', 'b', 'c'), 'a'), ('Seq', ('Seq', 'i', 'f'), ('Seq', 'h', 'g'))), ('Seq', 'e', 'd')), 'j')
+    expected_result = ('And', ('And', ('And', 'j', ('Seq', ('Seq', 'f', 'i'), ('Seq', 'g', 'h'))), ('Seq', 'd', 'e')), ('Seq', ('Seq', 'a', 'b'), 'c'))
     runStructuralTest('greedyNestedComplexStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 
@@ -425,7 +425,7 @@ def dpLdNestedComplexStructuralTest():
                                                  TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE)),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    expected_result = ('And', ('And', ('And', ('Seq', ('Seq', 'a', 'b'), 'c'), 'j'), ('Seq', 'd', 'e')), ('Seq', ('Seq', 'f', 'g'), ('Seq', 'h', 'i')))
+    expected_result = ('And', ('And', ('And', 'j', ('Seq', ('Seq', 'f', 'g'), ('Seq', 'h', 'i'))), ('Seq', 'd', 'e')), ('Seq', ('Seq', 'a', 'b'), 'c'))
     runStructuralTest('dpLdNestedComplexStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 
@@ -471,7 +471,7 @@ def zstreamOrdNestedComplexStructuralTest():
                                                  TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE)),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    expected_result = ('And', ('And', ('And', ('Seq', 'b', ('Seq', 'c', 'a')), ('Seq', ('Seq', 'g', 'f'), ('Seq', 'i', 'h'))), ('Seq', 'e', 'd')), 'j')
+    expected_result = ('And', ('And', ('And', 'j', ('Seq', ('Seq', 'f', 'g'), ('Seq', 'h', 'i'))), ('Seq', 'd', 'e')), ('Seq', ('Seq', 'a', 'b'), 'c'))
     runStructuralTest('zstreamOrdNestedComplexStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 
