@@ -1,12 +1,12 @@
 """
 This file contains the implementations of algorithms constructing invariant-aware left-deep tree-based evaluation mechanism.
 """
-from typing import List
+from typing import List, Dict
 
 from base.PatternStructure import CompositeStructure
-from statistics_collector.StatisticsTypes import StatisticsTypes
-from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
-from plan.Invariants import Invariant, GreedyTreeInvariants
+from adaptive.statistics.StatisticsTypes import StatisticsTypes
+from plan.invariant.InvariantTreePlanBuilder import InvariantTreePlanBuilder
+from plan.invariant.Invariants import Invariant, GreedyTreeInvariants
 from plan.TreePlan import TreePlanLeafNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
@@ -17,7 +17,7 @@ class InvariantLeftDeepTreeBuilder(InvariantTreePlanBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-    def _create_tree_topology(self, statistics: dict, pattern: Pattern):
+    def _create_tree_topology(self, pattern: Pattern, statistics: Dict):
         order, invariants = self._create_evaluation_order(statistics) if isinstance(pattern.positive_structure,
                                                                                     CompositeStructure) else [[0], None]
         return self._order_to_tree_topology(order, pattern), invariants
@@ -32,12 +32,12 @@ class InvariantLeftDeepTreeBuilder(InvariantTreePlanBuilder):
             tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(order[i]))
         return tree_topology
 
-    def _get_order_cost(self, statistics: dict, pattern: Pattern, order: List[int]):
+    def _get_order_cost(self, pattern: Pattern, order: List[int], statistics: Dict):
         """
         Returns the cost of a given order of event processing.
         """
         tree_plan = InvariantLeftDeepTreeBuilder._order_to_tree_topology(order, pattern)
-        return self._get_plan_cost(statistics, pattern, tree_plan)
+        return self._get_plan_cost(pattern, tree_plan, statistics)
 
     def _create_evaluation_order(self, statistics: dict):
         """

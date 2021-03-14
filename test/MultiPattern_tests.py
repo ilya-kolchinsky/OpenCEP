@@ -1,4 +1,3 @@
-from optimizer.OptimizerFactory import OptimizerParameters, StatisticsDeviationAwareOptimizerParameters
 from test.testUtils import *
 from datetime import timedelta
 from condition.Condition import Variable

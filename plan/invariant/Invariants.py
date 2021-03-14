@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
+from collections import Callable
 
 from base.Pattern import Pattern
 from misc.LegacyStatistics import MissingStatisticsException
-from statistics_collector.StatisticsTypes import StatisticsTypes
-from plan.TreeCostModel import TreeCostModel
+from adaptive.statistics.StatisticsTypes import StatisticsTypes
 
 
 class Invariant:
@@ -76,14 +76,14 @@ class ZStreamTreeInvariants(Invariants):
     Tests the following condition for every invariant in the invariants:
     cost(invariant.left) < cost(invariant.right).
     """
-    def __init__(self, cost_model: TreeCostModel):
+    def __init__(self, get_plan_cost_callback: Callable):
         super().__init__()
-        self.__cost_model = cost_model
+        self.__get_plan_cost_callback = get_plan_cost_callback
 
     def is_invariants_violated(self, new_statistics: dict, pattern: Pattern):
         for invariant in self.invariants:
-            left_cost = self.__cost_model.get_plan_cost(new_statistics, pattern, invariant.left)
-            right_cost = self.__cost_model.get_plan_cost(new_statistics, pattern, invariant.right)
+            left_cost = self.__get_plan_cost_callback(pattern, invariant.left, new_statistics)
+            right_cost = self.__get_plan_cost_callback(pattern, invariant.right, new_statistics)
             if left_cost > right_cost:
                 return True
         return False

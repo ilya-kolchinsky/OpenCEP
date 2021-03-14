@@ -1,9 +1,10 @@
+from adaptive.statistics.StatisticsCollectorFactory import StatisticsCollectorParameters
 from misc.DefaultConfig import DEFAULT_TREE_COST_MODEL
 from plan.TreePlanBuilderFactory import IterativeImprovementTreePlanBuilderParameters
 from test.EvalTestsDefaults import DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS
 from test.testUtils import *
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
-from optimizer.OptimizerFactory import StatisticsDeviationAwareOptimizerParameters
+from adaptive.optimizer.OptimizerFactory import StatisticsDeviationAwareOptimizerParameters
 from plan.LeftDeepTreeBuilders import *
 from plan.BushyTreeBuilders import *
 from datetime import timedelta
@@ -54,7 +55,8 @@ def arrivalRatesPatternSearchTest(createTestFile=False):
     pattern.set_statistics({StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0153, 0.0076]})
     eval_params = TreeBasedEvaluationMechanismParameters(
         optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=TreePlanBuilderParameters(
-            TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)),
+            TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES])),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
 
     runTest("arrivalRates", [pattern], createTestFile, eval_params)
@@ -87,10 +89,11 @@ def frequencyPatternSearch2Test(createTestFile=False):
         ),
         timedelta(minutes=5)
     )
-    pattern.set_statistics({StatisticsTypes.FREQUENCY_DICT: {"AAPL": 2, "AMZN": 3, "LOCM": 1}})
+    pattern.set_statistics({StatisticsTypes.ARRIVAL_RATES: [0.0076, 0.0153, 0.0159]})
     eval_params = TreeBasedEvaluationMechanismParameters(
         optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=TreePlanBuilderParameters(
-            TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)),
+            TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES])),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
 
     runTest("frequency2", [pattern], createTestFile, eval_mechanism_params=eval_params)
@@ -112,10 +115,11 @@ def frequencyPatternSearch3Test(createTestFile=False):
         TrueCondition(),
         timedelta(minutes=5)
     )
-    pattern.set_statistics({StatisticsTypes.FREQUENCY_DICT: {"AAPL": 460, "LOCM": 219}})
+    pattern.set_statistics({StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0159, 0.0159, 0.0076]})
     eval_params = TreeBasedEvaluationMechanismParameters(
         optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=TreePlanBuilderParameters(
-            TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)),
+            TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES])),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
 
     runTest("frequency3", [pattern], createTestFile, eval_mechanism_params=eval_params)
@@ -140,10 +144,11 @@ def frequencyPatternSearch4Test(createTestFile=False):
     )
     eval_params = TreeBasedEvaluationMechanismParameters(
         optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=TreePlanBuilderParameters(
-            TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)),
+            TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES])),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
 
-    pattern.set_statistics({StatisticsTypes.FREQUENCY_DICT: {"AVID": 1, "LOCM": 2, "AAPL": 3, "AMZN": 4}})
+    pattern.set_statistics({StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0153, 0.0146, 0.0076]})
     runTest("frequency4", [pattern], createTestFile, eval_mechanism_params=eval_params)
 
 
@@ -170,9 +175,10 @@ def frequencyPatternSearch5Test(createTestFile=False):
     )
     eval_params = TreeBasedEvaluationMechanismParameters(
         optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=TreePlanBuilderParameters(
-            TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)),
+            TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES])),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
-    pattern.set_statistics({StatisticsTypes.FREQUENCY_DICT: {"LOCM": 1, "AAPL": 2}})  # {"AAPL": 460, "LOCM": 219}
+    pattern.set_statistics({StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076, 0.0159, 0.0076, 0.0159, 0.0076]})  # {"AAPL": 460, "LOCM": 219}
     runTest("frequency5", [pattern], createTestFile, eval_mechanism_params=eval_params)
 
 
@@ -185,10 +191,11 @@ def frequencyPatternSearch6Test(createTestFile=False):
         TrueCondition(),
         timedelta(minutes=7)
     )
-    pattern.set_statistics({StatisticsTypes.FREQUENCY_DICT: {"AAPL": 1, "LOCM": 2}})  # {"AAPL": 460, "LOCM": 219}
+    pattern.set_statistics({StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076, 0.0159, 0.0076, 0.0159, 0.0076]})  # {"AAPL": 460, "LOCM": 219}
     eval_params = TreeBasedEvaluationMechanismParameters(
         optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=TreePlanBuilderParameters(
-            TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)),
+            TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES])),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
 
     runTest("frequency6", [pattern], createTestFile, eval_mechanism_params=eval_params)
@@ -213,10 +220,9 @@ def greedyPatternSearchTest(createTestFile=False):
     pattern.set_statistics({StatisticsTypes.SELECTIVITY_MATRIX: selectivityMatrix,
                             StatisticsTypes.ARRIVAL_RATES: arrivalRates})
     eval_params = TreeBasedEvaluationMechanismParameters(
-        statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
-        optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=TreePlanBuilderParameters(
-            TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE),
-            statistics_types = [StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]),
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
+            tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX])),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
     runTest('greedy1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
@@ -241,13 +247,13 @@ def iiRandomPatternSearchTest(createTestFile=False):
     pattern.set_statistics({StatisticsTypes.SELECTIVITY_MATRIX: selectivityMatrix,
                             StatisticsTypes.ARRIVAL_RATES: arrivalRates})
     eval_params = TreeBasedEvaluationMechanismParameters(
-        statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
-        optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=IterativeImprovementTreePlanBuilderParameters(
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
+            tree_plan_params=IterativeImprovementTreePlanBuilderParameters(
             DEFAULT_TREE_COST_MODEL,
             20,
             IterativeImprovementType.SWAP_BASED,
             IterativeImprovementInitType.RANDOM),
-            statistics_types = [StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX])),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
 
     runTest('iiRandom1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
@@ -272,13 +278,13 @@ def iiRandom2PatternSearchTest(createTestFile=False):
     pattern.set_statistics({StatisticsTypes.SELECTIVITY_MATRIX: selectivityMatrix,
                             StatisticsTypes.ARRIVAL_RATES: arrivalRates})
     eval_params = TreeBasedEvaluationMechanismParameters(
-        statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
-        optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=IterativeImprovementTreePlanBuilderParameters(
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
+            tree_plan_params=IterativeImprovementTreePlanBuilderParameters(
             DEFAULT_TREE_COST_MODEL,
             20,
             IterativeImprovementType.CIRCLE_BASED,
             IterativeImprovementInitType.RANDOM),
-            statistics_types = [StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX])),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
 
     runTest('iiRandom2', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
@@ -304,15 +310,14 @@ def iiGreedyPatternSearchTest(createTestFile=False):
     pattern.set_statistics({StatisticsTypes.SELECTIVITY_MATRIX: selectivityMatrix,
                             StatisticsTypes.ARRIVAL_RATES: arrivalRates})
     eval_params = TreeBasedEvaluationMechanismParameters(
-        statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
-        optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=IterativeImprovementTreePlanBuilderParameters(
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
+            tree_plan_params=IterativeImprovementTreePlanBuilderParameters(
             DEFAULT_TREE_COST_MODEL,
             20,
             IterativeImprovementType.SWAP_BASED,
             IterativeImprovementInitType.GREEDY),
-            statistics_types = [StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX])),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
-    runTest('iiGreedy1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
 def iiGreedy2PatternSearchTest(createTestFile=False):
@@ -335,13 +340,13 @@ def iiGreedy2PatternSearchTest(createTestFile=False):
     pattern.set_statistics({StatisticsTypes.SELECTIVITY_MATRIX: selectivityMatrix,
                             StatisticsTypes.ARRIVAL_RATES: arrivalRates})
     eval_params = TreeBasedEvaluationMechanismParameters(
-        statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
-        optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=IterativeImprovementTreePlanBuilderParameters(
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
+            tree_plan_params=IterativeImprovementTreePlanBuilderParameters(
             DEFAULT_TREE_COST_MODEL,
             20,
             IterativeImprovementType.CIRCLE_BASED,
             IterativeImprovementInitType.GREEDY),
-            statistics_types = [StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX])),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
 
     runTest('iiGreedy2', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
@@ -367,10 +372,10 @@ def dpLdPatternSearchTest(createTestFile=False):
     pattern.set_statistics({StatisticsTypes.SELECTIVITY_MATRIX: selectivityMatrix,
                             StatisticsTypes.ARRIVAL_RATES: arrivalRates})
     eval_params = TreeBasedEvaluationMechanismParameters(
-        statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
-        optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE),
-                                                                     statistics_types = [StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]),
-        storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params )
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
+            tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX])),
+        storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
     runTest('dpLd1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
@@ -395,11 +400,10 @@ def dpBPatternSearchTest(createTestFile=False):
     pattern.set_statistics({StatisticsTypes.SELECTIVITY_MATRIX: selectivityMatrix,
                             StatisticsTypes.ARRIVAL_RATES: arrivalRates})
     eval_params = TreeBasedEvaluationMechanismParameters(
-        statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
-        optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE),
-                                                                     statistics_types = [StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]),
-        storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
-    )
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
+            tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_BUSHY_TREE),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX])),
+        storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
     runTest('dpB1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
 
@@ -425,9 +429,10 @@ def zStreamOrdPatternSearchTest(createTestFile=False):
     pattern.set_statistics({StatisticsTypes.SELECTIVITY_MATRIX: selectivityMatrix,
                             StatisticsTypes.ARRIVAL_RATES: arrivalRates})
     eval_params = TreeBasedEvaluationMechanismParameters(
-        statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
-        optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE),
-                                                                     statistics_types = [StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]),
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
+            tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES])
+        ),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
     runTest('zstream-ord1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
@@ -456,9 +461,9 @@ def zStreamPatternSearchTest(createTestFile=False):
     pattern.set_statistics({StatisticsTypes.SELECTIVITY_MATRIX: selectivityMatrix,
                             StatisticsTypes.ARRIVAL_RATES: arrivalRates})
     eval_params = TreeBasedEvaluationMechanismParameters(
-        statistics_collector_params=DEFAULT_TESTING_STATISTICS_COLLECTOR_SELECTIVITY_AND_ARRIVAL_RATES_STATISTICS,
-        optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.ZSTREAM_BUSHY_TREE),
-                                                                     statistics_types = [StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]),
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
+            tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.ZSTREAM_BUSHY_TREE),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX])),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
     runTest('zstream1', [pattern], createTestFile, eval_mechanism_params=eval_params, events=nasdaqEventStream)
 
@@ -475,10 +480,12 @@ def frequencyTailoredPatternSearchTest(createTestFile=False):
         ),
         timedelta(minutes=360)
     )
-    frequencyDict = {"MSFT": 256, "DRIV": 257, "CBRL": 1}
-    pattern.set_statistics({StatisticsTypes.FREQUENCY_DICT: frequencyDict})
+    # frequencyDict = {"MSFT": 256, "DRIV": 257, "CBRL": 1}
+    pattern.set_statistics({StatisticsTypes.ARRIVAL_RATES: [0.01454418928322895, 0.016597077244258872, 0.012421711899791231]})
     eval_params = TreeBasedEvaluationMechanismParameters(
-        optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE)),
+        optimizer_params=StatisticsDeviationAwareOptimizerParameters(
+            tree_plan_params=TreePlanBuilderParameters(TreePlanBuilderTypes.SORT_BY_FREQUENCY_LEFT_DEEP_TREE),
+            statistics_collector_params=StatisticsCollectorParameters(statistics_types=[StatisticsTypes.ARRIVAL_RATES])),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params)
 
     runTest('frequencyTailored1', [pattern], createTestFile, eval_mechanism_params=eval_params,

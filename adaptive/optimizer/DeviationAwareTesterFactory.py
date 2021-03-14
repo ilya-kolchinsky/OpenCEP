@@ -1,6 +1,6 @@
 from typing import List
-from statistics_collector.StatisticsTypes import StatisticsTypes
-from optimizer import DeviationAwareTester
+from adaptive.statistics.StatisticsTypes import StatisticsTypes
+from adaptive.optimizer import DeviationAwareTester
 
 
 class DeviationAwareTesterFactory:

@@ -1,5 +1,5 @@
 from base.Event import Event
-from statistics_collector.StatisticsTypes import StatisticsTypes
+from adaptive.statistics.StatisticsTypes import StatisticsTypes
 
 
 class StatisticsCollector:

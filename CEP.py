@@ -10,7 +10,6 @@ from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from typing import List
 from datetime import datetime
-import warnings
 
 
 class CEP:
@@ -26,8 +25,6 @@ class CEP:
         """
         if patterns is None or len(patterns) == 0:
             raise Exception("No patterns are provided")
-        if len(patterns) > 1:
-            warnings.warn("Multi-pattern does not yet support adaptive-CEP")
         self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(patterns,
                                                                                        eval_mechanism_params,
                                                                                        parallel_execution_params)

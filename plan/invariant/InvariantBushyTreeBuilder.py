@@ -1,11 +1,11 @@
 """
 This file contains the implementations of algorithms constructing an invariant aware (bushy) tree-based evaluation mechanism.
 """
-from typing import List
+from typing import List, Dict
 
-from statistics_collector.StatisticsTypes import StatisticsTypes
-from plan.InvariantTreePlanBuilder import InvariantTreePlanBuilder
-from plan.Invariants import Invariant, ZStreamTreeInvariants
+from adaptive.statistics.StatisticsTypes import StatisticsTypes
+from plan.invariant.InvariantTreePlanBuilder import InvariantTreePlanBuilder
+from plan.invariant.Invariants import Invariant, ZStreamTreeInvariants
 from plan.TreePlan import TreePlanLeafNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
@@ -16,7 +16,7 @@ class InvariantAwareZStreamTreeBuilder(InvariantTreePlanBuilder):
     """
     Creates an invariant aware bushy tree using ZStream algorithm.
     """
-    def _create_tree_topology(self, statistics: dict, pattern: Pattern):
+    def _create_tree_topology(self, pattern: Pattern, statistics: Dict):
         if StatisticsTypes.ARRIVAL_RATES in statistics and \
                 StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
                 len(statistics) == 2:
@@ -29,13 +29,12 @@ class InvariantAwareZStreamTreeBuilder(InvariantTreePlanBuilder):
         args_num = len(order)
         items = tuple(order)
         suborders = {
-            (i,): (TreePlanLeafNode(i), self._get_plan_cost(statistics, pattern, TreePlanLeafNode(i)))
+            (i,): (TreePlanLeafNode(i), self._get_plan_cost(pattern, TreePlanLeafNode(i), statistics))
             for i in items
         }
 
         tree_to_second_min_tree_map = {}
-        cost_model = self.get_cost_model()
-        invariants = ZStreamTreeInvariants(cost_model)
+        invariants = ZStreamTreeInvariants(self._get_plan_cost)
         all_sub_trees = []
 
         # iterate over suborders sizes
@@ -49,7 +48,7 @@ class InvariantAwareZStreamTreeBuilder(InvariantTreePlanBuilder):
                 tree1_, _ = suborders[order1_]
                 tree2_, _ = suborders[order2_]
                 tree = TreePlanBuilder._instantiate_binary_node(pattern, tree1_, tree2_)
-                cost = self._get_plan_cost(statistics, pattern, tree)
+                cost = self._get_plan_cost(pattern, tree, statistics)
                 suborders[suborder] = tree, cost
 
                 second_prev_cost = cost
@@ -64,7 +63,7 @@ class InvariantAwareZStreamTreeBuilder(InvariantTreePlanBuilder):
                     tree2, _ = suborders[order2]
                     _, prev_cost = suborders[suborder]
                     new_tree = TreePlanBuilder._instantiate_binary_node(pattern, tree1, tree2)
-                    new_cost = self._get_plan_cost(statistics, pattern, new_tree)
+                    new_cost = self._get_plan_cost(pattern, new_tree, statistics)
                     if new_cost < prev_cost:
                         second_prev_cost = prev_cost
                         second_min_tree = suborders[suborder][0]

@@ -2,14 +2,14 @@ from datetime import timedelta, datetime
 from typing import Dict
 from base.Event import Event
 from base.Pattern import Pattern
-from optimizer.Optimizer import Optimizer
+from adaptive.optimizer.Optimizer import Optimizer
 from plan.TreePlan import TreePlan
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
-from statistics_collector.StatisticsCollector import StatisticsCollector
+from adaptive.statistics.StatisticsCollector import StatisticsCollector
 from stream.Stream import OutputStream
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.Tree import Tree
-from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
+from tree.evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 
 
 class SimultaneousTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
@@ -33,6 +33,7 @@ class SimultaneousTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
         self.__new_event_types_listeners = None
         self.__is_simultaneous_state = False
         self.__tree_update_time = None
+        self.__last_matches_from_old_tree = None
 
     def _tree_update(self, new_tree: Tree, tree_update_time: datetime):
         """
@@ -44,12 +45,14 @@ class SimultaneousTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
         self.__new_event_types_listeners = self._register_event_listeners(self.__new_tree)
         self.__is_simultaneous_state = True
 
-    def _is_need_new_statistics(self):
+    def _should_try_reoptimize(self, last_statistics_refresh_time: timedelta, last_event: Event):
         """
-        If the simultaneous state is activated, theres no need for new statistics.
+        If the simultaneous state is activated, there is no need for new statistics.
         This function avoids a situation where there are more than two trees in parallel.
         """
-        return not self.__is_simultaneous_state
+        if self.__is_simultaneous_state:
+            return False
+        return super()._should_try_reoptimize(last_statistics_refresh_time, last_event)
 
     def _play_new_event_on_tree(self, event: Event, matches: OutputStream):
         if self.__is_simultaneous_state:
@@ -61,9 +64,7 @@ class SimultaneousTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
             # If the pattern window is over then we want to return to single tree state.
             if event.timestamp - self.__tree_update_time > self._pattern.window:
                 # Passes pending matches from the old tree to the new tree if the root is a NegationNode
-                old_pending_matches = self._tree.get_last_matches()
-                if old_pending_matches:
-                    self.__new_tree.set_pending_matches(old_pending_matches)
+                self.__last_matches_from_old_tree = self._tree.get_last_matches()
 
                 # Tree replacement and a return to single tree state
                 self._tree, self.__new_tree = self.__new_tree, None
@@ -72,11 +73,17 @@ class SimultaneousTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
 
     def _get_matches(self, matches: OutputStream):
         super()._get_matches(matches)
-        # Flush the matches from the new tree while in simultaneous state
-        # These matches were necessarily obtained from the old tree
         if self.__is_simultaneous_state:
+            # Flush the matches from the new tree while in simultaneous state
+            # These matches were necessarily obtained from the old tree
             for _ in self.__new_tree.get_matches():
                 pass
+        elif self.__last_matches_from_old_tree is not None:
+            # in non-simultaneous state, it is possible that we just deleted the old tree but its last matches
+            # went unreported
+            for match in self.__last_matches_from_old_tree:
+                matches.add_item(match)
+            self.__last_matches_from_old_tree = None
 
     def __play_new_event_on_new_tree(self, event: Event, event_types_listeners):
         """

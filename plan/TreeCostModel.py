@@ -3,7 +3,7 @@ from typing import List
 
 from base.Pattern import Pattern
 from misc.LegacyStatistics import MissingStatisticsException
-from statistics_collector.StatisticsTypes import StatisticsTypes
+from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlanNode, TreePlanLeafNode
 
@@ -12,9 +12,9 @@ class TreeCostModel(ABC):
     """
     An abstract class for the cost model used by cost-based tree-structured evaluation plan generation algorithms.
     """
-    def get_plan_cost(self, statistics: dict, pattern: Pattern, plan: TreePlanNode):
+    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict):
         """
-        Returns the cost of a given plan for a given pattern.
+        Returns the cost of a given plan for a given pattern provided the relevant data characteristics (statistics).
         """
         raise NotImplementedError()
 
@@ -23,7 +23,7 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
     """
     Calculates the plan cost based on the expected size of intermediate results (partial matches).
     """
-    def get_plan_cost(self, statistics: dict, pattern: Pattern, plan: TreePlanNode):
+    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict):
         if StatisticsTypes.ARRIVAL_RATES in statistics and \
                 StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
                 len(statistics) == 2:

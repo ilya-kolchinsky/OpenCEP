@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 from condition.BaseRelationCondition import GreaterThanCondition, GreaterThanEqCondition
-from optimizer.OptimizerFactory import StatisticsDeviationAwareOptimizerParameters
 from test.testUtils import *
 from condition.Condition import Variable
 from condition.CompositeCondition import AndCondition

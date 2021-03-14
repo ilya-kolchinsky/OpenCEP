@@ -11,9 +11,9 @@ class Optimizer(ABC):
     """
     The base class for the optimizers that decide when to invoke plan reconstruction.
     """
-
-    def __init__(self, tree_plan_builder: TreePlanBuilder):
+    def __init__(self, tree_plan_builder: TreePlanBuilder, is_adaptivity_enabled: bool):
         self._tree_plan_builder = tree_plan_builder
+        self.__is_adaptivity_enabled = is_adaptivity_enabled
 
     @abstractmethod
     def is_need_optimize(self, new_statistics: dict, pattern: Pattern):
@@ -25,6 +25,12 @@ class Optimizer(ABC):
     @abstractmethod
     def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
         raise NotImplementedError()
+
+    def is_adaptivity_enabled(self):
+        """
+        Returns True if adaptive functionality is enabled and False otherwise.
+        """
+        return self.__is_adaptivity_enabled
 
     def build_initial_tree_plan(self, initial_statistics: dict, cost_model_type: TreeCostModels,
                                 pattern: Pattern):
@@ -63,7 +69,7 @@ class TrivialOptimizer(Optimizer):
         return True
 
     def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
-        tree_plan = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
+        tree_plan = self._tree_plan_builder.build_tree_plan(pattern, new_statistics)
         return tree_plan
 
 
@@ -74,8 +80,9 @@ class StatisticsDeviationAwareOptimizer(Optimizer):
     value by more than t, then plan reconstruction is activated.
     """
 
-    def __init__(self, tree_plan_builder: TreePlanBuilder, type_to_deviation_aware_functions_map: dict):
-        super().__init__(tree_plan_builder)
+    def __init__(self, tree_plan_builder: TreePlanBuilder, is_adaptivity_enabled: bool,
+                 type_to_deviation_aware_functions_map: dict):
+        super().__init__(tree_plan_builder, is_adaptivity_enabled)
         self.__prev_statistics = None
         self.__type_to_deviation_aware_tester_map = type_to_deviation_aware_functions_map
 
@@ -88,7 +95,7 @@ class StatisticsDeviationAwareOptimizer(Optimizer):
 
     def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
         self.__prev_statistics = new_statistics
-        tree_plan = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
+        tree_plan = self._tree_plan_builder.build_tree_plan(pattern, new_statistics)
         return tree_plan
 
 
@@ -98,20 +105,20 @@ class InvariantsAwareOptimizer(Optimizer):
     if at least one invariant was violated then plan reconstruction is activated.
     """
 
-    def __init__(self, tree_plan_builder: TreePlanBuilder):
-        super().__init__(tree_plan_builder)
+    def __init__(self, tree_plan_builder: TreePlanBuilder, is_adaptivity_enabled: bool):
+        super().__init__(tree_plan_builder, is_adaptivity_enabled)
         self._invariants = None
 
     def is_need_optimize(self, new_statistics: dict, pattern: Pattern):
         return self._invariants is None or self._invariants.is_invariants_violated(new_statistics, pattern)
 
     def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
-        tree_plan, self._invariants = self._tree_plan_builder.build_tree_plan(new_statistics, pattern)
+        tree_plan, self._invariants = self._tree_plan_builder.build_tree_plan(pattern, new_statistics)
         return tree_plan
 
     def build_initial_tree_plan(self, new_statistics: dict, cost_model_type: TreeCostModels,
                                 pattern: Pattern):
         non_prior_tree_plan_builder = self._build_non_prior_tree_plan_builder(cost_model_type, pattern)
         if non_prior_tree_plan_builder is not None:
-            return non_prior_tree_plan_builder.build_tree_plan(new_statistics, pattern)
+            return non_prior_tree_plan_builder.build_tree_plan(pattern, new_statistics)
         return self.build_new_tree_plan(new_statistics, pattern)

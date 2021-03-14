@@ -3,7 +3,7 @@ from datetime import datetime
 from base.Event import Event
 from stream.Stream import OutputStream
 from tree.Tree import Tree
-from tree.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
+from tree.evaluation.TreeBasedEvaluationMechanism import TreeBasedEvaluationMechanism
 
 
 class TrivialTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
@@ -22,11 +22,6 @@ class TrivialTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
 
         self._event_types_listeners = self._register_event_listeners(new_tree)
         self.__play_old_events_on_tree(old_events)
-
-        # Passes pending matches from the old tree to the new tree if the root is a NegationNode
-        old_pending_matches = old_tree.get_last_matches()
-        if old_pending_matches:
-            self._tree.set_pending_matches(old_pending_matches)
 
         # To avoid duplicate matches, flushes the matches from the new tree that have already been written.
         for _ in self._tree.get_matches():
@@ -57,12 +52,6 @@ class TrivialTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
         for event in events:
             for leaf in self._event_types_listeners[event.type]:
                 leaf.handle_event(event)
-
-    def _is_need_new_statistics(self):
-        """
-        The Definition of trivial evaluation
-        """
-        return True
 
     def _play_new_event_on_tree(self, event: Event, matches: OutputStream):
         self._play_new_event(event, self._event_types_listeners)

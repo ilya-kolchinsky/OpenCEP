@@ -197,13 +197,6 @@ class NegationNode(BinaryNode, ABC):
         v2 = self._negative_subtree.is_equivalent(other.get_right_subtree())
         return v1 and v2
 
-    def set_pending_partial_matches(self, pending_partial_matches: List[PatternMatch]):
-        """
-        Overwrites the current pending partial matches in the node with new partial matches,
-        Currently used for tree replacement.
-        """
-        self.__pending_partial_matches = pending_partial_matches
-
 
 class NegativeAndNode(NegationNode):
     """

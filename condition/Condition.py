@@ -3,8 +3,8 @@ This file contains the basic Condition classes.
 """
 from abc import ABC, abstractmethod
 from enum import Enum
-from statistics_collector.StatisticsTypes import StatisticsTypes
-from statistics_collector.StatisticsCollector import StatisticsCollector
+from adaptive.statistics.StatisticsTypes import StatisticsTypes
+from adaptive.statistics.StatisticsCollector import StatisticsCollector
 
 
 class RelopTypes(Enum):
@@ -87,9 +87,10 @@ class Condition(ABC):
 class AtomicCondition(Condition, ABC):
     """
     Represents an atomic (non-composite) condition.
+    An atomic condition may contain a statistic collector object that collects its evaluation history to estimate
+    the condition selectivity.
     """
     def __init__(self):
-
         # currently used to update the selectivity statistics if they are present in the statistics collector
         self._statistics_collector = None
 
@@ -97,7 +98,7 @@ class AtomicCondition(Condition, ABC):
         result = self._eval(binding)
         # updates the selectivity statistics based on the evaluated atomic condition result
         data = (self, result)
-        if self._statistics_collector:
+        if self._statistics_collector is not None:
             self._statistics_collector.update_specified_statistics(StatisticsTypes.SELECTIVITY_MATRIX, data)
         return result
 
@@ -118,6 +119,9 @@ class AtomicCondition(Condition, ABC):
         return [self]
 
     def set_statistics_collector(self, statistics_collector: StatisticsCollector):
+        """
+        Sets the statistic collector object for registering successful and failed condition evaluations.
+        """
         self._statistics_collector = statistics_collector
 
 

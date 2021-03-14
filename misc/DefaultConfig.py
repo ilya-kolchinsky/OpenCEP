@@ -5,9 +5,9 @@ Each of the values below can be overridden by providing a different value in CEP
 from datetime import timedelta
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc.SelectionStrategies import SelectionStrategies
-from statistics_collector.StatisticsTypes import StatisticsTypes
-from optimizer.OptimizerTypes import OptimizerTypes
-from tree.TreeEvaluationMechanismTypes import TreeEvaluationMechanismTypes
+from adaptive.statistics.StatisticsTypes import StatisticsTypes
+from adaptive.optimizer.OptimizerTypes import OptimizerTypes
+from tree.evaluation.TreeEvaluationMechanismUpdateTypes import TreeEvaluationMechanismUpdateTypes
 from parallel.ParallelExecutionModes import ParallelExecutionModes
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType
@@ -43,15 +43,11 @@ MULTI_PATTERN_APPROACH = MultiPatternEvaluationApproaches.TRIVIAL_SHARING_LEAVES
 DEFAULT_PARALLEL_EXECUTION_MODE = ParallelExecutionModes.SEQUENTIAL
 DEFAULT_PARALLEL_EXECUTION_PLATFORM = ParallelExecutionPlatforms.THREADING
 
-# statistics collection settings
-DEFAULT_STATISTICS_TYPE = [StatisticsTypes.ARRIVAL_RATES]  # the default statistics type can also be a list of types
-STATISTICS_TIME_WINDOW = timedelta(minutes=2)  # Time window for statistics
-
 # optimizer settings
-DEFAULT_INIT_TREE_PLAN_BUILDER = TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE  # initial tree plan builder in case of predifined ststistics
 DEFAULT_OPTIMIZER_TYPE = OptimizerTypes.STATISTICS_DEVIATION_AWARE_OPTIMIZER
+DEFAULT_INIT_TREE_PLAN_BUILDER = TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE  # initial tree plan builder in case of predifined statistics
 DEVIATION_OPTIMIZER_THRESHOLD = 0.5  # the default threshold for statistics changes aware optimizer
-
-# tree evaluation mechanism settings
-DEFAULT_TREE_EVALUATION_MECHANISM_TYPE = TreeEvaluationMechanismTypes.SIMULTANEOUS_TREE_EVALUATION
-STATISTICS_UPDATES_WAIT_TIME = timedelta(seconds=0.5)  # the default wait time between statistics updates
+DEFAULT_TREE_UPDATE_TYPE = TreeEvaluationMechanismUpdateTypes.SIMULTANEOUS_TREE_EVALUATION
+DEFAULT_STATISTICS_TYPE = [StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX]  # the default statistics type can also be a list of types
+STATISTICS_TIME_WINDOW = timedelta(hours=1)  # Time window for statistics
+STATISTICS_UPDATES_WAIT_TIME = None  # the default wait time between statistics updates or None to disable adaptivity

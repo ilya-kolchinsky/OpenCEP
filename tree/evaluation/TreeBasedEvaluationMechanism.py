@@ -11,10 +11,10 @@ from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from tree.MultiPatternTree import MultiPatternTree
-from statistics_collector import StatisticsCollector
+from adaptive.statistics import StatisticsCollector
 from tree.Tree import Tree
 from datetime import timedelta
-from optimizer import Optimizer
+from adaptive.optimizer import Optimizer
 
 
 class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
@@ -30,11 +30,13 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
 
         self.__is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
         if self.__is_multi_pattern_mode:
+            # TODO: support statistic collection in the multi-pattern mode
             self._tree = MultiPatternTree(pattern_to_tree_plan_map, storage_params, multi_pattern_eval_params)
         else:
+            pattern = list(pattern_to_tree_plan_map)[0]
+            pattern.condition.set_statistics_collector(statistics_collector)
             self._tree = Tree(list(pattern_to_tree_plan_map.values())[0],
-                              list(pattern_to_tree_plan_map)[0], storage_params,
-                              statistics_collector=statistics_collector)
+                              list(pattern_to_tree_plan_map)[0], storage_params)
 
         self.__storage_params = storage_params
         self.__statistics_collector = statistics_collector
@@ -59,7 +61,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
         given output stream.
         """
         self._event_types_listeners = self._register_event_listeners(self._tree)
-        statistics_update_start_time = None
+        last_statistics_refresh_time = None
 
         for raw_event in events:
             event = Event(raw_event, data_formatter)
@@ -67,21 +69,10 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
                 continue
             self.__remove_expired_freezers(event)
 
-            if not self.__is_multi_pattern_mode:
-                # Note: multi-pattern does not yet support adaptive-CEP,
+            if not self.__is_multi_pattern_mode and self.__statistics_collector is not None:
                 # TODO: support multi-pattern mode
+                last_statistics_refresh_time = self.__perform_reoptimization(last_statistics_refresh_time, event)
 
-                if not statistics_update_start_time or event.timestamp - statistics_update_start_time > self.__statistics_update_time_window:
-                    if self._is_need_new_statistics():
-                        new_statistics = self.__statistics_collector.get_statistics()
-                        if self.__optimizer.is_need_optimize(new_statistics, self._pattern):
-                            new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
-                            new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params, statistics_collector=self.__statistics_collector)
-                            self._tree_update(new_tree, event.timestamp)
-                        # re-initialize statistics window start time
-                        statistics_update_start_time = event.timestamp
-
-            self.__statistics_collector.event_handler(event)
             self._play_new_event_on_tree(event, matches)
             self._get_matches(matches)
 
@@ -89,6 +80,32 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
         # collect them now
         self._get_last_pending_matches(matches)
         matches.close()
+
+    def __perform_reoptimization(self, last_statistics_refresh_time: timedelta, last_event: Event):
+        """
+        If needed, reoptimizes the evaluation mechanism to reflect the current statistical properties of the
+        input event stream.
+        """
+        self.__statistics_collector.event_handler(last_event)
+        if not self._should_try_reoptimize(last_statistics_refresh_time, last_event):
+            # it is not yet time to recalculate the statistics
+            return last_statistics_refresh_time
+        new_statistics = self.__statistics_collector.get_statistics()
+        if self.__optimizer.is_need_optimize(new_statistics, self._pattern):
+            new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
+            new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
+            self._tree_update(new_tree, last_event.timestamp)
+        # this is the new last statistic refresh time
+        return last_event.timestamp
+
+    def _should_try_reoptimize(self, last_statistics_refresh_time: timedelta, last_event: Event):
+        """
+        Returns True if statistic recalculation and a reoptimization attempt can now be performed and False otherwise.
+        The default implementation merely checks whether enough time has passed since the last reoptimization attempt.
+        """
+        if last_statistics_refresh_time is None:
+            return True
+        return last_event.timestamp - last_statistics_refresh_time > self.__statistics_update_time_window
 
     def _get_last_pending_matches(self, matches):
         """
@@ -114,24 +131,6 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
         for match in self._tree.get_matches():
             matches.add_item(match)
             self._remove_matched_freezers(match.events)
-
-    def _tree_update(self, new_tree: Tree, event: Event):
-        """
-        Registers a new tree in the evaluation mechanism.
-        """
-        raise NotImplementedError("Must override")
-
-    def _is_need_new_statistics(self):
-        """
-        Checks if new statistics are needed for the evaluation.
-        """
-        raise NotImplementedError("Must override")
-
-    def _play_new_event_on_tree(self, event: Event, matches: OutputStream):
-        """
-        Lets the tree handle the event.
-        """
-        raise NotImplementedError("Must override")
 
     @staticmethod
     def _register_event_listeners(tree: Tree):
@@ -212,3 +211,15 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
 
     def __repr__(self):
         return self.get_structure_summary()
+
+    def _tree_update(self, new_tree: Tree, event: Event):
+        """
+        Registers a new tree in the evaluation mechanism.
+        """
+        raise NotImplementedError()
+
+    def _play_new_event_on_tree(self, event: Event, matches: OutputStream):
+        """
+        Lets the tree handle the event.
+        """
+        raise NotImplementedError()

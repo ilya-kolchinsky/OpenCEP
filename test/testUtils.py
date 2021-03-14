@@ -4,7 +4,7 @@ import sys
 
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
-from optimizer.OptimizerFactory import StatisticsDeviationAwareOptimizerParameters
+from adaptive.optimizer.OptimizerFactory import StatisticsDeviationAwareOptimizerParameters
 from stream.Stream import OutputStream
 from stream.FileStream import FileInputStream, FileOutputStream
 from misc.Utils import generate_matches
@@ -36,9 +36,9 @@ custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.tx
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
 DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
-    TreeBasedEvaluationMechanismParameters(TreeStorageParameters(sort_storage=False,
-                                                                 clean_up_interval=10,
-                                                                 prioritize_sorting_by_timestamp=True),
+    TreeBasedEvaluationMechanismParameters(storage_params=TreeStorageParameters(sort_storage=False,
+                                                                                clean_up_interval=10,
+                                                                                prioritize_sorting_by_timestamp=True),
                                            optimizer_params=StatisticsDeviationAwareOptimizerParameters(tree_plan_params
                                                                                                         =TreePlanBuilderParameters(
                                                TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,

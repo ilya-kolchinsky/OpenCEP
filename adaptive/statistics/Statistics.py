@@ -4,7 +4,7 @@ from datetime import timedelta, datetime
 from typing import List
 from base.Event import Event
 from base.Pattern import Pattern
-from statistics_collector.StatisticEventData import StatisticEventData
+from adaptive.statistics.StatisticEventData import StatisticEventData
 
 
 class Statistics(ABC):

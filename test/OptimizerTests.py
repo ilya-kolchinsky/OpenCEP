@@ -1,11 +1,11 @@
 from datetime import timedelta
 from typing import Dict
-from statistics_collector.StatisticsTypes import StatisticsTypes
+from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from base.Pattern import Pattern
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from condition.Condition import SimpleCondition, Variable
-from optimizer.Optimizer import Optimizer
-from optimizer.OptimizerFactory import OptimizerFactory
+from adaptive.optimizer.Optimizer import Optimizer
+from adaptive.optimizer.OptimizerFactory import OptimizerFactory
 from test.EvalTestsDefaults import DEFAULT_TESTING_GREEDY_INVARIANT_OPTIMIZER_SETTINGS, \
     DEFAULT_TESTING_ZSTREAM_INVARIANT_OPTIMIZER_SETTINGS
 

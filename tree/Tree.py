@@ -7,7 +7,7 @@ from base.PatternStructure import SeqOperator, AndOperator, PatternStructure, Co
     KleeneClosureOperator, PrimitiveEventStructure, NegationOperator
 from misc.ConsumptionPolicy import ConsumptionPolicy
 from plan.TreePlan import TreePlan, TreePlanNode, TreePlanLeafNode, TreePlanBinaryNode, OperatorTypes
-from statistics_collector.StatisticsCollector import StatisticsCollector
+from adaptive.statistics.StatisticsCollector import StatisticsCollector
 from tree.nodes.AndNode import AndNode
 from tree.nodes.KleeneClosureNode import KleeneClosureNode
 from tree.nodes.LeafNode import LeafNode
@@ -24,7 +24,7 @@ class Tree:
     The pattern_id parameter is used in multi-pattern mode.
     """
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
-                 pattern_id: int = None, statistics_collector: StatisticsCollector = None):
+                 pattern_id: int = None):
         self.__root = self.__construct_tree(pattern.positive_structure, tree_plan.root,
                                             Tree.__get_operator_arg_list(pattern.positive_structure),
                                             pattern.window, None, pattern.consumption_policy)
@@ -38,7 +38,7 @@ class Tree:
             self.__adjust_leaf_indices(pattern)
             self.__add_negative_tree_structure(pattern)
 
-        self.__apply_condition(pattern, statistics_collector)
+        self.__apply_condition(pattern)
 
         self.__root.create_storage_unit(storage_params)
 
@@ -48,16 +48,12 @@ class Tree:
             pattern.id = pattern_id
             self.__root.propagate_pattern_id(pattern_id)
 
-    def __apply_condition(self, pattern: Pattern, statistics_collector: StatisticsCollector):
+    def __apply_condition(self, pattern: Pattern):
         """
         Applies the condition of the given pattern on the evaluation tree.
         The condition is copied since it is modified inside the recursive apply_condition call.
         """
         condition_copy = deepcopy(pattern.condition)
-
-        # set the statistics collector reference to every atomic condition
-        for atomic_condition in condition_copy.extract_atomic_conditions():
-            atomic_condition.set_statistics_collector(statistics_collector)
 
         self.__root.apply_condition(condition_copy)
         if condition_copy.get_num_conditions() > 0:
@@ -217,18 +213,6 @@ class Tree:
         first_unbounded_negative_node.flush_pending_matches()
         # the pending matches were released and have hopefully reached the root
         return self.get_matches()
-
-    def set_pending_matches(self, pending_matches):
-        """
-        Overwrites the current pending partial matches in the tree with new partial matches,
-        Currently used for tree replacement.
-        """
-        if not isinstance(self.__root, NegationNode):
-            return
-        first_unbounded_negative_node = self.__root.get_first_unbounded_negative_node()
-        if not first_unbounded_negative_node:
-            return
-        first_unbounded_negative_node.set_pending_partial_matches(pending_matches)
 
     @staticmethod
     def __create_nested_structure(nested_operator: PatternStructure):

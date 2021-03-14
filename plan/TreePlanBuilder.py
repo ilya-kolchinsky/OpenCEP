@@ -1,4 +1,5 @@
 from abc import ABC
+from typing import Dict
 
 from base.Pattern import Pattern
 from base.PatternStructure import AndOperator, SeqOperator
@@ -14,26 +15,23 @@ class TreePlanBuilder(ABC):
     def __init__(self, cost_model_type: TreeCostModels):
         self.__cost_model = TreeCostModelFactory.create_cost_model(cost_model_type)
 
-    def build_tree_plan(self, statistics: dict, pattern: Pattern):
+    def build_tree_plan(self, pattern: Pattern, statistics: Dict):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
-        return TreePlan(self._create_tree_topology(statistics, pattern))
+        return TreePlan(self._create_tree_topology(pattern, statistics))
 
-    def _create_tree_topology(self, statistics: dict, pattern: Pattern):
+    def _create_tree_topology(self, pattern: Pattern, statistics: Dict):
         """
         An abstract method for creating the actual tree topology.
         """
         raise NotImplementedError()
 
-    def _get_plan_cost(self, statistics: dict, pattern: Pattern, plan: TreePlanNode):
+    def _get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: Dict):
         """
         Returns the cost of a given plan for the given plan according to a predefined cost model.
         """
-        return self.__cost_model.get_plan_cost(statistics, pattern, plan)
-
-    def get_cost_model(self):
-        return self.__cost_model
+        return self.__cost_model.get_plan_cost(pattern, plan, statistics)
 
     @staticmethod
     def _instantiate_binary_node(pattern: Pattern, left_subtree: TreePlanNode, right_subtree: TreePlanNode):
