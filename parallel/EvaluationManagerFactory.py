@@ -6,7 +6,7 @@ from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from parallel.ParallelExecutionParameters import *
 from parallel.manager.SequentialEvaluationManager import SequentialEvaluationManager
-from parallel.manager.DataParallelEvaluationManager import DataParallelEvaluationManager
+from parallel.data_parallel.DataParallelEvaluationManager import DataParallelEvaluationManager
 
 
 class EvaluationManagerFactory:
@@ -22,6 +22,5 @@ class EvaluationManagerFactory:
         if parallel_execution_params.execution_mode == ParallelExecutionModes.SEQUENTIAL:
             return SequentialEvaluationManager(patterns, eval_mechanism_params)
         if parallel_execution_params.execution_mode == ParallelExecutionModes.DATA_PARALLELISM:
-            return DataParallelEvaluationManager(patterns, eval_mechanism_params,
-                                                 parallel_execution_params)
+            return DataParallelEvaluationManager(patterns, eval_mechanism_params, parallel_execution_params)
         raise Exception("Unknown parallel execution mode: %s" % (parallel_execution_params.execution_mode,))

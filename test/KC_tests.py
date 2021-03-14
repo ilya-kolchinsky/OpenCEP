@@ -29,6 +29,7 @@ def structuralTest1():
         ),
         timedelta(minutes=3)
     )
+
     expected_result = ('Seq', 'a', ('KC', ('And', ('And', 'b', ('KC', 'c')), ('KC', ('Seq', 'd', 'e')))))
     runStructuralTest('structuralTest1', [structural_test_pattern], expected_result)
 
@@ -184,7 +185,6 @@ def MinMax_1_TestKleeneClosure(createTestFile=False):
         SimpleCondition(Variable("a", lambda x: x["Opening Price"]), relation_op=lambda x: x > 0),
         timedelta(minutes=5)
     )
-
     runTest("MinMax_1_", [pattern], createTestFile, events=nasdaqEventStreamKC)
 
 def MinMax_2_TestKleeneClosure(createTestFile=False):
@@ -236,7 +236,6 @@ def KC_AND_IndexCondition_01(createTestFile=False):
         timedelta(minutes=3)
     )
     runTest("KC_AND_IndexCondition_01_", [pattern], createTestFile, events=nasdaqEventStreamKC)
-
 
 
 

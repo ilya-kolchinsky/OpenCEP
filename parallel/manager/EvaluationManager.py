@@ -4,6 +4,7 @@ An evaluation manager is a component responsible for parallel and/or distributed
 It internally activates and uses a CEP evaluation mechanism.
 """
 from abc import ABC
+
 from stream.Stream import InputStream, OutputStream
 from base.DataFormatter import DataFormatter
 
@@ -12,7 +13,6 @@ class EvaluationManager(ABC):
     """
     The root class of the evaluation manager hierarchy.
     """
-
     def eval(self, event_stream: InputStream, pattern_matches: OutputStream, data_formatter: DataFormatter):
         """
         Utilizes a (possibly parallelized) evaluation mechanism to extract pattern matches from the given input stream

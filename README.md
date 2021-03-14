@@ -257,7 +257,7 @@ event_stream = TwitterInputStream(['corona'])
 ### Tweet formation in CEP
 The format of a tweet is defined in Tweets.py (see documentation). The tweet keys are described there based on the overview of a tweet in https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object
 
-#Data Parallel Algorithms
+### Data Parallel Algorithms (NOTE: not supported yet)
 
 In order to run the program in parallel, the user is required to input the needed parameters
 under the following structure while the underline filled with the name of the chosen algorithm

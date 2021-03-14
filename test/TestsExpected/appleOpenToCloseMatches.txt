@@ -1,6 +1,0 @@
-{'Stock Ticker': 'AAPL', 'Date': 200802010920, 'Opening Price': 135.68, 'Peak Price': 135.68, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 3236}
-
-{'Stock Ticker': 'AAPL', 'Date': 200802010921, 'Opening Price': 135.68, 'Peak Price': 135.68, 'Lowest Price': 135.6, 'Close Price': 135.68, 'Volume': 818}
-
-{'Stock Ticker': 'AAPL', 'Date': 200802010927, 'Opening Price': 135.88, 'Peak Price': 135.91, 'Lowest Price': 135.7, 'Close Price': 135.88, 'Volume': 4200}
-

@@ -16,8 +16,8 @@ class ParallelExecutionModes(Enum):
 
 class DataParallelExecutionModes(Enum):
     """
-        Types of data parallel algorithm modes supported by the system.
+    Types of data parallel algorithm modes supported by the system.
     """
-    HIRZEL_ALGORITHM = 1
+    GROUP_BY_KEY_ALGORITHM = 1
     RIP_ALGORITHM = 2
     HYPER_CUBE_ALGORITHM = 3

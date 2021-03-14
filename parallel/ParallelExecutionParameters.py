@@ -39,7 +39,7 @@ class DataParallelExecutionParametersHirzelAlgorithm(DataParallelExecutionParame
                  units_number: int = DefaultConfig.DEFAULT_PARALLEL_UNITS_NUMBER,
                  key: str = DefaultConfig.DEFAULT_PARALLEL_KEY):
         super().__init__(execution_mode, platform,
-                         DataParallelExecutionModes.HIRZEL_ALGORITHM,
+                         DataParallelExecutionModes.GROUP_BY_KEY_ALGORITHM,
                          units_number)
         self.divide_key = key
 

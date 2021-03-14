@@ -4,8 +4,8 @@ from typing import List
 from base.Event import Event
 from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
 from condition.CompositeCondition import CompositeCondition, AndCondition
-from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, UnaryStructure,  \
-    SeqOperator, NegationOperator, KleeneClosureOperator, AndOperator
+from base.PatternStructure import PatternStructure, CompositeStructure, PrimitiveEventStructure, \
+    SeqOperator, NegationOperator
 from datetime import timedelta
 from misc.StatisticsTypes import StatisticsTypes
 from misc.ConsumptionPolicy import ConsumptionPolicy
@@ -105,7 +105,6 @@ class Pattern:
         """
         return set(self.__get_all_event_types_aux(self.full_structure))
 
-
     def __get_all_event_types_aux(self, structure: PatternStructure):
         """
         An auxiliary method for returning all event types in the pattern.
@@ -113,43 +112,6 @@ class Pattern:
         if isinstance(structure, PrimitiveEventStructure):
             return [structure.type]
         return reduce(lambda x, y: x+y, [self.__get_all_event_types_aux(arg) for arg in structure.args])
-
-
-    def get_all_event_types_with_duplicates(self):
-        """
-        Returns all event types in the pattern.
-        """
-        return list(self.__get_all_event_types_with_duplicates_aux(self.full_structure))
-
-
-
-    def __get_all_event_types_with_duplicates_aux(self, structure: PatternStructure):
-        """
-        An auxiliary method for returning all event types in the pattern.
-        """
-        if isinstance(structure,KleeneClosureOperator):
-            if isinstance(structure.arg, PrimitiveEventStructure):
-                if structure.max_size == None:
-                    return [structure.arg.type]
-                else:
-                    return [structure.arg.type for i in range(structure.max_size)]
-            else:
-                types=[]
-                for i in range(structure.max_size):
-                    types.extend(reduce(lambda x, y: x + y,[self.__get_all_event_types_with_duplicates_aux(arg) for arg in structure.arg.args]))
-                return types
-
-        if isinstance(structure, NegationOperator):
-            return [structure.arg.type]
-
-        if isinstance(structure, PrimitiveEventStructure):
-            return [structure.type]
-
-        if isinstance(structure,UnaryStructure):
-            return reduce(lambda x, y: x+y, [self.__get_all_event_types_with_duplicates_aux(arg) for arg in structure.arg])
-        else:
-            return reduce(lambda x, y: x + y, [self.__get_all_event_types_with_duplicates_aux(arg) for arg in structure.args])
-
 
     def __init_strict_conditions(self, pattern_structure: PatternStructure):
         """

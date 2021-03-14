@@ -1,9 +1,0 @@
-{'Stock Ticker': 'FB', 'Date': 200802010919, 'Opening Price': 16, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
-{'Stock Ticker': 'AAPL', 'Date': 200802010925, 'Opening Price': 16, 'Peak Price': 78.75, 'Lowest Price': 78.7, 'Close Price': 78.72, 'Volume': 800}
-
-{'Stock Ticker': 'FB', 'Date': 200802010921, 'Opening Price': 16, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
-{'Stock Ticker': 'AAPL', 'Date': 200802010925, 'Opening Price': 16, 'Peak Price': 78.75, 'Lowest Price': 78.7, 'Close Price': 78.72, 'Volume': 800}
-
-{'Stock Ticker': 'FB', 'Date': 200802010923, 'Opening Price': 16, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
-{'Stock Ticker': 'AAPL', 'Date': 200802010925, 'Opening Price': 16, 'Peak Price': 78.75, 'Lowest Price': 78.7, 'Close Price': 78.72, 'Volume': 800}
-

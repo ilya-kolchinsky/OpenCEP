@@ -201,7 +201,7 @@ googleIncreasePatternSearchTestHyperCubeAlgorithm()
 hierarchyPatternSearchTestHyperCubeAlgorithm()
 
 
-# # tree plan generation algorithms for HyperCubeAlgorithm
+# # tree plan generation algorithms for HyperCubeParallelExecutionAlgorithm
 arrivalRatesPatternSearchTestHyperCubeAlgorithm()
 frequencyPatternSearchTestHyperCubeAlgorithm()
 nonFrequencyPatternSearchTestHyperCubeAlgorithm()
@@ -226,7 +226,7 @@ frequencyTailoredPatternSearchTestHyperCubeAlgorithm()
 # # ### Kleene closure tests
 MinMax_0_TestKleeneClosureHyperCubeAlgorithm()
 
-# # tree plan generation algorithms for HyperCubeAlgorithm
+# # tree plan generation algorithms for HyperCubeParallelExecutionAlgorithm
 arrivalRatesPatternSearchTestHyperCubeAlgorithm()
 frequencyPatternSearchTestHyperCubeAlgorithm()
 nonFrequencyPatternSearchTestHyperCubeAlgorithm()

@@ -6,9 +6,6 @@ from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, G
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
 
-
-
-
 def oneArgumentsearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a")),
@@ -155,7 +152,7 @@ def googleAmazonLowPatternSearchTest(createTestFile=False):
             SimpleCondition(Variable("a", lambda x: x["Peak Price"]),
                             relation_op=lambda x: x <= 73),
             SimpleCondition(Variable("g", lambda x: x["Peak Price"]),
-                            relation_op=lambda x: x <= 120)
+                            relation_op=lambda x: x <= 525)
         ),
         timedelta(minutes=1)
     )
@@ -220,6 +217,4 @@ def duplicateEventTypeTest(createTestFile=False):
         timedelta(minutes=10)
     )
     runTest("duplicateEventType", [pattern], createTestFile, eventStream=nasdaqEventStreamTiny)
-
-
 

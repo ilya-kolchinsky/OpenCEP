@@ -11,19 +11,14 @@ from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
 from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from tree.MultiPatternTree import MultiPatternTree
+
 from tree.Tree import Tree
-
-from threading import Thread, Lock
-
-
-
 
 
 class TreeBasedEvaluationMechanism(EvaluationMechanism):
     """
     An implementation of the tree-based evaluation mechanism.
     """
-
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                  storage_params: TreeStorageParameters,
                  multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
@@ -46,7 +41,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
                 self.__pattern.consumption_policy.freeze_names is not None:
             self.__init_freeze_map()
 
-    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter, to_close=True):
+    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
         Activates the tree evaluation mechanism on the input event stream and reports all found pattern matches to the
         given output stream.
@@ -71,9 +66,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism):
         # collect them now
         for match in self.__tree.get_last_matches():
             matches.add_item(match)
-
-        if to_close:
-            matches.close()
+        matches.close()
 
     def __register_event_listeners(self):
         """

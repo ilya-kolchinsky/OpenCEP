@@ -4,7 +4,7 @@ by invoking the rest of the system components.
 """
 from base.DataFormatter import DataFormatter
 from parallel.EvaluationManagerFactory import EvaluationManagerFactory
-from parallel.ParallelExecutionParameters import *
+from parallel.ParallelExecutionParameters import ParallelExecutionParameters
 from stream.Stream import InputStream, OutputStream
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
@@ -23,7 +23,7 @@ class CEP:
         """
         Constructor of the class.
         """
-        if patterns is None or (isinstance(patterns, List) and len(patterns) == 0):
+        if patterns is None or len(patterns) == 0:
             raise Exception("No patterns are provided")
         self.__evaluation_manager = EvaluationManagerFactory.create_evaluation_manager(patterns,
                                                                                        eval_mechanism_params,
