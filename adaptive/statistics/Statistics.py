@@ -4,7 +4,15 @@ from datetime import timedelta, datetime
 from typing import List
 from base.Event import Event
 from base.Pattern import Pattern
-from adaptive.statistics.StatisticEventData import StatisticEventData
+
+
+class StatisticEventData:
+    """
+    A container class that contains the event type along with event timestamp
+    """
+    def __init__(self, timestamp: datetime, event_type: str):
+        self.timestamp = timestamp
+        self.event_type = event_type
 
 
 class Statistics(ABC):
@@ -155,17 +163,3 @@ class SelectivityStatistics(Statistics):
                             self.__indices_to_atomic_condition_map[(i, j)].append(atomic_condition_id)
                         else:
                             self.__indices_to_atomic_condition_map[(i, j)] = [atomic_condition_id]
-
-
-class FrequencyDict(Statistics):
-    """
-    Not implemented
-    """
-    def __init__(self, predefined_statistics: dict = None):
-        self.frequency_dict = {} if not predefined_statistics else predefined_statistics
-
-    def update(self, event):
-        raise NotImplementedError()
-
-    def get_statistics(self):
-        return copy.deepcopy(self.frequency_dict)

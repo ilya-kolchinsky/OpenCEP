@@ -10,12 +10,12 @@ class StatisticsCollector:
     def __init__(self, statistics: dict):
         self.__statistics = statistics
 
-    def event_handler(self, event: Event):
+    def handle_event(self, event: Event):
         """
         Handles events directly from the stream.
         Currently only arrival rates statistics handles the events
         """
-        self.update_specified_statistics(StatisticsTypes.ARRIVAL_RATES, event)
+        self.update_statistics_by_type(StatisticsTypes.ARRIVAL_RATES, event)
 
     def get_statistics(self):
         """
@@ -24,7 +24,7 @@ class StatisticsCollector:
         return {statistics_type: statistics.get_statistics() for statistics_type, statistics in
                 self.__statistics.items()}
 
-    def update_specified_statistics(self, statistics_type: StatisticsTypes, data):
+    def update_statistics_by_type(self, statistics_type: StatisticsTypes, data):
         """
         This method exists because there are statistics(like selectivity)
         that are updated not based on events from the stream directly.

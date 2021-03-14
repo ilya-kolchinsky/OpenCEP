@@ -8,11 +8,10 @@ from adaptive.statistics.StatisticsTypes import StatisticsTypes
 
 class Invariant:
     """
-    This class represent a single invariant.
-    invariant will be defined as an inequality of the following form:
-    f1 (stat1) < f2 (stat2)
-    Hence we save the index corresponding to stat1 in the left side of the inequality
-    and the index corresponding to stat2 in the right side of the inequality.
+    This class represents a single invariant.
+    An invariant is defined as an inequality of the following form: f1 (stat1) < f2 (stat2), hence we save the index
+     corresponding to stat1 in the left side of the inequality and the index corresponding to stat2 in the right side
+     of the inequality.
     """
     def __init__(self, left, right):
         self.left = left
@@ -21,7 +20,7 @@ class Invariant:
 
 class Invariants(ABC):
     """
-    This class represent a container for all invariants
+    This class represents a container for all invariants.
     """
     def __init__(self):
         self.invariants = []
@@ -41,7 +40,7 @@ class GreedyTreeInvariants(Invariants):
     """
     Tests the following condition for every invariant in the invariants:
     change_factor(invariant.left) < change_factor(invariant.right).
-    The verification proceeds in a bottom up order
+    The verification proceeds in a bottom up order.
     """
     def is_invariants_violated(self, new_statistics: dict, pattern: Pattern):
         if StatisticsTypes.ARRIVAL_RATES in new_statistics and \

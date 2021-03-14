@@ -107,7 +107,7 @@ class AtomicCondition(Condition, ABC):
         # updates the selectivity statistics based on the evaluated atomic condition result
         data = (self, result)
         if self._statistics_collector is not None:
-            self._statistics_collector.update_specified_statistics(StatisticsTypes.SELECTIVITY_MATRIX, data)
+            self._statistics_collector.update_statistics_by_type(StatisticsTypes.SELECTIVITY_MATRIX, data)
         return result
 
     @abstractmethod

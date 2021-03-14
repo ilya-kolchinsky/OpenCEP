@@ -83,13 +83,13 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
         If needed, reoptimizes the evaluation mechanism to reflect the current statistical properties of the
         input event stream.
         """
-        self.__statistics_collector.event_handler(last_event)
+        self.__statistics_collector.handle_event(last_event)
         if not self._should_try_reoptimize(last_statistics_refresh_time, last_event):
             # it is not yet time to recalculate the statistics
             return last_statistics_refresh_time
         new_statistics = self.__statistics_collector.get_statistics()
-        if self.__optimizer.is_need_optimize(new_statistics, self._pattern):
-            new_tree_plan = self.__optimizer.build_new_tree_plan(new_statistics, self._pattern)
+        if self.__optimizer.should_optimize(new_statistics, self._pattern):
+            new_tree_plan = self.__optimizer.build_new_plan(new_statistics, self._pattern)
             new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
             self._tree_update(new_tree, last_event.timestamp)
         # this is the new last statistic refresh time

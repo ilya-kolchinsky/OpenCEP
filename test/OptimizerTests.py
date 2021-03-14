@@ -191,11 +191,11 @@ def optimizer_test(old_statistics: Dict, new_statistics: Dict, optimizer: Optimi
     """
     pattern = get_pattern_test()
 
-    if optimizer.is_need_optimize(old_statistics, pattern):
-        optimizer.build_new_tree_plan(old_statistics, pattern)
+    if optimizer.should_optimize(old_statistics, pattern):
+        optimizer.build_new_plan(old_statistics, pattern)
 
-    if optimizer.is_need_optimize(new_statistics, pattern):
-        optimizer.build_new_tree_plan(new_statistics, pattern)
+    if optimizer.should_optimize(new_statistics, pattern):
+        optimizer.build_new_plan(new_statistics, pattern)
         return True
 
     return False

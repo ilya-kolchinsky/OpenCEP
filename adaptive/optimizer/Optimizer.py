@@ -16,14 +16,17 @@ class Optimizer(ABC):
         self.__is_adaptivity_enabled = is_adaptivity_enabled
 
     @abstractmethod
-    def is_need_optimize(self, new_statistics: dict, pattern: Pattern):
+    def should_optimize(self, new_statistics: dict, pattern: Pattern):
         """
-        Asks if it's necessary to optimize(invoke plan reconstruction). usually based on the new statistics;
+        Returns True if it is necessary to attempt a reoptimization at this time, and False otherwise.
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
+    def build_new_plan(self, new_statistics: dict, pattern: Pattern):
+        """
+        Builds and returns a new evaluation plan based on the given statistics.
+        """
         raise NotImplementedError()
 
     def is_adaptivity_enabled(self):
@@ -32,25 +35,28 @@ class Optimizer(ABC):
         """
         return self.__is_adaptivity_enabled
 
-    def build_initial_tree_plan(self, initial_statistics: dict, cost_model_type: TreeCostModels,
-                                pattern: Pattern):
+    def build_initial_plan(self, initial_statistics: dict, cost_model_type: TreeCostModels,
+                           pattern: Pattern):
         """
         initializes the Statistic objects with initial statistics if such statistics exists,
         else, applies the default algorithm that does not require statistics.
         Note: right now only the TrivialLeftDeepTreeBuilder algorithm does not require statistics.
         """
-
         non_prior_tree_plan_builder = self._build_non_prior_tree_plan_builder(cost_model_type, pattern)
         if non_prior_tree_plan_builder is not None:
             self._tree_plan_builder, temp_tree_plan_builder = non_prior_tree_plan_builder, self._tree_plan_builder
-            initial_tree_plan = self.build_new_tree_plan(initial_statistics, pattern)
+            initial_tree_plan = self.build_new_plan(initial_statistics, pattern)
             self._tree_plan_builder = temp_tree_plan_builder
         else:
-            initial_tree_plan = self.build_new_tree_plan(initial_statistics, pattern)
+            initial_tree_plan = self.build_new_plan(initial_statistics, pattern)
         return initial_tree_plan
 
     @staticmethod
     def _build_non_prior_tree_plan_builder(cost_model_type: TreeCostModels, pattern: Pattern):
+        """
+        Attempts to create a tree builder for initializing the run. This only works when no a priori statistics are
+        specified in the beginning of the run.
+        """
         non_prior_tree_plan_builder = None
         if pattern.statistics is None:
             if DefaultConfig.DEFAULT_INIT_TREE_PLAN_BUILDER == TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE:
@@ -63,38 +69,34 @@ class Optimizer(ABC):
 
 class TrivialOptimizer(Optimizer):
     """
-    Represents the trivial optimizer that always initiates plan reconstruction, ignoring the statistics.
+    Represents the trivial optimizer that always initiates plan reconstruction ignoring the statistics.
     """
-
-    def is_need_optimize(self, new_statistics: dict, pattern: Pattern):
+    def should_optimize(self, new_statistics: dict, pattern: Pattern):
         return True
 
-    def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
+    def build_new_plan(self, new_statistics: dict, pattern: Pattern):
         tree_plan = self._tree_plan_builder.build_tree_plan(pattern, new_statistics)
         return tree_plan
 
 
 class StatisticsDeviationAwareOptimizer(Optimizer):
     """
-    Represents the optimizer that is aware of statistics deviations,
-    i.e if one of the statistics deviates from its latest observed
-    value by more than t, then plan reconstruction is activated.
+    Represents an optimizer that monitors statistics deviations from their latest observed values.
     """
-
     def __init__(self, tree_plan_builder: TreePlanBuilder, is_adaptivity_enabled: bool,
                  type_to_deviation_aware_functions_map: dict):
         super().__init__(tree_plan_builder, is_adaptivity_enabled)
         self.__prev_statistics = None
         self.__type_to_deviation_aware_tester_map = type_to_deviation_aware_functions_map
 
-    def is_need_optimize(self, new_statistics: dict, pattern: Pattern):
+    def should_optimize(self, new_statistics: dict, pattern: Pattern):
         for new_stats_type, new_stats in new_statistics.items():
             prev_stats = self.__prev_statistics[new_stats_type]
             if self.__type_to_deviation_aware_tester_map[new_stats_type].is_deviated_by_t(new_stats, prev_stats):
                 return True
         return False
 
-    def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
+    def build_new_plan(self, new_statistics: dict, pattern: Pattern):
         self.__prev_statistics = new_statistics
         tree_plan = self._tree_plan_builder.build_tree_plan(pattern, new_statistics)
         return tree_plan
@@ -102,24 +104,23 @@ class StatisticsDeviationAwareOptimizer(Optimizer):
 
 class InvariantsAwareOptimizer(Optimizer):
     """
-    Represents the invariants aware optimizer.
-    if at least one invariant was violated then plan reconstruction is activated.
+    Represents the invariant-aware optimizer. A reoptimization attempt is made when at least one of the precalculated
+    invariants is violated.
     """
-
     def __init__(self, tree_plan_builder: TreePlanBuilder, is_adaptivity_enabled: bool):
         super().__init__(tree_plan_builder, is_adaptivity_enabled)
         self._invariants = None
 
-    def is_need_optimize(self, new_statistics: dict, pattern: Pattern):
+    def should_optimize(self, new_statistics: dict, pattern: Pattern):
         return self._invariants is None or self._invariants.is_invariants_violated(new_statistics, pattern)
 
-    def build_new_tree_plan(self, new_statistics: dict, pattern: Pattern):
+    def build_new_plan(self, new_statistics: dict, pattern: Pattern):
         tree_plan, self._invariants = self._tree_plan_builder.build_tree_plan(pattern, new_statistics)
         return tree_plan
 
-    def build_initial_tree_plan(self, new_statistics: dict, cost_model_type: TreeCostModels,
-                                pattern: Pattern):
+    def build_initial_plan(self, new_statistics: dict, cost_model_type: TreeCostModels,
+                           pattern: Pattern):
         non_prior_tree_plan_builder = self._build_non_prior_tree_plan_builder(cost_model_type, pattern)
         if non_prior_tree_plan_builder is not None:
             return non_prior_tree_plan_builder.build_tree_plan(pattern, new_statistics)
-        return self.build_new_tree_plan(new_statistics, pattern)
+        return self.build_new_plan(new_statistics, pattern)
