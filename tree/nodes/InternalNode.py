@@ -1,10 +1,9 @@
 from abc import ABC
-from datetime import timedelta
 from typing import List, Set
 
 from base.Event import Event
 from condition.Condition import RelopTypes, EquationSides
-from tree.nodes.Node import Node, PrimitiveEventDefinition
+from tree.nodes.Node import Node, PrimitiveEventDefinition, PatternParameters
 from tree.PatternMatchStorage import TreeStorageParameters, UnsortedPatternMatchStorage, SortedPatternMatchStorage
 
 
@@ -12,9 +11,9 @@ class InternalNode(Node, ABC):
     """
     This class represents a non-leaf node of an evaluation tree.
     """
-    def __init__(self, sliding_window: timedelta, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
+    def __init__(self, pattern_params: PatternParameters, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None):
-        super().__init__(sliding_window, parents, pattern_ids)
+        super().__init__(pattern_params, parents, pattern_ids)
         self._event_defs = event_defs
 
     def get_event_definitions(self):
@@ -42,9 +41,8 @@ class InternalNode(Node, ABC):
         if len(self._parents) == 0:
             return
         # we call this method before we share nodes so each node has at most one parent
-        if len(self._parents) > 1:
-            raise Exception("This method should not be called when there is more than one parent.")
-        self._parent_to_info_dict[self._parents[0]] = self.get_positive_event_definitions()
+        for parent in self._parents:
+            self._parent_to_info_dict[parent] = self.get_positive_event_definitions()
 
     def _init_storage_unit(self, storage_params: TreeStorageParameters, sorting_key: callable = None,
                            rel_op: RelopTypes = None, equation_side: EquationSides = None,

@@ -32,7 +32,7 @@ class KCCondition(AtomicCondition, ABC):
         """
         return 0 <= index < len(lst)
 
-    def get_names(self):
+    def get_event_names(self):
         """
         Returns the event names associated with this condition.
         """
@@ -42,8 +42,10 @@ class KCCondition(AtomicCondition, ABC):
         return "KC [" + ", ".join(self._names) + "]"
 
     def __eq__(self, other):
-        return type(self) == type(other) and self._names == other._names and \
-               self._getattr_func == other._getattr_func and self._relation_op == other._relation_op
+        return self == other or (type(self) == type(other) and
+                                 self._names == other._names and
+                                 self._getattr_func == other._getattr_func and
+                                 self._relation_op == other._relation_op)
 
 
 class KCIndexCondition(KCCondition):
@@ -72,7 +74,7 @@ class KCIndexCondition(KCCondition):
         self.__second_index = second_index
         self.__offset = offset
 
-    def eval(self, event_list: list = None):
+    def _eval(self, event_list: list = None):
         # offset is active - choose evaluation by offset mechanism
         if self.__offset is not None:
             return self.__eval_by_offset(event_list)
@@ -164,7 +166,7 @@ class KCValueCondition(KCCondition):
         self.__value = value
         self.__index = index
 
-    def eval(self, event_list: list = None):
+    def _eval(self, event_list: list = None):
         # index comparison method and invalid index - Abort.
         if self.__index is not None and not self._validate_index(self.__index, event_list):
             return False

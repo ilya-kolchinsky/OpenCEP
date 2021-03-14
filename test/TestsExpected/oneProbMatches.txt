@@ -1,0 +1,4 @@
+{'Stock Ticker': 'AAPL', 'Date': 200802010930, 'Opening Price': 136.28, 'Peak Price': 136.45, 'Lowest Price': 136, 'Close Price': 136.16, 'Volume': 763544, 'Probability': 0.92}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802011008, 'Opening Price': 136.35, 'Peak Price': 136.59, 'Lowest Price': 136.21, 'Close Price': 136.306, 'Volume': 213443, 'Probability': 0.88}
+

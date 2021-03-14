@@ -2,19 +2,19 @@ from abc import ABC
 from typing import List
 
 from base.Pattern import Pattern
-from misc.Statistics import MissingStatisticsException
-from misc.StatisticsTypes import StatisticsTypes
+from misc.LegacyStatistics import MissingStatisticsException
+from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlan import TreePlanNode, TreePlanLeafNode
+from plan.TreePlan import TreePlanNode, TreePlanLeafNode, TreePlanNestedNode, TreePlanUnaryNode
 
 
 class TreeCostModel(ABC):
     """
     An abstract class for the cost model used by cost-based tree-structured evaluation plan generation algorithms.
     """
-    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode):
+    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict):
         """
-        Returns the cost of a given plan for a given pattern.
+        Returns the cost of a given plan for a given pattern provided the relevant data characteristics (statistics).
         """
         raise NotImplementedError()
 
@@ -22,12 +22,16 @@ class TreeCostModel(ABC):
 class IntermediateResultsTreeCostModel(TreeCostModel):
     """
     Calculates the plan cost based on the expected size of intermediate results (partial matches).
+    Creates an invariant matrix for an arrival rates only case, so that we can still use it in the cost algorithms.
     """
-    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode):
-        if pattern.statistics_type == StatisticsTypes.SELECTIVITY_MATRIX_AND_ARRIVAL_RATES:
-            (selectivity_matrix, arrival_rates) = pattern.statistics
-        else:
+    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict):
+        if StatisticsTypes.ARRIVAL_RATES not in statistics:
             raise MissingStatisticsException()
+        arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
+        if StatisticsTypes.SELECTIVITY_MATRIX in statistics:
+            selectivity_matrix = statistics[StatisticsTypes.SELECTIVITY_MATRIX]
+        else:
+            selectivity_matrix = [[1.0 for x in range(len(arrival_rates))] for y in range(len(arrival_rates))]
         _, _, cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(plan, selectivity_matrix,
                                                                           arrival_rates, pattern.window.total_seconds())
         return cost
@@ -43,6 +47,15 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
             cost = pm = time_window * arrival_rates[tree.event_index] * \
                         selectivity_matrix[tree.event_index][tree.event_index]
             return [tree.event_index], pm, cost
+
+        if isinstance(tree, TreePlanNestedNode):
+            return [tree.nested_event_index], tree.cost, tree.cost
+
+        if isinstance(tree, TreePlanUnaryNode):
+            return IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.child,
+                                                                        selectivity_matrix,
+                                                                        arrival_rates,
+                                                                        time_window)
 
         # calculate for left subtree
         left_args, left_pm, left_cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.left_child,

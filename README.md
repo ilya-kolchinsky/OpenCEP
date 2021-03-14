@@ -150,9 +150,50 @@ pattern = Pattern(
     timedelta(minutes=5)
 )
 ```
+
+### Multi-Pattern Support
+For multi-pattern workloads, you can choose one of the algorithms to share the common sub-patterns:
+* `TRIVIAL_SHARING_LEAVES`: shares equivalent leaves from different tree plans.
+* `TREE_PLAN_SUBTREES_UNION`: shares equivalent subtrees of different tree plans.
+
+More muti-pattern sharing algorithms will be supported in the future.
+
+```
+
+first_pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"),
+                    PrimitiveEventStructure("AAPL", "c")),
+        AndCondition(
+            SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]),
+                                 Variable("b", lambda x: x["Peak Price"])),
+            GreaterThanCondition(Variable("b", lambda x: x["Peak Price"]),
+                                 Variable("c", lambda x: x["Peak Price"]))
+        ),
+        timedelta(minutes=3)
+    )
+second_pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b")),
+        SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]),
+                             Variable("b", lambda x: x["Peak Price"]))
+        ,
+        timedelta(minutes=3)
+)    
+
+eval_mechanism_params = TreeBasedEvaluationMechanismParameters(TreePlanBuilderParameters(TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+                                                                                             TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL,
+                                                                                             MultiPatternTreePlanUnionApproaches.TREE_PLAN_SUBTREES_UNION))
+
+
+# Then, running activating cep engine: 
+cep = CEP([first_pattern, second_pattern] , eval_mechanism_params)
+```
+
 ### Negation Operator 
 
-The following is the example of a pattern containing a negation operator:
+OpenCEP supports a variety of negation algorithms provided using the TreeBasedEvaluationMechanismParameters parameter.
+It is an optional parameter, if the pattern includes negative events and negation algorithm was not provided, the naive negation algorithm would be used. 
+ 
+The following is an example of a pattern containing a negation operator (without providing negation algorithm):
 
 ```
 pattern = Pattern(
@@ -166,7 +207,34 @@ pattern = Pattern(
                                  Variable("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
+
 ```
+#### Optimizing evaluation performance with custom TreeBasedEvaluationMechanismParameters
+
+The following is an example of a pattern containing a negation operator specifying the statistic negation algorithm:
+
+```
+pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), 
+                    NegationOperator(PrimitiveEventStructure("AMZN", "b")), 
+                    PrimitiveEventStructure("GOOG", "c")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"])),
+            SmallerThanCondition(Variable("b", lambda x: x["Opening Price"]),
+                                 Variable("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        negation_algorithm_type = NegationAlgorithmTypes.STATISTIC_NEGATION_ALGORITHM
+    )
+    cep = CEP(pattern, eval_mechanism_params)
+```
+There is one more negation algorithm, the lowest position algorithm. In order to use it, use the TreeBasedEvaluationMechanismParameters as demonstrated above, specifying "NegationAlgorithmTypes.LOWEST_POSITION_NEGATION_ALGORITHM" as negation algorithm type.
+
+The use of the non naive algorithms may improve system performance.
+The statistic algorithm is recommended when data stream include a large amount of negative events.
+The lowest position algorithm is recommended when some of the negative events are bounded (i.e. not located at the beginning nor the end of the events sequence in the pattern). 
 
 ### Consumption policies and selection strategies
 
@@ -237,12 +305,67 @@ pattern = Pattern(
 )
 ```
 
-#### Optimizing evaluation performance with custom TreeStorageParameters
+### Optimizing evaluation performance with custom TreeStorageParameters
 ```
 storage_params = TreeStorageParameters(sort_storage=True,
                                        attributes_priorities={"a": 122, "b": 200, "c": 104, "m": 139})
 eval_mechanism_params=TreeBasedEvaluationMechanismParameters(storage_params=storage_params)
 cep = CEP(pattern, eval_mechanism_params)
+```
+
+### Optimizing evaluation performance with the use of Adaptive CEP
+
+OpenCEP supports timely evaluation plan replacement according to statistics obtained from the stream. 
+The CEP object maintains a statistics collector that supports several types of statistics. in addition it supports several optimization algorithms 
+that decide when to invoke plan reconstruction and a tree based evaluation method that decides how to replace evaluation trees.
+The following example shows how to create a CEP object that supports adaptive evaluation plan replacement based on 
+event type arrival rates and selectivity matrix statistics along with a deviation aware optimizer.
+
+First, define parameters of the statistics collector that will keep arrival rates statistics, 
+selectivity statistics and a certain time window:
+```
+statistics_types = [StatisticsTypes.SELECTIVITY_MATRIX, StatisticsTypes.ARRIVAL_RATES]
+
+time_window = timedelta(minutes=2)
+# the statistics are kept for a 2 minutes time interval
+
+statistics_collector_params = StatisticsCollectorParameters(statistics_types=statistics_types ,statistics_time_window=time_window)
+```
+
+To make use of the statistics, an optimizer is needed. The following example shows how to initialize the optimizer parameters:
+```
+# There are different types of optimizers, here we define an optimizer that 
+# calls for a new evaluation plan if at least one of the statistics has deviated by a factor of t. 
+# note that different optimizers are initialized by different parameters.
+
+optimizer_params = StatisticsDeviationAwareOptimizerParameters(t = 0.5, statistics_types = statistics_types)
+```
+
+After defining the parameters of the statistics collector and the optimizer, we create a CEP object that support adaptivity:
+```
+eval_mechanism_params = TreeBasedEvaluationMechanismParameters(statistics_collector_params=statistics_collector_params, optimizer_params=optimizer_params)
+CEP = CEP(pattern, eval_mechanism_params)
+```
+
+### Probabilistic streams and confidence parameters
+
+OpenCEP supports probabilistic streams, where each incoming event is associated
+with an occurrence probability. In this scenario, a pattern should contain a
+"confidence threshold" specifying what is the lowest acceptable probability of
+a match of this pattern.
+
+Probabilistic patterns are specified with the confidence threshold as follows:
+
+```
+pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("GOOG", "a"), 
+            PrimitiveEventStructure("GOOG", "b")
+        ),
+        SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]), Variable("b", lambda x: x["Peak Price"])),
+        timedelta(minutes=5),
+        confidence=0.9
+    )
 ```
 
 ## Twitter API support
