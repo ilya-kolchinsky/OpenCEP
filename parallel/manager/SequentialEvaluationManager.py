@@ -21,12 +21,7 @@ class SequentialEvaluationManager(EvaluationManager):
     def __init__(self, patterns: Pattern or List[Pattern], eval_mechanism_params: EvaluationMechanismParameters):
         if isinstance(patterns, Pattern):
             patterns = [patterns]
-        if len(patterns) > 1:
-            self.__eval_mechanism = EvaluationMechanismFactory.build_multi_pattern_eval_mechanism(eval_mechanism_params,
-                                                                                                  patterns)
-        else:
-            self.__eval_mechanism = EvaluationMechanismFactory.build_single_pattern_eval_mechanism(eval_mechanism_params,
-                                                                                                   patterns[0])
+        self.__eval_mechanism = EvaluationMechanismFactory.build_eval_mechanism(eval_mechanism_params, patterns)
         self.__pattern_matches = None
 
     def eval(self, event_stream: InputStream, pattern_matches: OutputStream, data_formatter: DataFormatter):

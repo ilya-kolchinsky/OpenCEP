@@ -3,7 +3,8 @@ This file contains the class responsible for parallel execution platform initial
 """
 from parallel.ParallelExecutionParameters import ParallelExecutionParameters
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
-from parallel.platform.ThreadingParallelExecutionPlatform import ThreadingParallelExecutionPlatform
+from parallel.platform.ThreadingParallelExecutionPlatform import \
+    ThreadingParallelExecutionPlatform
 
 
 class PlatformFactory:

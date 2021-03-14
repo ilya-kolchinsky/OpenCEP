@@ -3349,4 +3349,3 @@
 4: {'Stock Ticker': 'AAPL', 'Date': 200802010927, 'Opening Price': 135.88, 'Peak Price': 135.91, 'Lowest Price': 135.7, 'Close Price': 135.88, 'Volume': 4200}
 {'Stock Ticker': 'AMZN', 'Date': 200802010928, 'Opening Price': 78.68, 'Peak Price': 79, 'Lowest Price': 78.68, 'Close Price': 78.99, 'Volume': 13350}
 {'Stock Ticker': 'LI', 'Date': 200802010928, 'Opening Price': 529, 'Peak Price': 135.55, 'Lowest Price': 135.43, 'Close Price': 135.55, 'Volume': 3745}
-

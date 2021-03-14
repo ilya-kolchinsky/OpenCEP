@@ -379,3 +379,33 @@ event_stream = TwitterInputStream(['corona'])
 ```
 ### Tweet formation in CEP
 The format of a tweet is defined in Tweets.py (see documentation). The tweet keys are described there based on the overview of a tweet in https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object
+
+### Data Parallel Algorithms (NOTE: not supported yet)
+
+In order to run the program in parallel, the user is required to input the needed parameters
+under the following structure while the underline filled with the name of the chosen algorithm
+("Hirzel" / "RIP" / "HyperCube"): DataParallelExecutionParameters___Algorithm  
+The structure above contains the following parameters:
+1.Parallel execution mode (Data/ Structure/ Task/ Hybrid PARALLELISM)
+2.Parallel execution platforms (Threading available for now)
+3.Calculations units number
+
+Additionally, for each algorithm there is a unique additional input and certain terms on the inputs or on the pattern.
+Please note that there is no input validation. Input correctness is the user responsibility.
+
+Hirzel Algorithm -
+Additional input: An attribute the data will be divided into units according to it.
+Terms on the pattern: The pattern will only contain equations (for example: equations between attributes of different types, equality of a certain value to the attribute of a specific type).
+Please note that the given attribute has to be the same attribute that his equality tested in the pattern.
+
+RIP Algorithm -
+Additional input: multiple of timedelta.
+Terms on the pattern: The pattern will not contain unblocked negation.
+
+HyperCube Algorithm -
+Additional input: A dictionary consist of data type(key) and attribute(data) the data will be divided into units according to it.
+Terms on the given units number: the units number should satisfy the equation for some X: X**(types number)=(units number-1).
+For example, for a pattern consist of 3 types, a possible units number may be 28 (1+ 3 power 3).
+notes: - For KC patterns, only works when max_size for the Klenee Closer is given in the pattern, and doesn't work with nested Andoperator inside the KC pattern.
+       - The algorithm can't deal with negation condition. 
+Warning: The more times one type is used in a pattern, the more time the algorithm runs.

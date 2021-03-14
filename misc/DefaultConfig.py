@@ -8,7 +8,7 @@ from misc.SelectionStrategies import SelectionStrategies
 from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from adaptive.optimizer.OptimizerTypes import OptimizerTypes
 from tree.evaluation.TreeEvaluationMechanismUpdateTypes import TreeEvaluationMechanismUpdateTypes
-from parallel.ParallelExecutionModes import ParallelExecutionModes
+from parallel.ParallelExecutionModes import *
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType
 from plan.TreeCostModels import TreeCostModels
@@ -41,9 +41,14 @@ ITERATIVE_IMPROVEMENT_INIT_TYPE = IterativeImprovementInitType.RANDOM
 # parallel execution settings
 DEFAULT_PARALLEL_EXECUTION_MODE = ParallelExecutionModes.SEQUENTIAL
 DEFAULT_PARALLEL_EXECUTION_PLATFORM = ParallelExecutionPlatforms.THREADING
+DEFAULT_DATA_PARALLEL_ALGORITHM = DataParallelExecutionModes.RIP_ALGORITHM
+DEFAULT_PARALLEL_UNITS_NUMBER = 1
+DEFAULT_PARALLEL_KEY = None
+DEFAULT_PARALLEL_ATTRIBUTES_DICT = None
+DEFAULT_PARALLEL_MULT = 3
 
 # settings for pattern transformation rules
-PREPROCESSING_RULES_ORDER = None # disabled for now
+PREPROCESSING_RULES_ORDER = None  # disabled for now
 """
 [
     PatternTransformationRules.AND_AND_PATTERN,
