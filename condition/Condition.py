@@ -63,7 +63,9 @@ class Variable:
         return self.name
 
     def __eq__(self, other):
-        return type(other) == Variable and self.name == other.name and self.getattr_func == other.getattr_func
+        return type(other) == Variable and self.name == other.name and \
+               (self.getattr_func == other.getattr_func or
+                self.getattr_func.__code__.co_code == other.getattr_func.__code__.co_code)
 
 
 class Condition(ABC):
@@ -82,6 +84,12 @@ class Condition(ABC):
         Returns all atomic conditions comprising this condition.
         """
         raise NotImplementedError()
+
+    def get_event_names(self):
+        """
+        Returns the event names associated with this condition.
+        """
+        return set()
 
 
 class AtomicCondition(Condition, ABC):
@@ -174,7 +182,13 @@ class SimpleCondition(AtomicCondition):
         return "[" + separator.join(term_list) + "]"
 
     def __eq__(self, other):
-        return type(self) == type(other) and self.terms == other.terms and self.relation_op == other.relation_op
+        return self == other or type(self) == type(other) and self.terms == other.terms and self.relation_op == other.relation_op
+
+    def get_event_names(self):
+        """
+        Returns the event names associated with this condition.
+        """
+        return set(term.name for term in self.terms)
 
 
 class BinaryCondition(SimpleCondition):

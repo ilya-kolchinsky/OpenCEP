@@ -9,19 +9,19 @@ from misc import DefaultConfig
 from plan.IterativeImprovement import IterativeImprovementType, IterativeImprovementInitType, \
     IterativeImprovementAlgorithmBuilder
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlan import TreePlanLeafNode
+from plan.TreePlan import TreePlanNode, TreePlanLeafNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.LegacyStatistics import MissingStatisticsException
 from adaptive.statistics.StatisticsTypes import StatisticsTypes
-from misc.Utils import get_order_by_occurrences
+from plan.negation.NegationAlgorithmTypes import NegationAlgorithmTypes
 
 
 class LeftDeepTreeBuilder(TreePlanBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-    def _create_tree_topology(self, pattern: Pattern, statistics: Dict):
+    def _create_tree_topology(self, pattern: Pattern, statistics: Dict, leaves: List[TreePlanNode]):
         """
         Invokes an algorithm (to be implemented by subclasses) that builds an evaluation order of the operands, and
         converts it into a left-deep tree topology.
@@ -31,13 +31,15 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
         return LeftDeepTreeBuilder._order_to_tree_topology(order, pattern)
 
     @staticmethod
-    def _order_to_tree_topology(order: List[int], pattern: Pattern):
+    def _order_to_tree_topology(order: List[int], pattern: Pattern, leaves: List[TreePlanNode] = None):
         """
         A helper method for converting a given order to a tree topology.
         """
-        tree_topology = TreePlanLeafNode(order[0])
+        if leaves is None:
+            leaves = [TreePlanLeafNode(i) for i in range(max(order)+1)]
+        tree_topology = leaves[order[0]]
         for i in range(1, len(order)):
-            tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, TreePlanLeafNode(order[i]))
+            tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, leaves[order[i]])
         return tree_topology
 
     def _get_order_cost(self, pattern: Pattern, order: List[int], statistics: Dict):
@@ -138,10 +140,10 @@ class IterativeImprovementLeftDeepTreeBuilder(LeftDeepTreeBuilder):
     """
     Creates a left-deep tree using the iterative improvement procedure.
     """
-    def __init__(self, cost_model_type: TreeCostModels, step_limit: int,
-                 ii_type: IterativeImprovementType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE,
+    def __init__(self, cost_model_type: TreeCostModels, negation_algorithm_type: NegationAlgorithmTypes,
+                 step_limit: int, ii_type: IterativeImprovementType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE,
                  init_type: IterativeImprovementInitType = DefaultConfig.ITERATIVE_IMPROVEMENT_TYPE):
-        super().__init__(cost_model_type)
+        super().__init__(cost_model_type, negation_algorithm_type)
         self.__iterative_improvement = IterativeImprovementAlgorithmBuilder.create_ii_algorithm(ii_type)
         self.__initType = init_type
         self.__step_limit = step_limit

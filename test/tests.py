@@ -6,7 +6,10 @@ from test.NegationTests import *
 from test.PolicyTests import *
 from test.MultiPattern_tests import *
 from test.StorageTests import *
+import test.EventProbabilityTests
+from test.NestedTests import *
 from test.UnitTests.test_storage import run_storage_tests
+from test.UnitTests.RuleTransformationTests import ruleTransformationTests
 
 
 runTest.over_all_time = 0
@@ -42,10 +45,12 @@ iiRandomPatternSearchTest()
 iiRandom2PatternSearchTest()
 iiGreedyPatternSearchTest()
 iiGreedy2PatternSearchTest()
+
 zStreamOrdPatternSearchTest()
 zStreamPatternSearchTest()
 dpBPatternSearchTest()
 dpLdPatternSearchTest()
+
 nonFrequencyTailoredPatternSearchTest()
 frequencyTailoredPatternSearchTest()
 
@@ -56,7 +61,6 @@ structuralTest3()
 structuralTest4()
 structuralTest5()
 structuralTest6()
-structuralTest7()
 
 # Kleene closure tests
 oneArgumentsearchTestKleeneClosure()
@@ -85,6 +89,34 @@ oneNotAtTheEndTest()
 multipleNotAtTheEndTest()
 multipleNotBeginAndEndTest()
 testWithMultipleNotAtBeginningMiddleEnd()
+testWithMultipleNotAtBeginningMiddleEnd2()
+simpleNotTestStat()
+multipleNotInTheMiddleTestStat()
+oneNotAtTheBeginningTestStat()
+multipleNotAtTheBeginningTestStat()
+oneNotAtTheEndTestStat()
+multipleNotAtTheEndTestStat()
+multipleNotBeginAndEndTestStat()
+testWithMultipleNotAtBeginningMiddleEndStat()
+testWithMultipleNotAtBeginningMiddleEnd2Stat()
+simpleNotTestDPTree()
+multipleNotInTheMiddleTestDPTree()
+oneNotAtTheBeginningTestDPTree()
+multipleNotAtTheBeginningTestDPTree()
+oneNotAtTheEndTestDPTree()
+multipleNotAtTheEndTestDPTree()
+multipleNotBeginAndEndTestDPTree()
+testWithMultipleNotAtBeginningMiddleEndDPTree()
+testWithMultipleNotAtBeginningMiddleEnd2DPTree()
+simpleNotTestStatDPTree()
+multipleNotInTheMiddleTestStatDPTree()
+oneNotAtTheBeginningTestStatDPTree()
+multipleNotAtTheBeginningTestStatDPTree()
+oneNotAtTheEndTestStatDPTree()
+multipleNotAtTheEndTestStatDPTree()
+multipleNotBeginAndEndTestStatDPTree()
+testWithMultipleNotAtBeginningMiddleEndStatDPTree()
+testWithMultipleNotAtBeginningMiddleEnd2StatDPTree()
 
 # consumption policies tests
 singleType1PolicyPatternSearchTest()
@@ -99,19 +131,52 @@ sortedStorageTest()
 run_storage_tests()
 
 # multi-pattern tests
-# first approach: sharing leaves
 leafIsRoot()
 distinctPatterns()
 threePatternsTest()
 samePatternDifferentTimeStamps()
 rootAndInner()
-
-# second approach: sharing equivalent subtrees
 onePatternIncludesOther()
 samePatternSharingRoot()
 severalPatternShareSubtree()
 notInTheBeginningShare()
 multipleParentsForInternalNode()
+leafIsRootFullSharing()
+distinctPatternsFullSharing()
+threePatternsTestFullSharing()
+samePatternDifferentTimeStampsFullSharing()
+rootAndInnerFullSharing()
+onePatternIncludesOtherFullSharing()
+samePatternSharingRootFullSharing()
+severalPatternShareSubtreeFullSharing()
+notInTheBeginningShareFullSharing()
+multipleParentsForInternalNodeFullSharing()
+
+# event occurrence probability tests
+test.EventProbabilityTests.oneArgumentsearchTest()
+test.EventProbabilityTests.oneArgumentsearchTestKleeneClosure()
+test.EventProbabilityTests.simpleNotTest()
+test.EventProbabilityTests.threePatternsTest()
+
+# rule transformation unit tests
+ruleTransformationTests()
+
+# nested operator tests
+basicNestedTest()
+nestedAscendingTest()
+nestedAscendingStructuralTest()
+greedyNestedTest()
+greedyNestedStructuralTest()
+iiGreedyNestedPatternSearchTest()
+iiGreedyNestedStructuralTest()
+greedyNestedComplexStructuralTest()
+dpLdNestedPatternSearchTest()
+dpLdNestedStructuralTest()
+dpBNestedPatternSearchTest()
+dpBNestedStructuralTest()
+dpLdNestedComplexStructuralTest()
+zstreamOrdNestedComplexStructuralTest()
+KCNestedStructuralTest()
 
 
 # Optimizer tests
@@ -211,3 +276,9 @@ if INCLUDE_TWITTER:
 
 
 print("Finished running all tests, overall time: %s" % runTest.over_all_time)
+num_failed_tests.print_counter()
+if len(num_failed_tests.failed_tests):
+    print(num_failed_tests.failed_tests)
+if len(num_failed_tests.missing_combination):
+    print("\nTests that didn't check all the statistic combinations:")
+    print(*num_failed_tests.missing_combination, sep=", ")

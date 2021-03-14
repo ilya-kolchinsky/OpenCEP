@@ -1,19 +1,23 @@
 from datetime import datetime
+from typing import Any, Dict, Optional
 
 from base.DataFormatter import DataFormatter, EventTypeClassifier
 from misc.Utils import str_to_number
 
+METASTOCK_STOCK_TICKER_KEY = "Stock Ticker"
+METASTOCK_EVENT_TIMESTAMP_KEY = "Date"
+PROBABILITY_KEY = "Probability"
+
 METASTOCK_7_COLUMN_KEYS = [
-    "Stock Ticker",
-    "Date",
+    METASTOCK_STOCK_TICKER_KEY,
+    METASTOCK_EVENT_TIMESTAMP_KEY,
     "Opening Price",
     "Peak Price",
     "Lowest Price",
     "Close Price",
     "Volume"]
 
-METASTOCK_STOCK_TICKER_KEY = "Stock Ticker"
-METASTOCK_EVENT_TIMESTAMP_KEY = "Date"
+ADDITIONAL_OPTIONAL_KEYS = [PROBABILITY_KEY]
 
 
 class MetastockByTickerEventTypeClassifier(EventTypeClassifier):
@@ -40,9 +44,10 @@ class MetastockDataFormatter(DataFormatter):
         Parses a metastock 7 formatted string into an event.
         """
         event_attributes = raw_data.replace("\n", "").split(",")
-        for j in range(len(event_attributes)):
-            event_attributes[j] = str_to_number(event_attributes[j])
-        return dict(zip(METASTOCK_7_COLUMN_KEYS, event_attributes))
+        return dict(zip(
+            METASTOCK_7_COLUMN_KEYS + ADDITIONAL_OPTIONAL_KEYS,
+            map(str_to_number, event_attributes)
+        ))
 
     def get_event_timestamp(self, event_payload: dict):
         """
@@ -51,3 +56,6 @@ class MetastockDataFormatter(DataFormatter):
         timestamp_str = str(event_payload[METASTOCK_EVENT_TIMESTAMP_KEY])
         return datetime(year=int(timestamp_str[0:4]), month=int(timestamp_str[4:6]), day=int(timestamp_str[6:8]),
                         hour=int(timestamp_str[8:10]), minute=int(timestamp_str[10:12]))
+
+    def get_probability(self, event_payload: Dict[str, Any]) -> Optional[float]:
+        return event_payload.get(PROBABILITY_KEY, None)
