@@ -4,7 +4,6 @@ from base.Event import Event
 from base.Pattern import Pattern
 from adaptive.optimizer.Optimizer import Optimizer
 from plan.TreePlan import TreePlan
-from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from adaptive.statistics.StatisticsCollector import StatisticsCollector
 from stream.Stream import OutputStream
 from tree.PatternMatchStorage import TreeStorageParameters
@@ -20,15 +19,13 @@ class SimultaneousTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
     """
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                  storage_params: TreeStorageParameters,
-                 statistics_collector: StatisticsCollector,
-                 optimizer: Optimizer,
-                 statistics_update_time_window: timedelta,
-                 multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
+                 statistics_collector: StatisticsCollector = None,
+                 optimizer: Optimizer = None,
+                 statistics_update_time_window: timedelta = None):
         super().__init__(pattern_to_tree_plan_map, storage_params,
                          statistics_collector,
                          optimizer,
-                         statistics_update_time_window,
-                         multi_pattern_eval_params)
+                         statistics_update_time_window)
         self.__new_tree = None
         self.__new_event_types_listeners = None
         self.__is_simultaneous_state = False

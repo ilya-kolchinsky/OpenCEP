@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+from adaptive.optimizer.OptimizerFactory import OptimizerParameters
+from adaptive.optimizer.OptimizerTypes import OptimizerTypes
 from base.Pattern import Pattern
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, NegationOperator
 from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCondition, GreaterThanEqCondition, \
@@ -14,15 +16,18 @@ absolutePath = str(currentPath.parent)
 sys.path.append(absolutePath)
 
 leaf_sharing_eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
-    TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+    optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                         tree_plan_params=TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                               cost_model_type=TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL,
-                              tree_plan_merger_type=MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES),
-    TreeStorageParameters(sort_storage=False, clean_up_interval=10, prioritize_sorting_by_timestamp=True))
+                              tree_plan_merger_type=MultiPatternTreePlanMergeApproaches.TREE_PLAN_TRIVIAL_SHARING_LEAVES)),
+    storage_params=TreeStorageParameters(sort_storage=False, clean_up_interval=10, prioritize_sorting_by_timestamp=True))
 subtree_sharing_eval_mechanism_params = TreeBasedEvaluationMechanismParameters(
-    TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
+    optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                         tree_plan_params=
+                                         TreePlanBuilderParameters(builder_type=TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE,
                               cost_model_type=TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL,
-                              tree_plan_merger_type=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION),
-    TreeStorageParameters(sort_storage=False, clean_up_interval=10, prioritize_sorting_by_timestamp=True))
+                              tree_plan_merger_type=MultiPatternTreePlanMergeApproaches.TREE_PLAN_SUBTREES_UNION)),
+    storage_params=TreeStorageParameters(sort_storage=False, clean_up_interval=10, prioritize_sorting_by_timestamp=True))
 
 """
 Simple multi-pattern test with 2 patterns

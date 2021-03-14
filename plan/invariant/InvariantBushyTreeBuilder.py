@@ -6,7 +6,7 @@ from typing import List, Dict
 from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from plan.invariant.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.invariant.Invariants import Invariant, ZStreamTreeInvariants
-from plan.TreePlan import TreePlanLeafNode
+from plan.TreePlan import TreePlanLeafNode, TreePlanNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.LegacyStatistics import MissingStatisticsException
@@ -16,7 +16,7 @@ class InvariantAwareZStreamTreeBuilder(InvariantTreePlanBuilder):
     """
     Creates an invariant aware bushy tree using ZStream algorithm.
     """
-    def _create_tree_topology(self, pattern: Pattern, statistics: Dict):
+    def _create_tree_topology(self, pattern: Pattern, statistics: Dict, leaves: List[TreePlanNode]):
         if StatisticsTypes.ARRIVAL_RATES in statistics and \
                 StatisticsTypes.SELECTIVITY_MATRIX in statistics and \
                 len(statistics) == 2:

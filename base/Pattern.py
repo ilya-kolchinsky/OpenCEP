@@ -1,6 +1,6 @@
-from copy import deepcopy
 from functools import reduce
 from typing import List, Dict
+
 from base.Event import Event
 from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
 from condition.CompositeCondition import CompositeCondition, AndCondition
@@ -43,7 +43,7 @@ class Pattern:
 
         self.window = time_window
 
-        self.set_statistics(statistics)
+        self.statistics = statistics
 
         self.consumption_policy = consumption_policy
         if consumption_policy is not None:
@@ -59,37 +59,7 @@ class Pattern:
         """
         Sets the statistical properties related to the events and conditions of this pattern.
         """
-        self.full_statistics = statistics
-        if statistics is None or len(statistics) == 0:
-            self.positive_statistics = statistics
-            return
-
-        # TODO: this solution only supports negative events at the top level of the pattern
-        negative_indices = []
-        actual_index = 0
-        for i, arg in enumerate(self.full_structure.args):
-            if type(arg) == NegationOperator:
-                negative_indices.append(actual_index)
-            actual_index += len(arg.get_all_event_names())
-
-        if StatisticsTypes.ARRIVAL_RATES in statistics:
-            self.positive_statistics[StatisticsTypes.ARRIVAL_RATES] = \
-                self.__remove_entries_at_indices(statistics[StatisticsTypes.ARRIVAL_RATES], negative_indices)
-
-        if StatisticsTypes.SELECTIVITY_MATRIX not in statistics:
-            return
-        positive_selectivity_rows = self.__remove_entries_at_indices(statistics[StatisticsTypes.SELECTIVITY_MATRIX],
-                                                                     negative_indices)
-            positive_selectivities = \
-                [self.__remove_entries_at_indices(row, negative_indices) for row in positive_selectivity_rows]
-            self.positive_statistics[StatisticsTypes.SELECTIVITY_MATRIX] = positive_selectivities
-
-    @staticmethod
-    def __remove_entries_at_indices(target_list: List[object], indices: List[int]):
-        """
-        Returns the copy of the given list without the entries in the given indices.
-        """
-        return [item for i, item in enumerate(target_list) if i not in indices]
+        self.statistics = statistics
 
     def __extract_negative_structure(self):
         """
@@ -156,7 +126,7 @@ class Pattern:
         if isinstance(self.full_structure, UnaryStructure):
             full_structure_args = self.full_structure.arg
         else:
-            full_structure_args = self.full_structure.get_args()
+            full_structure_args = self.full_structure.args
         primitive_events = self.__get_primitive_events_aux(full_structure_args)
         # a hack to remove unhashable duplicates from a list.
         return list({str(x): x for x in primitive_events}.values())
@@ -170,7 +140,7 @@ class Pattern:
             if isinstance(pattern_args, UnaryStructure):
                 pattern_args = pattern_args.arg
             else:
-                pattern_args = pattern_args.get_args()
+                pattern_args = pattern_args.args
         if isinstance(pattern_args, PrimitiveEventStructure):
             primitive_events.append(pattern_args)
         else:

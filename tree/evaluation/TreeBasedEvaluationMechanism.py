@@ -9,7 +9,6 @@ from tree.nodes.LeafNode import LeafNode
 from tree.PatternMatchStorage import TreeStorageParameters
 from evaluation.EvaluationMechanism import EvaluationMechanism
 from misc.ConsumptionPolicy import *
-from plan.multi.MultiPatternEvaluationParameters import MultiPatternEvaluationParameters
 from tree.MultiPatternTree import MultiPatternTree
 from adaptive.statistics import StatisticsCollector
 from tree.Tree import Tree
@@ -23,15 +22,13 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
     """
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                  storage_params: TreeStorageParameters,
-                 statistics_collector: StatisticsCollector,
-                 optimizer: Optimizer,
-                 statistics_update_time_window: timedelta,
-                 multi_pattern_eval_params: MultiPatternEvaluationParameters = MultiPatternEvaluationParameters()):
-
+                 statistics_collector: StatisticsCollector = None,
+                 optimizer: Optimizer = None,
+                 statistics_update_time_window: timedelta = None):
         self.__is_multi_pattern_mode = len(pattern_to_tree_plan_map) > 1
         if self.__is_multi_pattern_mode:
             # TODO: support statistic collection in the multi-pattern mode
-            self._tree = MultiPatternTree(pattern_to_tree_plan_map, storage_params, multi_pattern_eval_params)
+            self._tree = MultiPatternTree(pattern_to_tree_plan_map, storage_params)
         else:
             pattern = list(pattern_to_tree_plan_map)[0]
             pattern.condition.set_statistics_collector(statistics_collector)

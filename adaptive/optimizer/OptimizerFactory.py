@@ -1,5 +1,4 @@
 from datetime import timedelta
-from typing import List
 from adaptive.optimizer.OptimizerTypes import OptimizerTypes
 from adaptive.statistics.StatisticsCollectorFactory import StatisticsCollectorParameters
 from misc import DefaultConfig

@@ -62,7 +62,7 @@ DEFAULT_NEGATION_ALGORITHM = NegationAlgorithmTypes.NAIVE_NEGATION_ALGORITHM
 DEFAULT_OPTIMIZER_TYPE = OptimizerTypes.STATISTICS_DEVIATION_AWARE_OPTIMIZER
 DEFAULT_INIT_TREE_PLAN_BUILDER = TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE  # initial tree plan builder in case of predifined statistics
 DEVIATION_OPTIMIZER_THRESHOLD = 0.5  # the default threshold for statistics changes aware optimizer
-DEFAULT_TREE_UPDATE_TYPE = TreeEvaluationMechanismUpdateTypes.SIMULTANEOUS_TREE_EVALUATION
+DEFAULT_TREE_UPDATE_TYPE = TreeEvaluationMechanismUpdateTypes.TRIVIAL_TREE_EVALUATION
 DEFAULT_STATISTICS_TYPE = [StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX]  # the default statistics type can also be a list of types
 STATISTICS_TIME_WINDOW = timedelta(hours=1)  # Time window for statistics
 STATISTICS_UPDATES_WAIT_TIME = None  # the default wait time between statistics updates or None to disable adaptivity

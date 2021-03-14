@@ -28,7 +28,7 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
         """
         order = self._create_evaluation_order(pattern, statistics) if isinstance(pattern.positive_structure,
                                                                                  CompositeStructure) else [0]
-        return LeftDeepTreeBuilder._order_to_tree_topology(order, pattern)
+        return LeftDeepTreeBuilder._order_to_tree_topology(order, pattern, leaves)
 
     @staticmethod
     def _order_to_tree_topology(order: List[int], pattern: Pattern, leaves: List[TreePlanNode] = None):
@@ -70,14 +70,13 @@ class AscendingFrequencyTreeBuilder(LeftDeepTreeBuilder):
     Creates a left-deep tree following the order of ascending arrival rates of the event types.
     """
     def _create_evaluation_order(self, pattern: Pattern, statistics: Dict):
-        if StatisticsTypes.ARRIVAL_RATES in statistics and \
-                len(statistics) == 1:
+        if StatisticsTypes.ARRIVAL_RATES in statistics:
             arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
             # create an index-arrival rate binding and sort according to arrival rate.
             sorted_order = sorted([(i, arrival_rates[i]) for i in range(len(arrival_rates))], key=lambda x: x[1])
             order = [x for x, y in sorted_order]  # create order from sorted binding.
         else:
-            raise Exception("AscendingFrequencyTreeBuilder supports only arrival rates statistics")
+            raise Exception("AscendingFrequencyTreeBuilder requires arrival rates statistics")
         return order
 
 

@@ -54,7 +54,8 @@ class Optimizer(ABC):
         non_prior_tree_plan_builder = None
         if pattern.statistics is None:
             if DefaultConfig.DEFAULT_INIT_TREE_PLAN_BUILDER == TreePlanBuilderTypes.TRIVIAL_LEFT_DEEP_TREE:
-                non_prior_tree_plan_builder = TrivialLeftDeepTreeBuilder(cost_model_type)
+                non_prior_tree_plan_builder = TrivialLeftDeepTreeBuilder(cost_model_type,
+                                                                         DefaultConfig.DEFAULT_NEGATION_ALGORITHM)
             else:
                 raise Exception("Unknown tree plan builder type: %s" % (DefaultConfig.DEFAULT_INIT_TREE_PLAN_BUILDER,))
         return non_prior_tree_plan_builder

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 from base.Pattern import Pattern
 from base.PatternStructure import NegationOperator, AndOperator, SeqOperator
@@ -11,7 +11,7 @@ class NegationAlgorithm:
     The main class of the negation algorithms, contains the information and parameters needed in order to build the
     tree plan according to the chosen negation algorithm.
     """
-    def handle_pattern_negation(self, pattern: Pattern, positive_tree_plan: TreePlanBinaryNode):
+    def handle_pattern_negation(self, pattern: Pattern, statistics: Dict, positive_tree_plan: TreePlanBinaryNode):
         """
         Augments the given tree plan, that only contains the positive portion of the given pattern, with the operators
         required for the negative part.
@@ -29,13 +29,13 @@ class NegationAlgorithm:
             # no sequence operator - all negative events are unbounded
             unbounded_negative_indices = negative_indices
 
-        full_tree_plan = self._add_negative_part(pattern, positive_tree_plan,
+        full_tree_plan = self._add_negative_part(pattern, statistics, positive_tree_plan,
                                                  negative_indices, unbounded_negative_indices)
 
         self.__adjust_tree_plan_indices(full_tree_plan, pattern)
         return full_tree_plan
 
-    def _add_negative_part(self, pattern: Pattern, positive_tree_plan: TreePlanBinaryNode,
+    def _add_negative_part(self, pattern: Pattern, statistics: Dict, positive_tree_plan: TreePlanBinaryNode,
                            all_negative_indices: List[int], unbounded_negative_indices: List[int]):
         """
         Actually adds negation operators to the given tree plan.

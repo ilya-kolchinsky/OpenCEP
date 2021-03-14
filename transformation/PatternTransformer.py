@@ -1,7 +1,7 @@
 from abc import ABC
 
 from base.Pattern import Pattern
-from base.PatternStructure import PatternStructure, AndOperator, OrOperator, SeqOperator, NegationOperator, \
+from base.PatternStructure import PatternStructure, AndOperator, OrOperator, NegationOperator, \
     UnaryStructure, CompositeStructure, PrimitiveEventStructure
 
 
@@ -25,7 +25,7 @@ class PatternTransformer(ABC):
             return pattern
         condition_for_new_pattern = pattern.condition.get_condition_of(structure.get_all_event_names())
         return Pattern(structure, condition_for_new_pattern, pattern.window, pattern.consumption_policy, None,
-                       pattern.confidence, pattern.statistics_type, pattern.full_statistics)
+                       pattern.confidence, pattern.statistics)
 
     def _transform_structure(self, pattern_structure):
         """

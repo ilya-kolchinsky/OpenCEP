@@ -7,7 +7,7 @@ from base.PatternStructure import CompositeStructure
 from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from plan.invariant.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.invariant.Invariants import Invariant, GreedyTreeInvariants
-from plan.TreePlan import TreePlanLeafNode
+from plan.TreePlan import TreePlanLeafNode, TreePlanNode
 from plan.TreePlanBuilder import TreePlanBuilder
 from base.Pattern import Pattern
 from misc.LegacyStatistics import MissingStatisticsException
@@ -17,7 +17,7 @@ class InvariantLeftDeepTreeBuilder(InvariantTreePlanBuilder):
     """
     An abstract class for left-deep tree builders.
     """
-    def _create_tree_topology(self, pattern: Pattern, statistics: Dict):
+    def _create_tree_topology(self, pattern: Pattern, statistics: Dict, leaves: List[TreePlanNode]):
         order, invariants = self._create_evaluation_order(statistics) if isinstance(pattern.positive_structure,
                                                                                     CompositeStructure) else [[0], None]
         return self._order_to_tree_topology(order, pattern), invariants

@@ -5,7 +5,7 @@ from base.Pattern import Pattern
 from misc.LegacyStatistics import MissingStatisticsException
 from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlan import TreePlanNode, TreePlanLeafNode, TreePlanNestedNode
+from plan.TreePlan import TreePlanNode, TreePlanLeafNode, TreePlanNestedNode, TreePlanUnaryNode
 
 
 class TreeCostModel(ABC):
@@ -50,6 +50,12 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
 
         if isinstance(tree, TreePlanNestedNode):
             return [tree.nested_event_index], tree.cost, tree.cost
+
+        if isinstance(tree, TreePlanUnaryNode):
+            return IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.child,
+                                                                        selectivity_matrix,
+                                                                        arrival_rates,
+                                                                        time_window)
 
         # calculate for left subtree
         left_args, left_pm, left_cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.left_child,
