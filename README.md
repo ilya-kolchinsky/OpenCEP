@@ -55,7 +55,7 @@ googleAscendPattern = Pattern(
         SimpleCondition(Variable("a", lambda x: x["Peak Price"]), 
                         Variable("b", lambda x: x["Peak Price"]),
                         Variable("c", lambda x: x["Peak Price"]),
-                        lambda x,y,z: x < b < z),
+                        relation_op=lambda x,y,z: x < y < z),
         timedelta(minutes=3)
     )
 ```
