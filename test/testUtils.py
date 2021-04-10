@@ -15,6 +15,7 @@ from plugin.stocks.Stocks import MetastockDataFormatter
 from stream.FileStream import FileInputStream, FileOutputStream
 from stream.Stream import OutputStream
 from tree.PatternMatchStorage import TreeStorageParameters
+from parallel.ParallelExecutionParameters import ParallelExecutionParameters
 
 
 currentPath = pathlib.Path(os.path.dirname(__file__))
@@ -35,6 +36,7 @@ nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/Ev
 custom = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom.txt"))
 custom2 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom2.txt"))
 custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.txt"))
+custom4 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom4.txt"))
 
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
@@ -156,6 +158,7 @@ def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
 
 def runTest(testName, patterns, createTestFile = False,
             eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+            parallel_execution_params: ParallelExecutionParameters = None,
             events=None, eventStream=nasdaqEventStream, expected_file_name=None):
     if expected_file_name is None:
         expected_file_name = testName
@@ -182,7 +185,7 @@ def runTest(testName, patterns, createTestFile = False,
     elif expected_file_name == "NotEverywhere":
         events = custom3.duplicate()
 
-    cep = CEP(patterns, eval_mechanism_params)
+    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params)
 
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName.split('|')[0]

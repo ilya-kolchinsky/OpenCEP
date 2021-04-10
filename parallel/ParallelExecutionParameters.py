@@ -20,7 +20,7 @@ class DataParallelExecutionParameters(ParallelExecutionParameters):
         Parameters for data parallel algorithms.
     """
     def __init__(self,
-                 execution_mode: ParallelExecutionModes = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_MODE,
+                 execution_mode: ParallelExecutionModes = ParallelExecutionModes.DATA_PARALLELISM,
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM,
                  data_parallel_mode: DataParallelExecutionModes = DefaultConfig.DEFAULT_DATA_PARALLEL_ALGORITHM,
                  units_number: int = DefaultConfig.DEFAULT_PARALLEL_UNITS_NUMBER):
@@ -34,7 +34,7 @@ class DataParallelExecutionParametersHirzelAlgorithm(DataParallelExecutionParame
         Parameters for Hirzel algorithm.
     """
     def __init__(self,
-                 execution_mode: ParallelExecutionModes = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_MODE,
+                 execution_mode: ParallelExecutionModes = ParallelExecutionModes.DATA_PARALLELISM,
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM,
                  units_number: int = DefaultConfig.DEFAULT_PARALLEL_UNITS_NUMBER,
                  key: str = DefaultConfig.DEFAULT_PARALLEL_KEY):
@@ -49,7 +49,7 @@ class DataParallelExecutionParametersRIPAlgorithm(DataParallelExecutionParameter
             Parameters for RIP algorithm.
     """
     def __init__(self,
-                 execution_mode: ParallelExecutionModes = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_MODE,
+                 execution_mode: ParallelExecutionModes = ParallelExecutionModes.DATA_PARALLELISM,
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM,
                  units_number: int = DefaultConfig.DEFAULT_PARALLEL_UNITS_NUMBER,
                  multiple: int = DefaultConfig.DEFAULT_PARALLEL_MULT):
@@ -64,7 +64,7 @@ class DataParallelExecutionParametersHyperCubeAlgorithm(DataParallelExecutionPar
             Parameters for HyperCube algorithm
     """
     def __init__(self,
-                 execution_mode: ParallelExecutionModes = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_MODE,
+                 execution_mode: ParallelExecutionModes = ParallelExecutionModes.DATA_PARALLELISM,
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM,
                  units_number: int = DefaultConfig.DEFAULT_PARALLEL_UNITS_NUMBER,
                  attributes_dict: dict = DefaultConfig.DEFAULT_PARALLEL_ATTRIBUTES_DICT):

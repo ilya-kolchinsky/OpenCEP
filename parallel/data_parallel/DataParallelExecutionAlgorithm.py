@@ -14,7 +14,10 @@ class DataParallelExecutionAlgorithm(ABC):
     """
     def __init__(self, units_number, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform: ParallelExecutionPlatform):
-        raise NotImplementedError()
+        self.units_number = units_number
+        self.patterns = patterns
+        self.eval_mechanism_params = eval_mechanism_params
+        self.platform = platform
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
