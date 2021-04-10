@@ -38,6 +38,7 @@ class CEP:
         """
         start = datetime.now()
         self.__evaluation_manager.eval(events, matches, data_formatter)
+        matches.close()
         return (datetime.now() - start).total_seconds()
 
     def get_pattern_match(self):

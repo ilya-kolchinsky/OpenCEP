@@ -43,6 +43,15 @@ class Stream:
             x = self._stream.queue[-2]
         return x
 
+    def join(self):
+        self._stream.join()
+
+    def task_done(self):
+        self._stream.task_done()
+
+
+
+
 
 class InputStream(Stream):
     """

@@ -16,6 +16,7 @@ from stream.FileStream import FileInputStream, FileOutputStream
 from stream.Stream import OutputStream
 from tree.PatternMatchStorage import TreeStorageParameters
 from parallel.ParallelExecutionParameters import ParallelExecutionParameters
+from parallel.ParallelExecutionModes import ParallelExecutionModes
 
 
 currentPath = pathlib.Path(os.path.dirname(__file__))
@@ -190,7 +191,8 @@ def runTest(testName, patterns, createTestFile = False,
     base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
     output_file_name = "%sMatches.txt" % testName.split('|')[0]
     expected_output_file_name = "%sMatches.txt" % expected_file_name.split('|')[0]
-    matches_stream = FileOutputStream(base_matches_directory, output_file_name)
+    is_async = parallel_execution_params is not None and parallel_execution_params.execution_mode == ParallelExecutionModes.DATA_PARALLELISM
+    matches_stream = FileOutputStream(base_matches_directory, output_file_name, is_async)
     running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
 
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', expected_output_file_name)
@@ -347,10 +349,11 @@ def runBenchMark(testName, patterns, eval_mechanism_params=DEFAULT_TESTING_EVALU
 
 
 def runStructuralTest(testName, patterns, expected_result,
-                      eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS):
+                      eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                      parallel_execution_params: ParallelExecutionParameters = None,):
     # print('{} is a test to check the tree structure, without actually running a test'.format(testName))
     # print('place a breakpoint after creating the CEP object to debug it.\n')
-    cep = CEP(patterns, eval_mechanism_params)
+    cep = CEP(patterns, eval_mechanism_params, parallel_execution_params)
     structure_summary = cep.get_evaluation_mechanism_structure_summary()
     success = structure_summary == expected_result
     print("Test %s result: %s" % (testName, "Succeeded" if success else "Failed"))
