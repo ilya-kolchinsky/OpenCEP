@@ -37,6 +37,7 @@ class DataParallelExecutionAlgorithm(ABC):
             execution_unit.start()
             execution_units.append(execution_unit)
 
+        # iterate over all events
         for raw_event in events:
             for unit_id in self._classifier(raw_event, data_formatter):
                 execution_units[unit_id].add_event(raw_event)
