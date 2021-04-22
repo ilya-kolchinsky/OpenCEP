@@ -27,7 +27,7 @@ def simpleEqPatternSearchTest(createTestFile=False, eval_mechanism_params=DEFAUL
         ),
         timedelta(minutes=5)
     )
-    units = 5
+    units = 8
     parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Opening Price")
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
     expected_result = tuple([('Seq', 'a', 'b')] * units)
