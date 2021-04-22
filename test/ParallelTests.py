@@ -11,8 +11,8 @@ from parallel.ParallelExecutionParameters import DataParallelExecutionParameters
 
 
 
-def simpleEqPatternSearchTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                              test_name="equal"):
+def simpleGroupByKeyTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                              test_name="parallel_1_"):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b)
     WHERE   a.OpeningPrice == b.OpeningPrice
@@ -36,4 +36,4 @@ def simpleEqPatternSearchTest(createTestFile=False, eval_mechanism_params=DEFAUL
 
 if __name__ == "__main__":
     runTest.over_all_time = 0
-    simpleEqPatternSearchTest()
+    simpleGroupByKeyTest()
