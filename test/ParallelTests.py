@@ -6,7 +6,7 @@ from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, G
     SmallerThanEqCondition
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
-from parallel.ParallelExecutionParameters import DataParallelExecutionParametersHirzelAlgorithm
+from parallel.ParallelExecutionParameters import DataParallelExecutionParametersHirzelAlgorithm, DataParallelExecutionParametersRIPAlgorithm
 
 
 
@@ -29,6 +29,7 @@ def simpleGroupByKeyTest(createTestFile=False, eval_mechanism_params=DEFAULT_TES
     )
     units = 8
     parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Opening Price")
+    # parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units, multiple=3)
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
     expected_result = tuple([('Seq', 'a', 'b')] * units)
     runStructuralTest('structuralTest1', [pattern], expected_result, parallel_execution_params=parallel_execution_params)
