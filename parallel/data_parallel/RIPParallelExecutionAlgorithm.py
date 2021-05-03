@@ -18,7 +18,7 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
     def __init__(self, units_number, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters,
                  platform, multiple: timedelta):
-        super().__init__(units_number - 1, patterns, eval_mechanism_params, platform)
+        super().__init__(units_number, patterns, eval_mechanism_params, platform)
         self.interval = multiple
         if isinstance(patterns, list):
             self.time_delta = max(pattern.window for pattern in patterns)  # check willingness
@@ -77,8 +77,10 @@ class RIPFilterStream(Stream):
             self.matches.add_item(item)
 
     def skip_item(self, item):
+        if not self.start_time:
+            raise Exception("start_time is not initialized")
         parsed_item = self.data_formatter.parse_event(item)
-        item_time = parsed_item['Date']
+        item_time = self.data_formatter.get_event_timestamp(parsed_item)
         window_start = self.start_time + self.time_delta
         window_end = window_start + self.interval
         return not (window_start < item_time < window_end)
