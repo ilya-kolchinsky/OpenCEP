@@ -1,6 +1,5 @@
 from abc import ABC
-from parallel.data_parallel.DataParallelExecutionAlgorithm import DataParallelExecutionAlgorithm
-import math
+from parallel.data_parallel.DataParallelExecutionAlgorithm import DataParallelExecutionAlgorithm, DataParallelExecutionUnit
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import \
     EvaluationMechanismParameters, EvaluationMechanismFactory
@@ -8,7 +7,7 @@ from base.DataFormatter import DataFormatter
 from base.PatternMatch import *
 from stream.Stream import *
 from datetime import datetime, timedelta
-from misc.Utils import is_int, is_float
+
 
 
 class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
@@ -73,7 +72,7 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
             raise Exception("start_time in RIP is not initialized")
         diff_time = event_time - self.start_time
         unit_id = int((diff_time/self.interval)%self.units_number)
-        return unit_id+1 # result is zero based
+        return unit_id # result is zero based
 
 class RIPFilterStream(Stream):
     def __init__(self, interval: timedelta, time_delta: timedelta,
