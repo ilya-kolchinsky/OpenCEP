@@ -1,6 +1,5 @@
 from abc import ABC
 from parallel.data_parallel.DataParallelExecutionAlgorithm import DataParallelExecutionAlgorithm, DataParallelExecutionUnit
-import math
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import \
     EvaluationMechanismParameters, EvaluationMechanismFactory
@@ -8,7 +7,7 @@ from base.DataFormatter import DataFormatter
 from base.PatternMatch import *
 from stream.Stream import *
 from datetime import datetime, timedelta
-from misc.Utils import is_int, is_float
+
 
 
 class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
@@ -53,9 +52,27 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         for execution_unit in execution_units:
             execution_unit.wait()
 
+  # todo check about time_deltas the span over a few intervals - 3/4/5...
     def _classifier(self, raw_event: str, data_formatter: DataFormatter):
-        raise NotImplementedError
+        event = Event(raw_event, data_formatter)
+        event_time = event.timestamp
+        unit_id1 = self._calcUnitNumber(event_time)
+        unit_id2 = self._calcUnitNumber(event_time, self.time_delta)
 
+        if unit_id1 != unit_id2:
+            if event_time-self.start_time > self.interval: # updates start_time when needed
+                self._updateStartTime(event_time)
+            return [unit_id1, unit_id2]
+        return unit_id1
+
+
+    def _calcUnitNumber(self, cur_time, time_delta=timedelta(seconds=0)):
+        event_time = cur_time + time_delta
+        if self.start_time is None:
+            raise Exception("start_time in RIP is not initialized")
+        diff_time = event_time - self.start_time
+        unit_id = int((diff_time/self.interval)%self.units_number)
+        return unit_id # result is zero based
 
 class RIPFilterStream(Stream):
     def __init__(self, interval: timedelta, time_delta: timedelta,
@@ -84,3 +101,4 @@ class RIPFilterStream(Stream):
         window_start = self.start_time + self.time_delta
         window_end = window_start + self.interval
         return not (window_start < item_time < window_end)
+
