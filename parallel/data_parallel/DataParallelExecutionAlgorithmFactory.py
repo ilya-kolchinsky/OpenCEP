@@ -23,7 +23,7 @@ class DataParallelExecutionAlgorithmFactory:
         if data_parallel_params.algorithm == DataParallelExecutionModes.RIP_ALGORITHM:
             return RIPParallelExecutionAlgorithm(data_parallel_params.units_number,
                                                  patterns, eval_mechanism_params, platform,
-                                                 data_parallel_params.rip_multiple)
+                                                 data_parallel_params.rip_interval)
         if data_parallel_params.algorithm == DataParallelExecutionModes.HYPER_CUBE_ALGORITHM:
             return HyperCubeParallelExecutionAlgorithm(data_parallel_params.units_number,
                                                        patterns, eval_mechanism_params,

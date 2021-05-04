@@ -10,8 +10,6 @@ from parallel.ParallelExecutionParameters import DataParallelExecutionParameters
 from datetime import datetime, timedelta
 
 
-
-
 def simpleGroupByKeyTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                               test_name="parallel_1_"):
     """
@@ -30,10 +28,10 @@ def simpleGroupByKeyTest(createTestFile=False, eval_mechanism_params=DEFAULT_TES
     )
     units = 8
     parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Opening Price")
-    # parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units, multiple=3)
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
     expected_result = tuple([('Seq', 'a', 'b')] * units)
     runStructuralTest('structuralTest1', [pattern], expected_result, parallel_execution_params=parallel_execution_params)
+
 
 def simpleRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                          test_name="parallel_2_"):
@@ -52,8 +50,8 @@ def simpleRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EV
         timedelta(minutes=5)
     )
     units = 8
-    parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units,
-                                                                               key="Opening Price")
+    parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units, interval=timedelta(minutes=60))
+
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params,
             eventStream=custom4)
     expected_result = tuple([('Seq', 'a', 'b')] * units)
@@ -63,4 +61,4 @@ def simpleRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EV
 
 if __name__ == "__main__":
     runTest.over_all_time = 0
-    simpleGroupByKeyTest()
+    simpleRIPTest()

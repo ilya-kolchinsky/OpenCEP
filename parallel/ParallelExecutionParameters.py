@@ -1,6 +1,7 @@
 from misc import DefaultConfig
 from parallel.ParallelExecutionModes import *
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
+from datetime import timedelta
 
 
 class ParallelExecutionParameters:
@@ -52,11 +53,11 @@ class DataParallelExecutionParametersRIPAlgorithm(DataParallelExecutionParameter
                  execution_mode: ParallelExecutionModes = ParallelExecutionModes.DATA_PARALLELISM,
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM,
                  units_number: int = DefaultConfig.DEFAULT_PARALLEL_UNITS_NUMBER,
-                 multiple: int = DefaultConfig.DEFAULT_PARALLEL_MULT):
+                 interval: timedelta = DefaultConfig.DEFAULT_PARALLEL_INTERVAL):
         super().__init__(execution_mode, platform,
                          DataParallelExecutionModes.RIP_ALGORITHM,
                          units_number)
-        self.rip_multiple = multiple
+        self.rip_interval = interval
 
 
 class DataParallelExecutionParametersHyperCubeAlgorithm(DataParallelExecutionParameters):
