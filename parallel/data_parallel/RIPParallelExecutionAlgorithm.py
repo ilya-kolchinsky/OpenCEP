@@ -1,13 +1,13 @@
 from abc import ABC
-from parallel.data_parallel.DataParallelExecutionAlgorithm import DataParallelExecutionAlgorithm, DataParallelExecutionUnit
+from parallel.data_parallel.DataParallelExecutionAlgorithm import DataParallelExecutionAlgorithm, \
+    DataParallelExecutionUnit
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import \
-    EvaluationMechanismParameters, EvaluationMechanismFactory
+    EvaluationMechanismParameters
 from base.DataFormatter import DataFormatter
 from base.PatternMatch import *
 from stream.Stream import *
 from datetime import datetime, timedelta
-
 
 
 class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
@@ -24,6 +24,7 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         else:
             self.time_delta = patterns.window
         self.filters = []
+        self.start_time = None
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
@@ -46,13 +47,16 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
             execution_units.append(execution_unit)
 
         for raw_event in events:
+            if not self.start_time:
+                event = Event(raw_event, data_formatter)
+                self.start_time = event.timestamp
             for unit_id in self._classifier(raw_event, data_formatter):
                 execution_units[unit_id].add_event(raw_event)
 
         for execution_unit in execution_units:
             execution_unit.wait()
 
-  # todo check about time_deltas the span over a few intervals - 3/4/5...
+    # todo check about time_deltas the span over a few intervals - 3/4/5...
     def _classifier(self, raw_event: str, data_formatter: DataFormatter):
         event = Event(raw_event, data_formatter)
         event_time = event.timestamp
@@ -60,19 +64,19 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         unit_id2 = self._calcUnitNumber(event_time, self.time_delta)
 
         if unit_id1 != unit_id2:
-            if event_time-self.start_time > self.interval: # updates start_time when needed
-                self._updateStartTime(event_time)
+            if event_time - self.start_time > self.interval:  # updates start_time when needed
+                self.filters[unit_id2].update_start_time(event_time)
             return [unit_id1, unit_id2]
         return unit_id1
-
 
     def _calcUnitNumber(self, cur_time, time_delta=timedelta(seconds=0)):
         event_time = cur_time + time_delta
         if self.start_time is None:
             raise Exception("start_time in RIP is not initialized")
         diff_time = event_time - self.start_time
-        unit_id = int((diff_time/self.interval)%self.units_number)
-        return unit_id # result is zero based
+        unit_id = int((diff_time/self.interval) % self.units_number)
+        return unit_id  # result is zero based
+
 
 class RIPFilterStream(Stream):
     def __init__(self, interval: timedelta, time_delta: timedelta,
@@ -101,4 +105,3 @@ class RIPFilterStream(Stream):
         window_start = self.start_time + self.time_delta
         window_end = window_start + self.interval
         return not (window_start < item_time < window_end)
-
