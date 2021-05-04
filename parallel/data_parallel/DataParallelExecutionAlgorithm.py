@@ -79,7 +79,7 @@ class DataParallelExecutionUnit:
 
     @staticmethod
     def _run(evaluation_manager: EvaluationManager,
-            events: InputStream,
-            matches: OutputStream,
-            data_formatter: DataFormatter):
+             events: InputStream,
+             matches: OutputStream,
+             data_formatter: DataFormatter):
         evaluation_manager.eval(events, matches, data_formatter)
