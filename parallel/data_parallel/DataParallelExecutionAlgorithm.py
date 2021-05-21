@@ -22,11 +22,14 @@ class DataParallelExecutionAlgorithm(ABC):
         self.evaluation_managers = [SequentialEvaluationManager(patterns, eval_mechanism_params) for _ in
                                     range(self.units_number)]
 
+    def _eval_preprocess(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+        raise NotImplementedError()
+
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
         Activates the actual parallel algorithm.
         """
-        self._check_legal_input(events, data_formatter)
+        self._eval_preprocess(events, matches, data_formatter)
         execution_units = list()
         for unit_id, evaluation_manager in enumerate(self.evaluation_managers):
             execution_unit = DataParallelExecutionUnit(self.platform,
@@ -51,8 +54,6 @@ class DataParallelExecutionAlgorithm(ABC):
     def _classifier(self, raw_event: str, data_formatter: DataFormatter):
         raise NotImplementedError()
 
-    def _check_legal_input(self, events: InputStream, data_formatter: DataFormatter):
-        raise NotImplementedError()
 
 
 class DataParallelExecutionUnit:

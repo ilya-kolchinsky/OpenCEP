@@ -6,7 +6,7 @@ from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, G
     SmallerThanEqCondition
 from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
-from parallel.ParallelExecutionParameters import DataParallelExecutionParametersHirzelAlgorithm, DataParallelExecutionParametersRIPAlgorithm
+from parallel.ParallelExecutionParameters import *
 from datetime import datetime, timedelta
 
 
@@ -58,7 +58,32 @@ def simpleRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EV
     runStructuralTest('structuralTest1', [pattern], expected_result,
                       parallel_execution_params=parallel_execution_params)
 
+def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                              test_name="parallel_1_"):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b)
+    WHERE   a.OpeningPrice == b.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
+        AndCondition(
+            BinaryCondition(Variable("a", lambda x: x["Opening Price"]),
+                            Variable("b", lambda x: x["Opening Price"]),
+                            relation_op=lambda x, y: x == y)
+        ),
+        timedelta(minutes=5)
+    )
+    units = 8
+    attributes_dict = {"a": "Opening Price", "b": "Peak Price"}
+    parallel_execution_params = DataParallelExecutionParametersHyperCubeAlgorithm(units_number=units, attributes_dict=attributes_dict)
+    runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
+    #expected_result = tuple([('Seq', 'a', 'b')] * units)
+    #runStructuralTest('structuralTest1', [pattern], expected_result, parallel_execution_params=parallel_execution_params)
+
 
 if __name__ == "__main__":
     runTest.over_all_time = 0
-    simpleRIPTest()
+    simpleGroupByKeyTest()
+    # simpleRIPTest()
+    # simpleHyperCubeTest()

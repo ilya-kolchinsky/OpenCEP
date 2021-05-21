@@ -28,40 +28,21 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         if self.interval <= self.time_delta:
             raise Exception("time delta > interval")
 
-        self.filters = []
+        self.filters = list()
         self.start_time = None
 
-    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
-        """
-        Activates the actual parallel algorithm.
-        """
-        execution_units = list()
+    def _eval_preprocess(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         first_event = Event(events.first(), data_formatter)
         self.start_time = first_event.timestamp
 
         def get_skip_item(unit_id):
             def skip_item(item: PatternMatch):
                 return self._get_unit_number(item.last_timestamp) == unit_id
+
             return skip_item
 
         self.filters = [FilterStream(skip_item=get_skip_item(unit_id), matches=matches)
                         for unit_id in range(self.units_number)]
-
-        for unit_id, evaluation_manager in enumerate(self.evaluation_managers):
-            execution_unit = DataParallelExecutionUnit(self.platform,
-                                                       unit_id,
-                                                       evaluation_manager,
-                                                       self.filters[unit_id],
-                                                       data_formatter)
-            execution_unit.start()
-            execution_units.append(execution_unit)
-
-        for raw_event in events:
-            for unit_id in self._classifier(raw_event, data_formatter):
-                execution_units[unit_id].add_event(raw_event)
-
-        for execution_unit in execution_units:
-            execution_unit.wait()
 
     def _classifier(self, raw_event: str, data_formatter: DataFormatter):
         event = Event(raw_event, data_formatter)

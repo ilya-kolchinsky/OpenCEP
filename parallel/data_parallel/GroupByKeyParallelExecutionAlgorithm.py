@@ -27,7 +27,7 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
         value = payload[self.__key]
         return value
 
-    def _check_legal_input(self, events: InputStream, data_formatter: DataFormatter):
+    def _eval_preprocess(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         first_raw_event = events.first()
         value = self._get_event_key_value(first_raw_event, data_formatter)
         if not is_int(value) and not is_float(value):
