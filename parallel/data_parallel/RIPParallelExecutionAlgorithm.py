@@ -1,9 +1,7 @@
 from abc import ABC
-from parallel.data_parallel.DataParallelExecutionAlgorithm import DataParallelExecutionAlgorithm, \
-    DataParallelExecutionUnit
+from parallel.data_parallel.DataParallelExecutionAlgorithm import DataParallelExecutionAlgorithm
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
-from base.DataFormatter import DataFormatter
 from base.PatternMatch import *
 from stream.Stream import *
 from datetime import timedelta
@@ -21,18 +19,17 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
 
         self.interval = interval
         if isinstance(patterns, list):
-            self.time_delta = max(pattern.window for pattern in patterns)  # check willingness
+            self.__time_delta = max(pattern.window for pattern in patterns)  # check willingness
         else:
-            self.time_delta = patterns.window
+            self.__time_delta = patterns.window
 
-        if self.interval <= self.time_delta:
+        if self.__time_delta > self.interval:
             raise Exception("time delta > interval")
 
-        self.start_time = None
+        self.__start_time = None
 
-    def _eval_preprocess(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
-        first_event = Event(events.first(), data_formatter)
-        self.start_time = first_event.timestamp
+    def _check_first_event(self, first_event: Event):
+        self.__start_time = first_event.timestamp
 
     def _get_matches(self, matches: OutputStream, unit_id: int):
         def skip_item(item: PatternMatch):
@@ -40,16 +37,15 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
 
         return FilterStream(skip_item=skip_item, matches=matches)
 
-    def _classifier(self, raw_event: str, data_formatter: DataFormatter):
-        event = Event(raw_event, data_formatter)
+    def _classifier(self, event: Event):
         event_time = event.timestamp
         unit_id1 = self._get_unit_number(event_time)
-        unit_id2 = self._get_unit_number(event_time, self.time_delta)
+        unit_id2 = self._get_unit_number(event_time, self.__time_delta)
         return {unit_id1, unit_id2}
 
     def _get_unit_number(self, cur_time, time_delta=timedelta(seconds=0)):
         event_time = cur_time + time_delta
-        diff_time = event_time - self.start_time
+        diff_time = event_time - self.__start_time
         unit_id = int((diff_time/self.interval) % self.units_number)
         return unit_id  # result is zero based
 

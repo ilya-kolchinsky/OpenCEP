@@ -1,7 +1,7 @@
 from abc import ABC
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import \
-    EvaluationMechanismParameters, EvaluationMechanismFactory
+    EvaluationMechanismParameters
 from base.DataFormatter import DataFormatter
 from base.PatternMatch import *
 from parallel.platform.ParallelExecutionPlatform import ParallelExecutionPlatform
@@ -22,14 +22,15 @@ class DataParallelExecutionAlgorithm(ABC):
         self.evaluation_managers = [SequentialEvaluationManager(patterns, eval_mechanism_params) for _ in
                                     range(self.units_number)]
 
-    def _eval_preprocess(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+    def _check_first_event(self, first_event: Event):
         raise NotImplementedError()
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
         Activates the actual parallel algorithm.
         """
-        self._eval_preprocess(events, matches, data_formatter)
+        first_event = Event(events.first(), data_formatter)
+        self._check_first_event(first_event)
         execution_units = list()
         for unit_id, evaluation_manager in enumerate(self.evaluation_managers):
             execution_unit = DataParallelExecutionUnit(self.platform,
@@ -42,7 +43,8 @@ class DataParallelExecutionAlgorithm(ABC):
 
         # iterate over all events
         for raw_event in events:
-            for unit_id in self._classifier(raw_event, data_formatter):
+            event = Event(raw_event, data_formatter)
+            for unit_id in self._classifier(event):
                 execution_units[unit_id].add_event(raw_event)
 
         for execution_unit in execution_units:
@@ -51,7 +53,7 @@ class DataParallelExecutionAlgorithm(ABC):
     def _get_matches(self, matches: OutputStream, unit_id: int):
         return matches
 
-    def _classifier(self, raw_event: str, data_formatter: DataFormatter):
+    def _classifier(self, event: Event):
         raise NotImplementedError()
 
     def get_structure_summary(self):
