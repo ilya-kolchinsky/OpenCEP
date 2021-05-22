@@ -28,21 +28,17 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         if self.interval <= self.time_delta:
             raise Exception("time delta > interval")
 
-        self.filters = list()
         self.start_time = None
 
     def _eval_preprocess(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         first_event = Event(events.first(), data_formatter)
         self.start_time = first_event.timestamp
 
-        def get_skip_item(unit_id):
-            def skip_item(item: PatternMatch):
-                return self._get_unit_number(item.last_timestamp) == unit_id
+    def _get_matches(self, matches: OutputStream, unit_id: int):
+        def skip_item(item: PatternMatch):
+            return self._get_unit_number(item.last_timestamp) == unit_id
 
-            return skip_item
-
-        self.filters = [FilterStream(skip_item=get_skip_item(unit_id), matches=matches)
-                        for unit_id in range(self.units_number)]
+        return FilterStream(skip_item=skip_item, matches=matches)
 
     def _classifier(self, raw_event: str, data_formatter: DataFormatter):
         event = Event(raw_event, data_formatter)

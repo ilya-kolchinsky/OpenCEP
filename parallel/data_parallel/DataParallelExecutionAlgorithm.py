@@ -35,7 +35,7 @@ class DataParallelExecutionAlgorithm(ABC):
             execution_unit = DataParallelExecutionUnit(self.platform,
                                                        unit_id,
                                                        evaluation_manager,
-                                                       matches,
+                                                       self._get_matches(matches, unit_id),
                                                        data_formatter)
             execution_unit.start()
             execution_units.append(execution_unit)
@@ -48,11 +48,14 @@ class DataParallelExecutionAlgorithm(ABC):
         for execution_unit in execution_units:
             execution_unit.wait()
 
-    def get_structure_summary(self):
-        return tuple(map(lambda em: em.get_structure_summary(), self.evaluation_managers))
+    def _get_matches(self, matches: OutputStream, unit_id: int):
+        return matches
 
     def _classifier(self, raw_event: str, data_formatter: DataFormatter):
         raise NotImplementedError()
+
+    def get_structure_summary(self):
+        return tuple(map(lambda em: em.get_structure_summary(), self.evaluation_managers))
 
 
 
