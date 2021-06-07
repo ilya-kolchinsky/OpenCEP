@@ -18,8 +18,10 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         super().__init__(units_number, patterns, eval_mechanism_params, platform)
 
         self.interval = interval
+
+        # in case of multi pattern
         if isinstance(patterns, list):
-            self.__time_delta = max(pattern.window for pattern in patterns)  # check willingness
+            self.__time_delta = max(pattern.window for pattern in patterns)  # TODO: check willingness
         else:
             self.__time_delta = patterns.window
 
@@ -29,33 +31,48 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         self.__start_time = None
 
     def _check_first_event(self, first_event: Event):
+        """
+        Init events start time
+        """
         self.__start_time = first_event.timestamp
 
     def _get_matches(self, matches: OutputStream, unit_id: int):
+        """
+        Creates and returns FilterStream object.
+        """
         def skip_item(item: PatternMatch):
             return self._get_unit_number(item.last_timestamp) == unit_id
 
         return FilterStream(skip_item=skip_item, matches=matches)
 
+    def _get_unit_number(self, event_time):
+        """
+        returns the corresponding unit to the event time
+        """
+        diff_time = event_time - self.__start_time
+        unit_id = int((diff_time / self.interval) % self.units_number)
+        return unit_id  # result is zero based
+
     def _classifier(self, event: Event):
+        """
+        Returns possible unit ids for the given event
+        """
         event_time = event.timestamp
         unit_id1 = self._get_unit_number(event_time)
-        unit_id2 = self._get_unit_number(event_time, self.__time_delta)
+        unit_id2 = self._get_unit_number(event_time + self.__time_delta)
         return {unit_id1, unit_id2}
-
-    def _get_unit_number(self, cur_time, time_delta=timedelta(seconds=0)):
-        event_time = cur_time + time_delta
-        diff_time = event_time - self.__start_time
-        unit_id = int((diff_time/self.interval) % self.units_number)
-        return unit_id  # result is zero based
 
 
 class FilterStream(Stream):
     def __init__(self, skip_item: Callable[[PatternMatch], bool], matches: OutputStream):
         super().__init__()
         self.matches = matches
+        # set the unique_match function
         self.unique_match = skip_item
 
     def add_item(self, item: PatternMatch):
+        """
+        adds to the stream only the first occurrence of the item (to prevent duplicates)
+        """
         if self.unique_match(item):
             self.matches.add_item(item)

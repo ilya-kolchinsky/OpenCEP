@@ -28,6 +28,9 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
             raise Exception('Non numeric key')
 
     def _classifier(self, event: Event):
+        """
+        return list of a single unit that matches the modulo of the key
+        """
         value = event.payload.get(self.__key)
         return [int(value) % self.units_number]
 

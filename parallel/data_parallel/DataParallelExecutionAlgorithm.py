@@ -19,10 +19,15 @@ class DataParallelExecutionAlgorithm(ABC):
                  eval_mechanism_params: EvaluationMechanismParameters, platform: ParallelExecutionPlatform):
         self.units_number = units_number
         self.platform = platform
+        # create SequentialEvaluationManager for every unit
         self.evaluation_managers = [SequentialEvaluationManager(patterns, eval_mechanism_params) for _ in
                                     range(self.units_number)]
 
     def _check_first_event(self, first_event: Event):
+        """
+        runs in eval function.
+        performs checks the first event on the input stream
+        """
         raise NotImplementedError()
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
@@ -32,6 +37,7 @@ class DataParallelExecutionAlgorithm(ABC):
         first_event = Event(events.first(), data_formatter)
         self._check_first_event(first_event)
         execution_units = list()
+        # create and run execution unit for each unit
         for unit_id, evaluation_manager in enumerate(self.evaluation_managers):
             execution_unit = DataParallelExecutionUnit(self.platform,
                                                        unit_id,
@@ -47,21 +53,31 @@ class DataParallelExecutionAlgorithm(ABC):
             for unit_id in self._classifier(event):
                 execution_units[unit_id].add_event(raw_event)
 
+        # waits for all execution_units to terminate
         for execution_unit in execution_units:
             execution_unit.wait()
 
     def _get_matches(self, matches: OutputStream, unit_id: int):
+        """
+        returns OutputStream that correlates the unit id
+        default implementation returns original matches
+        """
         return matches
 
-    def _classifier(self, event: Event):
+    def _classifier(self, event: Event) -> List[int]:
+        """
+        returns list of unit ids that will evaluate the event
+        """
         raise NotImplementedError()
 
     def get_structure_summary(self):
         return tuple(map(lambda em: em.get_structure_summary(), self.evaluation_managers))
 
 
-
 class DataParallelExecutionUnit:
+    """
+    A wrap for single unit that has input stream and an execution unit.
+    """
     def __init__(self, platform, unit_id, evaluation_manager, matches, data_formatter):
         self.events = Stream()
         self.execution_unit = platform.create_parallel_execution_unit(unit_id,
