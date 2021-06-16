@@ -39,6 +39,9 @@ custom2 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom2.tx
 custom3 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom3.txt"))
 custom4 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom4.txt"))
 
+Sensors_data = FileInputStream(os.path.join(absolutePath, "test/EventFiles/Sensors.dat"))
+
+
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
 DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS = \
@@ -160,7 +163,8 @@ def createTest(testName, patterns, events=None, eventStream=nasdaqEventStream):
 def runTest(testName, patterns, createTestFile = False,
             eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
             parallel_execution_params: ParallelExecutionParameters = None,
-            events=None, eventStream=nasdaqEventStream, expected_file_name=None):
+            events=None, eventStream=nasdaqEventStream, expected_file_name=None,
+            data_formatter=DEFAULT_TESTING_DATA_FORMATTER):
     if expected_file_name is None:
         expected_file_name = testName
 
@@ -193,7 +197,7 @@ def runTest(testName, patterns, createTestFile = False,
     expected_output_file_name = "%sMatches.txt" % expected_file_name.split('|')[0]
     is_async = parallel_execution_params is not None and parallel_execution_params.execution_mode == ParallelExecutionModes.DATA_PARALLELISM
     matches_stream = FileOutputStream(base_matches_directory, output_file_name, is_async)
-    running_time = cep.run(events, matches_stream, DEFAULT_TESTING_DATA_FORMATTER)
+    running_time = cep.run(events, matches_stream, data_formatter)
 
     expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', expected_output_file_name)
     actual_matches_path = os.path.join(base_matches_directory, output_file_name)
