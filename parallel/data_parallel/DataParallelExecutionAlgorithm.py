@@ -8,7 +8,6 @@ from stream.Stream import *
 from parallel.manager.EvaluationManager import EvaluationManager
 from parallel.manager.SequentialEvaluationManager import SequentialEvaluationManager
 from typing import Set, Callable
-from queue import Queue
 
 
 class DataParallelExecutionAlgorithm(ABC):
@@ -24,31 +23,20 @@ class DataParallelExecutionAlgorithm(ABC):
         self.evaluation_managers = [SequentialEvaluationManager(patterns, eval_mechanism_params) for _ in
                                     range(self.units_number)]
 
-    def _check_first_event(self, first_event: Event):
-        """
-        runs in eval function.
-        performs checks the first event on the input stream
-        """
-        pass
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
         Activates the actual parallel algorithm.
         """
-        first_event = Event(events.first(), data_formatter)
-        self._check_first_event(first_event)
         execution_units = list()
         # create and run execution unit for each unit
-        q = Queue()
         for unit_id, evaluation_manager in enumerate(self.evaluation_managers):
-            q.put(unit_id)
-            execution_unit = ExecutionUnit(self.platform,
-                                           unit_id,
-                                           evaluation_manager,
-                                           FilterStream(skip_item=self._create_skip_item(unit_id),
-                                                        matches=matches),
-                                           data_formatter)
-            q.get()
+            execution_unit = self.ExecutionUnit(self.platform,
+                                                unit_id,
+                                                evaluation_manager,
+                                                self.FilterStream(skip_item=self._create_skip_item(unit_id),
+                                                                  matches=matches),
+                                                data_formatter)
             execution_unit.start()
             execution_units.append(execution_unit)
 
@@ -65,8 +53,7 @@ class DataParallelExecutionAlgorithm(ABC):
         # close global OutputStream (only here) after all execution units finished
         matches.close()
 
-    @classmethod
-    def _create_skip_item(cls, unit_id: int) -> Callable[[PatternMatch], bool]:
+    def _create_skip_item(self, unit_id: int) -> Callable[[PatternMatch], bool]:
         raise NotImplementedError()
 
     def _classifier(self, event: Event) -> Set[int]:
@@ -78,52 +65,49 @@ class DataParallelExecutionAlgorithm(ABC):
     def get_structure_summary(self):
         return tuple(map(lambda em: em.get_structure_summary(), self.evaluation_managers))
 
-
-class ExecutionUnit:
-    """
-    A wrap for single unit that has input stream and an execution unit.
-    """
-
-    def __init__(self, platform, unit_id, evaluation_manager, matches, data_formatter):
-        self.events = Stream()
-        self.execution_unit = platform.create_parallel_execution_unit(unit_id,
-                                                                      self._run,
-                                                                      evaluation_manager,
-                                                                      self.events,
-                                                                      matches,
-                                                                      data_formatter)
-
-    def start(self):
-        self.execution_unit.start()
-
-    def add_event(self, raw_event):
-        self.events.add_item(raw_event)
-
-    def wait(self):
-        self.events.close()
-        self.execution_unit.wait()
-
-    @staticmethod
-    def _run(evaluation_manager: EvaluationManager,
-             events: InputStream,
-             matches: OutputStream,
-             data_formatter: DataFormatter):
-        evaluation_manager.eval(events, matches, data_formatter)
-
-
-class FilterStream(Stream):
-    def __init__(self, skip_item: Callable[[PatternMatch], bool], matches: OutputStream):
-        super().__init__()
-        self.matches = matches
-        # set the unique_match function
-        self.unique_match = skip_item
-
-    def add_item(self, item: PatternMatch):
+    class ExecutionUnit:
         """
-        adds to the stream only the first occurrence of the item (to prevent duplicates)
+        A wrap for single unit that has input stream and an execution unit.
         """
-        if self.unique_match(item):
-            self.matches.add_item(item)
+        def __init__(self, platform, unit_id, evaluation_manager, matches, data_formatter):
+            self.events = Stream()
+            self.execution_unit = platform.create_parallel_execution_unit(unit_id,
+                                                                          self._run,
+                                                                          evaluation_manager,
+                                                                          self.events,
+                                                                          matches,
+                                                                          data_formatter)
 
-    def close(self):
-        pass
+        def start(self):
+            self.execution_unit.start()
+
+        def add_event(self, raw_event):
+            self.events.add_item(raw_event)
+
+        def wait(self):
+            self.events.close()
+            self.execution_unit.wait()
+
+        @staticmethod
+        def _run(evaluation_manager: EvaluationManager,
+                 events: InputStream,
+                 matches: OutputStream,
+                 data_formatter: DataFormatter):
+            evaluation_manager.eval(events, matches, data_formatter)
+
+    class FilterStream(Stream):
+        def __init__(self, skip_item: Callable[[PatternMatch], bool], matches: OutputStream):
+            super().__init__()
+            self.matches = matches
+            # set the unique_match function
+            self.unique_match = skip_item
+
+        def add_item(self, item: PatternMatch):
+            """
+            adds to the stream only the first occurrence of the item (to prevent duplicates)
+            """
+            if self.unique_match(item):
+                self.matches.add_item(item)
+
+        def close(self):
+            pass

@@ -5,6 +5,8 @@ from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from base.PatternMatch import *
 from datetime import timedelta
 from typing import Set
+from base.DataFormatter import DataFormatter
+from stream.Stream import *
 
 
 class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
@@ -29,6 +31,11 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
             raise Exception("time delta > interval")
 
         self.__start_time = None
+
+    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+        first_event = Event(events.first(), data_formatter)
+        self.__start_time = first_event.timestamp
+        super(RIPParallelExecutionAlgorithm, self).eval(events, matches, data_formatter)
 
     def _check_first_event(self, first_event: Event):
         """
