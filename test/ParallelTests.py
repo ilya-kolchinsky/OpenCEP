@@ -110,8 +110,8 @@ def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TEST
     attributes_dict = {"AAPL": ["Opening Price", "Peak Price"], "AMZN": "Peak Price"}
     parallel_execution_params = DataParallelExecutionParametersHyperCubeAlgorithm(units_number=units, attributes_dict=attributes_dict)
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
-    #expected_result = tuple([('Seq', 'a', 'b')] * units)
-    #runStructuralTest('structuralTest1', [pattern], expected_result, parallel_execution_params=parallel_execution_params)
+    expected_result = tuple([('Seq', 'a', 'b')] * units)
+    runStructuralTest('structuralTest1', [pattern], expected_result, parallel_execution_params=parallel_execution_params)
 
 
 if __name__ == "__main__":

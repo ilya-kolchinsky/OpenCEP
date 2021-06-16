@@ -7,7 +7,6 @@ class Stream:
     """
     def __init__(self):
         self._stream = Queue()
-        self._reference_count = 1
 
     def __next__(self):
         next_item = self._stream.get(block=True)  # Blocking get
@@ -22,10 +21,7 @@ class Stream:
         self._stream.put(item)
 
     def close(self):
-        self._reference_count -= 1
-        if not self._reference_count:
-            self._stream.put(None)
-        return self._reference_count == 0  #is_close
+        self._stream.put(None)
 
     def duplicate(self):
         ret = Stream()
@@ -46,19 +42,6 @@ class Stream:
         if x is None:  # if stream is closed last is None. We need the one before None.
             x = self._stream.queue[-2]
         return x
-
-    def get_reference(self):
-        self._reference_count += 1
-        return self
-
-    # def join(self):
-    #     self._stream.join()
-    #
-    # def task_done(self):
-    #     self._stream.task_done()
-
-
-
 
 
 class InputStream(Stream):

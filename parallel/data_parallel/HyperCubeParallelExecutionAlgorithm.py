@@ -10,7 +10,7 @@ from base.PatternMatch import *
 from functools import reduce
 import numpy as np
 from misc.Utils import is_int, is_float
-from typing import Tuple
+from typing import Tuple, Set
 
 
 class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
@@ -35,7 +35,7 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         self.cube = np.array(range(self.cube_size)).reshape(self.shares)
         super().__init__(self.cube_size, patterns, eval_mechanism_params, platform)
 
-    def _classifier(self, event: Event):
+    def _classifier(self, event: Event) -> Set[int]:
         attributes = self.attributes_dict.get(event.type)
         if attributes:
             units = set()
@@ -51,13 +51,15 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
                 indices[index] = slice(col, col + 1)
                 units.update(self.cube[tuple(indices)].reshape(-1))
             return units
-        return range(self.cube_size)
+        return set(range(self.cube_size))
 
     @staticmethod
     def _calc_cubic_shares(units_number, dims) -> Tuple[Tuple[int], int]:
-        # find the most equal share, and try to improve it with extra units
-        # for example: _calc_cubic_shares(10, 2) = [3,3] not [5,2]
-        # max(shares)-min(shares) <= 1
+        """
+        find the most equal share, and try to improve it with extra units
+        for example: _calc_cubic_shares(10, 2) = [3,3] not [5,2]
+        max(shares)-min(shares) <= 1
+        """
         equal_share = floor(units_number ** (1 / dims))
         shares = [equal_share] * dims
 
@@ -75,15 +77,13 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
                     continue
         return shares, used_units()
 
+    def _create_skip_item(self, unit_id: int):
+        """
+        Creates and returns FilterStream object.
+        """
 
-    # @staticmethod
-    # def _list_to_ndarray(l, dims):
-    #     def list_to_matrix(l, n):
-    #         if len(l) % n:
-    #             raise Exception("not fit")
-    #         m = len(l) // n
-    #         return [[l[i + n * j] for i in range(n)] for j in range(m)]
-    #
-    #     for d in dims[-1:0:-1]:
-    #         l = list_to_matrix(l, d)
-    #     return l
+        def skip_item(item: PatternMatch):
+            min_unit = min(reduce(set.intersection, map(self._classifier, item.events)))
+            return min_unit == unit_id
+
+        return skip_item

@@ -44,10 +44,9 @@ class FileOutputStream(OutputStream):
         """
         If asynchronous write is disabled, writes everything to the output file before closing it.
         """
-        if super().close():
-            if not self.__is_async:
-                self.__output_file = open(self.__output_path, 'w')
-                for item in self:
-                    self.__output_file.write(str(item))
-
-            self.__output_file.close()
+        super().close()
+        if not self.__is_async:
+            self.__output_file = open(self.__output_path, 'w')
+            for item in self:
+                self.__output_file.write(str(item))
+        self.__output_file.close()

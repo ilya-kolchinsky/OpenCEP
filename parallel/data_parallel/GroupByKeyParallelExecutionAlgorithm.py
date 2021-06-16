@@ -4,7 +4,7 @@ from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from base.PatternMatch import *
 from parallel.platform.ParallelExecutionPlatform import ParallelExecutionPlatform
 from misc.Utils import is_int, is_float
-
+from typing import Set
 
 class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
     """
@@ -20,7 +20,7 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
         super().__init__(units_number, patterns, eval_mechanism_params, platform)
         self._key = key
 
-    def _classifier(self, event: Event):
+    def _classifier(self, event: Event) -> Set[int]:
         """
         return list of a single unit that matches the modulo of the key
         """
@@ -30,6 +30,16 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
         elif not is_int(value) and not is_float(value):
             raise Exception(f"Non numeric key {self._key} = {value}")
         return [int(value) % self.units_number]
+
+    def _create_skip_item(self, unit_id: int):
+        """
+        Creates and returns FilterStream object.
+        """
+
+        def skip_item(item: PatternMatch):
+            return True
+
+        return skip_item
 
 
 
