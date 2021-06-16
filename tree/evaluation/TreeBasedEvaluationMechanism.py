@@ -76,6 +76,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
         # Now that we finished the input stream, if there were some pending matches somewhere in the tree, we will
         # collect them now
         self._get_last_pending_matches(matches)
+        matches.close()
 
     def __perform_reoptimization(self, last_statistics_refresh_time: timedelta, last_event: Event):
         """

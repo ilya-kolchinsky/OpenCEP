@@ -58,8 +58,8 @@ def simpleRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EV
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params,
             eventStream=custom4)
     expected_result = tuple([('Seq', 'a', 'b')] * units)
-    runStructuralTest('structuralTest1', [pattern], expected_result,
-                      parallel_execution_params=parallel_execution_params)
+    # runStructuralTest('structuralTest1', [pattern], expected_result,
+    #                  parallel_execution_params=parallel_execution_params)
 
 
 def newDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
@@ -106,8 +106,8 @@ def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TEST
         ),
         timedelta(minutes=5)
     )
-    units = 22
-    attributes_dict = {"AAPL": ["Opening Price"], "AMZN": "Peak Price"}
+    units = 30
+    attributes_dict = {"AAPL": ["Opening Price", "Peak Price"], "AMZN": "Peak Price"}
     parallel_execution_params = DataParallelExecutionParametersHyperCubeAlgorithm(units_number=units, attributes_dict=attributes_dict)
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
     #expected_result = tuple([('Seq', 'a', 'b')] * units)

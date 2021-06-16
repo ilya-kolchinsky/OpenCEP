@@ -7,6 +7,7 @@ from parallel.platform.ParallelExecutionPlatform import ParallelExecutionPlatfor
 from stream.Stream import *
 from parallel.manager.EvaluationManager import EvaluationManager
 from parallel.manager.SequentialEvaluationManager import SequentialEvaluationManager
+from typing import Iterable
 
 
 class DataParallelExecutionAlgorithm(ABC):
@@ -56,14 +57,14 @@ class DataParallelExecutionAlgorithm(ABC):
         for execution_unit in execution_units:
             execution_unit.wait()
 
-    def _get_matches(self, matches: OutputStream, unit_id: int):
+    def _get_matches(self, matches: OutputStream, unit_id: int) -> Stream:
         """
         returns OutputStream that correlates the unit id
         default implementation returns original matches
         """
         return matches
 
-    def _classifier(self, event: Event) -> List[int]:
+    def _classifier(self, event: Event) -> Iterable[int]:
         """
         returns list of unit ids that will evaluate the event
         """
@@ -78,12 +79,13 @@ class DataParallelExecutionUnit:
     A wrap for single unit that has input stream and an execution unit.
     """
     def __init__(self, platform, unit_id, evaluation_manager, matches, data_formatter):
+        self.matches = matches
         self.events = Stream()
         self.execution_unit = platform.create_parallel_execution_unit(unit_id,
                                                                       self._run,
                                                                       evaluation_manager,
                                                                       self.events,
-                                                                      matches,
+                                                                      self.matches.get_reference(),
                                                                       data_formatter)
 
     def start(self):
@@ -91,12 +93,13 @@ class DataParallelExecutionUnit:
 
     def add_event(self, raw_event):
         self.events.add_item(raw_event)
-        self.events.task_done()
+        # self.events.task_done()
 
     def wait(self):
-        self.events.join()
+        # self.events.join()
         self.events.close()
         self.execution_unit.wait()
+        self.matches.close()
 
     @staticmethod
     def _run(evaluation_manager: EvaluationManager,

@@ -45,7 +45,7 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
 
         return FilterStream(skip_item=skip_item, matches=matches)
 
-    def _get_unit_number(self, event_time):
+    def _get_unit_number(self, event_time) -> int:
         """
         returns the corresponding unit to the event time
         """
@@ -76,3 +76,9 @@ class FilterStream(Stream):
         """
         if self.unique_match(item):
             self.matches.add_item(item)
+
+    def close(self):
+        self.matches.close()
+        super(FilterStream, self).close()
+            
+

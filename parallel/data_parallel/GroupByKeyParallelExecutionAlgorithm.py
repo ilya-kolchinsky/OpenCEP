@@ -18,20 +18,17 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
                  platform: ParallelExecutionPlatform,
                  key: str):
         super().__init__(units_number, patterns, eval_mechanism_params, platform)
-        self.__key = key
-
-    def _check_first_event(self, first_event: Event):
-        value = first_event.payload.get(self.__key)
-        if value is None:
-            raise Exception('key not exists')
-        elif not is_int(value) and not is_float(value):
-            raise Exception('Non numeric key')
+        self._key = key
 
     def _classifier(self, event: Event):
         """
         return list of a single unit that matches the modulo of the key
         """
-        value = event.payload.get(self.__key)
+        value = event.payload.get(self._key)
+        if value is None:
+            raise Exception(f"attribute {self._key} is not existing in type {event.type}")
+        elif not is_int(value) and not is_float(value):
+            raise Exception(f"Non numeric key {self._key} = {value}")
         return [int(value) % self.units_number]
 
 
