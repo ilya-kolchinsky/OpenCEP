@@ -1,7 +1,6 @@
 from abc import ABC
 from base.Pattern import Pattern
-from evaluation.EvaluationMechanismFactory import \
-    EvaluationMechanismParameters
+from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from base.DataFormatter import DataFormatter
 from base.PatternMatch import *
 from parallel.platform.ParallelExecutionPlatform import ParallelExecutionPlatform
@@ -28,7 +27,7 @@ class DataParallelExecutionAlgorithm(ABC):
         runs in eval function.
         performs checks the first event on the input stream
         """
-        raise NotImplementedError()
+        pass
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """

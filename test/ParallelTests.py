@@ -74,8 +74,8 @@ def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TEST
         ),
         timedelta(minutes=5)
     )
-    units = 8
-    attributes_dict = {"a": "Opening Price", "b": "Peak Price"}
+    units = 22
+    attributes_dict = {"AAPL": ["Opening Price"], "AMZN": "Peak Price"}
     parallel_execution_params = DataParallelExecutionParametersHyperCubeAlgorithm(units_number=units, attributes_dict=attributes_dict)
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
     #expected_result = tuple([('Seq', 'a', 'b')] * units)
@@ -84,6 +84,6 @@ def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TEST
 
 if __name__ == "__main__":
     runTest.over_all_time = 0
-    simpleGroupByKeyTest()
-    simpleRIPTest()
-    # simpleHyperCubeTest()
+    # simpleGroupByKeyTest()
+    # simpleRIPTest()
+    simpleHyperCubeTest()

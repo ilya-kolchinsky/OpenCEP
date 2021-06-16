@@ -3,27 +3,13 @@
 """
 from abc import ABC
 from parallel.data_parallel.DataParallelExecutionAlgorithm import DataParallelExecutionAlgorithm
-import math
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import \
     EvaluationMechanismParameters
-from base.DataFormatter import DataFormatter
+from math import floor
 from base.PatternMatch import *
-from stream.Stream import *
-from dataclasses import dataclass
-
-
-def list_equal(list1, list2):
-    list1.sort()
-    list2.sort()
-    return list1 == list2
-
-
-@dataclass(frozen=True)
-class EventStructure:
-    name: str
-    type: str
-    cube_attribute: str
+from functools import reduce
+import numpy as np
 
 
 class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
@@ -33,22 +19,64 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
 
     def __init__(self, units_number, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform, attributes_dict: dict):
-        if isinstance(patterns, list):  # TODO: check if possible multiple patterns
+        if isinstance(patterns, list):
             if len(patterns) > 1:
-                raise Exception
+                raise Exception  # TODO: check if possible multiple patterns
             pattern = patterns[0]
         else:
             pattern = patterns
+        dims = 0
+        self.attributes_dict = dict()
+        for k, v in attributes_dict.items():
+            if isinstance(v, list):
+                if len(v)>1:
+                    raise Exception # TODO: add
+                self.attributes_dict[k] = [(v, dims + i) for i, v in enumerate(v)]
+                dims += len(v)
+            elif isinstance(v, str):
+                self.attributes_dict[k] = [(v, dims)]
+                dims += 1
+            else:
+                raise Exception
+        self.shares = self._calc_shares(units_number, dims)
+        self.cube_size = reduce(lambda a, b: a * b, self.shares)
+        super().__init__(self.cube_size, pattern, eval_mechanism_params, platform)
+        self.cube = np.array(range(self.cube_size)).reshape(self.shares)
 
-        # check that the pattern match with attributes_dict
-        attributes = {e.name: e.type for e in pattern.get_primitive_events()}
-        if not list_equal(list(attributes.keys()), list(attributes_dict.keys())):
-            raise Exception
+    def _classifier(self, event: Event):
+        indices = [slice(None)] * self.cube.ndim
+        attributes = self.attributes_dict.get(event.type)
+        if attributes:
+            attribute, index = attributes[0]
+            value = event.payload.get(attribute)
+            if value is None:
+                raise Exception
+            col = int(value) % self.shares[index]
+            indices[index] = slice(col, col+1)
+        return self.cube[tuple(indices)].reshape(-1).tolist()
 
-        self.__event_types = [EventStructure(name, type, attributes_dict.get(name)) for name, type in
-                              attributes.items()]
-        # self.__attributes_dict = attributes_dict
-        super().__init__(units_number - 1, pattern, eval_mechanism_params, platform)
+    def _calc_shares(self, units_number, dims):
+        equal_share = floor(units_number ** (1 / dims))
+        shares = [equal_share for _ in range(dims)]
+        change = True
+        while change:
+            change = False
+            for s in range(len(shares)):
+                if reduce(lambda a, b: a * b, shares) / shares[s] * (shares[s] + 1) <= units_number:
+                    shares[s] += 1
+                    change = True
+                else:
+                    continue
+        return shares
 
-    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
-        raise NotImplementedError()
+    # @staticmethod
+    # def _list_to_ndarray(l, dims):
+    #     def list_to_matrix(l, n):
+    #         if len(l) % n:
+    #             raise Exception("not fit")
+    #         m = len(l) // n
+    #         return [[l[i + n * j] for i in range(n)] for j in range(m)]
+    #
+    #     for d in dims[-1:0:-1]:
+    #         l = list_to_matrix(l, d)
+    #     return l
