@@ -8,29 +8,33 @@ from misc.Utils import str_to_number
 SENSORS_TIMESTAMP_KEY = "TimeStamp"
 SENSORS_TYPE_KEY = "SensorType"
 
-SENSORS_COLUMN_KEYS = [
+SENSORS_COMMON_KEYS = [
     SENSORS_TYPE_KEY,
-    SENSORS_TIMESTAMP_KEY
+    SENSORS_TIMESTAMP_KEY,
+    "Amplitude"
 ]
 
-SENSORS_ADDITIONAL_COLUMN_KEYS = {
+SENSORS_KEYS_DICT = {
     "PressTemp":
-    [
-        "Pressure",
-        "Temperature"
-    ],
+        SENSORS_COMMON_KEYS +
+        [
+            "Pressure",
+            "Temperature"
+        ],
     "Accelerometer":
-    [
-        "AccX",
-        "AccY",
-        "AccZ"
-    ],
+        SENSORS_COMMON_KEYS +
+        [
+            "AccX",
+            "AccY",
+            "AccZ"
+        ],
     "Magnetometer":
-    [
-        "MagX",
-        "MagY",
-        "MagZ"
-    ]
+        SENSORS_COMMON_KEYS +
+        [
+            "MagX",
+            "MagY",
+            "MagZ"
+        ]
 }
 
 
@@ -58,7 +62,7 @@ class SensorsDataFormatter(DataFormatter):
         """
         event_attributes = raw_data.replace("\n", "").split(",")
         return dict(zip(
-            SENSORS_COLUMN_KEYS + SENSORS_ADDITIONAL_COLUMN_KEYS[event_attributes[0]],
+            SENSORS_KEYS_DICT[event_attributes[0]],
             map(str_to_number, event_attributes)
         ))
 
@@ -71,18 +75,19 @@ class SensorsDataFormatter(DataFormatter):
 
 
 def random_str(lowest, highest):
-    return str(round(lowest + random.uniform(0, highest-lowest), 3))
+    return str(round(lowest + random.uniform(0, highest - lowest), 3))
 
 
 if __name__ == '__main__':
     num_of_samples = 1000
-    types_list = list(SENSORS_ADDITIONAL_COLUMN_KEYS.keys())
+    types_list = list(SENSORS_KEYS_DICT.keys())
     curr_time = datetime.now()
     with open(r"..\..\test\EventFiles\Sensors.dat", "w+") as output_file:
         for i in range(num_of_samples):
             choice = random.choice(types_list)
             timestamp = (curr_time + timedelta(seconds=i)).strftime("%m/%d/%Y %H:%M:%S")
-            output = [choice, timestamp]
+            amplitude = random_str(lowest=0, highest=100)
+            output = [choice, timestamp, amplitude]
             if choice == 'PressTemp':
                 temperature = random_str(lowest=23, highest=27)
                 pressure = random_str(lowest=940, highest=960)
