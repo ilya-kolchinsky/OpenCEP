@@ -116,7 +116,7 @@ def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TEST
 
 if __name__ == "__main__":
     runTest.over_all_time = 0
-    simpleGroupByKeyTest()
-    simpleRIPTest()
-    newDataRIPTest()
+    # simpleGroupByKeyTest()
+    # simpleRIPTest()
+    # newDataRIPTest()
     simpleHyperCubeTest()

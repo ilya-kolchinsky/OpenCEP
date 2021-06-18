@@ -10,7 +10,7 @@ class ParallelExecutionParameters:
     """
 
     def __init__(self,
-                 execution_mode: ParallelExecutionModes = ParallelExecutionModes.DATA_PARALLELISM,
+                 execution_mode: ParallelExecutionModes = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_MODE,
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM):
         self.execution_mode = execution_mode
         self.platform = platform
