@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
 import random
 
 from base.DataFormatter import DataFormatter, EventTypeClassifier
@@ -8,29 +7,33 @@ from misc.Utils import str_to_number
 SENSORS_TIMESTAMP_KEY = "TimeStamp"
 SENSORS_TYPE_KEY = "SensorType"
 
-SENSORS_COLUMN_KEYS = [
+SENSORS_COMMON_KEYS = [
     SENSORS_TYPE_KEY,
-    SENSORS_TIMESTAMP_KEY
+    SENSORS_TIMESTAMP_KEY,
+    "Amplitude"
 ]
 
-SENSORS_ADDITIONAL_COLUMN_KEYS = {
+SENSORS_KEYS_DICT = {
     "PressTemp":
-    [
-        "Pressure",
-        "Temperature"
-    ],
+        SENSORS_COMMON_KEYS +
+        [
+            "Pressure",
+            "Temperature"
+        ],
     "Accelerometer":
-    [
-        "AccX",
-        "AccY",
-        "AccZ"
-    ],
+        SENSORS_COMMON_KEYS +
+        [
+            "AccX",
+            "AccY",
+            "AccZ"
+        ],
     "Magnetometer":
-    [
-        "MagX",
-        "MagY",
-        "MagZ"
-    ]
+        SENSORS_COMMON_KEYS +
+        [
+            "MagX",
+            "MagY",
+            "MagZ"
+        ]
 }
 
 
@@ -58,7 +61,7 @@ class SensorsDataFormatter(DataFormatter):
         """
         event_attributes = raw_data.replace("\n", "").split(",")
         return dict(zip(
-            SENSORS_COLUMN_KEYS + SENSORS_ADDITIONAL_COLUMN_KEYS[event_attributes[0]],
+            SENSORS_KEYS_DICT[event_attributes[0]],
             map(str_to_number, event_attributes)
         ))
 
@@ -70,30 +73,42 @@ class SensorsDataFormatter(DataFormatter):
         return datetime.strptime(timestamp_str, "%m/%d/%Y %H:%M:%S")
 
 
+def random_str(lowest, highest):
+    return str(round(lowest + random.uniform(0, highest - lowest), 3))
+
+
 if __name__ == '__main__':
-    types_list = list(SENSORS_ADDITIONAL_COLUMN_KEYS.keys())
+    #  create test data
+    num_of_samples = 1000
+    types_list = list(SENSORS_KEYS_DICT.keys())
+    curr_time = datetime.now()
     with open(r"..\..\test\EventFiles\Sensors.dat", "w+") as output_file:
-        for i in range(1000):
+        for i in range(num_of_samples):
             choice = random.choice(types_list)
-            timestamp = (datetime.now() + timedelta(seconds=i)).strftime("%m/%d/%Y %H:%M:%S")
+            timestamp = (curr_time + timedelta(seconds=i)).strftime("%m/%d/%Y %H:%M:%S")
+            amplitude = random_str(lowest=0, highest=0.003)
+            output = [choice, timestamp, amplitude]
             if choice == 'PressTemp':
-                temperature = str(round(25 + random.uniform(-2, 2), 3))
-                pressure = str(round(950 + random.uniform(-10, 10), 3))
-                output_file.write(choice + "," + timestamp + "," + temperature + "," + pressure + "\n")
+                temperature = random_str(lowest=23, highest=27)
+                pressure = random_str(lowest=940, highest=960)
+                output.extend([temperature, pressure])
             elif choice == 'Accelerometer':
-                accX = str(round(random.uniform(-50, 50), 3))
-                accY = str(round(random.uniform(-100, 100), 3))
-                accZ = str(round(random.uniform(-20, 20), 3))
-                output_file.write(choice + "," + timestamp + "," + accX + "," + accY + "," + accZ + "\n")
+                accX = random_str(lowest=-50, highest=50)
+                accY = random_str(lowest=-100, highest=100)
+                accZ = random_str(lowest=-20, highest=20)
+                output.extend([accX, accY, accZ])
             elif choice == 'Magnetometer':
-                magX = str(round(random.uniform(-50, 50), 3))
-                magY = str(round(random.uniform(-100, 100), 3))
-                magZ = str(round(random.uniform(-20, 20), 3))
-                output_file.write(choice + "," + timestamp + "," + magX + "," + magY + "," + magZ + "\n")
+                magX = random_str(lowest=-50, highest=50)
+                magY = random_str(lowest=-100, highest=100)
+                magZ = random_str(lowest=-20, highest=20)
+                output.extend([magX, magY, magZ])
+            output_file.write(','.join(output) + "\n")
+
+    #  check the data_formatter functionality
     data_formatter = SensorsDataFormatter()
     with open(r"..\..\test\EventFiles\Sensors.dat", "r") as input_file:
         for line in input_file:
             parsed = data_formatter.parse_event(line)
-            type = data_formatter.get_event_type(parsed)
+            sensor_type = data_formatter.get_event_type(parsed)
             timestamp = data_formatter.get_event_timestamp(parsed)
-            print(parsed, "\n", type, "\n", timestamp)
+            print(parsed, "\n", sensor_type, "\n", timestamp)

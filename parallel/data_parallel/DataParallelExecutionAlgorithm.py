@@ -100,13 +100,13 @@ class DataParallelExecutionAlgorithm(ABC):
             super().__init__()
             self.matches = matches
             # set the unique_match function
-            self.unique_match = skip_item
+            self.skip_item = skip_item
 
         def add_item(self, item: PatternMatch):
             """
             adds to the stream only the first occurrence of the item (to prevent duplicates)
             """
-            if self.unique_match(item):
+            if not self.skip_item(item):
                 self.matches.add_item(item)
 
         def close(self):

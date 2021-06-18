@@ -49,8 +49,13 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         """
 
         def skip_item(item: PatternMatch):
-            return self._get_unit_number(item.last_timestamp) == unit_id  # TODO: markus need to check if first_timestamp needed
-
+            """
+            last_matching_unit > unit_id: the unit will skip matches that ends after the unit time
+            first_matching_unit < unit_id: the unit will skip matches that starts before the unit time
+            """
+            first_matching_unit = self._get_unit_number(item.first_timestamp)
+            last_matching_unit = self._get_unit_number(item.last_timestamp)
+            return last_matching_unit > unit_id or first_matching_unit < unit_id
         return skip_item
 
     def _get_unit_number(self, event_time) -> int:
