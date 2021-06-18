@@ -86,7 +86,7 @@ if __name__ == '__main__':
         for i in range(num_of_samples):
             choice = random.choice(types_list)
             timestamp = (curr_time + timedelta(seconds=i)).strftime("%m/%d/%Y %H:%M:%S")
-            amplitude = random_str(lowest=0, highest=100)
+            amplitude = random_str(lowest=0, highest=0.003)
             output = [choice, timestamp, amplitude]
             if choice == 'PressTemp':
                 temperature = random_str(lowest=23, highest=27)

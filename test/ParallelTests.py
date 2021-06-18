@@ -62,8 +62,8 @@ def simpleRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EV
     #                  parallel_execution_params=parallel_execution_params)
 
 
-def newDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                   test_name="Sensors_"):
+def SensorsDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                       test_name="Sensors_"):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b)
     WHERE   a.OpeningPrice == b.OpeningPrice
@@ -76,18 +76,23 @@ def newDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_E
             GreaterThanCondition(Variable("a", lambda x: x["MagX"]),
                                  Variable("b", lambda x: x["AccX"])),
             SmallerThanCondition(Variable("a", lambda x: x["MagY"]),
-                                 Variable("b", lambda x: x["AccY"]))),
+                                 Variable("b", lambda x: x["AccY"])),
+            BinaryCondition(Variable("a", lambda x: x["Amplitude"]),
+                            Variable("b", lambda x: x["Amplitude"]),
+                            relation_op=lambda x, y: x == y),
+        ),
         timedelta(minutes=5)
     )
     units = 8
     parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units,
                                                                             interval=timedelta(minutes=60))
-
-    runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params,
-            eventStream=Sensors_data, data_formatter=SensorsDataFormatter())
-    expected_result = tuple([('Seq', 'a', 'b')] * units)
-    runStructuralTest('structuralTest1', [pattern], expected_result,
-                      parallel_execution_params=parallel_execution_params)
+    runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data, eval_mechanism_params=eval_mechanism_params,
+            data_formatter=SensorsDataFormatter())
+    runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data, eval_mechanism_params=eval_mechanism_params,
+            parallel_execution_params=parallel_execution_params, data_formatter=SensorsDataFormatter())
+    # expected_result = tuple([('Seq', 'a', 'b')] * units)
+    # runStructuralTest('structuralTest1', [pattern], expected_result,
+    #                   parallel_execution_params=parallel_execution_params)
 
 
 def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
@@ -108,7 +113,8 @@ def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TEST
     )
     units = 30
     attributes_dict = {"AAPL": ["Opening Price", "Peak Price"], "AMZN": "Peak Price"}
-    parallel_execution_params = DataParallelExecutionParametersHyperCubeAlgorithm(units_number=units, attributes_dict=attributes_dict)
+    parallel_execution_params = DataParallelExecutionParametersHyperCubeAlgorithm(units_number=units,
+                                                                                  attributes_dict=attributes_dict)
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
     # expected_result = tuple([('Seq', 'a', 'b')] * units)
     # runStructuralTest('structuralTest1', [pattern], expected_result, parallel_execution_params=parallel_execution_params)
@@ -116,7 +122,7 @@ def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TEST
 
 if __name__ == "__main__":
     runTest.over_all_time = 0
-    simpleGroupByKeyTest()
-    simpleRIPTest()
-    newDataRIPTest()
-    simpleHyperCubeTest()
+    # simpleGroupByKeyTest()
+    # simpleRIPTest()
+    SensorsDataRIPTest()
+    # simpleHyperCubeTest()

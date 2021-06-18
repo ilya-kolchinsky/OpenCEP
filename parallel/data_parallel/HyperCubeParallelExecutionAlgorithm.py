@@ -84,6 +84,6 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
 
         def skip_item(item: PatternMatch):
             min_unit = min(reduce(set.intersection, map(self._classifier, item.events)))
-            return min_unit == unit_id
+            return min_unit != unit_id
 
         return skip_item
