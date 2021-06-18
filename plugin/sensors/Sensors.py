@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
 import random
 
 from base.DataFormatter import DataFormatter, EventTypeClassifier
@@ -107,6 +106,6 @@ if __name__ == '__main__':
     with open(r"..\..\test\EventFiles\Sensors.dat", "r") as input_file:
         for line in input_file:
             parsed = data_formatter.parse_event(line)
-            type = data_formatter.get_event_type(parsed)
+            sensor_type = data_formatter.get_event_type(parsed)
             timestamp = data_formatter.get_event_timestamp(parsed)
-            print(parsed, "\n", type, "\n", timestamp)
+            print(parsed, "\n", sensor_type, "\n", timestamp)
