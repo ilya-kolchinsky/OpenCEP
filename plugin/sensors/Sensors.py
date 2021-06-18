@@ -78,6 +78,7 @@ def random_str(lowest, highest):
 
 
 if __name__ == '__main__':
+    #  create test data
     num_of_samples = 1000
     types_list = list(SENSORS_KEYS_DICT.keys())
     curr_time = datetime.now()
@@ -102,6 +103,8 @@ if __name__ == '__main__':
                 magZ = random_str(lowest=-20, highest=20)
                 output.extend([magX, magY, magZ])
             output_file.write(','.join(output) + "\n")
+
+    #  check the data_formatter functionality
     data_formatter = SensorsDataFormatter()
     with open(r"..\..\test\EventFiles\Sensors.dat", "r") as input_file:
         for line in input_file:
