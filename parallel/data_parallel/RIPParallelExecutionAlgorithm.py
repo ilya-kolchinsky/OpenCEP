@@ -5,6 +5,8 @@ from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from base.PatternMatch import *
 from datetime import timedelta
 from typing import Set
+from base.DataFormatter import DataFormatter
+from stream.Stream import *
 
 
 class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
@@ -30,6 +32,11 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
 
         self.__start_time = None
 
+    def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
+        first_event = Event(events.first(), data_formatter)
+        self.__start_time = first_event.timestamp
+        super(RIPParallelExecutionAlgorithm, self).eval(events, matches, data_formatter)
+
     def _check_first_event(self, first_event: Event):
         """
         Init events start time
@@ -42,9 +49,13 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         """
 
         def skip_item(item: PatternMatch):
-            return self._get_unit_number(
-                item.last_timestamp) == unit_id  # TODO: markus need to check if first_timestamp needed
-
+            """
+            last_matching_unit > unit_id: the unit will skip matches that ends after the unit time
+            first_matching_unit < unit_id: the unit will skip matches that starts before the unit time
+            """
+            first_matching_unit = self._get_unit_number(item.first_timestamp)
+            last_matching_unit = self._get_unit_number(item.last_timestamp)
+            return last_matching_unit > unit_id or first_matching_unit < unit_id
         return skip_item
 
     def _get_unit_number(self, event_time) -> int:

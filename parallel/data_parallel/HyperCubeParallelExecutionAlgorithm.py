@@ -8,9 +8,12 @@ from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from math import floor
 from base.PatternMatch import *
 from functools import reduce
-import numpy as np
+# from numpy import array
+from misc.Utils import ndarray as array
 from misc.Utils import is_int, is_float
 from typing import Tuple, Set
+
+
 
 
 class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
@@ -31,9 +34,9 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
                 dims += 1
             else:
                 raise Exception
-        self.shares, self.cube_size = self._calc_cubic_shares(units_number, dims)
-        self.cube = np.array(range(self.cube_size)).reshape(self.shares)
-        super().__init__(self.cube_size, patterns, eval_mechanism_params, platform)
+        shares, cube_size = self._calc_cubic_shares(units_number, dims)
+        self.cube = array(range(cube_size)).reshape(shares)
+        super().__init__(self.cube.size, patterns, eval_mechanism_params, platform)
 
     def _classifier(self, event: Event) -> Set[int]:
         attributes = self.attributes_dict.get(event.type)
@@ -47,11 +50,11 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
                     raise Exception(f"attribute {attribute} is not existing in type {event.type}")
                 elif not is_int(value) and not is_float(value):
                     raise Exception(f"Non numeric key {attribute} = {value}")
-                col = int(value) % self.shares[index]
+                col = int(value) % self.cube.shape[index]
                 indices[index] = slice(col, col + 1)
-                units.update(self.cube[tuple(indices)].reshape(-1))
+                units.update(set(list(self.cube[tuple(indices)].reshape(-1))))
             return units
-        return set(range(self.cube_size))
+        return set(range(self.cube.size))
 
     @staticmethod
     def _calc_cubic_shares(units_number, dims) -> Tuple[Tuple[int], int]:
@@ -84,6 +87,6 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
 
         def skip_item(item: PatternMatch):
             min_unit = min(reduce(set.intersection, map(self._classifier, item.events)))
-            return min_unit == unit_id
+            return min_unit != unit_id
 
         return skip_item
