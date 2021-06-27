@@ -26,20 +26,16 @@ class DataParallelExecutionAlgorithm(ABC):
                                     range(self.units_number)]
         self.debug = debug
         if self.debug:
-            self.filtered_files = [open(os.path.join("Debug", "Filtered_" + str(i) + ".txt"), "w+")
-                                   for i in range(units_number)]
-            self.unfiltered_files = [open(os.path.join("Debug", "Unfiltered_" + str(i) + ".txt"), "w+")
-                                     for i in range(units_number)]
+            self.filtered_files = open(os.path.join("Debug", "Filtered.txt"), "w+")
+            self.unfiltered_files = open(os.path.join("Debug", "Uniltered.txt"), "w+")
         else:
             self.filtered_files = None
             self.unfiltered_files = None
 
     def __del__(self):
         if self.debug:
-            for fd in self.filtered_files:
-                fd.close()
-            for fd in self.unfiltered_files:
-                fd.close()
+            self.filtered_files.close()
+            self.unfiltered_files.close()
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
@@ -63,7 +59,7 @@ class DataParallelExecutionAlgorithm(ABC):
             event = Event(raw_event, data_formatter)
             for unit_id in self._classifier(event):
                 if self.debug:
-                    self.unfiltered_files[unit_id].write(raw_event)
+                    self.unfiltered_files[unit_id].write(str(unit_id) + ": " + raw_event)
                 execution_units[unit_id].add_event(raw_event)
 
         # waits for all execution_units to terminate
@@ -132,7 +128,8 @@ class DataParallelExecutionAlgorithm(ABC):
             if not self.skip_item(item):
                 if self.filtered_files:
                     for event in item.events:
-                        self.filtered_files[self.unit_id].write(str(event.payload) + "\n")
+                        event_msg = str(self.unit_id) + ": " + str(event.payload) + "\n"
+                        self.filtered_files[self.unit_id].write(event_msg)
                 self.matches.add_item(item)
 
         def close(self):
