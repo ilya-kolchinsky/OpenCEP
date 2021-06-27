@@ -6,6 +6,7 @@ from parallel.platform.ParallelExecutionPlatform import ParallelExecutionPlatfor
 from misc.Utils import is_int, is_float
 from typing import Set
 
+
 class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
     """
     Implements the key-based partitioning algorithm.
@@ -16,8 +17,9 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
                  patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters,
                  platform: ParallelExecutionPlatform,
-                 key: str):
-        super().__init__(units_number, patterns, eval_mechanism_params, platform)
+                 key: str,
+                 debug: bool = False):
+        super().__init__(units_number, patterns, eval_mechanism_params, platform, debug)
         self._key = key
 
     def _classifier(self, event: Event) -> Set[int]:
