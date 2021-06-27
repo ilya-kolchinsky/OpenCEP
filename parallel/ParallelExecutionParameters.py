@@ -24,10 +24,11 @@ class DataParallelExecutionParameters(ParallelExecutionParameters):
                  execution_mode: ParallelExecutionModes = ParallelExecutionModes.DATA_PARALLELISM,
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM,
                  data_parallel_mode: DataParallelExecutionModes = DefaultConfig.DEFAULT_DATA_PARALLEL_ALGORITHM,
-                 units_number: int = DefaultConfig.DEFAULT_PARALLEL_UNITS_NUMBER):
+                 units_number: int = DefaultConfig.DEFAULT_PARALLEL_UNITS_NUMBER, debug: bool = False):
         super().__init__(execution_mode, platform)
         self.algorithm = data_parallel_mode
         self.units_number = units_number
+        self.debug = debug
 
 
 class DataParallelExecutionParametersHirzelAlgorithm(DataParallelExecutionParameters):
@@ -38,10 +39,10 @@ class DataParallelExecutionParametersHirzelAlgorithm(DataParallelExecutionParame
                  execution_mode: ParallelExecutionModes = ParallelExecutionModes.DATA_PARALLELISM,
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM,
                  units_number: int = DefaultConfig.DEFAULT_PARALLEL_UNITS_NUMBER,
-                 key: str = DefaultConfig.DEFAULT_PARALLEL_KEY):
+                 key: str = DefaultConfig.DEFAULT_PARALLEL_KEY, debug: bool = False):
         super().__init__(execution_mode, platform,
                          DataParallelExecutionModes.GROUP_BY_KEY_ALGORITHM,
-                         units_number)
+                         units_number, debug)
         self.divide_key = key
 
 
@@ -53,10 +54,10 @@ class DataParallelExecutionParametersRIPAlgorithm(DataParallelExecutionParameter
                  execution_mode: ParallelExecutionModes = ParallelExecutionModes.DATA_PARALLELISM,
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM,
                  units_number: int = DefaultConfig.DEFAULT_PARALLEL_UNITS_NUMBER,
-                 interval: timedelta = DefaultConfig.DEFAULT_PARALLEL_INTERVAL):
+                 interval: timedelta = DefaultConfig.DEFAULT_PARALLEL_INTERVAL, debug: bool = False):
         super().__init__(execution_mode, platform,
                          DataParallelExecutionModes.RIP_ALGORITHM,
-                         units_number)
+                         units_number, debug)
         self.rip_interval = interval
 
 
@@ -68,8 +69,8 @@ class DataParallelExecutionParametersHyperCubeAlgorithm(DataParallelExecutionPar
                  execution_mode: ParallelExecutionModes = ParallelExecutionModes.DATA_PARALLELISM,
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM,
                  units_number: int = DefaultConfig.DEFAULT_PARALLEL_UNITS_NUMBER,
-                 attributes_dict: dict = DefaultConfig.DEFAULT_PARALLEL_ATTRIBUTES_DICT):
+                 attributes_dict: dict = DefaultConfig.DEFAULT_PARALLEL_ATTRIBUTES_DICT, debug: bool = False):
         super().__init__(execution_mode, platform,
                          DataParallelExecutionModes.HYPER_CUBE_ALGORITHM,
-                         units_number)
+                         units_number, debug)
         self.divide_keys_dict = attributes_dict
