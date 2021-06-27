@@ -79,13 +79,13 @@ def random_str(lowest, highest):
 
 if __name__ == '__main__':
     #  create test data
-    num_of_samples = 1000
+    num_of_samples = 50
     types_list = list(SENSORS_KEYS_DICT.keys())
     curr_time = datetime.now()
-    with open(r"..\..\test\EventFiles\Sensors.dat", "w+") as output_file:
+    with open(r"..\..\test\EventFiles\Sensors_short.dat", "w+") as output_file:
         for i in range(num_of_samples):
             choice = random.choice(types_list)
-            timestamp = (curr_time + timedelta(seconds=i)).strftime("%m/%d/%Y %H:%M:%S")
+            timestamp = (curr_time + timedelta(seconds=i*10)).strftime("%m/%d/%Y %H:%M:%S")
             amplitude = random_str(lowest=0, highest=0.003)
             output = [choice, timestamp, amplitude]
             if choice == 'PressTemp':
@@ -106,7 +106,7 @@ if __name__ == '__main__':
 
     #  check the data_formatter functionality
     data_formatter = SensorsDataFormatter()
-    with open(r"..\..\test\EventFiles\Sensors.dat", "r") as input_file:
+    with open(r"..\..\test\EventFiles\Sensors_short.dat", "r") as input_file:
         for line in input_file:
             parsed = data_formatter.parse_event(line)
             sensor_type = data_formatter.get_event_type(parsed)

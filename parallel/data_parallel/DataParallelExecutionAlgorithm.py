@@ -35,7 +35,8 @@ class DataParallelExecutionAlgorithm(ABC):
                                                 unit_id,
                                                 evaluation_manager,
                                                 self.FilterStream(skip_item=self._create_skip_item(unit_id),
-                                                                  matches=matches),
+                                                                  matches=matches,
+                                                                  unit_id=unit_id),
                                                 data_formatter)
             execution_unit.start()
             execution_units.append(execution_unit)
@@ -77,6 +78,7 @@ class DataParallelExecutionAlgorithm(ABC):
                                                                           self.events,
                                                                           matches,
                                                                           data_formatter)
+            self.unit_id = unit_id
 
         def start(self):
             self.execution_unit.start()
@@ -96,11 +98,12 @@ class DataParallelExecutionAlgorithm(ABC):
             evaluation_manager.eval(events, matches, data_formatter)
 
     class FilterStream(Stream):
-        def __init__(self, skip_item: Callable[[PatternMatch], bool], matches: OutputStream):
+        def __init__(self, skip_item: Callable[[PatternMatch], bool], matches: OutputStream, unit_id: int):
             super().__init__()
             self.matches = matches
             # set the unique_match function
             self.skip_item = skip_item
+            self.unit_id = unit_id
 
         def add_item(self, item: PatternMatch):
             """
