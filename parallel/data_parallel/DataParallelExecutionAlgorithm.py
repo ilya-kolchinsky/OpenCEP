@@ -27,7 +27,7 @@ class DataParallelExecutionAlgorithm(ABC):
         self.debug = debug
         if self.debug:
             self.filtered_files = open(os.path.join("Debug", "Filtered.txt"), "w+")
-            self.unfiltered_files = open(os.path.join("Debug", "Uniltered.txt"), "w+")
+            self.unfiltered_files = open(os.path.join("Debug", "Unfiltered.txt"), "w+")
         else:
             self.filtered_files = None
             self.unfiltered_files = None
@@ -59,7 +59,7 @@ class DataParallelExecutionAlgorithm(ABC):
             event = Event(raw_event, data_formatter)
             for unit_id in self._classifier(event):
                 if self.debug:
-                    self.unfiltered_files[unit_id].write(str(unit_id) + ": " + raw_event)
+                    self.unfiltered_files.write(str(unit_id) + ": " + raw_event)
                 execution_units[unit_id].add_event(raw_event)
 
         # waits for all execution_units to terminate
@@ -113,7 +113,7 @@ class DataParallelExecutionAlgorithm(ABC):
 
     class FilterStream(Stream):
         def __init__(self, skip_item: Callable[[PatternMatch], bool], matches: OutputStream,
-                     unit_id: int, filtered_files: list = None):
+                     unit_id: int, filtered_files=None):
             super().__init__()
             self.matches = matches
             # set the unique_match function
@@ -129,7 +129,7 @@ class DataParallelExecutionAlgorithm(ABC):
                 if self.filtered_files:
                     for event in item.events:
                         event_msg = str(self.unit_id) + ": " + str(event.payload) + "\n"
-                        self.filtered_files[self.unit_id].write(event_msg)
+                        self.filtered_files.write(event_msg)
                 self.matches.add_item(item)
 
         def close(self):
