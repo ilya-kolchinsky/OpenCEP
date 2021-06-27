@@ -86,7 +86,7 @@ def SensorsDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTI
     )
     units = 8
     parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units,
-                                                                            interval=timedelta(minutes=60),
+                                                                            interval=timedelta(minutes=6),
                                                                             debug=True)
     runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data, eval_mechanism_params=eval_mechanism_params,
             data_formatter=SensorsDataFormatter())
