@@ -1,3 +1,4 @@
+import os
 from abc import ABC
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
@@ -16,13 +17,25 @@ class DataParallelExecutionAlgorithm(ABC):
     """
 
     def __init__(self, units_number, patterns: Pattern or List[Pattern],
-                 eval_mechanism_params: EvaluationMechanismParameters, platform: ParallelExecutionPlatform):
+                 eval_mechanism_params: EvaluationMechanismParameters, platform: ParallelExecutionPlatform,
+                 debug: bool = False):
         self.units_number = units_number
         self.platform = platform
         # create SequentialEvaluationManager for every unit
         self.evaluation_managers = [SequentialEvaluationManager(patterns, eval_mechanism_params) for _ in
                                     range(self.units_number)]
+        self.debug = debug
+        if self.debug:
+            self.filtered_files = open(os.path.join("Debug", "Filtered.txt"), "w+")
+            self.unfiltered_files = open(os.path.join("Debug", "Unfiltered.txt"), "w+")
+        else:
+            self.filtered_files = None
+            self.unfiltered_files = None
 
+    def __del__(self):
+        if self.debug:
+            self.filtered_files.close()
+            self.unfiltered_files.close()
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
@@ -35,7 +48,8 @@ class DataParallelExecutionAlgorithm(ABC):
                                                 unit_id,
                                                 evaluation_manager,
                                                 self.FilterStream(skip_item=self._create_skip_item(unit_id),
-                                                                  matches=matches),
+                                                                  matches=matches, unit_id=unit_id,
+                                                                  filtered_files=self.filtered_files),
                                                 data_formatter)
             execution_unit.start()
             execution_units.append(execution_unit)
@@ -44,6 +58,8 @@ class DataParallelExecutionAlgorithm(ABC):
         for raw_event in events:
             event = Event(raw_event, data_formatter)
             for unit_id in self._classifier(event):
+                if self.debug:
+                    self.unfiltered_files.write(str(unit_id) + ": " + raw_event)
                 execution_units[unit_id].add_event(raw_event)
 
         # waits for all execution_units to terminate
@@ -96,17 +112,24 @@ class DataParallelExecutionAlgorithm(ABC):
             evaluation_manager.eval(events, matches, data_formatter)
 
     class FilterStream(Stream):
-        def __init__(self, skip_item: Callable[[PatternMatch], bool], matches: OutputStream):
+        def __init__(self, skip_item: Callable[[PatternMatch], bool], matches: OutputStream,
+                     unit_id: int, filtered_files=None):
             super().__init__()
             self.matches = matches
             # set the unique_match function
             self.skip_item = skip_item
+            self.unit_id = unit_id
+            self.filtered_files = filtered_files
 
         def add_item(self, item: PatternMatch):
             """
             adds to the stream only the first occurrence of the item (to prevent duplicates)
             """
             if not self.skip_item(item):
+                if self.filtered_files:
+                    for event in item.events:
+                        event_msg = str(self.unit_id) + ": " + str(event.payload) + "\n"
+                        self.filtered_files.write(event_msg)
                 self.matches.add_item(item)
 
         def close(self):

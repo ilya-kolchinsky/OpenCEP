@@ -28,7 +28,8 @@ def simpleGroupByKeyTest(createTestFile=False, eval_mechanism_params=DEFAULT_TES
         timedelta(minutes=5)
     )
     units = 8
-    parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Opening Price")
+    parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Opening Price",
+                                                                               debug=True)
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
     expected_result = tuple([('Seq', 'a', 'b')] * units)
     runStructuralTest('structuralTest1', [pattern], expected_result,
@@ -85,7 +86,8 @@ def SensorsDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTI
     )
     units = 8
     parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units,
-                                                                            interval=timedelta(minutes=60))
+                                                                            interval=timedelta(minutes=6),
+                                                                            debug=True)
     runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data, eval_mechanism_params=eval_mechanism_params,
             data_formatter=SensorsDataFormatter())
     #runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data, eval_mechanism_params=eval_mechanism_params,
@@ -114,7 +116,8 @@ def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TEST
     units = 30
     attributes_dict = {"AAPL": ["Opening Price", "Peak Price"], "AMZN": "Peak Price"}
     parallel_execution_params = DataParallelExecutionParametersHyperCubeAlgorithm(units_number=units,
-                                                                                  attributes_dict=attributes_dict)
+                                                                                  attributes_dict=attributes_dict,
+                                                                                  debug=True)
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
     # expected_result = tuple([('Seq', 'a', 'b')] * units)
     # runStructuralTest('structuralTest1', [pattern], expected_result, parallel_execution_params=parallel_execution_params)
