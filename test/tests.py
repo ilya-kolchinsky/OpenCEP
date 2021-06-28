@@ -15,7 +15,7 @@ from test.UnitTests.RuleTransformationTests import ruleTransformationTests
 runTest.over_all_time = 0
 
 # basic functionality tests
-oneArgumentsearchTest()
+#oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
 amazonInstablePatternSearchTest()
