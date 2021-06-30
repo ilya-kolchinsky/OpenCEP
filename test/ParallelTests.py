@@ -300,19 +300,75 @@ def HyperCubeMultyAttrbutesTest(createTestFile=False,
     runTest(test_name, [HyperCubeMultyAttrbutesPattern], createTestFile, eval_mechanism_params, parallel_execution_params=parallel_execution_params)
 
 
+# GroupByKey Tests
+
+def simpleGroupByKeyTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                         test_name="parallel_GroupByKey_1_"):
+    """
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b)
+    WHERE   a.OpeningPrice == b.OpeningPrice
+    WITHIN 5 minutes
+    """
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
+        AndCondition(
+            BinaryCondition(Variable("a", lambda x: x["Opening Price"]),
+                            Variable("b", lambda x: x["Opening Price"]),
+                            relation_op=lambda x, y: x == y)
+        ),
+        timedelta(minutes=5)
+    )
+    units = 7
+    parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Opening Price")
+
+    runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
+
+
+
+def SensorsDataHIRZELTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                       test_name="Sensors_GroupBYKey_1_"):
+    """
+    PATTERN SEQ(a.MagX > b.AccX && a.MagY < b.AccY)
+    WHERE   a.Amplitude == b.Amplitude
+    WITHIN 3 minutes
+    """
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("Magnetometer", "a"),
+                    PrimitiveEventStructure("Accelerometer", "b")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["MagX"]),
+                                 Variable("b", lambda x: x["AccX"])),
+            SmallerThanCondition(Variable("a", lambda x: x["MagY"]),
+                                 Variable("b", lambda x: x["AccY"])),
+            BinaryCondition(Variable("a", lambda x: x["Amplitude"]),
+                            Variable("b", lambda x: x["Amplitude"]),
+                            relation_op=lambda x, y: x == y),
+        ),
+        timedelta(minutes=3)
+    )
+    units = 8
+
+    parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Amplitude")
+
+    runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short, eval_mechanism_params=eval_mechanism_params,
+            parallel_execution_params=parallel_execution_params, data_formatter=SensorsDataFormatter())
+
+
 if __name__ == "__main__":
     runTest.over_all_time = 0
+    simpleGroupByKeyTest()
+    SensorsDataHIRZELTest()
     # HyperCubeMultiPatternTest()
     # simpleGroupByKeyTest()
-    simpleRIPTest()
-    StocksDataRIPTest()
-    SensorsDataRIPTestShort()
-    SensorsDataRIPTest()
-    simpleRIPTest()
-    SensorsDataRIPTest()
-    simpleHyperCubeTest()
-    HyperCubeMultyAttrbutesTest()
-    SensorsDataRIPTestShort()
-    SensorsDataRIPTest()
-    SensorsDataRIPLongTime()
-    simpleHyperCubeTest()
+#    simpleRIPTest()
+#   StocksDataRIPTest()
+#    SensorsDataRIPTestShort()
+#    SensorsDataRIPTest()
+#    simpleRIPTest()
+#    SensorsDataRIPTest()
+#    simpleHyperCubeTest()
+#    HyperCubeMultyAttrbutesTest()
+#    SensorsDataRIPTestShort()
+#    SensorsDataRIPTest()
+#    SensorsDataRIPLongTime()
+#    simpleHyperCubeTest()
