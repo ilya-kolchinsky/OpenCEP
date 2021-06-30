@@ -15,7 +15,7 @@ from test.UnitTests.RuleTransformationTests import ruleTransformationTests
 runTest.over_all_time = 0
 
 # basic functionality tests
-oneArgumentsearchTest()
+#oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
 amazonInstablePatternSearchTest()
@@ -259,6 +259,9 @@ msftDrivRacePatternSearchTest_8()
 googleIncreasePatternSearchTest_8()
 amazonSpecificPatternSearchTest_8()
 googleAmazonLowPatternSearchTest_8()
+
+# parallel testing
+
 
 
 # benchmarks
