@@ -76,5 +76,4 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         event_time = event.timestamp
         unit_id1 = self._get_unit_number(event_time)
         unit_id2 = self._get_unit_number(event_time + self.__time_delta)
-        print({unit_id1, unit_id2})
         return {unit_id1, unit_id2}

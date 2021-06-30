@@ -63,7 +63,7 @@ def simpleRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EV
 
 
 def SensorsDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                       test_name="Sensors_short_"):
+                       test_name="Sensors_"):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b)
     WHERE   a.OpeningPrice == b.OpeningPrice
@@ -89,6 +89,11 @@ def SensorsDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTI
     runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short, eval_mechanism_params=eval_mechanism_params,
             parallel_execution_params=parallel_execution_params, data_formatter=SensorsDataFormatter())
     runParallelTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short, eval_mechanism_params=eval_mechanism_params,
+                                                                            interval=timedelta(minutes=6),
+                                                                            debug=True)
+    runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data, eval_mechanism_params=eval_mechanism_params,
+            data_formatter=SensorsDataFormatter())
+    runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data, eval_mechanism_params=eval_mechanism_params,
             parallel_execution_params=parallel_execution_params, data_formatter=SensorsDataFormatter())
     # expected_result = tuple([('Seq', 'a', 'b')] * units)
     # runStructuralTest('structuralTest1', [pattern], expected_result,
@@ -125,5 +130,5 @@ if __name__ == "__main__":
     runTest.over_all_time = 0
     # simpleGroupByKeyTest()
     # simpleRIPTest()
-    # SensorsDataRIPTest()
-    simpleHyperCubeTest()
+    SensorsDataRIPTest()
+    # simpleHyperCubeTest()
