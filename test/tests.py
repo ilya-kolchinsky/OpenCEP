@@ -260,6 +260,9 @@ googleIncreasePatternSearchTest_8()
 amazonSpecificPatternSearchTest_8()
 googleAmazonLowPatternSearchTest_8()
 
+# parallel testing
+
+
 
 # benchmarks
 if INCLUDE_BENCHMARKS:

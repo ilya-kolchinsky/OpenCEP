@@ -37,11 +37,6 @@ def simpleGroupByKeyTest(createTestFile=False, eval_mechanism_params=DEFAULT_TES
 
 def simpleRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                   test_name="parallel_2_"):
-    """
-    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b)
-    WHERE   a.OpeningPrice == b.OpeningPrice
-    WITHIN 5 minutes
-    """
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
         AndCondition(
@@ -99,11 +94,6 @@ def StocksDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTIN
 
 def SensorsDataRIPTestShort(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                             test_name="Sensors_short_"):
-    """
-    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b)
-    WHERE   a.OpeningPrice == b.OpeningPrice
-    WITHIN 5 minutes
-    """
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("Magnetometer", "a"),
                     PrimitiveEventStructure("Accelerometer", "b")),
@@ -130,18 +120,10 @@ def SensorsDataRIPTestShort(createTestFile=False, eval_mechanism_params=DEFAULT_
     runParallelTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short,
                     eval_mechanism_params=eval_mechanism_params, data_formatter=SensorsDataFormatter(),
                     parallel_execution_params=parallel_execution_params)
-    # expected_result = tuple([('Seq', 'a', 'b')] * units)
-    # runStructuralTest('structuralTest1', [pattern], expected_result,
-    #                   parallel_execution_params=parallel_execution_params)
 
 
 def SensorsDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                        test_name="Sensors_"):
-    """
-    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b)
-    WHERE   a.OpeningPrice == b.OpeningPrice
-    WITHIN 5 minutes
-    """
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("Magnetometer", "a"),
                     PrimitiveEventStructure("Accelerometer", "b")),
@@ -167,18 +149,10 @@ def SensorsDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTI
     runParallelTest(test_name, [pattern], createTestFile, eventStream=Sensors_data,
                     eval_mechanism_params=eval_mechanism_params,
                     parallel_execution_params=parallel_execution_params, data_formatter=SensorsDataFormatter())
-    # expected_result = tuple([('Seq', 'a', 'b')] * units)
-    # runStructuralTest('structuralTest1', [pattern], expected_result,
-    #                   parallel_execution_params=parallel_execution_params)
 
 
 def SensorsDataRIPLongTime(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                            test_name="Sensors_long_time_"):
-    """
-    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b)
-    WHERE   a.OpeningPrice == b.OpeningPrice
-    WITHIN 5 minutes
-    """
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("Magnetometer", "a"),
                     PrimitiveEventStructure("Accelerometer", "b")),
