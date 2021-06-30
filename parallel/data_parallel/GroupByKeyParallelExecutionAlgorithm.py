@@ -38,7 +38,7 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
         """
 
         def skip_item(item: PatternMatch):
-            return True
+            return False
 
         return skip_item
 
