@@ -8,8 +8,8 @@ from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from math import floor
 from base.PatternMatch import *
 from functools import reduce
-# from numpy import array
-from misc.Utils import ndarray as array
+# from numpy import array, ndarray
+from misc.Utils import array, ndarray
 from misc.Utils import is_int, is_float
 from typing import Tuple, Set
 
@@ -23,6 +23,9 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
                  eval_mechanism_params: EvaluationMechanismParameters, platform, attributes_dict: dict):
         dims = 0
         self.attributes_dict = dict()
+        """
+        alloc cube dimension for every attribute value
+        """
         for k, v in attributes_dict.items():
             if isinstance(v, list):
                 self.attributes_dict[k] = [(v, dims + i) for i, v in enumerate(v)]
@@ -32,27 +35,35 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
                 dims += 1
             else:
                 raise Exception
+        if not self.attributes_dict:
+            raise Exception("attributes_dict is empty")
+        """
+        create ndarray cube
+        """
         shares, cube_size = self._calc_cubic_shares(units_number, dims)
         self.cube = array(range(cube_size)).reshape(shares)
         super().__init__(self.cube.size, patterns, eval_mechanism_params, platform)
 
     def _classifier(self, event: Event) -> Set[int]:
-        attributes = self.attributes_dict.get(event.type)
-        if attributes:
+        attributes = self.attributes_dict.get(event.type)  # get event attributes
+        if attributes:  # if attributes exists we need to find the right dimension(s) of the cube to return
             units = set()
-            for attribute, index in attributes:
-                # find for all attributes the union of the column/cube face
-                indices = [slice(None)] * self.cube.ndim
+            for attribute, index in attributes:  # loop of events attributes
+                # find for all attributes the union of the column/"cube face"
+                indices = [slice(None)] * self.cube.ndim  # default is slice(None) (all dim units)
                 value = event.payload.get(attribute)
                 if value is None:
                     raise Exception(f"attribute {attribute} is not existing in type {event.type}")
                 elif not is_int(value) and not is_float(value):
                     raise Exception(f"Non numeric key {attribute} = {value}")
-                col = int(value) % self.cube.shape[index]
+                col = int(value) % self.cube.shape[index]  # column number
                 indices[index] = slice(col, col + 1)
-                units.update(set(list(self.cube[tuple(indices)].reshape(-1))))
+                selected_units = self.cube[tuple(indices)]
+                if isinstance(selected_units, ndarray):
+                    selected_units = list(self.cube[tuple(indices)].reshape(-1))
+                units.update(set(selected_units))  # update units set
             return units
-        return set(range(self.cube.size))
+        return set(range(self.cube.size))  # return all possible units
 
     @staticmethod
     def _calc_cubic_shares(units_number, dims) -> Tuple[Tuple[int], int]:
@@ -81,6 +92,8 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
     def _create_skip_item(self, unit_id: int):
         """
         Creates and returns FilterStream object.
+        Preforming the _classifier again on all match events and get units intersection.
+        For every match we not(!) skipping if the unit has the smallest id.
         """
 
         def skip_item(item: PatternMatch):

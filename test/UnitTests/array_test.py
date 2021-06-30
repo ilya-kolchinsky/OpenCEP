@@ -33,6 +33,9 @@ class MyTestCase(unittest.TestCase):
         a = a.reshape((4, 6, -1))
         b = b.reshape((4, 6, -1))
         self.assertArrayEqual(a, b)
+        a = ndarray(range(10))
+        b = np.array(range(10))
+        self.assertArrayEqual(a.reshape(-1), b.reshape(-1))
 
     def test_getitem(self):
         r1 = range(2 * 3 * 4 * 5)

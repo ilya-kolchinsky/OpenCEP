@@ -427,6 +427,9 @@ class runParallelTest:
                  parallel_execution_params: ParallelExecutionParameters = None,
                  events=None, eventStream=nasdaqEventStream, expected_file_name=None,
                  data_formatter=DEFAULT_TESTING_DATA_FORMATTER):
+        testName += "ParallelTest"
+        if not parallel_execution_params or parallel_execution_params.execution_mode != ParallelExecutionModes.DATA_PARALLELISM:
+            raise Exception(f"parallel_execution_params.execution_mode must be DATA_PARALLELISM")
         runParallelTest.units = [runParallelTest.Unit() for _ in range(parallel_execution_params.units_number)]
 
         if expected_file_name is None:
@@ -457,8 +460,8 @@ class runParallelTest:
         cep = CEP(patterns, eval_mechanism_params, parallel_execution_params)
 
         base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
-        output_file_name = f"{testName.split('|')[0]}ParallelTest_Matches.txt"
-        expected_output_file_name = f"{expected_file_name.split('|')[0]}ParallelTest_Matches.txt"
+        output_file_name = f"{testName.split('|')[0]}_Matches.txt"
+        expected_output_file_name = f"{expected_file_name.split('|')[0]}_Matches.txt"
         running_time = cep.run(events, OutputStream(), data_formatter)
 
         with open(os.path.join(base_matches_directory, output_file_name), 'w') as output:

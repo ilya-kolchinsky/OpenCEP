@@ -1,0 +1,20 @@
+{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+{'Stock Ticker': 'AMZN', 'Date': 200802010901, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+{'Stock Ticker': 'AVID', 'Date': 200802010901, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+{'Stock Ticker': 'AMZN', 'Date': 200802010901, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+{'Stock Ticker': 'AMZN', 'Date': 200802010902, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+{'Stock Ticker': 'AMZN', 'Date': 200802010903, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010907, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+{'Stock Ticker': 'AMZN', 'Date': 200802010907, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+{'Stock Ticker': 'AVID', 'Date': 200802010908, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+
