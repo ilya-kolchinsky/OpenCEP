@@ -320,7 +320,7 @@ class ndarray:
         elif isinstance(array_like[0], Container):
             self._data = [ndarray(layer) for layer in array_like]
         else:
-            self._data = array_like
+            self._data = list(array_like)
         if isinstance(self._data[0], ndarray):
             self.shape = tuple([len(self._data)] + list(self._data[0].shape))
             self.ndim = self._data[0].ndim+1
@@ -417,3 +417,6 @@ class ndarray:
             for d in newshape[-1:0:-1]:
                 new_list = list_to_matrix(new_list, d)
         return ndarray(new_list)
+
+def array(array_like):
+    return ndarray(array_like)

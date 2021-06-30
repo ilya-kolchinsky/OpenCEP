@@ -101,34 +101,71 @@ def SensorsDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTI
 
 
 def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                        test_name="parallel_2_"):
+                        test_name="simpleHyperCubeTest_"):
     """
-    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b)
-    WHERE   a.OpeningPrice == b.OpeningPrice
+    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b, AvidStockPriceUpdate c)
+    WHERE   a.OpeningPrice > c.OpeningPrice
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
-        AndCondition(
-            BinaryCondition(Variable("a", lambda x: x["Opening Price"]),
-                            Variable("b", lambda x: x["Opening Price"]),
-                            relation_op=lambda x, y: x == y)
-        ),
-        timedelta(minutes=5)
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AVID", "c")),
+        GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), Variable("c", lambda x: x["Opening Price"])),
+        timedelta(minutes=5),
     )
-    units = 30
-    attributes_dict = {"AAPL": ["Opening Price", "Peak Price"], "AMZN": "Peak Price"}
+    units = 8
+    attributes_dict = {"AMZN": "Opening Price", "AAPL": "Peak Price"}
     parallel_execution_params = DataParallelExecutionParametersHyperCubeAlgorithm(units_number=units,
                                                                                   attributes_dict=attributes_dict)
-    runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
-    runParallelTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
-    # expected_result = tuple([('Seq', 'a', 'b')] * units)
-    # runStructuralTest('structuralTest1', [pattern], expected_result, parallel_execution_params=parallel_execution_params)
+    runTest(test_name, [pattern], createTestFile, parallel_execution_params=parallel_execution_params, eventStream=nasdaqEventStreamTiny)
+    runParallelTest(test_name, [pattern], createTestFile, parallel_execution_params=parallel_execution_params, eventStream=nasdaqEventStreamTiny)
 
 
+def HyperCubeMultyAttrbutesTest(createTestFile=False,
+                                  eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                                  test_name = "HyperCubeMultyAttrbutes"):
+    """
+    This pattern is looking for a race between driv and microsoft in ten minutes
+    PATTERN SEQ(MicrosoftStockPriceUpdate a, DrivStockPriceUpdate b, MicrosoftStockPriceUpdate c, DrivStockPriceUpdate d, MicrosoftStockPriceUpdate e)
+    WHERE a.PeakPrice < b.PeakPrice AND b.PeakPrice < c.PeakPrice AND c.PeakPrice < d.PeakPrice AND d.PeakPrice < e.PeakPrice
+    WITHIN 10 minutes
+    """
+    HyperCubeMultyAttrbutesPattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"),
+                    PrimitiveEventStructure("MSFT", "c"), PrimitiveEventStructure("DRIV", "d"),
+                    PrimitiveEventStructure("MSFT", "e")),
+        AndCondition(
+            BinaryCondition(Variable("a", lambda x: x["Peak Price"]),
+                            Variable("b", lambda x: x["Peak Price"]),
+                            relation_op=lambda x, y: x < y),
+            BinaryCondition(Variable("b", lambda x: x["Peak Price"]),
+                            Variable("c", lambda x: x["Peak Price"]),
+                            relation_op=lambda x, y: x < y),
+            BinaryCondition(Variable("c", lambda x: x["Peak Price"]),
+                            Variable("d", lambda x: x["Peak Price"]),
+                            relation_op=lambda x, y: x < y),
+            BinaryCondition(Variable("d", lambda x: x["Peak Price"]),
+                            Variable("e", lambda x: x["Peak Price"]),
+                            relation_op=lambda x, y: x < y)
+        ),
+        timedelta(minutes=10)
+    )
+    units = 9
+    attributes_dict = {"MSFT": ["Peak Price", "Opening Price"], "DRIV": "Peak Price"}
+    parallel_execution_params = DataParallelExecutionParametersHyperCubeAlgorithm(units_number=units,
+                                                                                  attributes_dict=attributes_dict)
+    runTest(test_name, [HyperCubeMultyAttrbutesPattern], createTestFile, eval_mechanism_params, parallel_execution_params=parallel_execution_params)
+
+# import cProfile
+# import pstats
 if __name__ == "__main__":
     runTest.over_all_time = 0
     # simpleGroupByKeyTest()
     # simpleRIPTest()
-    SensorsDataRIPTest()
-    # simpleHyperCubeTest()
+    # SensorsDataRIPTest()
+    simpleHyperCubeTest()
+    HyperCubeMultyAttrbutesTest()
+    # with cProfile.Profile() as pr:
+    #     HyperCubeMultyAttrbutesTest()
+    # stats = pstats.Stats(pr)
+    # stats.sort_stats(pstats.SortKey.TIME)
+    # stats.dump_stats(filename='parallel_60.prof')

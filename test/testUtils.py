@@ -425,6 +425,8 @@ class runParallelTest:
                  parallel_execution_params: ParallelExecutionParameters = None,
                  events=None, eventStream=nasdaqEventStream, expected_file_name=None,
                  data_formatter=DEFAULT_TESTING_DATA_FORMATTER):
+        if not parallel_execution_params or parallel_execution_params.execution_mode != ParallelExecutionModes.DATA_PARALLELISM:
+            raise Exception(f"parallel_execution_params.execution_mode must be DATA_PARALLELISM")
         runParallelTest.units = [runParallelTest.Unit() for _ in range(parallel_execution_params.units_number)]
 
         if expected_file_name is None:

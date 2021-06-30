@@ -25,6 +25,8 @@ class DataParallelExecutionParameters(ParallelExecutionParameters):
                  platform: ParallelExecutionPlatforms = DefaultConfig.DEFAULT_PARALLEL_EXECUTION_PLATFORM,
                  data_parallel_mode: DataParallelExecutionModes = DefaultConfig.DEFAULT_DATA_PARALLEL_ALGORITHM,
                  units_number: int = DefaultConfig.DEFAULT_PARALLEL_UNITS_NUMBER):
+        if units_number <= 0:
+            raise Exception(f"units_number must be positive number, got {units_number}")
         super().__init__(execution_mode, platform)
         self.algorithm = data_parallel_mode
         self.units_number = units_number

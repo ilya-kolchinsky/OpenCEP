@@ -8,12 +8,12 @@ from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from math import floor
 from base.PatternMatch import *
 from functools import reduce
-# from numpy import array
-from misc.Utils import ndarray as array
+# from numpy import array, ndarray
+from misc.Utils import array, ndarray
 from misc.Utils import is_int, is_float
 from typing import Tuple, Set
 
-
+i=0
 class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
     """
     Implements the HyperCube algorithm.
@@ -32,11 +32,15 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
                 dims += 1
             else:
                 raise Exception
+        if not self.attributes_dict:
+            raise Exception("attributes_dict is empty")
         shares, cube_size = self._calc_cubic_shares(units_number, dims)
         self.cube = array(range(cube_size)).reshape(shares)
         super().__init__(self.cube.size, patterns, eval_mechanism_params, platform)
 
+
     def _classifier(self, event: Event) -> Set[int]:
+        global i
         attributes = self.attributes_dict.get(event.type)
         if attributes:
             units = set()
@@ -50,7 +54,10 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
                     raise Exception(f"Non numeric key {attribute} = {value}")
                 col = int(value) % self.cube.shape[index]
                 indices[index] = slice(col, col + 1)
-                units.update(set(list(self.cube[tuple(indices)].reshape(-1))))
+                selected_units = self.cube[tuple(indices)]
+                if isinstance(selected_units, ndarray):
+                    selected_units = list(self.cube[tuple(indices)].reshape(-1))
+                units.update(set(selected_units))
             return units
         return set(range(self.cube.size))
 
