@@ -49,7 +49,6 @@ def simpleRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EV
     units = 8
     parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units,
                                                                             interval=timedelta(minutes=60))
-
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params,
             eventStream=custom4)
 
@@ -80,8 +79,6 @@ def StocksDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTIN
     )
 
     units = 8
-    runTest(test_name, [pattern1, pattern2], createTestFile, eventStream=nasdaqEventStream,
-            eval_mechanism_params=eval_mechanism_params)
     parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units,
                                                                             interval=timedelta(hours=26))
     runTest(test_name, [pattern1, pattern2], createTestFile, eventStream=nasdaqEventStream,
@@ -110,8 +107,6 @@ def SensorsDataRIPTestShort(createTestFile=False, eval_mechanism_params=DEFAULT_
     )
     #  run Sequential
     units = 8
-    runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short,
-            eval_mechanism_params=eval_mechanism_params, data_formatter=SensorsDataFormatter())
     parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units,
                                                                             interval=timedelta(minutes=6))
     runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short,
@@ -139,8 +134,6 @@ def SensorsDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTI
         timedelta(minutes=3)
     )
     units = 8
-    runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data, eval_mechanism_params=eval_mechanism_params,
-            data_formatter=SensorsDataFormatter())
     parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units,
                                                                             interval=timedelta(minutes=6))
     runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data,
@@ -168,8 +161,6 @@ def SensorsDataRIPLongTime(createTestFile=False, eval_mechanism_params=DEFAULT_T
         timedelta(minutes=2)
     )
     units = 8
-    runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_longtime,
-            eval_mechanism_params=eval_mechanism_params, data_formatter=SensorsDataFormatter())
     parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units,
                                                                             interval=timedelta(minutes=11))
     runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_longtime,
@@ -226,7 +217,8 @@ def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TEST
     WITHIN 5 minutes
     """
     pattern = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AVID", "c")),
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
+                    PrimitiveEventStructure("AVID", "c")),
         GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]), Variable("c", lambda x: x["Opening Price"])),
         timedelta(minutes=5),
     )
@@ -234,13 +226,15 @@ def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TEST
     attributes_dict = {"AMZN": "Opening Price", "AAPL": "Peak Price"}
     parallel_execution_params = DataParallelExecutionParametersHyperCubeAlgorithm(units_number=units,
                                                                                   attributes_dict=attributes_dict)
-    runTest(test_name, [pattern], createTestFile, parallel_execution_params=parallel_execution_params, eventStream=nasdaqEventStreamTiny)
-    runParallelTest(test_name, [pattern], createTestFile, parallel_execution_params=parallel_execution_params, eventStream=nasdaqEventStreamTiny)
+    runTest(test_name, [pattern], createTestFile, parallel_execution_params=parallel_execution_params,
+            eventStream=nasdaqEventStreamTiny)
+    runParallelTest(test_name, [pattern], createTestFile, parallel_execution_params=parallel_execution_params,
+                    eventStream=nasdaqEventStreamTiny)
 
 
 def HyperCubeMultyAttrbutesTest(createTestFile=False,
-                                  eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                                  test_name = "HyperCubeMultyAttrbutes"):
+                                eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                                test_name="HyperCubeMultyAttrbutes"):
     """
     This pattern is looking for a race between driv and microsoft in ten minutes
     PATTERN SEQ(MicrosoftStockPriceUpdate a, DrivStockPriceUpdate b, MicrosoftStockPriceUpdate c, DrivStockPriceUpdate d, MicrosoftStockPriceUpdate e)
@@ -271,7 +265,8 @@ def HyperCubeMultyAttrbutesTest(createTestFile=False,
     attributes_dict = {"MSFT": ["Peak Price", "Opening Price"], "DRIV": "Peak Price"}
     parallel_execution_params = DataParallelExecutionParametersHyperCubeAlgorithm(units_number=units,
                                                                                   attributes_dict=attributes_dict)
-    runTest(test_name, [HyperCubeMultyAttrbutesPattern], createTestFile, eval_mechanism_params, parallel_execution_params=parallel_execution_params)
+    runTest(test_name, [HyperCubeMultyAttrbutesPattern], createTestFile, eval_mechanism_params,
+            parallel_execution_params=parallel_execution_params)
 
 
 # GroupByKey Tests
@@ -294,13 +289,11 @@ def simpleGroupByKeyTest(createTestFile=False, eval_mechanism_params=DEFAULT_TES
     )
     units = 7
     parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Opening Price")
-
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
 
 
-
 def SensorsDataHIRZELTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                       test_name="Sensors_GroupBYKey_1_"):
+                          test_name="Sensors_GroupBYKey_1_"):
     """
     PATTERN SEQ(a.MagX > b.AccX && a.MagY < b.AccY)
     WHERE   a.Amplitude == b.Amplitude
@@ -324,25 +317,25 @@ def SensorsDataHIRZELTest(createTestFile=False, eval_mechanism_params=DEFAULT_TE
 
     parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Amplitude")
 
-    runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short, eval_mechanism_params=eval_mechanism_params,
+    runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short,
+            eval_mechanism_params=eval_mechanism_params,
             parallel_execution_params=parallel_execution_params, data_formatter=SensorsDataFormatter())
 
 
 if __name__ == "__main__":
     runTest.over_all_time = 0
-    simpleGroupByKeyTest()
+    # GroupByKey
     SensorsDataHIRZELTest()
-    # HyperCubeMultiPatternTest()
-    # simpleGroupByKeyTest()
-#    simpleRIPTest()
-#   StocksDataRIPTest()
-#    SensorsDataRIPTestShort()
-#    SensorsDataRIPTest()
-#    simpleRIPTest()
-#    SensorsDataRIPTest()
-#    simpleHyperCubeTest()
-#    HyperCubeMultyAttrbutesTest()
-#    SensorsDataRIPTestShort()
-#    SensorsDataRIPTest()
-#    SensorsDataRIPLongTime()
-#    simpleHyperCubeTest()
+    simpleGroupByKeyTest()
+
+    # RIP
+    simpleRIPTest()
+    SensorsDataRIPTest()
+    SensorsDataRIPTestShort()
+    SensorsDataRIPTest()
+    SensorsDataRIPLongTime()
+
+    # HypeCube
+    simpleHyperCubeTest()
+    HyperCubeMultiPatternTest()
+    HyperCubeMultyAttrbutesTest()
