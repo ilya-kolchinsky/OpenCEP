@@ -1,0 +1,6 @@
+{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:56:38', 'Amplitude': 0.001, 'MagX': -23.239, 'MagY': 8.275, 'MagZ': -8.629}
+{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:58:38', 'Amplitude': 0.001, 'AccX': -37.916, 'AccY': 45.157, 'AccZ': 16.741}
+
+{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:58:48', 'Amplitude': 0.001, 'MagX': 44.842, 'MagY': -6.477, 'MagZ': 13.355}
+{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 19:00:28', 'Amplitude': 0.001, 'AccX': -25.78, 'AccY': 80.54, 'AccZ': 12.223}
+

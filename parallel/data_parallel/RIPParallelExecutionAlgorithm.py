@@ -50,12 +50,10 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
 
         def skip_item(item: PatternMatch):
             """
-            last_matching_unit > unit_id: the unit will skip matches that ends after the unit time
-            first_matching_unit < unit_id: the unit will skip matches that starts before the unit time
+            the algorithm should accept only matches that their first event time stamp
             """
             first_matching_unit = self._get_unit_number(item.first_timestamp)
-            last_matching_unit = self._get_unit_number(item.last_timestamp)
-            return last_matching_unit > unit_id or first_matching_unit < unit_id
+            return first_matching_unit != unit_id
         return skip_item
 
     def _get_unit_number(self, event_time) -> int:
@@ -71,6 +69,6 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         Returns possible unit ids for the given event
         """
         event_time = event.timestamp
-        unit_id1 = self._get_unit_number(event_time)
-        unit_id2 = self._get_unit_number(event_time + self.__time_delta)
+        unit_id1 = self._get_unit_number(event_time - self.__time_delta)
+        unit_id2 = self._get_unit_number(event_time)
         return {unit_id1, unit_id2}
