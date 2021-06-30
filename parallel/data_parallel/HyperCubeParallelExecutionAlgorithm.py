@@ -95,7 +95,6 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         Preforming the _classifier again on all match events and get units intersection.
         For every match we not(!) skipping if the unit has the smallest id.
         """
-
         def skip_item(item: PatternMatch):
             min_unit = min(reduce(set.intersection, map(self._classifier, item.events)))
             return min_unit != unit_id
