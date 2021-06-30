@@ -227,8 +227,6 @@ def HyperCubeMultyAttrbutesTest(createTestFile=False,
                                                                                   attributes_dict=attributes_dict)
     runTest(test_name, [HyperCubeMultyAttrbutesPattern], createTestFile, eval_mechanism_params, parallel_execution_params=parallel_execution_params)
 
-# import cProfile
-# import pstats
 if __name__ == "__main__":
     runTest.over_all_time = 0
     # simpleGroupByKeyTest()
@@ -236,11 +234,6 @@ if __name__ == "__main__":
     # SensorsDataRIPTest()
     simpleHyperCubeTest()
     HyperCubeMultyAttrbutesTest()
-    # with cProfile.Profile() as pr:
-    #     HyperCubeMultyAttrbutesTest()
-    # stats = pstats.Stats(pr)
-    # stats.sort_stats(pstats.SortKey.TIME)
-    # stats.dump_stats(filename='parallel_60.prof')
     # SensorsDataRIPTestShort()
     # SensorsDataRIPTest()
     SensorsDataRIPLongTime()

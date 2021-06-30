@@ -30,7 +30,7 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
             raise Exception(f"attribute {self._key} is not existing in type {event.type}")
         elif not is_int(value) and not is_float(value):
             raise Exception(f"Non numeric key {self._key} = {value}")
-        return set([int(value) % self.units_number])
+        return {int(value) % self.units_number}
 
     def _create_skip_item(self, unit_id: int):
         """
