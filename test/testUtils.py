@@ -461,7 +461,7 @@ class runParallelTest:
 
         base_matches_directory = os.path.join(absolutePath, 'test', 'Matches')
         output_file_name = f"{testName.split('|')[0]}_Matches.txt"
-        expected_output_file_name = f"{expected_file_name.split('|')[0]}ParallelTest_Matches.txt"
+        expected_output_file_name = f"{expected_file_name.split('|')[0]}_Matches.txt"
         running_time = cep.run(events, OutputStream(), data_formatter)
 
         with open(os.path.join(base_matches_directory, output_file_name), 'w') as output:
