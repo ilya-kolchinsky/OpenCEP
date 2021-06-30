@@ -44,6 +44,7 @@ custom4 = FileInputStream(os.path.join(absolutePath, "test/EventFiles/custom4.tx
 
 Sensors_data = FileInputStream(os.path.join(absolutePath, "test/EventFiles/Sensors.dat"))
 Sensors_data_short = FileInputStream(os.path.join(absolutePath, "test/EventFiles/Sensors_short.dat"))
+Sensors_data_longtime = FileInputStream(os.path.join(absolutePath, "test/EventFiles/Sensors_long_time.dat"))
 
 nasdaqEventStreamKC = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_KC.txt"))
 
@@ -389,7 +390,8 @@ class runParallelTest:
             events.sort(key=lambda e: e.timestamp)
             self.filtered_matches_list.sort(key=lambda mat: (mat.first_timestamp, mat.last_timestamp))
             self.unfiltered_matches_list.sort(key=lambda mat: (mat.first_timestamp, mat.last_timestamp))
-            result = str()
+            result = "filtered size = " + str(len(self.filtered_matches_list)) + "\n"
+            result += "unfiltered size = " + str(len(self.unfiltered_matches_list)) + "\n"
             result += '\tevents:\n'
             for event in events:
                 result += f'\t\t{event}\n'
@@ -463,7 +465,7 @@ class runParallelTest:
 
         with open(os.path.join(base_matches_directory, output_file_name), 'w') as output:
             for unit_id, unit in enumerate(runParallelTest.units):
-                output.write(f'{unit_id=}\n')
+                output.write(f'unit_id={unit_id} \n')
                 output.write(unit.format(data_formatter))
 
         expected_matches_path = os.path.join(absolutePath, 'test', 'TestsExpected', expected_output_file_name)
