@@ -225,28 +225,12 @@ def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TEST
 def HyperCubeMultyAttrbutesTest(createTestFile=False,
                                 eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                                 test_name="HyperCubeMultyAttrbutes"):
-    """
-    This pattern is looking for a race between driv and microsoft in ten minutes
-    PATTERN SEQ(MicrosoftStockPriceUpdate a, DrivStockPriceUpdate b, MicrosoftStockPriceUpdate c, DrivStockPriceUpdate d, MicrosoftStockPriceUpdate e)
-    WHERE a.PeakPrice < b.PeakPrice AND b.PeakPrice < c.PeakPrice AND c.PeakPrice < d.PeakPrice AND d.PeakPrice < e.PeakPrice
-    WITHIN 10 minutes
-    """
+
     HyperCubeMultyAttrbutesPattern = Pattern(
-        SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b"),
-                    PrimitiveEventStructure("MSFT", "c"), PrimitiveEventStructure("DRIV", "d"),
-                    PrimitiveEventStructure("MSFT", "e")),
+        SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b")),
         AndCondition(
             BinaryCondition(Variable("a", lambda x: x["Peak Price"]),
                             Variable("b", lambda x: x["Peak Price"]),
-                            relation_op=lambda x, y: x < y),
-            BinaryCondition(Variable("b", lambda x: x["Peak Price"]),
-                            Variable("c", lambda x: x["Peak Price"]),
-                            relation_op=lambda x, y: x < y),
-            BinaryCondition(Variable("c", lambda x: x["Peak Price"]),
-                            Variable("d", lambda x: x["Peak Price"]),
-                            relation_op=lambda x, y: x < y),
-            BinaryCondition(Variable("d", lambda x: x["Peak Price"]),
-                            Variable("e", lambda x: x["Peak Price"]),
                             relation_op=lambda x, y: x < y)
         ),
         timedelta(minutes=10)
@@ -310,7 +294,7 @@ def SensorsDataHIRZELTest(createTestFile=False, eval_mechanism_params=DEFAULT_TE
     runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short,
             eval_mechanism_params=eval_mechanism_params,
             parallel_execution_params=parallel_execution_params, data_formatter=SensorsDataFormatter())
-    runTest(test_name, HyperCubeMultyAttrbutesPattern, createTestFile, eval_mechanism_params, parallel_execution_params=parallel_execution_params)
+    runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params=parallel_execution_params)
 
 
 def HyperCubeMultyEventTypesTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
@@ -350,15 +334,16 @@ if __name__ == "__main__":
     # GroupByKey
     SensorsDataHIRZELTest()
     simpleGroupByKeyTest()
-
-    # RIP
+    #
+    # # RIP
     simpleRIPTest()
     SensorsDataRIPTest()
     SensorsDataRIPTestShort()
     SensorsDataRIPTest()
     SensorsDataRIPLongTime()
-
-    # HypeCube
+    #
+    # # HypeCube
     simpleHyperCubeTest()
     HyperCubeMultiPatternTest()
     HyperCubeMultyAttrbutesTest()
+    HyperCubeMultiPatternTest()
