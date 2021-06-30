@@ -21,6 +21,14 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
 
     def __init__(self, units_number, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters, platform, attributes_dict: dict):
+        if isinstance(patterns, Pattern):
+            patterns = [patterns]
+        for pattern in patterns:
+                primitive_events = pattern.get_primitive_events()
+                types = [e.type for e in primitive_events]
+                if len(set(types)) != len(types):
+                    raise Exception(f"Not Support multiple typing of events, got {primitive_events}")
+
         dims = 0
         self.attributes_dict = dict()
         """

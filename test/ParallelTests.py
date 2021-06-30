@@ -209,39 +209,29 @@ def SensorsDataRIPLongTime(createTestFile=False, eval_mechanism_params=DEFAULT_T
 def HyperCubeMultiPatternTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                               test_name="HyperCubeMultiPatternTest_"):
     pattern1 = Pattern(
-        SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("GOOG", "b"),
-                    PrimitiveEventStructure("GOOG", "c")),
+        SeqOperator(PrimitiveEventStructure("GOOG", "a"), PrimitiveEventStructure("AMZN", "b")),
         AndCondition(
             SmallerThanCondition(Variable("a", lambda x: x["Peak Price"]),
-                                 Variable("b", lambda x: x["Peak Price"])),
-            SmallerThanCondition(Variable("b", lambda x: x["Peak Price"]),
-                                 Variable("c", lambda x: x["Peak Price"]))
+                                 Variable("b", lambda x: x["Peak Price"]))
         ),
         timedelta(minutes=3)
     )
     pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AMZN", "x1"), PrimitiveEventStructure("AMZN", "x2"),
-                    PrimitiveEventStructure("AMZN", "x3")),
+        SeqOperator(PrimitiveEventStructure("GOOG", "x1"), PrimitiveEventStructure("AMZN", "x2")),
         AndCondition(
-            SmallerThanEqCondition(Variable("x1", lambda x: x["Lowest Price"]), 75),
-            GreaterThanEqCondition(Variable("x2", lambda x: x["Peak Price"]), 78),
-            SmallerThanEqCondition(Variable("x3", lambda x: x["Lowest Price"]),
-                                   Variable("x1", lambda x: x["Lowest Price"]))
+            GreaterThanEqCondition(Variable("x2", lambda x: x["Peak Price"]), 78)
         ),
         timedelta(days=1)
     )
 
     units = 8
-    attributes_dict = {"AMZN": ["Opening Price", "Peak Price"], "GOOG": "Peak Price"}
+    attributes_dict = {"AMZN": "Opening Price", "GOOG": "Peak Price"}
 
     parallel_execution_params = DataParallelExecutionParametersHyperCubeAlgorithm(units_number=units,
                                                                                   attributes_dict=attributes_dict)
     runTest(test_name, [pattern1, pattern2], createTestFile, eventStream=nasdaqEventStream,
             eval_mechanism_params=eval_mechanism_params,
             parallel_execution_params=parallel_execution_params)
-    runParallelTest(test_name, [pattern1, pattern2], createTestFile, eventStream=nasdaqEventStream,
-                    eval_mechanism_params=eval_mechanism_params,
-                    parallel_execution_params=parallel_execution_params)
 
 
 def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
