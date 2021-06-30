@@ -17,9 +17,8 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
                  patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters,
                  platform: ParallelExecutionPlatform,
-                 key: str,
-                 debug: bool = False):
-        super().__init__(units_number, patterns, eval_mechanism_params, platform, debug)
+                 key: str):
+        super().__init__(units_number, patterns, eval_mechanism_params, platform)
         self._key = key
 
     def _classifier(self, event: Event) -> Set[int]:
@@ -31,7 +30,7 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
             raise Exception(f"attribute {self._key} is not existing in type {event.type}")
         elif not is_int(value) and not is_float(value):
             raise Exception(f"Non numeric key {self._key} = {value}")
-        return [int(value) % self.units_number]
+        return set([int(value) % self.units_number])
 
     def _create_skip_item(self, unit_id: int):
         """

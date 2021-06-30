@@ -20,10 +20,7 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
     """
 
     def __init__(self, units_number, patterns: Pattern or List[Pattern],
-                 eval_mechanism_params: EvaluationMechanismParameters,
-                 platform,
-                 attributes_dict: dict,
-                 debug: bool = False):
+                 eval_mechanism_params: EvaluationMechanismParameters, platform, attributes_dict: dict):
         dims = 0
         self.attributes_dict = dict()
         for k, v in attributes_dict.items():
@@ -37,7 +34,7 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
                 raise Exception
         shares, cube_size = self._calc_cubic_shares(units_number, dims)
         self.cube = array(range(cube_size)).reshape(shares)
-        super().__init__(self.cube.size, patterns, eval_mechanism_params, platform, debug)
+        super().__init__(self.cube.size, patterns, eval_mechanism_params, platform)
 
     def _classifier(self, event: Event) -> Set[int]:
         attributes = self.attributes_dict.get(event.type)
