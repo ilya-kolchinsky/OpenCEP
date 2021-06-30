@@ -18,17 +18,15 @@ class DataParallelExecutionAlgorithmFactory:
         if data_parallel_params.algorithm == DataParallelExecutionModes.GROUP_BY_KEY_ALGORITHM:
             return GroupByKeyParallelExecutionAlgorithm(data_parallel_params.units_number,
                                                         patterns, eval_mechanism_params,
-                                                        platform, data_parallel_params.divide_key,
-                                                        data_parallel_params.debug)
+                                                        platform,
+                                                        data_parallel_params.divide_key)
         if data_parallel_params.algorithm == DataParallelExecutionModes.RIP_ALGORITHM:
             return RIPParallelExecutionAlgorithm(data_parallel_params.units_number,
                                                  patterns, eval_mechanism_params, platform,
-                                                 data_parallel_params.rip_interval,
-                                                 data_parallel_params.debug)
+                                                 data_parallel_params.rip_interval)
         if data_parallel_params.algorithm == DataParallelExecutionModes.HYPER_CUBE_ALGORITHM:
             return HyperCubeParallelExecutionAlgorithm(data_parallel_params.units_number,
                                                        patterns, eval_mechanism_params,
                                                        platform,
-                                                       data_parallel_params.divide_keys_dict,
-                                                       data_parallel_params.debug)
+                                                       data_parallel_params.divide_keys_dict)
         raise Exception("Unknown parallel execution Algorithm: %s" % (data_parallel_params.algorithm,))

@@ -14,13 +14,10 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
     Implements the RIP algorithm.
     """
 
-    def __init__(self, units_number,
-                 patterns: Pattern or List[Pattern],
+    def __init__(self, units_number, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters,
-                 platform,
-                 interval: timedelta,
-                 debug: bool = False):
-        super().__init__(units_number, patterns, eval_mechanism_params, platform, debug)
+                 platform, interval: timedelta):
+        super().__init__(units_number, patterns, eval_mechanism_params, platform)
 
         self.interval = interval
 
