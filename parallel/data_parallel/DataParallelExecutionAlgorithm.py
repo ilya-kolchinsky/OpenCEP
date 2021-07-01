@@ -23,7 +23,6 @@ class DataParallelExecutionAlgorithm(ABC):
         self.evaluation_managers = [SequentialEvaluationManager(patterns, eval_mechanism_params) for _ in
                                     range(self.units_number)]
 
-
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
         Activates the actual parallel algorithm.
@@ -70,6 +69,7 @@ class DataParallelExecutionAlgorithm(ABC):
         """
         A wrap for single unit that has input stream and an execution unit.
         """
+
         def __init__(self, platform, unit_id, evaluation_manager, matches, data_formatter):
             self.events = Stream()
             self.execution_unit = platform.create_parallel_execution_unit(unit_id,

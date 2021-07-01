@@ -16,7 +16,7 @@ from test.ParallelTests import *
 runTest.over_all_time = 0
 
 # basic functionality tests
-#oneArgumentsearchTest()
+oneArgumentsearchTest()
 simplePatternSearchTest()
 googleAscendPatternSearchTest()
 amazonInstablePatternSearchTest()

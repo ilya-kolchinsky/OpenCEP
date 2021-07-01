@@ -4,7 +4,7 @@ This file contains various useful functions utilized by different project module
 
 from datetime import datetime
 from typing import Iterator, Sequence, TypeVar
-from typing import List, Container, Optional, Union, Tuple
+from typing import List, Container, Optional, Union
 from base.Pattern import Pattern
 from base.PatternStructure import PrimitiveEventStructure
 from itertools import combinations, chain
@@ -12,7 +12,6 @@ from base.PatternStructure import SeqOperator
 from base.PatternMatch import PatternMatch
 from copy import deepcopy
 from functools import reduce
-from collections.abc import Iterable
 from stream.Stream import Stream
 
 

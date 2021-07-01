@@ -1,14 +1,13 @@
 from test.testUtils import *
-from datetime import timedelta
 from plugin.sensors.Sensors import SensorsDataFormatter
-from condition.Condition import Variable, TrueCondition, BinaryCondition, SimpleCondition
+from condition.Condition import Variable, BinaryCondition
 from condition.CompositeCondition import AndCondition
-from condition.BaseRelationCondition import EqCondition, GreaterThanCondition, GreaterThanEqCondition, \
+from condition.BaseRelationCondition import GreaterThanCondition, GreaterThanEqCondition, \
     SmallerThanEqCondition, SmallerThanCondition
-from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure
+from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
 from parallel.ParallelExecutionParameters import *
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 
 # GroupByKey - HIRZEL Tests
@@ -61,11 +60,8 @@ def SensorsDataHIRZELTest(createTestFile=False, eval_mechanism_params=DEFAULT_TE
 
     runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short,
             eval_mechanism_params=eval_mechanism_params,
-            data_formatter=SensorsDataFormatter())
-
-    # runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short,
-    #         eval_mechanism_params=eval_mechanism_params,
-    #         parallel_execution_params=parallel_execution_params, data_formatter=SensorsDataFormatter())
+            data_formatter=SensorsDataFormatter(),
+            parallel_execution_params=parallel_execution_params)
 
 
 def GroupByKeyMultiPatternTest(createTestFile=False,
@@ -81,7 +77,7 @@ def GroupByKeyMultiPatternTest(createTestFile=False,
     pattern1 = Pattern(
         SeqOperator(PrimitiveEventStructure("YHOO", "a"), PrimitiveEventStructure("EBAY", "b")),
         AndCondition(
-            BinaryCondition(Variable("a", lambda x,: x["Peak Price"]),
+            BinaryCondition(Variable("a", lambda x: x["Peak Price"]),
                             Variable("b", lambda x: x["Peak Price"]),
                             relation_op=lambda x, y: int(x) == int(y)),
             SmallerThanCondition(Variable("a", lambda x: x["Opening Price"]),
@@ -98,8 +94,6 @@ def GroupByKeyMultiPatternTest(createTestFile=False,
     units = 8
 
     parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Peak Price")
-
-    # runTest(test_name, [pattern1, pattern2], createTestFile, eventStream=nasdaqEventStream,eval_mechanism_params=eval_mechanism_params)
 
     runTest(test_name, [pattern1, pattern2], createTestFile, eventStream=nasdaqEventStream,
             eval_mechanism_params=eval_mechanism_params,
@@ -179,7 +173,6 @@ def SensorsDataRIPTestShort(createTestFile=False, eval_mechanism_params=DEFAULT_
         ),
         timedelta(minutes=5)
     )
-    #  run Sequential
     units = 8
     parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units,
                                                                             interval=timedelta(minutes=6))

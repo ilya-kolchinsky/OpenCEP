@@ -2,8 +2,6 @@ import os
 import pathlib
 import sys
 
-from typing import List
-
 from CEP import CEP
 from evaluation.EvaluationMechanismFactory import TreeBasedEvaluationMechanismParameters
 from adaptive.optimizer.OptimizerFactory import StatisticsDeviationAwareOptimizerParameters
@@ -30,10 +28,8 @@ INCLUDE_TWITTER = False
 nasdaqEventStreamTiny = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_TINY.txt"))
 nasdaqEventStreamShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_SHORT.txt"))
 nasdaqEventStreamMedium = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_MEDIUM.txt"))
-nasdaqEventStreamFrequencyTailored = FileInputStream(
-    os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
-nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(
-    os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
+nasdaqEventStreamFrequencyTailored = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_FREQUENCY_TAILORED.txt"))
+nasdaqEventStream_AAPL_AMZN_GOOG = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_AAPL_AMZN_GOOG.txt"))
 nasdaqEventStream = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_LONG.txt"))
 
 nasdaqEventStreamHalfShort = FileInputStream(os.path.join(absolutePath, "test/EventFiles/NASDAQ_HALF_SHORT.txt"))
@@ -78,7 +74,6 @@ class FailedCounter:
 
 
 num_failed_tests = FailedCounter()
-
 
 def closeFiles(file1, file2):
     file1.close()
@@ -329,7 +324,7 @@ def runMultiTest(test_name, patterns, createTestFile=False,
 
     res = (exp_set == match_set)
     print("Test %s result: %s, Time Passed: %s" % (test_name,
-                                                   "Succeeded" if res else "Failed", running_time))
+          "Succeeded" if res else "Failed", running_time))
     runTest.over_all_time += running_time
     if res:
         os.remove(actual_matches_path)

@@ -24,10 +24,10 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         if isinstance(patterns, Pattern):
             patterns = [patterns]
         for pattern in patterns:
-                primitive_events = pattern.get_primitive_events()
-                types = [e.type for e in primitive_events]
-                if len(set(types)) != len(types):
-                    raise Exception(f"Not Support multiple typing of events, got {primitive_events}")
+            primitive_events = pattern.get_primitive_events()
+            types = [e.type for e in primitive_events]
+            if len(set(types)) != len(types):
+                raise Exception(f"Not Support multiple typing of events, got {primitive_events}")
 
         dims = 0
         self.attributes_dict = dict()
@@ -103,6 +103,7 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         Preforming the _classifier again on all match events and get units intersection.
         For every match we not(!) skipping if the unit has the smallest id.
         """
+
         def skip_item(item: PatternMatch):
             min_unit = min(reduce(set.intersection, map(self._classifier, item.events)))
             return min_unit != unit_id

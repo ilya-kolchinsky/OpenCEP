@@ -14,14 +14,8 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
 
     event[key](%units_number) --> designated unit
 
-    Limitations:
-    Conditions must be given for the same unit so you must have a binaryCondition queering for == between same_unit for
-    different events when creating conditions with this parallelization technique
-    (see ParallelTests for more example/info)
-
-    Doesn't support querying on event matches for general attributes - must have a condition with the provided key
-    (to enforce matches on the same execution_unit)
-
+    All patterns must include == comparison between all attributes with the given "key" argument,
+    to enforce matches on the same unit id.
     """
 
     def __init__(self,
@@ -53,6 +47,4 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
             return False
 
         return skip_item
-
-
 

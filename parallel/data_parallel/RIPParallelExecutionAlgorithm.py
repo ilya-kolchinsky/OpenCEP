@@ -23,7 +23,7 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
 
         # in case of multi pattern
         if isinstance(patterns, list):
-            self.__time_delta = max(pattern.window for pattern in patterns)  # TODO: check willingness
+            self.__time_delta = max(pattern.window for pattern in patterns)
         else:
             self.__time_delta = patterns.window
 
