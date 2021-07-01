@@ -11,8 +11,10 @@ from parallel.ParallelExecutionParameters import *
 from datetime import datetime, timedelta
 
 
+# GroupByKey - HIRZEL Tests
+
 def simpleGroupByKeyTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                         test_name="parallel_1_"):
+                         test_name="parallel_GroupByKey_1_"):
     """
     PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b)
     WHERE   a.OpeningPrice == b.OpeningPrice
@@ -27,14 +29,86 @@ def simpleGroupByKeyTest(createTestFile=False, eval_mechanism_params=DEFAULT_TES
         ),
         timedelta(minutes=5)
     )
-    units = 8
+    units = 7
     parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Opening Price")
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
-    expected_result = tuple([('Seq', 'a', 'b')] * units)
-    runStructuralTest('structuralTest1', [pattern], expected_result,
-                      parallel_execution_params=parallel_execution_params)
 
 
+def SensorsDataHIRZELTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                          test_name="Sensors_GroupBYKey_1_"):
+    """
+    PATTERN SEQ(a.MagX > b.AccX && a.MagY < b.AccY)
+    WHERE   a.Amplitude == b.Amplitude
+    WITHIN 3 minutes
+    """
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("Magnetometer", "a"),
+                    PrimitiveEventStructure("Accelerometer", "b")),
+        AndCondition(
+            GreaterThanCondition(Variable("a", lambda x: x["MagX"]),
+                                 Variable("b", lambda x: x["AccX"])),
+            SmallerThanCondition(Variable("a", lambda x: x["MagY"]),
+                                 Variable("b", lambda x: x["AccY"])),
+            BinaryCondition(Variable("a", lambda x: x["Amplitude"]),
+                            Variable("b", lambda x: x["Amplitude"]),
+                            relation_op=lambda x, y: x == y),
+        ),
+        timedelta(minutes=3)
+    )
+    units = 8
+
+    parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Amplitude")
+
+    runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short,
+            eval_mechanism_params=eval_mechanism_params,
+            data_formatter=SensorsDataFormatter())
+
+    # runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short,
+    #         eval_mechanism_params=eval_mechanism_params,
+    #         parallel_execution_params=parallel_execution_params, data_formatter=SensorsDataFormatter())
+
+
+def GroupByKeyMultiPatternTest(createTestFile=False,
+                               eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                               test_name="GroupByKey_MultiPatternTest_1_"):
+    """Brings the matches either from the first pattern:
+        (YHOO.Opening_price <  EBAY.Opening_price
+        OR
+        Matches from the second pattern:
+        int(AMZ.peak_price) == int(74)
+        in the defined time-deltas
+    """
+    pattern1 = Pattern(
+        SeqOperator(PrimitiveEventStructure("YHOO", "a"), PrimitiveEventStructure("EBAY", "b")),
+        AndCondition(
+            BinaryCondition(Variable("a", lambda x,: x["Peak Price"]),
+                            Variable("b", lambda x: x["Peak Price"]),
+                            relation_op=lambda x, y: int(x) == int(y)),
+            SmallerThanCondition(Variable("a", lambda x: x["Opening Price"]),
+                                 Variable("b", lambda x: x["Opening Price"]))),
+        timedelta(minutes=3)
+    )
+    pattern2 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AMZN", "x1")),
+        BinaryCondition(left_term=Variable("x1", lambda x: int(x["Peak Price"])), right_term=74,
+                        relation_op=lambda x: int(x) == 74),
+        timedelta(days=1)
+    )
+
+    units = 8
+
+    parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Peak Price")
+
+    # runTest(test_name, [pattern1, pattern2], createTestFile, eventStream=nasdaqEventStream,eval_mechanism_params=eval_mechanism_params)
+
+    runTest(test_name, [pattern1, pattern2], createTestFile, eventStream=nasdaqEventStream,
+            eval_mechanism_params=eval_mechanism_params,
+            parallel_execution_params=parallel_execution_params)
+
+
+# End GroupByKey tests
+
+# RIP Tests
 def simpleRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                   test_name="parallel_2_"):
     pattern = Pattern(
@@ -171,6 +245,8 @@ def SensorsDataRIPLongTime(createTestFile=False, eval_mechanism_params=DEFAULT_T
                     parallel_execution_params=parallel_execution_params, data_formatter=SensorsDataFormatter())
 
 
+# HyperCube Tests
+
 def HyperCubeMultiPatternTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                               test_name="HyperCubeMultiPatternTest_"):
     pattern1 = Pattern(
@@ -225,7 +301,6 @@ def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TEST
 def HyperCubeMultyAttrbutesTest(createTestFile=False,
                                 eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                                 test_name="HyperCubeMultyAttrbutes"):
-
     HyperCubeMultyAttrbutesPattern = Pattern(
         SeqOperator(PrimitiveEventStructure("MSFT", "a"), PrimitiveEventStructure("DRIV", "b")),
         AndCondition(
@@ -243,62 +318,9 @@ def HyperCubeMultyAttrbutesTest(createTestFile=False,
             parallel_execution_params=parallel_execution_params)
 
 
-# GroupByKey Tests
-
-def simpleGroupByKeyTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                         test_name="parallel_GroupByKey_1_"):
-    """
-    PATTERN SEQ(AppleStockPriceUpdate a, AmazonStockPriceUpdate b)
-    WHERE   a.OpeningPrice == b.OpeningPrice
-    WITHIN 5 minutes
-    """
-    pattern = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
-        AndCondition(
-            BinaryCondition(Variable("a", lambda x: x["Opening Price"]),
-                            Variable("b", lambda x: x["Opening Price"]),
-                            relation_op=lambda x, y: x == y)
-        ),
-        timedelta(minutes=5)
-    )
-    units = 7
-    parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Opening Price")
-    runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params, eventStream=custom4)
-
-
-def SensorsDataHIRZELTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                          test_name="Sensors_GroupBYKey_1_"):
-    """
-    PATTERN SEQ(a.MagX > b.AccX && a.MagY < b.AccY)
-    WHERE   a.Amplitude == b.Amplitude
-    WITHIN 3 minutes
-    """
-    pattern = Pattern(
-        SeqOperator(PrimitiveEventStructure("Magnetometer", "a"),
-                    PrimitiveEventStructure("Accelerometer", "b")),
-        AndCondition(
-            GreaterThanCondition(Variable("a", lambda x: x["MagX"]),
-                                 Variable("b", lambda x: x["AccX"])),
-            SmallerThanCondition(Variable("a", lambda x: x["MagY"]),
-                                 Variable("b", lambda x: x["AccY"])),
-            BinaryCondition(Variable("a", lambda x: x["Amplitude"]),
-                            Variable("b", lambda x: x["Amplitude"]),
-                            relation_op=lambda x, y: x == y),
-        ),
-        timedelta(minutes=3)
-    )
-    units = 8
-
-    parallel_execution_params = DataParallelExecutionParametersHirzelAlgorithm(units_number=units, key="Amplitude")
-
-    runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short,
-            eval_mechanism_params=eval_mechanism_params,
-            parallel_execution_params=parallel_execution_params, data_formatter=SensorsDataFormatter())
-    runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params=parallel_execution_params)
-
-
-def HyperCubeMultyEventTypesTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
-                           test_name="HyperCubeMultyEventTypes_"):
+def HyperCubeMultyEventTypesTest(createTestFile=False,
+                                 eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
+                                 test_name="HyperCubeMultyEventTypes_"):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("Magnetometer", "a"),
                     PrimitiveEventStructure("Accelerometer", "b")),
@@ -323,26 +345,26 @@ def HyperCubeMultyEventTypesTest(createTestFile=False, eval_mechanism_params=DEF
             eventStream=Sensors_data_longtime,
             data_formatter=SensorsDataFormatter())
     runParallelTest(test_name, [pattern], createTestFile, eval_mechanism_params,
-            parallel_execution_params=parallel_execution_params,
-            eventStream=Sensors_data_longtime,
-            data_formatter=SensorsDataFormatter())
-
+                    parallel_execution_params=parallel_execution_params,
+                    eventStream=Sensors_data_longtime,
+                    data_formatter=SensorsDataFormatter())
 
 
 if __name__ == "__main__":
     runTest.over_all_time = 0
-    # GroupByKey
+    # # # GroupByKey
+    GroupByKeyMultiPatternTest()
     SensorsDataHIRZELTest()
     simpleGroupByKeyTest()
-    #
-    # # RIP
+    # #
+    # # # RIP
     simpleRIPTest()
     SensorsDataRIPTest()
     SensorsDataRIPTestShort()
     SensorsDataRIPTest()
     SensorsDataRIPLongTime()
-    #
-    # # HypeCube
+    # #
+    # # # HypeCube
     simpleHyperCubeTest()
     HyperCubeMultiPatternTest()
     HyperCubeMultyAttrbutesTest()

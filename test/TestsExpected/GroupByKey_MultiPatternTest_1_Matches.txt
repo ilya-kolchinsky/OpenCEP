@@ -1,0 +1,341 @@
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011041, 'Opening Price': 74.84, 'Peak Price': 74.98, 'Lowest Price': 74.57, 'Close Price': 74.59, 'Volume': 102642}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011042, 'Opening Price': 74.6, 'Peak Price': 74.6, 'Lowest Price': 74.31, 'Close Price': 74.31, 'Volume': 125533}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011043, 'Opening Price': 74.31, 'Peak Price': 74.34, 'Lowest Price': 74.17, 'Close Price': 74.18, 'Volume': 103723}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011045, 'Opening Price': 74.81, 'Peak Price': 74.9, 'Lowest Price': 74.3, 'Close Price': 74.31, 'Volume': 74412}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011046, 'Opening Price': 74.3, 'Peak Price': 74.45, 'Lowest Price': 74.14, 'Close Price': 74.25, 'Volume': 72685}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011047, 'Opening Price': 74.33, 'Peak Price': 74.5, 'Lowest Price': 74.25, 'Close Price': 74.32, 'Volume': 73578}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011048, 'Opening Price': 74.35, 'Peak Price': 74.36, 'Lowest Price': 74.14, 'Close Price': 74.28, 'Volume': 61040}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011049, 'Opening Price': 74.24, 'Peak Price': 74.6, 'Lowest Price': 74.14, 'Close Price': 74.435, 'Volume': 53489}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011050, 'Opening Price': 74.48, 'Peak Price': 74.66, 'Lowest Price': 74.3, 'Close Price': 74.54, 'Volume': 48102}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011051, 'Opening Price': 74.53, 'Peak Price': 74.56, 'Lowest Price': 74.43, 'Close Price': 74.5192, 'Volume': 38216}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011049, 'Opening Price': 27.61, 'Peak Price': 27.75, 'Lowest Price': 27.6, 'Close Price': 27.65, 'Volume': 1336859}
+{'Stock Ticker': 'EBAY', 'Date': 200802011051, 'Opening Price': 27.62, 'Peak Price': 27.66, 'Lowest Price': 27.61, 'Close Price': 27.65, 'Volume': 46092}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011051, 'Opening Price': 27.37, 'Peak Price': 27.5, 'Lowest Price': 27.34, 'Close Price': 27.4999, 'Volume': 1578136}
+{'Stock Ticker': 'EBAY', 'Date': 200802011051, 'Opening Price': 27.62, 'Peak Price': 27.66, 'Lowest Price': 27.61, 'Close Price': 27.65, 'Volume': 46092}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011052, 'Opening Price': 74.5, 'Peak Price': 74.54, 'Lowest Price': 74.4, 'Close Price': 74.47, 'Volume': 29253}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011049, 'Opening Price': 27.61, 'Peak Price': 27.75, 'Lowest Price': 27.6, 'Close Price': 27.65, 'Volume': 1336859}
+{'Stock Ticker': 'EBAY', 'Date': 200802011052, 'Opening Price': 27.65, 'Peak Price': 27.74, 'Lowest Price': 27.65, 'Close Price': 27.7, 'Volume': 43508}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011051, 'Opening Price': 27.37, 'Peak Price': 27.5, 'Lowest Price': 27.34, 'Close Price': 27.4999, 'Volume': 1578136}
+{'Stock Ticker': 'EBAY', 'Date': 200802011052, 'Opening Price': 27.65, 'Peak Price': 27.74, 'Lowest Price': 27.65, 'Close Price': 27.7, 'Volume': 43508}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011052, 'Opening Price': 27.5, 'Peak Price': 27.55, 'Lowest Price': 27.48, 'Close Price': 27.5, 'Volume': 1223965}
+{'Stock Ticker': 'EBAY', 'Date': 200802011052, 'Opening Price': 27.65, 'Peak Price': 27.74, 'Lowest Price': 27.65, 'Close Price': 27.7, 'Volume': 43508}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011053, 'Opening Price': 74.48, 'Peak Price': 74.8, 'Lowest Price': 74.48, 'Close Price': 74.65, 'Volume': 59617}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011050, 'Opening Price': 27.65, 'Peak Price': 27.67, 'Lowest Price': 27.36, 'Close Price': 27.36, 'Volume': 1738938}
+{'Stock Ticker': 'EBAY', 'Date': 200802011053, 'Opening Price': 27.7093, 'Peak Price': 27.77, 'Lowest Price': 27.595, 'Close Price': 27.75, 'Volume': 38480}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011051, 'Opening Price': 27.37, 'Peak Price': 27.5, 'Lowest Price': 27.34, 'Close Price': 27.4999, 'Volume': 1578136}
+{'Stock Ticker': 'EBAY', 'Date': 200802011053, 'Opening Price': 27.7093, 'Peak Price': 27.77, 'Lowest Price': 27.595, 'Close Price': 27.75, 'Volume': 38480}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011052, 'Opening Price': 27.5, 'Peak Price': 27.55, 'Lowest Price': 27.48, 'Close Price': 27.5, 'Volume': 1223965}
+{'Stock Ticker': 'EBAY', 'Date': 200802011053, 'Opening Price': 27.7093, 'Peak Price': 27.77, 'Lowest Price': 27.595, 'Close Price': 27.75, 'Volume': 38480}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011053, 'Opening Price': 27.505, 'Peak Price': 27.64, 'Lowest Price': 27.455, 'Close Price': 27.63, 'Volume': 1576875}
+{'Stock Ticker': 'EBAY', 'Date': 200802011053, 'Opening Price': 27.7093, 'Peak Price': 27.77, 'Lowest Price': 27.595, 'Close Price': 27.75, 'Volume': 38480}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011054, 'Opening Price': 74.67, 'Peak Price': 74.672, 'Lowest Price': 74.48, 'Close Price': 74.53, 'Volume': 15992}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011051, 'Opening Price': 27.37, 'Peak Price': 27.5, 'Lowest Price': 27.34, 'Close Price': 27.4999, 'Volume': 1578136}
+{'Stock Ticker': 'EBAY', 'Date': 200802011054, 'Opening Price': 27.76, 'Peak Price': 27.81, 'Lowest Price': 27.7, 'Close Price': 27.74, 'Volume': 112128}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011052, 'Opening Price': 27.5, 'Peak Price': 27.55, 'Lowest Price': 27.48, 'Close Price': 27.5, 'Volume': 1223965}
+{'Stock Ticker': 'EBAY', 'Date': 200802011054, 'Opening Price': 27.76, 'Peak Price': 27.81, 'Lowest Price': 27.7, 'Close Price': 27.74, 'Volume': 112128}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011053, 'Opening Price': 27.505, 'Peak Price': 27.64, 'Lowest Price': 27.455, 'Close Price': 27.63, 'Volume': 1576875}
+{'Stock Ticker': 'EBAY', 'Date': 200802011054, 'Opening Price': 27.76, 'Peak Price': 27.81, 'Lowest Price': 27.7, 'Close Price': 27.74, 'Volume': 112128}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011054, 'Opening Price': 27.6388, 'Peak Price': 27.9533, 'Lowest Price': 27.61, 'Close Price': 27.621, 'Volume': 1196309}
+{'Stock Ticker': 'EBAY', 'Date': 200802011054, 'Opening Price': 27.76, 'Peak Price': 27.81, 'Lowest Price': 27.7, 'Close Price': 27.74, 'Volume': 112128}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011055, 'Opening Price': 74.53, 'Peak Price': 74.5599, 'Lowest Price': 74.42, 'Close Price': 74.43, 'Volume': 32255}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011052, 'Opening Price': 27.5, 'Peak Price': 27.55, 'Lowest Price': 27.48, 'Close Price': 27.5, 'Volume': 1223965}
+{'Stock Ticker': 'EBAY', 'Date': 200802011055, 'Opening Price': 27.75, 'Peak Price': 27.82, 'Lowest Price': 27.735, 'Close Price': 27.8, 'Volume': 115586}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011053, 'Opening Price': 27.505, 'Peak Price': 27.64, 'Lowest Price': 27.455, 'Close Price': 27.63, 'Volume': 1576875}
+{'Stock Ticker': 'EBAY', 'Date': 200802011055, 'Opening Price': 27.75, 'Peak Price': 27.82, 'Lowest Price': 27.735, 'Close Price': 27.8, 'Volume': 115586}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011054, 'Opening Price': 27.6388, 'Peak Price': 27.9533, 'Lowest Price': 27.61, 'Close Price': 27.621, 'Volume': 1196309}
+{'Stock Ticker': 'EBAY', 'Date': 200802011055, 'Opening Price': 27.75, 'Peak Price': 27.82, 'Lowest Price': 27.735, 'Close Price': 27.8, 'Volume': 115586}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011055, 'Opening Price': 27.6522, 'Peak Price': 27.7, 'Lowest Price': 27.6, 'Close Price': 27.6, 'Volume': 572034}
+{'Stock Ticker': 'EBAY', 'Date': 200802011055, 'Opening Price': 27.75, 'Peak Price': 27.82, 'Lowest Price': 27.735, 'Close Price': 27.8, 'Volume': 115586}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011056, 'Opening Price': 74.44, 'Peak Price': 74.93, 'Lowest Price': 74.37, 'Close Price': 74.9, 'Volume': 73769}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011053, 'Opening Price': 27.505, 'Peak Price': 27.64, 'Lowest Price': 27.455, 'Close Price': 27.63, 'Volume': 1576875}
+{'Stock Ticker': 'EBAY', 'Date': 200802011056, 'Opening Price': 27.8, 'Peak Price': 27.82, 'Lowest Price': 27.8, 'Close Price': 27.81, 'Volume': 37062}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011054, 'Opening Price': 27.6388, 'Peak Price': 27.9533, 'Lowest Price': 27.61, 'Close Price': 27.621, 'Volume': 1196309}
+{'Stock Ticker': 'EBAY', 'Date': 200802011056, 'Opening Price': 27.8, 'Peak Price': 27.82, 'Lowest Price': 27.8, 'Close Price': 27.81, 'Volume': 37062}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011055, 'Opening Price': 27.6522, 'Peak Price': 27.7, 'Lowest Price': 27.6, 'Close Price': 27.6, 'Volume': 572034}
+{'Stock Ticker': 'EBAY', 'Date': 200802011056, 'Opening Price': 27.8, 'Peak Price': 27.82, 'Lowest Price': 27.8, 'Close Price': 27.81, 'Volume': 37062}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011056, 'Opening Price': 27.61, 'Peak Price': 27.65, 'Lowest Price': 27.56, 'Close Price': 27.64, 'Volume': 757035}
+{'Stock Ticker': 'EBAY', 'Date': 200802011056, 'Opening Price': 27.8, 'Peak Price': 27.82, 'Lowest Price': 27.8, 'Close Price': 27.81, 'Volume': 37062}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011057, 'Opening Price': 74.87, 'Peak Price': 74.88, 'Lowest Price': 74.74, 'Close Price': 74.8, 'Volume': 25591}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011054, 'Opening Price': 27.6388, 'Peak Price': 27.9533, 'Lowest Price': 27.61, 'Close Price': 27.621, 'Volume': 1196309}
+{'Stock Ticker': 'EBAY', 'Date': 200802011057, 'Opening Price': 27.8, 'Peak Price': 27.84, 'Lowest Price': 27.8, 'Close Price': 27.82, 'Volume': 40768}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011055, 'Opening Price': 27.6522, 'Peak Price': 27.7, 'Lowest Price': 27.6, 'Close Price': 27.6, 'Volume': 572034}
+{'Stock Ticker': 'EBAY', 'Date': 200802011057, 'Opening Price': 27.8, 'Peak Price': 27.84, 'Lowest Price': 27.8, 'Close Price': 27.82, 'Volume': 40768}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011056, 'Opening Price': 27.61, 'Peak Price': 27.65, 'Lowest Price': 27.56, 'Close Price': 27.64, 'Volume': 757035}
+{'Stock Ticker': 'EBAY', 'Date': 200802011057, 'Opening Price': 27.8, 'Peak Price': 27.84, 'Lowest Price': 27.8, 'Close Price': 27.82, 'Volume': 40768}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011057, 'Opening Price': 27.64, 'Peak Price': 27.67, 'Lowest Price': 27.58, 'Close Price': 27.61, 'Volume': 453986}
+{'Stock Ticker': 'EBAY', 'Date': 200802011057, 'Opening Price': 27.8, 'Peak Price': 27.84, 'Lowest Price': 27.8, 'Close Price': 27.82, 'Volume': 40768}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011058, 'Opening Price': 74.71, 'Peak Price': 74.86, 'Lowest Price': 74.71, 'Close Price': 74.74, 'Volume': 14208}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011055, 'Opening Price': 27.6522, 'Peak Price': 27.7, 'Lowest Price': 27.6, 'Close Price': 27.6, 'Volume': 572034}
+{'Stock Ticker': 'EBAY', 'Date': 200802011058, 'Opening Price': 27.83, 'Peak Price': 27.835, 'Lowest Price': 27.79, 'Close Price': 27.81, 'Volume': 51052}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011056, 'Opening Price': 27.61, 'Peak Price': 27.65, 'Lowest Price': 27.56, 'Close Price': 27.64, 'Volume': 757035}
+{'Stock Ticker': 'EBAY', 'Date': 200802011058, 'Opening Price': 27.83, 'Peak Price': 27.835, 'Lowest Price': 27.79, 'Close Price': 27.81, 'Volume': 51052}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011057, 'Opening Price': 27.64, 'Peak Price': 27.67, 'Lowest Price': 27.58, 'Close Price': 27.61, 'Volume': 453986}
+{'Stock Ticker': 'EBAY', 'Date': 200802011058, 'Opening Price': 27.83, 'Peak Price': 27.835, 'Lowest Price': 27.79, 'Close Price': 27.81, 'Volume': 51052}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011058, 'Opening Price': 27.61, 'Peak Price': 27.63, 'Lowest Price': 27.55, 'Close Price': 27.56, 'Volume': 682824}
+{'Stock Ticker': 'EBAY', 'Date': 200802011058, 'Opening Price': 27.83, 'Peak Price': 27.835, 'Lowest Price': 27.79, 'Close Price': 27.81, 'Volume': 51052}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011059, 'Opening Price': 74.74, 'Peak Price': 74.81, 'Lowest Price': 74.59, 'Close Price': 74.62, 'Volume': 31720}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011056, 'Opening Price': 27.61, 'Peak Price': 27.65, 'Lowest Price': 27.56, 'Close Price': 27.64, 'Volume': 757035}
+{'Stock Ticker': 'EBAY', 'Date': 200802011059, 'Opening Price': 27.82, 'Peak Price': 27.84, 'Lowest Price': 27.7426, 'Close Price': 27.81, 'Volume': 51744}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011057, 'Opening Price': 27.64, 'Peak Price': 27.67, 'Lowest Price': 27.58, 'Close Price': 27.61, 'Volume': 453986}
+{'Stock Ticker': 'EBAY', 'Date': 200802011059, 'Opening Price': 27.82, 'Peak Price': 27.84, 'Lowest Price': 27.7426, 'Close Price': 27.81, 'Volume': 51744}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011058, 'Opening Price': 27.61, 'Peak Price': 27.63, 'Lowest Price': 27.55, 'Close Price': 27.56, 'Volume': 682824}
+{'Stock Ticker': 'EBAY', 'Date': 200802011059, 'Opening Price': 27.82, 'Peak Price': 27.84, 'Lowest Price': 27.7426, 'Close Price': 27.81, 'Volume': 51744}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011059, 'Opening Price': 27.57, 'Peak Price': 27.6, 'Lowest Price': 27.53, 'Close Price': 27.54, 'Volume': 548444}
+{'Stock Ticker': 'EBAY', 'Date': 200802011059, 'Opening Price': 27.82, 'Peak Price': 27.84, 'Lowest Price': 27.7426, 'Close Price': 27.81, 'Volume': 51744}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011100, 'Opening Price': 74.62, 'Peak Price': 74.64, 'Lowest Price': 74.43, 'Close Price': 74.45, 'Volume': 21949}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011057, 'Opening Price': 27.64, 'Peak Price': 27.67, 'Lowest Price': 27.58, 'Close Price': 27.61, 'Volume': 453986}
+{'Stock Ticker': 'EBAY', 'Date': 200802011100, 'Opening Price': 27.81, 'Peak Price': 27.81, 'Lowest Price': 27.72, 'Close Price': 27.76, 'Volume': 55398}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011058, 'Opening Price': 27.61, 'Peak Price': 27.63, 'Lowest Price': 27.55, 'Close Price': 27.56, 'Volume': 682824}
+{'Stock Ticker': 'EBAY', 'Date': 200802011100, 'Opening Price': 27.81, 'Peak Price': 27.81, 'Lowest Price': 27.72, 'Close Price': 27.76, 'Volume': 55398}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011059, 'Opening Price': 27.57, 'Peak Price': 27.6, 'Lowest Price': 27.53, 'Close Price': 27.54, 'Volume': 548444}
+{'Stock Ticker': 'EBAY', 'Date': 200802011100, 'Opening Price': 27.81, 'Peak Price': 27.81, 'Lowest Price': 27.72, 'Close Price': 27.76, 'Volume': 55398}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011100, 'Opening Price': 27.54, 'Peak Price': 27.6195, 'Lowest Price': 27.49, 'Close Price': 27.52, 'Volume': 704224}
+{'Stock Ticker': 'EBAY', 'Date': 200802011100, 'Opening Price': 27.81, 'Peak Price': 27.81, 'Lowest Price': 27.72, 'Close Price': 27.76, 'Volume': 55398}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011101, 'Opening Price': 74.43, 'Peak Price': 74.5, 'Lowest Price': 74.36, 'Close Price': 74.4, 'Volume': 24700}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011058, 'Opening Price': 27.61, 'Peak Price': 27.63, 'Lowest Price': 27.55, 'Close Price': 27.56, 'Volume': 682824}
+{'Stock Ticker': 'EBAY', 'Date': 200802011101, 'Opening Price': 27.76, 'Peak Price': 27.77, 'Lowest Price': 27.75, 'Close Price': 27.76, 'Volume': 20954}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011059, 'Opening Price': 27.57, 'Peak Price': 27.6, 'Lowest Price': 27.53, 'Close Price': 27.54, 'Volume': 548444}
+{'Stock Ticker': 'EBAY', 'Date': 200802011101, 'Opening Price': 27.76, 'Peak Price': 27.77, 'Lowest Price': 27.75, 'Close Price': 27.76, 'Volume': 20954}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011100, 'Opening Price': 27.54, 'Peak Price': 27.6195, 'Lowest Price': 27.49, 'Close Price': 27.52, 'Volume': 704224}
+{'Stock Ticker': 'EBAY', 'Date': 200802011101, 'Opening Price': 27.76, 'Peak Price': 27.77, 'Lowest Price': 27.75, 'Close Price': 27.76, 'Volume': 20954}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011102, 'Opening Price': 74.39, 'Peak Price': 74.53, 'Lowest Price': 74.39, 'Close Price': 74.5, 'Volume': 36922}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011059, 'Opening Price': 27.57, 'Peak Price': 27.6, 'Lowest Price': 27.53, 'Close Price': 27.54, 'Volume': 548444}
+{'Stock Ticker': 'EBAY', 'Date': 200802011102, 'Opening Price': 27.76, 'Peak Price': 27.82, 'Lowest Price': 27.75, 'Close Price': 27.81, 'Volume': 70712}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011100, 'Opening Price': 27.54, 'Peak Price': 27.6195, 'Lowest Price': 27.49, 'Close Price': 27.52, 'Volume': 704224}
+{'Stock Ticker': 'EBAY', 'Date': 200802011102, 'Opening Price': 27.76, 'Peak Price': 27.82, 'Lowest Price': 27.75, 'Close Price': 27.81, 'Volume': 70712}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011102, 'Opening Price': 27.49, 'Peak Price': 27.55, 'Lowest Price': 27.46, 'Close Price': 27.46, 'Volume': 1235707}
+{'Stock Ticker': 'EBAY', 'Date': 200802011102, 'Opening Price': 27.76, 'Peak Price': 27.82, 'Lowest Price': 27.75, 'Close Price': 27.81, 'Volume': 70712}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011103, 'Opening Price': 74.5, 'Peak Price': 74.53, 'Lowest Price': 74.4, 'Close Price': 74.4401, 'Volume': 25734}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011100, 'Opening Price': 27.54, 'Peak Price': 27.6195, 'Lowest Price': 27.49, 'Close Price': 27.52, 'Volume': 704224}
+{'Stock Ticker': 'EBAY', 'Date': 200802011103, 'Opening Price': 27.815, 'Peak Price': 27.815, 'Lowest Price': 27.77, 'Close Price': 27.8005, 'Volume': 43470}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011102, 'Opening Price': 27.49, 'Peak Price': 27.55, 'Lowest Price': 27.46, 'Close Price': 27.46, 'Volume': 1235707}
+{'Stock Ticker': 'EBAY', 'Date': 200802011103, 'Opening Price': 27.815, 'Peak Price': 27.815, 'Lowest Price': 27.77, 'Close Price': 27.8005, 'Volume': 43470}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011103, 'Opening Price': 27.47, 'Peak Price': 27.53, 'Lowest Price': 27.39, 'Close Price': 27.5, 'Volume': 897170}
+{'Stock Ticker': 'EBAY', 'Date': 200802011103, 'Opening Price': 27.815, 'Peak Price': 27.815, 'Lowest Price': 27.77, 'Close Price': 27.8005, 'Volume': 43470}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011104, 'Opening Price': 74.46, 'Peak Price': 74.57, 'Lowest Price': 74.43, 'Close Price': 74.5, 'Volume': 27990}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011102, 'Opening Price': 27.49, 'Peak Price': 27.55, 'Lowest Price': 27.46, 'Close Price': 27.46, 'Volume': 1235707}
+{'Stock Ticker': 'EBAY', 'Date': 200802011104, 'Opening Price': 27.81, 'Peak Price': 27.81, 'Lowest Price': 27.76, 'Close Price': 27.77, 'Volume': 14575}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011103, 'Opening Price': 27.47, 'Peak Price': 27.53, 'Lowest Price': 27.39, 'Close Price': 27.5, 'Volume': 897170}
+{'Stock Ticker': 'EBAY', 'Date': 200802011104, 'Opening Price': 27.81, 'Peak Price': 27.81, 'Lowest Price': 27.76, 'Close Price': 27.77, 'Volume': 14575}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011104, 'Opening Price': 27.5215, 'Peak Price': 27.55, 'Lowest Price': 27.5, 'Close Price': 27.55, 'Volume': 1174539}
+{'Stock Ticker': 'EBAY', 'Date': 200802011104, 'Opening Price': 27.81, 'Peak Price': 27.81, 'Lowest Price': 27.76, 'Close Price': 27.77, 'Volume': 14575}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011105, 'Opening Price': 74.5, 'Peak Price': 74.54, 'Lowest Price': 74.29, 'Close Price': 74.32, 'Volume': 42320}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011102, 'Opening Price': 27.49, 'Peak Price': 27.55, 'Lowest Price': 27.46, 'Close Price': 27.46, 'Volume': 1235707}
+{'Stock Ticker': 'EBAY', 'Date': 200802011105, 'Opening Price': 27.7605, 'Peak Price': 27.77, 'Lowest Price': 27.71, 'Close Price': 27.77, 'Volume': 49168}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011103, 'Opening Price': 27.47, 'Peak Price': 27.53, 'Lowest Price': 27.39, 'Close Price': 27.5, 'Volume': 897170}
+{'Stock Ticker': 'EBAY', 'Date': 200802011105, 'Opening Price': 27.7605, 'Peak Price': 27.77, 'Lowest Price': 27.71, 'Close Price': 27.77, 'Volume': 49168}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011104, 'Opening Price': 27.5215, 'Peak Price': 27.55, 'Lowest Price': 27.5, 'Close Price': 27.55, 'Volume': 1174539}
+{'Stock Ticker': 'EBAY', 'Date': 200802011105, 'Opening Price': 27.7605, 'Peak Price': 27.77, 'Lowest Price': 27.71, 'Close Price': 27.77, 'Volume': 49168}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011105, 'Opening Price': 27.55, 'Peak Price': 27.62, 'Lowest Price': 27.54, 'Close Price': 27.59, 'Volume': 1957293}
+{'Stock Ticker': 'EBAY', 'Date': 200802011105, 'Opening Price': 27.7605, 'Peak Price': 27.77, 'Lowest Price': 27.71, 'Close Price': 27.77, 'Volume': 49168}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011106, 'Opening Price': 74.33, 'Peak Price': 74.4, 'Lowest Price': 74.3, 'Close Price': 74.31, 'Volume': 22475}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011103, 'Opening Price': 27.47, 'Peak Price': 27.53, 'Lowest Price': 27.39, 'Close Price': 27.5, 'Volume': 897170}
+{'Stock Ticker': 'EBAY', 'Date': 200802011106, 'Opening Price': 27.77, 'Peak Price': 27.77, 'Lowest Price': 27.75, 'Close Price': 27.75, 'Volume': 27309}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011104, 'Opening Price': 27.5215, 'Peak Price': 27.55, 'Lowest Price': 27.5, 'Close Price': 27.55, 'Volume': 1174539}
+{'Stock Ticker': 'EBAY', 'Date': 200802011106, 'Opening Price': 27.77, 'Peak Price': 27.77, 'Lowest Price': 27.75, 'Close Price': 27.75, 'Volume': 27309}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011105, 'Opening Price': 27.55, 'Peak Price': 27.62, 'Lowest Price': 27.54, 'Close Price': 27.59, 'Volume': 1957293}
+{'Stock Ticker': 'EBAY', 'Date': 200802011106, 'Opening Price': 27.77, 'Peak Price': 27.77, 'Lowest Price': 27.75, 'Close Price': 27.75, 'Volume': 27309}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011106, 'Opening Price': 27.5902, 'Peak Price': 27.67, 'Lowest Price': 27.56, 'Close Price': 27.6099, 'Volume': 698338}
+{'Stock Ticker': 'EBAY', 'Date': 200802011106, 'Opening Price': 27.77, 'Peak Price': 27.77, 'Lowest Price': 27.75, 'Close Price': 27.75, 'Volume': 27309}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011107, 'Opening Price': 74.32, 'Peak Price': 74.4, 'Lowest Price': 74.3, 'Close Price': 74.36, 'Volume': 26839}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011104, 'Opening Price': 27.5215, 'Peak Price': 27.55, 'Lowest Price': 27.5, 'Close Price': 27.55, 'Volume': 1174539}
+{'Stock Ticker': 'EBAY', 'Date': 200802011107, 'Opening Price': 27.75, 'Peak Price': 27.755, 'Lowest Price': 27.72, 'Close Price': 27.72, 'Volume': 12609}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011105, 'Opening Price': 27.55, 'Peak Price': 27.62, 'Lowest Price': 27.54, 'Close Price': 27.59, 'Volume': 1957293}
+{'Stock Ticker': 'EBAY', 'Date': 200802011107, 'Opening Price': 27.75, 'Peak Price': 27.755, 'Lowest Price': 27.72, 'Close Price': 27.72, 'Volume': 12609}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011106, 'Opening Price': 27.5902, 'Peak Price': 27.67, 'Lowest Price': 27.56, 'Close Price': 27.6099, 'Volume': 698338}
+{'Stock Ticker': 'EBAY', 'Date': 200802011107, 'Opening Price': 27.75, 'Peak Price': 27.755, 'Lowest Price': 27.72, 'Close Price': 27.72, 'Volume': 12609}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011108, 'Opening Price': 74.36, 'Peak Price': 74.59, 'Lowest Price': 74.34, 'Close Price': 74.49, 'Volume': 30325}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011105, 'Opening Price': 27.55, 'Peak Price': 27.62, 'Lowest Price': 27.54, 'Close Price': 27.59, 'Volume': 1957293}
+{'Stock Ticker': 'EBAY', 'Date': 200802011108, 'Opening Price': 27.72, 'Peak Price': 27.76, 'Lowest Price': 27.72, 'Close Price': 27.76, 'Volume': 26185}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011106, 'Opening Price': 27.5902, 'Peak Price': 27.67, 'Lowest Price': 27.56, 'Close Price': 27.6099, 'Volume': 698338}
+{'Stock Ticker': 'EBAY', 'Date': 200802011108, 'Opening Price': 27.72, 'Peak Price': 27.76, 'Lowest Price': 27.72, 'Close Price': 27.76, 'Volume': 26185}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011108, 'Opening Price': 27.71, 'Peak Price': 27.72, 'Lowest Price': 27.67, 'Close Price': 27.68, 'Volume': 964678}
+{'Stock Ticker': 'EBAY', 'Date': 200802011108, 'Opening Price': 27.72, 'Peak Price': 27.76, 'Lowest Price': 27.72, 'Close Price': 27.76, 'Volume': 26185}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011109, 'Opening Price': 74.51, 'Peak Price': 74.57, 'Lowest Price': 74.15, 'Close Price': 74.33, 'Volume': 62027}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011106, 'Opening Price': 27.5902, 'Peak Price': 27.67, 'Lowest Price': 27.56, 'Close Price': 27.6099, 'Volume': 698338}
+{'Stock Ticker': 'EBAY', 'Date': 200802011109, 'Opening Price': 27.76, 'Peak Price': 27.77, 'Lowest Price': 27.7, 'Close Price': 27.73, 'Volume': 46863}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011108, 'Opening Price': 27.71, 'Peak Price': 27.72, 'Lowest Price': 27.67, 'Close Price': 27.68, 'Volume': 964678}
+{'Stock Ticker': 'EBAY', 'Date': 200802011109, 'Opening Price': 27.76, 'Peak Price': 27.77, 'Lowest Price': 27.7, 'Close Price': 27.73, 'Volume': 46863}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011109, 'Opening Price': 27.68, 'Peak Price': 27.69, 'Lowest Price': 27.63, 'Close Price': 27.67, 'Volume': 570889}
+{'Stock Ticker': 'EBAY', 'Date': 200802011109, 'Opening Price': 27.76, 'Peak Price': 27.77, 'Lowest Price': 27.7, 'Close Price': 27.73, 'Volume': 46863}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011110, 'Opening Price': 74.32, 'Peak Price': 74.45, 'Lowest Price': 74.14, 'Close Price': 74.39, 'Volume': 53967}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011108, 'Opening Price': 27.71, 'Peak Price': 27.72, 'Lowest Price': 27.67, 'Close Price': 27.68, 'Volume': 964678}
+{'Stock Ticker': 'EBAY', 'Date': 200802011110, 'Opening Price': 27.73, 'Peak Price': 27.75, 'Lowest Price': 27.69, 'Close Price': 27.7122, 'Volume': 109206}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011109, 'Opening Price': 27.68, 'Peak Price': 27.69, 'Lowest Price': 27.63, 'Close Price': 27.67, 'Volume': 570889}
+{'Stock Ticker': 'EBAY', 'Date': 200802011110, 'Opening Price': 27.73, 'Peak Price': 27.75, 'Lowest Price': 27.69, 'Close Price': 27.7122, 'Volume': 109206}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011110, 'Opening Price': 27.68, 'Peak Price': 27.78, 'Lowest Price': 27.66, 'Close Price': 27.75, 'Volume': 919772}
+{'Stock Ticker': 'EBAY', 'Date': 200802011110, 'Opening Price': 27.73, 'Peak Price': 27.75, 'Lowest Price': 27.69, 'Close Price': 27.7122, 'Volume': 109206}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011111, 'Opening Price': 74.39, 'Peak Price': 74.45, 'Lowest Price': 74.37, 'Close Price': 74.44, 'Volume': 19670}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011108, 'Opening Price': 27.71, 'Peak Price': 27.72, 'Lowest Price': 27.67, 'Close Price': 27.68, 'Volume': 964678}
+{'Stock Ticker': 'EBAY', 'Date': 200802011111, 'Opening Price': 27.72, 'Peak Price': 27.74, 'Lowest Price': 27.7188, 'Close Price': 27.74, 'Volume': 50346}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011109, 'Opening Price': 27.68, 'Peak Price': 27.69, 'Lowest Price': 27.63, 'Close Price': 27.67, 'Volume': 570889}
+{'Stock Ticker': 'EBAY', 'Date': 200802011111, 'Opening Price': 27.72, 'Peak Price': 27.74, 'Lowest Price': 27.7188, 'Close Price': 27.74, 'Volume': 50346}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011110, 'Opening Price': 27.68, 'Peak Price': 27.78, 'Lowest Price': 27.66, 'Close Price': 27.75, 'Volume': 919772}
+{'Stock Ticker': 'EBAY', 'Date': 200802011111, 'Opening Price': 27.72, 'Peak Price': 27.74, 'Lowest Price': 27.7188, 'Close Price': 27.74, 'Volume': 50346}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011112, 'Opening Price': 74.45, 'Peak Price': 74.67, 'Lowest Price': 74.45, 'Close Price': 74.64, 'Volume': 35960}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011109, 'Opening Price': 27.68, 'Peak Price': 27.69, 'Lowest Price': 27.63, 'Close Price': 27.67, 'Volume': 570889}
+{'Stock Ticker': 'EBAY', 'Date': 200802011112, 'Opening Price': 27.74, 'Peak Price': 27.78, 'Lowest Price': 27.74, 'Close Price': 27.78, 'Volume': 26512}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011110, 'Opening Price': 27.68, 'Peak Price': 27.78, 'Lowest Price': 27.66, 'Close Price': 27.75, 'Volume': 919772}
+{'Stock Ticker': 'EBAY', 'Date': 200802011112, 'Opening Price': 27.74, 'Peak Price': 27.78, 'Lowest Price': 27.74, 'Close Price': 27.78, 'Volume': 26512}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011113, 'Opening Price': 74.66, 'Peak Price': 74.66, 'Lowest Price': 74.47, 'Close Price': 74.56, 'Volume': 25909}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011110, 'Opening Price': 27.68, 'Peak Price': 27.78, 'Lowest Price': 27.66, 'Close Price': 27.75, 'Volume': 919772}
+{'Stock Ticker': 'EBAY', 'Date': 200802011113, 'Opening Price': 27.7722, 'Peak Price': 27.8, 'Lowest Price': 27.77, 'Close Price': 27.79, 'Volume': 18976}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011111, 'Opening Price': 27.75, 'Peak Price': 27.79, 'Lowest Price': 27.71, 'Close Price': 27.7805, 'Volume': 705990}
+{'Stock Ticker': 'EBAY', 'Date': 200802011113, 'Opening Price': 27.7722, 'Peak Price': 27.8, 'Lowest Price': 27.77, 'Close Price': 27.79, 'Volume': 18976}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011113, 'Opening Price': 27.76, 'Peak Price': 27.82, 'Lowest Price': 27.76, 'Close Price': 27.8015, 'Volume': 978516}
+{'Stock Ticker': 'EBAY', 'Date': 200802011113, 'Opening Price': 27.7722, 'Peak Price': 27.8, 'Lowest Price': 27.77, 'Close Price': 27.79, 'Volume': 18976}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011114, 'Opening Price': 74.55, 'Peak Price': 74.81, 'Lowest Price': 74.55, 'Close Price': 74.66, 'Volume': 38903}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011111, 'Opening Price': 27.75, 'Peak Price': 27.79, 'Lowest Price': 27.71, 'Close Price': 27.7805, 'Volume': 705990}
+{'Stock Ticker': 'EBAY', 'Date': 200802011114, 'Opening Price': 27.8, 'Peak Price': 27.88, 'Lowest Price': 27.79, 'Close Price': 27.845, 'Volume': 69209}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011112, 'Opening Price': 27.79, 'Peak Price': 27.79, 'Lowest Price': 27.7499, 'Close Price': 27.7603, 'Volume': 573656}
+{'Stock Ticker': 'EBAY', 'Date': 200802011114, 'Opening Price': 27.8, 'Peak Price': 27.88, 'Lowest Price': 27.79, 'Close Price': 27.845, 'Volume': 69209}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011113, 'Opening Price': 27.76, 'Peak Price': 27.82, 'Lowest Price': 27.76, 'Close Price': 27.8015, 'Volume': 978516}
+{'Stock Ticker': 'EBAY', 'Date': 200802011114, 'Opening Price': 27.8, 'Peak Price': 27.88, 'Lowest Price': 27.79, 'Close Price': 27.845, 'Volume': 69209}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011115, 'Opening Price': 74.65, 'Peak Price': 74.75, 'Lowest Price': 74.63, 'Close Price': 74.74, 'Volume': 20665}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011112, 'Opening Price': 27.79, 'Peak Price': 27.79, 'Lowest Price': 27.7499, 'Close Price': 27.7603, 'Volume': 573656}
+{'Stock Ticker': 'EBAY', 'Date': 200802011115, 'Opening Price': 27.84, 'Peak Price': 27.91, 'Lowest Price': 27.84, 'Close Price': 27.91, 'Volume': 49306}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011113, 'Opening Price': 27.76, 'Peak Price': 27.82, 'Lowest Price': 27.76, 'Close Price': 27.8015, 'Volume': 978516}
+{'Stock Ticker': 'EBAY', 'Date': 200802011115, 'Opening Price': 27.84, 'Peak Price': 27.91, 'Lowest Price': 27.84, 'Close Price': 27.91, 'Volume': 49306}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011114, 'Opening Price': 27.8015, 'Peak Price': 27.88, 'Lowest Price': 27.65, 'Close Price': 27.85, 'Volume': 1269144}
+{'Stock Ticker': 'EBAY', 'Date': 200802011115, 'Opening Price': 27.84, 'Peak Price': 27.91, 'Lowest Price': 27.84, 'Close Price': 27.91, 'Volume': 49306}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011116, 'Opening Price': 74.75, 'Peak Price': 74.94, 'Lowest Price': 74.71, 'Close Price': 74.79, 'Volume': 42487}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011113, 'Opening Price': 27.76, 'Peak Price': 27.82, 'Lowest Price': 27.76, 'Close Price': 27.8015, 'Volume': 978516}
+{'Stock Ticker': 'EBAY', 'Date': 200802011116, 'Opening Price': 27.92, 'Peak Price': 27.95, 'Lowest Price': 27.7756, 'Close Price': 27.9078, 'Volume': 166130}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011114, 'Opening Price': 27.8015, 'Peak Price': 27.88, 'Lowest Price': 27.65, 'Close Price': 27.85, 'Volume': 1269144}
+{'Stock Ticker': 'EBAY', 'Date': 200802011116, 'Opening Price': 27.92, 'Peak Price': 27.95, 'Lowest Price': 27.7756, 'Close Price': 27.9078, 'Volume': 166130}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011117, 'Opening Price': 74.79, 'Peak Price': 74.9, 'Lowest Price': 74.67, 'Close Price': 74.74, 'Volume': 44892}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011114, 'Opening Price': 27.8015, 'Peak Price': 27.88, 'Lowest Price': 27.65, 'Close Price': 27.85, 'Volume': 1269144}
+{'Stock Ticker': 'EBAY', 'Date': 200802011117, 'Opening Price': 27.9, 'Peak Price': 27.93, 'Lowest Price': 27.87, 'Close Price': 27.93, 'Volume': 91786}
+
+2: {'Stock Ticker': 'AMZN', 'Date': 200802011118, 'Opening Price': 74.74, 'Peak Price': 74.99, 'Lowest Price': 74.73, 'Close Price': 74.99, 'Volume': 29473}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011118, 'Opening Price': 27.922, 'Peak Price': 27.95, 'Lowest Price': 27.87, 'Close Price': 27.88, 'Volume': 343190}
+{'Stock Ticker': 'EBAY', 'Date': 200802011118, 'Opening Price': 27.93, 'Peak Price': 27.97, 'Lowest Price': 27.93, 'Close Price': 27.95, 'Volume': 33903}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011117, 'Opening Price': 27.93, 'Peak Price': 27.94, 'Lowest Price': 27.86, 'Close Price': 27.93, 'Volume': 561437}
+{'Stock Ticker': 'EBAY', 'Date': 200802011119, 'Opening Price': 27.95, 'Peak Price': 27.95, 'Lowest Price': 27.8396, 'Close Price': 27.91, 'Volume': 55238}
+
+1: {'Stock Ticker': 'YHOO', 'Date': 200802011118, 'Opening Price': 27.922, 'Peak Price': 27.95, 'Lowest Price': 27.87, 'Close Price': 27.88, 'Volume': 343190}
+{'Stock Ticker': 'EBAY', 'Date': 200802011119, 'Opening Price': 27.95, 'Peak Price': 27.95, 'Lowest Price': 27.8396, 'Close Price': 27.91, 'Volume': 55238}
+

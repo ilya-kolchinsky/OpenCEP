@@ -10,6 +10,18 @@ from typing import Set
 class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
     """
     Implements the key-based partitioning algorithm.
+    Gets a key and a unit-number - assigns each event to an execution unit based on the modulo value of the provided key
+
+    event[key](%units_number) --> designated unit
+
+    Limitations:
+    Conditions must be given for the same unit so you must have a binaryCondition queering for == between same_unit for
+    different events when creating conditions with this parallelization technique
+    (see ParallelTests for more example/info)
+
+    Doesn't support querying on event matches for general attributes - must have a condition with the provided key
+    (to enforce matches on the same execution_unit)
+
     """
 
     def __init__(self,
