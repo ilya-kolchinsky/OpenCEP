@@ -1,0 +1,43 @@
+{'Stock Ticker': 'AAPL', 'Date': 200802010914, 'Opening Price': 135.63, 'Peak Price': 135.63, 'Lowest Price': 135.5, 'Close Price': 135.6, 'Volume': 1410}
+{'Stock Ticker': 'AMZN', 'Date': 200802010914, 'Opening Price': 78.9, 'Peak Price': 78.9, 'Lowest Price': 78.9, 'Close Price': 78.9, 'Volume': 1200}
+{'Stock Ticker': 'CERN', 'Date': 200802010917, 'Opening Price': 50.1, 'Peak Price': 50.1, 'Lowest Price': 50.1, 'Close Price': 50.1, 'Volume': 100}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010914, 'Opening Price': 135.63, 'Peak Price': 135.63, 'Lowest Price': 135.5, 'Close Price': 135.6, 'Volume': 1410}
+{'Stock Ticker': 'AMZN', 'Date': 200802010915, 'Opening Price': 77.7, 'Peak Price': 78.75, 'Lowest Price': 77.7, 'Close Price': 78.7, 'Volume': 75350}
+{'Stock Ticker': 'CERN', 'Date': 200802010917, 'Opening Price': 50.1, 'Peak Price': 50.1, 'Lowest Price': 50.1, 'Close Price': 50.1, 'Volume': 100}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010915, 'Opening Price': 135.6, 'Peak Price': 135.6, 'Lowest Price': 135.54, 'Close Price': 135.54, 'Volume': 200}
+{'Stock Ticker': 'AMZN', 'Date': 200802010915, 'Opening Price': 77.7, 'Peak Price': 78.75, 'Lowest Price': 77.7, 'Close Price': 78.7, 'Volume': 75350}
+{'Stock Ticker': 'CERN', 'Date': 200802010917, 'Opening Price': 50.1, 'Peak Price': 50.1, 'Lowest Price': 50.1, 'Close Price': 50.1, 'Volume': 100}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010917, 'Opening Price': 135.68, 'Peak Price': 135.7, 'Lowest Price': 135.53, 'Close Price': 135.67, 'Volume': 3611}
+{'Stock Ticker': 'AMZN', 'Date': 200802010917, 'Opening Price': 78.6, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+{'Stock Ticker': 'CERN', 'Date': 200802010917, 'Opening Price': 50.1, 'Peak Price': 50.1, 'Lowest Price': 50.1, 'Close Price': 50.1, 'Volume': 100}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010917, 'Opening Price': 135.68, 'Peak Price': 135.7, 'Lowest Price': 135.53, 'Close Price': 135.67, 'Volume': 3611}
+{'Stock Ticker': 'AMZN', 'Date': 200802010917, 'Opening Price': 78.6, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+{'Stock Ticker': 'CERN', 'Date': 200802010919, 'Opening Price': 50.01, 'Peak Price': 50.01, 'Lowest Price': 50, 'Close Price': 50, 'Volume': 5000}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010917, 'Opening Price': 135.68, 'Peak Price': 135.7, 'Lowest Price': 135.53, 'Close Price': 135.67, 'Volume': 3611}
+{'Stock Ticker': 'AMZN', 'Date': 200802010917, 'Opening Price': 78.6, 'Peak Price': 78.69, 'Lowest Price': 78.6, 'Close Price': 78.69, 'Volume': 200}
+{'Stock Ticker': 'CERN', 'Date': 200802010920, 'Opening Price': 50, 'Peak Price': 50, 'Lowest Price': 50, 'Close Price': 50, 'Volume': 5000}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010917, 'Opening Price': 135.68, 'Peak Price': 135.7, 'Lowest Price': 135.53, 'Close Price': 135.67, 'Volume': 3611}
+{'Stock Ticker': 'AMZN', 'Date': 200802010918, 'Opening Price': 78.65, 'Peak Price': 78.65, 'Lowest Price': 78.65, 'Close Price': 78.65, 'Volume': 100}
+{'Stock Ticker': 'CERN', 'Date': 200802010919, 'Opening Price': 50.01, 'Peak Price': 50.01, 'Lowest Price': 50, 'Close Price': 50, 'Volume': 5000}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010918, 'Opening Price': 135.67, 'Peak Price': 135.88, 'Lowest Price': 135.61, 'Close Price': 135.68, 'Volume': 2600}
+{'Stock Ticker': 'AMZN', 'Date': 200802010918, 'Opening Price': 78.65, 'Peak Price': 78.65, 'Lowest Price': 78.65, 'Close Price': 78.65, 'Volume': 100}
+{'Stock Ticker': 'CERN', 'Date': 200802010919, 'Opening Price': 50.01, 'Peak Price': 50.01, 'Lowest Price': 50, 'Close Price': 50, 'Volume': 5000}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010917, 'Opening Price': 135.68, 'Peak Price': 135.7, 'Lowest Price': 135.53, 'Close Price': 135.67, 'Volume': 3611}
+{'Stock Ticker': 'AMZN', 'Date': 200802010918, 'Opening Price': 78.65, 'Peak Price': 78.65, 'Lowest Price': 78.65, 'Close Price': 78.65, 'Volume': 100}
+{'Stock Ticker': 'CERN', 'Date': 200802010920, 'Opening Price': 50, 'Peak Price': 50, 'Lowest Price': 50, 'Close Price': 50, 'Volume': 5000}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010918, 'Opening Price': 135.67, 'Peak Price': 135.88, 'Lowest Price': 135.61, 'Close Price': 135.68, 'Volume': 2600}
+{'Stock Ticker': 'AMZN', 'Date': 200802010918, 'Opening Price': 78.65, 'Peak Price': 78.65, 'Lowest Price': 78.65, 'Close Price': 78.65, 'Volume': 100}
+{'Stock Ticker': 'CERN', 'Date': 200802010920, 'Opening Price': 50, 'Peak Price': 50, 'Lowest Price': 50, 'Close Price': 50, 'Volume': 5000}
+
+{'Stock Ticker': 'AAPL', 'Date': 200802010918, 'Opening Price': 135.67, 'Peak Price': 135.88, 'Lowest Price': 135.61, 'Close Price': 135.68, 'Volume': 2600}
+{'Stock Ticker': 'AMZN', 'Date': 200802010918, 'Opening Price': 78.65, 'Peak Price': 78.65, 'Lowest Price': 78.65, 'Close Price': 78.65, 'Volume': 100}
+{'Stock Ticker': 'CERN', 'Date': 200802010921, 'Opening Price': 50, 'Peak Price': 50, 'Lowest Price': 50, 'Close Price': 50, 'Volume': 200}

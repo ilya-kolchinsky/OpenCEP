@@ -7,7 +7,8 @@ from datetime import timedelta
 from condition.Condition import Variable, TrueCondition, BinaryCondition
 from condition.CompositeCondition import AndCondition
 from condition.BaseRelationCondition import EqCondition
-from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, KleeneClosureOperator
+from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStructure, KleeneClosureOperator, \
+    NegationOperator
 from base.Pattern import Pattern
 from plan.TreePlanBuilderFactory import IterativeImprovementTreePlanBuilderParameters
 
@@ -490,3 +491,331 @@ def KCNestedStructuralTest():
     )
     expected_result = ('KC', ('And', 'a', ('Seq', 'b', ('KC', 'c'))))
     runStructuralTest('KCNestedStructuralTest', [pattern], expected_result)
+
+
+def NegationInNestedPatternTest_1(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("AAPL", "a"),
+            PrimitiveEventStructure("AMZN", "b"),
+            AndOperator(
+                NegationOperator(PrimitiveEventStructure("FB", "c")),
+                PrimitiveEventStructure("GOOG", "d")
+            )
+        ),
+        TrueCondition(),
+        timedelta(minutes=1)
+    )
+    expected_result = ('Seq', ('Seq', 'a', 'b'), ('NAnd', 'd', 'c'))
+    runStructuralTest('NegationInNestedPatternTest', [pattern], expected_result)
+    runTest("NegationInNestedShort", [pattern], createTestFile, eventStream=nasdaqEventStreamShort)
+
+
+def NegationInNestedPatternTest_2(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("AAPL", "a"),
+            AndOperator(
+                PrimitiveEventStructure("AMZN", "b"),
+                NegationOperator(PrimitiveEventStructure("FB", "c")),
+                PrimitiveEventStructure("GOOG", "d"),
+                NegationOperator(PrimitiveEventStructure("DRIV", "e"))
+            )
+        ),
+        AndCondition(
+            BinaryCondition(Variable("a", lambda x: x["Opening Price"]),
+                            Variable("b", lambda x: x["Opening Price"]),
+                            relation_op=lambda x, y: x > y),
+            BinaryCondition(Variable("d", lambda x: x["Opening Price"]),
+                            Variable("b", lambda x: x["Opening Price"]),
+                            relation_op=lambda x, y: x > y)
+        ),
+        timedelta(minutes=3)
+    )
+    selectivityMatrix = [[1.0, 0.1, 0.2, 0.3, 0.4],
+                         [0.1, 1.0, 0.12, 0.13, 0.14],
+                         [0.2, 0.12, 1.0, 0.23, 0.24],
+                         [0.3, 0.13, 0.23, 1.0, 0.34],
+                         [0.4, 0.14, 0.24, 0.34, 1.0]]
+    arrivalRates = [0.05, 0.1, 0.2, 0.3, 0.4]
+    pattern.set_statistics({StatisticsTypes.ARRIVAL_RATES: arrivalRates,
+                            StatisticsTypes.SELECTIVITY_MATRIX: selectivityMatrix})
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(
+                                                 TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE)),
+        storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    expected_result = ('Seq', ('NAnd', ('NAnd', ('And', 'b', 'd'), 'c'), 'e'), 'a')
+    runStructuralTest('NegationInNestedPatternStructuralTest_1', [pattern], expected_result, eval_mechanism_params=eval_params)
+    runTest("NegationInNested", [pattern], createTestFile, eval_params)
+
+
+def NegationInNestedPatternZstreamTest(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("AAPL", "a"),
+            AndOperator(
+                PrimitiveEventStructure("AMZN", "b"),
+                NegationOperator(PrimitiveEventStructure("FB", "c")),
+                PrimitiveEventStructure("GOOG", "d"),
+                NegationOperator(PrimitiveEventStructure("DRIV", "e"))
+            )
+        ),
+        AndCondition(
+            BinaryCondition(Variable("a", lambda x: x["Opening Price"]),
+                            Variable("b", lambda x: x["Opening Price"]),
+                            relation_op=lambda x, y: x > y),
+            BinaryCondition(Variable("d", lambda x: x["Opening Price"]),
+                            Variable("b", lambda x: x["Opening Price"]),
+                            relation_op=lambda x, y: x > y)
+        ),
+        timedelta(minutes=3)
+    )
+    selectivityMatrix = [[1.0, 0.1, 0.2, 0.3, 0.4],
+                         [0.1, 1.0, 0.12, 0.13, 0.14],
+                         [0.2, 0.12, 1.0, 0.23, 0.24],
+                         [0.3, 0.13, 0.23, 1.0, 0.34],
+                         [0.4, 0.14, 0.24, 0.34, 1.0]]
+    arrivalRates = [0.05, 0.1, 0.2, 0.3, 0.4]
+    pattern.set_statistics({StatisticsTypes.ARRIVAL_RATES: arrivalRates,
+                            StatisticsTypes.SELECTIVITY_MATRIX: selectivityMatrix})
+    eval_params = TreeBasedEvaluationMechanismParameters(
+        optimizer_params=OptimizerParameters(opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(
+                                                 TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE)),
+        storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
+    )
+    expected_result = ('Seq', ('NAnd', ('NAnd', ('And', 'b', 'd'), 'c'), 'e'), 'a')
+    runStructuralTest('NegationInNestedPatternStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
+    runTest("NegationInNested", [pattern], createTestFile, eval_params)
+
+
+def NestedNegationSeqTest(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("AAPL", "a"),
+            AndOperator(
+                PrimitiveEventStructure("AMZN", "b"),
+                NegationOperator(
+                    SeqOperator(
+                        PrimitiveEventStructure("BIDU", "c"),
+                        PrimitiveEventStructure("ORLY", "d")
+                    )
+                ),
+                PrimitiveEventStructure("CERN", "e"),
+                NegationOperator(PrimitiveEventStructure("DRIV", "f"))
+            )
+        ),
+        AndCondition(
+            BinaryCondition(Variable("a", lambda x: x["Opening Price"]),
+                            Variable("b", lambda x: x["Opening Price"]),
+                            relation_op=lambda x, y: x > y),
+            BinaryCondition(Variable("b", lambda x: x["Opening Price"]),
+                            Variable("e", lambda x: x["Opening Price"]),
+                            relation_op=lambda x, y: x > y)
+        ),
+        timedelta(minutes=3)
+    )
+    expected_result = ('Seq', 'a', ('NAnd', ('NAnd', ('And', 'b', 'e'), ('Seq', 'c', 'd')), 'f'))
+    runStructuralTest('NestedNegationSeqStructuralTest', [pattern], expected_result)
+    runTest("NestedNegationSeq", [pattern], createTestFile)
+
+
+def NestedNegationSeqAndTest(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("AAPL", "a"),
+            AndOperator(
+                PrimitiveEventStructure("AMZN", "b"),
+                NegationOperator(
+                    SeqOperator(
+                        PrimitiveEventStructure("FB", "c"),
+                        PrimitiveEventStructure("ORLY", "d")
+                    )
+                ),
+                PrimitiveEventStructure("GOOG", "e"),
+                NegationOperator(PrimitiveEventStructure("DRIV", "f")),
+                NegationOperator(
+                    AndOperator(
+                        PrimitiveEventStructure("ALTR", "g"),
+                        PrimitiveEventStructure("AFFX", "h")
+                    )
+                )
+            )
+        ),
+        AndCondition(
+            BinaryCondition(Variable("a", lambda x: x["Opening Price"]),
+                            Variable("b", lambda x: x["Opening Price"]),
+                            relation_op=lambda x, y: x > y),
+            BinaryCondition(Variable("b", lambda x: x["Opening Price"]),
+                            Variable("e", lambda x: x["Opening Price"]),
+                            relation_op=lambda x, y: x < y)
+        ),
+        timedelta(minutes=3)
+    )
+    expected_result = ('Seq', 'a', ('NAnd', ('NAnd', ('NAnd', ('And', 'b', 'e'), ('Seq', 'c', 'd')), 'f'), ('And', 'g', 'h')))
+    runStructuralTest('NestedNegationSeqAndStructuralTest_1', [pattern], expected_result)
+    runTest("NestedNegationSeqAnd", [pattern], createTestFile)
+
+
+def NestedNegationSeqAndStructuralTest():
+    pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("AAPL", "a"),
+            AndOperator(
+                PrimitiveEventStructure("AMZN", "b"),
+                NegationOperator(
+                    SeqOperator(
+                        PrimitiveEventStructure("GOOG", "c"),
+                        PrimitiveEventStructure("ORLY", "d"),
+                        PrimitiveEventStructure("DRIV", "e")
+                    )
+                )
+            ),
+            PrimitiveEventStructure("FB", "f"),
+            NegationOperator(
+                AndOperator(
+                    PrimitiveEventStructure("LOCM", "g"),
+                    PrimitiveEventStructure("BIDU", "h")
+                )
+            )
+        ),
+        TrueCondition(),
+        timedelta(minutes=3)
+    )
+    expected_result = ('NSeq', ('Seq', ('Seq', 'a', ('NAnd', 'b', ('Seq', ('Seq', 'c', 'd'), 'e'))), 'f'), ('And', 'g', 'h'))
+    runStructuralTest('NestedNegationSeqAndStructuralTest_2', [pattern], expected_result)
+
+
+def NestedNegationInNegationStructuralTest_1():
+    pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("AAPL", "a"),
+            AndOperator(
+                PrimitiveEventStructure("AMZN", "b"),
+                NegationOperator(
+                    SeqOperator(
+                        PrimitiveEventStructure("GOOG", "c"),
+                        PrimitiveEventStructure("ORLY", "d"),
+                        NegationOperator(PrimitiveEventStructure("DRIV", "e"))
+                    )
+                ),
+                PrimitiveEventStructure("FB", "f"),
+                NegationOperator(
+                    AndOperator(
+                        PrimitiveEventStructure("LOCM", "g"),
+                        PrimitiveEventStructure("BIDU", "h")
+                    )
+                )
+            )
+        ),
+        TrueCondition(),
+        timedelta(minutes=3)
+    )
+    expected_result = ('Seq', 'a', ('NAnd', ('NAnd', ('And', 'b', 'f'), ('NSeq', ('Seq', 'c', 'd'), 'e')), ('And', 'g', 'h')))
+    runStructuralTest('NestedNegationInNegationStructuralTest_1', [pattern], expected_result)
+
+
+def NestedNegationInNegationStructuralTest_2():
+    pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("AAPL", "a"),
+            AndOperator(
+                PrimitiveEventStructure("AMZN", "b"),
+                NegationOperator(
+                    SeqOperator(
+                        PrimitiveEventStructure("GOOG", "c"),
+                        PrimitiveEventStructure("ORLY", "d"),
+                        NegationOperator(
+                            AndOperator(
+                                PrimitiveEventStructure("DRIV", "e"),
+                                PrimitiveEventStructure("AVID", "f")
+                            )
+                        )
+                    )
+                ),
+                PrimitiveEventStructure("FB", "g"),
+                NegationOperator(
+                    AndOperator(
+                        PrimitiveEventStructure("LOCM", "h"),
+                        PrimitiveEventStructure("BIDU", "i")
+                    )
+                )
+            )
+        ),
+        TrueCondition(),
+        timedelta(minutes=3)
+    )
+    expected_result = ('Seq', 'a', ('NAnd', ('NAnd', ('And', 'b', 'g'), ('NSeq', ('Seq', 'c', 'd'), ('And', 'e', 'f'))), ('And', 'h', 'i')))
+    runStructuralTest('NestedNegationInNegationStructuralTest_2', [pattern], expected_result)
+
+
+def NestedNegationWithKCTest(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("AAPL", "a"),
+            AndOperator(
+                PrimitiveEventStructure("AMZN", "b"),
+                NegationOperator(
+                    SeqOperator(
+                        PrimitiveEventStructure("FB", "c"),
+                        PrimitiveEventStructure("ORLY", "d"),
+                        NegationOperator(
+                            AndOperator(
+                                PrimitiveEventStructure("DRIV", "e"),
+                                PrimitiveEventStructure("AVID", "f")
+                            )
+                        )
+                    )
+                ),
+                PrimitiveEventStructure("GOOG", "g"),
+                NegationOperator(
+                    KleeneClosureOperator(
+                        PrimitiveEventStructure("LOCM", "h")
+                    )
+                )
+            )
+        ),
+        TrueCondition(),
+        timedelta(minutes=3)
+    )
+    expected_result = ('Seq', 'a', ('NAnd', ('NAnd', ('And', 'b', 'g'), ('NSeq', ('Seq', 'c', 'd'), ('And', 'e', 'f'))), ('KC', 'h')))
+    runStructuralTest('NestedNegationWithKCStructuralTest', [pattern], expected_result)
+    runTest('NestedNegationWithKC', [pattern], createTestFile)
+
+
+def NestedNegationWithNestedKCStructuralTest():
+    pattern = Pattern(
+        SeqOperator(
+            PrimitiveEventStructure("AAPL", "a"),
+            AndOperator(
+                PrimitiveEventStructure("AMZN", "b"),
+                NegationOperator(
+                    SeqOperator(
+                        PrimitiveEventStructure("GOOG", "c"),
+                        PrimitiveEventStructure("ORLY", "d"),
+                        NegationOperator(
+                            AndOperator(
+                                PrimitiveEventStructure("DRIV", "e"),
+                                PrimitiveEventStructure("AVID", "f")
+                            )
+                        )
+                    )
+                ),
+                PrimitiveEventStructure("FB", "g"),
+                NegationOperator(
+                    KleeneClosureOperator(
+                        AndOperator(
+                            PrimitiveEventStructure("LOCM", "h"),
+                            PrimitiveEventStructure("BIDU", "i")
+                        )
+                    )
+                )
+            )
+        ),
+        TrueCondition(),
+        timedelta(minutes=3)
+    )
+    expected_result = ('Seq', 'a', ('NAnd', ('NAnd', ('And', 'b', 'g'), ('NSeq', ('Seq', 'c', 'd'), ('And', 'e', 'f'))), ('KC', ('And', 'h', 'i'))))
+    runStructuralTest('NestedNegationWithNestedKCStructuralTest', [pattern], expected_result)
