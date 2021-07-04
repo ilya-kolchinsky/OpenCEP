@@ -124,6 +124,8 @@ class Tree:
         else:
             # this unary structure is surrounded with a composite structure, hence need to use the args parameters
             current_operator = args[unary_tree_plan.index]
+            if isinstance(current_operator, NegationOperator):
+                current_operator = current_operator.arg
 
         if not isinstance(current_operator, UnaryStructure):
             raise Exception("Illegal operator for a unary tree node: %s" % (current_operator,))

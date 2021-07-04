@@ -5,7 +5,8 @@ from base.Pattern import Pattern
 from misc.LegacyStatistics import MissingStatisticsException
 from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from plan.TreeCostModels import TreeCostModels
-from plan.TreePlan import TreePlanNode, TreePlanLeafNode, TreePlanNestedNode, TreePlanUnaryNode
+from plan.TreePlan import TreePlanNode, TreePlanLeafNode, TreePlanNestedNode, TreePlanUnaryNode, TreePlanBinaryNode, \
+    TreePlanNegativeBinaryNode
 
 
 class TreeCostModel(ABC):
@@ -56,6 +57,7 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
                                                                         selectivity_matrix,
                                                                         arrival_rates,
                                                                         time_window)
+        assert(isinstance(tree, TreePlanBinaryNode))
 
         # calculate for left subtree
         left_args, left_pm, left_cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.left_child,
@@ -72,7 +74,10 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
         for left_arg in left_args:
             for right_arg in right_args:
                 pm *= selectivity_matrix[left_arg][right_arg]
-        cost = left_cost + right_cost + pm
+        if isinstance(tree, TreePlanNegativeBinaryNode):
+            cost = left_cost + (1 - right_cost) + pm  # left = positive part, right = negative part
+        else:
+            cost = left_cost + right_cost + pm
         return left_args + right_args, pm, cost
 
 
