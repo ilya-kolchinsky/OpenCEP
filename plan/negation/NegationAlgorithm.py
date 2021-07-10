@@ -18,6 +18,10 @@ class NegationAlgorithm:
         """
         Augments the given tree plan, that only contains the positive portion of the given pattern, with the operators
         required for the negative part.
+        The last 2 parameters are designed to support nested negation operators.
+        negative_index_to_tree_plan_node: A dictionary that maps from the index of the negative node to its tree plan.
+        negative_index_to_tree_plan_cost: A dictionary that maps from the index of the negative node to the cost of its
+        tree plan.
         """
         if pattern.negative_structure is None:
             return positive_tree_plan

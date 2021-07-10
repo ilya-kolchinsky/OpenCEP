@@ -31,7 +31,7 @@ class TreePlanBuilder(ABC):
         """
         statistics_copy = deepcopy(statistics)
         root: TreePlanNode
-        root, _ = self.__create_nested_topology(pattern, statistics_copy)
+        root, _ = self.__create_topology(pattern, statistics_copy)
         TreePlanBuilder.__adjust_indices(pattern, root)
         if isinstance(pattern.positive_structure, UnaryStructure):
             # an edge case where the topmost operator is a unary operator
@@ -101,14 +101,14 @@ class TreePlanBuilder(ABC):
                 TreePlanBuilder.__adjust_indices(nested_pattern, new_root, new_offset)
                 offset += nested_pattern.count_primitive_events() - 1
 
-
-
     @staticmethod
     def __get_node_by_index(root, index):
         """
         Given a tree and an event index, this will recursively search for the node structure with the index.
         """
         if isinstance(root, TreePlanNegativeBinaryNode):
+            # In TreePlanNegativeBinaryNode the negative part is in the right child, and we need to start from this part
+            # in order to get the correct node.
             node = TreePlanBuilder.__get_node_by_index(root.right_child, index)
             if node is None:
                 node = TreePlanBuilder.__get_node_by_index(root.left_child, index)
@@ -160,7 +160,7 @@ class TreePlanBuilder(ABC):
             leaves.append(new_leaf)
         return leaves
 
-    def __create_nested_topology(self, pattern: Pattern, statistics: Dict):
+    def __create_topology(self, pattern: Pattern, statistics: Dict):
         """
         A recursive method for creating a tree topology.
         """
@@ -229,8 +229,8 @@ class TreePlanBuilder(ABC):
                 if not self.__is_pattern_flat(negative_pattern):
                     nested_negative_pattern, nested_negative_statistics = self \
                         .__create_nested_negative_pattern_and_statistics(pattern, arg, statistics)
-                    negative_tree_plan_node, _ = self.__create_nested_topology(nested_negative_pattern,
-                                                                               nested_negative_statistics)
+                    negative_tree_plan_node, _ = self.__create_topology(nested_negative_pattern,
+                                                                        nested_negative_statistics)
                     negative_tree_plan_cost = IntermediateResultsTreeCostModel().get_plan_cost(
                         nested_negative_pattern, negative_tree_plan_node, nested_negative_statistics)
                     negative_index_to_tree_plan_node[index] = negative_tree_plan_node
@@ -303,12 +303,9 @@ class TreePlanBuilder(ABC):
         """
         if positive_only and negative_only:
             raise Exception("Wrong method usage")
-        if isinstance(pattern.full_structure, PrimitiveEventStructure):
-            return True
         top_level_args = pattern.get_top_level_structure_args(positive_only=positive_only, negative_only=negative_only)
-        if all(isinstance(arg, PrimitiveEventStructure) for arg in top_level_args):
-            return True
-        return False
+        return isinstance(pattern.full_structure, PrimitiveEventStructure) or all(
+            isinstance(arg, PrimitiveEventStructure) for arg in top_level_args)
 
     @staticmethod
     def __create_selectivity_matrix_for_nested_operators(pattern: Pattern, statistics: Dict):
@@ -373,7 +370,7 @@ class TreePlanBuilder(ABC):
         """
         nested_pattern = TreePlanBuilder.__create_dummy_subpattern(arg, pattern.window)
         nested_statistics = self.__extract_nested_statistics(pattern, arg, statistics, positive_only=True)
-        nested_topology, nested_statistics = self.__create_nested_topology(nested_pattern, nested_statistics)
+        nested_topology, nested_statistics = self.__create_topology(nested_pattern, nested_statistics)
         nested_topologies.append(nested_topology)  # Save nested topology to add it as a field to its root
         if len(statistics) > 0:
             # Get the cost of the nested structure to calculate the new arrival rate and save it for other
