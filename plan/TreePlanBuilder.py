@@ -29,8 +29,7 @@ class TreePlanBuilder(ABC):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
-        statistics_copy = deepcopy(statistics)
-        root: TreePlanNode
+        statistics_copy = deepcopy(statistics)  # the statistics object can be modified during the plan building process
         root, _ = self.__create_topology(pattern, statistics_copy)
         TreePlanBuilder.__adjust_indices(pattern, root)
         if isinstance(pattern.positive_structure, UnaryStructure):
@@ -41,7 +40,7 @@ class TreePlanBuilder(ABC):
         return TreePlan(root)
 
     @staticmethod
-    def extract_positive_statistics(pattern: Pattern, statistics: Dict):
+    def __extract_positive_statistics(pattern: Pattern, statistics: Dict):
         """
         Returns a statistics object representing only the statistics related to the positive part of the pattern.
         """
@@ -165,7 +164,7 @@ class TreePlanBuilder(ABC):
         A recursive method for creating a tree topology.
         """
         # Handle positive part
-        pattern_positive_statistics = TreePlanBuilder.extract_positive_statistics(pattern, statistics)
+        pattern_positive_statistics = TreePlanBuilder.__extract_positive_statistics(pattern, statistics)
         pattern, modified_statistics, nested_topologies, nested_args, nested_cost = \
             self.__extract_nested_pattern(pattern, pattern_positive_statistics)
         tree_topology = self._create_tree_topology(pattern, modified_statistics,
@@ -231,8 +230,9 @@ class TreePlanBuilder(ABC):
                         .__create_nested_negative_pattern_and_statistics(pattern, arg, statistics)
                     negative_tree_plan_node, _ = self.__create_topology(nested_negative_pattern,
                                                                         nested_negative_statistics)
-                    negative_tree_plan_cost = IntermediateResultsTreeCostModel().get_plan_cost(
-                        nested_negative_pattern, negative_tree_plan_node, nested_negative_statistics)
+                    negative_tree_plan_cost = self._get_plan_cost(nested_negative_pattern,
+                                                                  negative_tree_plan_node,
+                                                                  nested_negative_statistics)
                     negative_index_to_tree_plan_node[index] = negative_tree_plan_node
                     negative_index_to_tree_plan_cost[index] = negative_tree_plan_cost
 

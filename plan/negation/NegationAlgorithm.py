@@ -88,13 +88,18 @@ class NegationAlgorithm:
             sub_pattern = self.__find_nested_sub_pattern(tree_plan, pattern, positive_indices, negative_indices)
             self.__adjust_tree_plan_indices(tree_plan.sub_tree_plan, sub_pattern)
             return
-        assert isinstance(tree_plan, TreePlanBinaryNode)
-        self.__adjust_tree_plan_indices(tree_plan.left_child, pattern)
-        self.__adjust_tree_plan_indices(tree_plan.right_child, pattern)
+        if isinstance(tree_plan, TreePlanBinaryNode):
+            self.__adjust_tree_plan_indices(tree_plan.left_child, pattern)
+            self.__adjust_tree_plan_indices(tree_plan.right_child, pattern)
+            return
+        raise Exception("Unexpected tree plan node")
 
     @staticmethod
     def __find_nested_sub_pattern(tree_plan: TreePlanNestedNode, pattern: Pattern, positive_indices: List[int],
                                   negative_indices: List[int]) -> Pattern:
+        """
+        Returns a nested subpattern of the given pattern corresponding to the specified nested node of the tree plan.
+        """
         nested_pattern_index = tree_plan.nested_event_index
         if nested_pattern_index >= len(positive_indices):
             nested_pattern_index = negative_indices[nested_pattern_index - len(positive_indices)]

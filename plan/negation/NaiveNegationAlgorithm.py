@@ -16,21 +16,28 @@ class NaiveNegationAlgorithm(NegationAlgorithm):
             negation_operator_structure = args[negative_index]
             negation_operator_arg = negation_operator_structure.arg
             if negative_index in negative_index_to_tree_plan_node:
-                assert isinstance(negation_operator_arg, CompositeStructure) or isinstance(negation_operator_arg, UnaryStructure)
-                nested_leaf = negative_index_to_tree_plan_node[negative_index]
-                if isinstance(nested_leaf, TreePlanUnaryNode):
-                    current_leaf = nested_leaf
-                    current_leaf.index = negative_index
-                    if isinstance(current_leaf.child, TreePlanNestedNode):
-                        current_leaf.child.nested_event_index = negative_index
+                # a negation operator hiding a nested structure
+                if not isinstance(negation_operator_arg, CompositeStructure) and \
+                        not isinstance(negation_operator_arg, UnaryStructure):
+                    raise Exception("Unexpected nested structure inside a negation operator")
+                nested_node = negative_index_to_tree_plan_node[negative_index]
+                if isinstance(nested_node, TreePlanUnaryNode):
+                    node_under_negation = nested_node
+                    node_under_negation.index = negative_index
+                    if isinstance(node_under_negation.child, TreePlanNestedNode):
+                        node_under_negation.child.nested_event_index = negative_index
                 else:
                     nested_node_cost = negative_index_to_tree_plan_cost[negative_index]
-                    nested_node_args = negation_operator_arg.args if isinstance(negation_operator_arg, CompositeStructure) \
+                    nested_node_args = negation_operator_arg.args \
+                        if isinstance(negation_operator_arg, CompositeStructure) \
                         else [negation_operator_arg.arg]
-                    current_leaf = TreePlanNestedNode(negative_index, nested_leaf, nested_node_args, nested_node_cost)
+                    node_under_negation = TreePlanNestedNode(negative_index, nested_node,
+                                                             nested_node_args, nested_node_cost)
             else:
+                # a flat negation operator
                 temp_leaf_index = len(pattern.positive_structure.args) + i
-                current_leaf = TreePlanLeafNode(temp_leaf_index, negation_operator_arg.type, negation_operator_arg.name)
+                node_under_negation = TreePlanLeafNode(temp_leaf_index,
+                                                       negation_operator_arg.type, negation_operator_arg.name)
             positive_tree_plan = NegationAlgorithm._instantiate_negative_node(pattern, positive_tree_plan,
-                                                                              current_leaf, is_unbounded)
+                                                                              node_under_negation, is_unbounded)
         return positive_tree_plan

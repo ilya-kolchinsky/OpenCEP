@@ -42,6 +42,10 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
                             arrival_rates: List[int], time_window: float):
         """
         A helper function for calculating the cost function of the given tree.
+        Returns a tuple of three values as follows:
+        - the list of all event indices in the subtree rooted by the given node;
+        - the number of partial matches at the given node;
+        - the total cost including subtrees.
         """
         # calculate base case: tree is a leaf.
         if isinstance(tree, TreePlanLeafNode):
@@ -57,7 +61,8 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
                                                                         selectivity_matrix,
                                                                         arrival_rates,
                                                                         time_window)
-        assert(isinstance(tree, TreePlanBinaryNode))
+        if not isinstance(tree, TreePlanBinaryNode):
+            raise Exception("Invalid tree node: %s" % (tree,))
 
         # calculate for left subtree
         left_args, left_pm, left_cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.left_child,
@@ -70,14 +75,15 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
                                                                                                 arrival_rates,
                                                                                                 time_window)
         # calculate from left and right subtrees for this subtree.
-        pm = left_pm * right_pm
+        cumulative_selectivity = 1.0
         for left_arg in left_args:
             for right_arg in right_args:
-                pm *= selectivity_matrix[left_arg][right_arg]
+                cumulative_selectivity *= selectivity_matrix[left_arg][right_arg]
         if isinstance(tree, TreePlanNegativeBinaryNode):
-            cost = left_cost + (1 - right_cost) + pm  # left = positive part, right = negative part
+            pm = left_pm * (1.0 - cumulative_selectivity)
         else:
-            cost = left_cost + right_cost + pm
+            pm = left_pm * right_pm * cumulative_selectivity
+        cost = left_cost + right_cost + pm
         return left_args + right_args, pm, cost
 
 

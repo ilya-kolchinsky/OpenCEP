@@ -65,8 +65,8 @@ class Pattern:
         """
         If the pattern definition includes negative events, this method extracts them into a dedicated
         PatternStructure object. Otherwise, None is returned.
-        As of this version, nested negation operators and negation operators in non-flat patterns
-        are not supported. Also, the extracted negative events are put in a simple flat positive_structure.
+        Note that this method only extracts the non-nested negative structure of the current nesting level. That is,
+        nested negation operators and negation operators in non-flat patterns are ignored.
         """
         if not isinstance(self.positive_structure, CompositeStructure):
             # cannot contain a negative part
@@ -76,8 +76,6 @@ class Pattern:
             if type(arg) == NegationOperator:
                 # a negative event was found and needs to be extracted
                 negative_structure.args.append(arg)
-            elif type(arg) != PrimitiveEventStructure:
-                pass
         if len(negative_structure.args) == 0:
             # the given pattern is entirely positive
             return None
