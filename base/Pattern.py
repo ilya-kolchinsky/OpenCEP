@@ -65,8 +65,8 @@ class Pattern:
         """
         If the pattern definition includes negative events, this method extracts them into a dedicated
         PatternStructure object. Otherwise, None is returned.
-        As of this version, nested negation operators and negation operators in non-flat patterns
-        are not supported. Also, the extracted negative events are put in a simple flat positive_structure.
+        Note that this method only extracts the non-nested negative structure of the current nesting level. That is,
+        nested negation operators and negation operators in non-flat patterns are ignored.
         """
         if not isinstance(self.positive_structure, CompositeStructure):
             # cannot contain a negative part
@@ -76,16 +76,12 @@ class Pattern:
             if type(arg) == NegationOperator:
                 # a negative event was found and needs to be extracted
                 negative_structure.args.append(arg)
-            elif type(arg) != PrimitiveEventStructure:
-                # TODO: nested operator support should be provided here
-                pass
         if len(negative_structure.args) == 0:
             # the given pattern is entirely positive
             return None
         if len(negative_structure.args) == len(self.positive_structure.args):
             raise Exception("The pattern contains no positive events")
         # Remove all negative events from the positive structure
-        # TODO: support nested operators
         for arg in negative_structure.args:
             self.positive_structure.args.remove(arg)
         return negative_structure
@@ -214,13 +210,19 @@ class Pattern:
         """
         Returns the total number of primitive events in this pattern.
         """
+        return len(self.get_primitive_event_names(positive_only=positive_only, negative_only=negative_only))
+
+    def get_primitive_event_names(self, positive_only=False, negative_only=False):
+        """
+        Returns all the event names of primitive events in this pattern.
+        """
         if positive_only and negative_only:
             raise Exception("Wrong method usage")
         if positive_only:
-            return len(self.positive_structure.get_all_event_names())
+            return self.positive_structure.get_all_event_names()
         if negative_only:
-            return len(self.negative_structure.get_all_event_names())
-        return len(self.full_structure.get_all_event_names())
+            return self.negative_structure.get_all_event_names()
+        return self.full_structure.get_all_event_names()
 
     def get_top_level_structure_args(self, positive_only=False, negative_only=False):
         """

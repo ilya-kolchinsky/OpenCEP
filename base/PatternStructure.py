@@ -140,6 +140,8 @@ class SeqOperator(CompositeStructure):
 
 class KleeneClosureOperator(UnaryStructure):
     def __init__(self, arg: PatternStructure, min_size=KC_MIN_SIZE, max_size=KC_MAX_SIZE):
+        if isinstance(arg, NegationOperator):
+            raise Exception("Invalid Argument: KleeneClosureOperator cannot contain NegationOperator as an argument")
         super().__init__(arg)
         if min_size <= 0:
             raise Exception("Invalid Argument: KleeneClosure node min_size <= 0!")
