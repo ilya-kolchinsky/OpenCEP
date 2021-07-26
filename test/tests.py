@@ -63,6 +63,8 @@ structuralTest5()
 structuralTest6()
 
 # Kleene closure tests
+testKleeneClosureSeq()
+testKleeneClosureAnd()
 oneArgumentsearchTestKleeneClosure()
 MinMax_0_TestKleeneClosure()
 MinMax_1_TestKleeneClosure()

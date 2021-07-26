@@ -91,9 +91,9 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
         if self.__optimizer.should_optimize(new_statistics, self._pattern):
             new_tree_plan = self.__optimizer.build_new_plan(new_statistics, self._pattern)
             new_tree = Tree(new_tree_plan, self._pattern, self.__storage_params)
-            self._tree_update(new_tree, last_event.timestamp)
+            self._tree_update(new_tree, last_event.max_timestamp)
         # this is the new last statistic refresh time
-        return last_event.timestamp
+        return last_event.max_timestamp
 
     def _should_try_reoptimize(self, last_statistics_refresh_time: timedelta, last_event: Event):
         """
@@ -102,7 +102,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
         """
         if last_statistics_refresh_time is None:
             return True
-        return last_event.timestamp - last_statistics_refresh_time > self.__statistics_update_time_window
+        return last_event.max_timestamp - last_statistics_refresh_time > self.__statistics_update_time_window
 
     def _get_last_pending_matches(self, matches):
         """
@@ -201,7 +201,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
             # freeze option disabled
             return False
         self.__active_freezers = [freezer for freezer in self.__active_freezers
-                                  if event.timestamp - freezer.timestamp <= self._pattern.window]
+                                  if event.max_timestamp - freezer.min_timestamp <= self._pattern.window]
 
     def get_structure_summary(self):
         return self._tree.get_structure_summary()

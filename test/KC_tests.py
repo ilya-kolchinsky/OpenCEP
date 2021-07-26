@@ -1,6 +1,6 @@
 from test.testUtils import *
 from datetime import timedelta
-from condition.Condition import Variable, SimpleCondition
+from condition.Condition import Variable, SimpleCondition, TrueCondition
 from condition.KCCondition import KCIndexCondition, KCValueCondition
 from condition.CompositeCondition import AndCondition
 from condition.BaseRelationCondition import SmallerThanCondition
@@ -382,3 +382,25 @@ def KC_Condition_Failure_03(createTestFile=False):
         print("Test KC_Condition_Failure_03 Succeeded")
         return
     print("Test KC_Condition_Failure_03 Failed")
+
+
+def testKleeneClosureSeq(createTestFile=False):
+    pattern = Pattern(
+        SeqOperator(PrimitiveEventStructure("AMZN", "a"),
+                    KleeneClosureOperator(PrimitiveEventStructure("GOOG", "b")),
+                    PrimitiveEventStructure("AAPL", "c")),
+        TrueCondition(),
+        timedelta(minutes=5)
+    )
+    runTest("KleeneClosureSeq", [pattern], createTestFile, events=nasdaqEventStreamKC)
+
+
+def testKleeneClosureAnd(createTestFile=False):
+    pattern = Pattern(
+        AndOperator(PrimitiveEventStructure("AMZN", "a"),
+                    KleeneClosureOperator(PrimitiveEventStructure("GOOG", "b")),
+                    PrimitiveEventStructure("AAPL", "c")),
+        TrueCondition(),
+        timedelta(minutes=5)
+    )
+    runTest("KleeneClosureAnd", [pattern], createTestFile, events=nasdaqEventStreamKC)

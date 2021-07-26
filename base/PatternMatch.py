@@ -10,8 +10,8 @@ class PatternMatch:
     """
     def __init__(self, events: List[Event], probability: float = None):
         self.events = events
-        self.last_timestamp = max(events, key=lambda x: x.timestamp).timestamp
-        self.first_timestamp = min(events, key=lambda x: x.timestamp).timestamp
+        self.last_timestamp = max(events, key=lambda x: x.max_timestamp).max_timestamp
+        self.first_timestamp = min(events, key=lambda x: x.min_timestamp).min_timestamp
         # this field is only used for full pattern matches
         self.pattern_ids = []
         self.probability = probability

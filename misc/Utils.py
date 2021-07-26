@@ -157,7 +157,7 @@ def merge_according_to(arr1: list, arr2: list, actual1: list, actual2: list, key
     return ret
 
 
-def is_sorted(arr: list, key: callable = lambda x: x):
+def is_sorted(arr: list, key: callable = lambda x: x, secondary_key: callable = None):
     """
     Returns True if the given list is sorted with respect to the given comparator function and False otherwise.
     """
@@ -166,6 +166,8 @@ def is_sorted(arr: list, key: callable = lambda x: x):
 
     for i in range(len(arr) - 1):
         if key(arr[i]) > key(arr[i + 1]):
+            return False
+        if secondary_key is not None and secondary_key(arr[i]) > secondary_key(arr[i + 1]):
             return False
 
     return True

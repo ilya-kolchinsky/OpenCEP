@@ -246,11 +246,11 @@ class BinaryNode(InternalNode, ABC):
         # convert terms into sorting key fetching callbacks
         if left_term is not None:
             left_sorting_key = lambda pm: left_term.eval(
-                {left_event_defs[i].name: pm.events[i].payload for i in range(len(pm.events))}
+                {left_event_defs[i].name: self._get_event_content(pm.events[i]) for i in range(len(pm.events))}
             )
         if right_term is not None:
             right_sorting_key = lambda pm: right_term.eval(
-                {right_event_defs[i].name: pm.events[i].payload for i in range(len(pm.events))}
+                {right_event_defs[i].name: self._get_event_content(pm.events[i]) for i in range(len(pm.events))}
             )
 
         return left_sorting_key, left_rel_op, left_equation_size, right_sorting_key, right_rel_op, right_equation_size
