@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import List, Set
 
-from base.Event import Event
+from base.Event import Event, AggregatedEvent
 from condition.Condition import RelopTypes, EquationSides
 from tree.nodes.Node import Node, PrimitiveEventDefinition, PatternParameters
 from tree.PatternMatchStorage import TreeStorageParameters, UnsortedPatternMatchStorage, SortedPatternMatchStorage
@@ -29,7 +29,8 @@ class InternalNode(Node, ABC):
             # the list contains duplicate events which is not allowed
             return False
         binding = {
-            self._event_defs[i].name: events_for_new_match[i].payload for i in range(len(self._event_defs))
+            self._event_defs[i].name: InternalNode._get_event_content(events_for_new_match[i])
+            for i in range(len(self._event_defs))
         }
         return self._condition.eval(binding)
 
@@ -62,3 +63,13 @@ class InternalNode(Node, ABC):
         A handler for a notification regarding a new partial match generated at one of this node's children.
         """
         raise NotImplementedError()
+
+    @staticmethod
+    def _get_event_content(event: Event):
+        """
+        Returns the content of the given event depending on the category this event belongs to: a primitive or an
+        aggregated event.
+        """
+        if isinstance(event, AggregatedEvent):
+            return [e.payload for e in event.primitive_events]
+        return event.payload
