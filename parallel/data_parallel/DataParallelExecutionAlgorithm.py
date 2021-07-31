@@ -3,7 +3,7 @@ from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from base.DataFormatter import DataFormatter
 from base.PatternMatch import *
-from parallel.platform.ParallelExecutionPlatform import ParallelExecutionPlatform
+from parallel.platform.ParallelExecutionPlatform import ParallelExecutionPlatform, Lock
 from stream.Stream import *
 from parallel.manager.EvaluationManager import EvaluationManager
 from parallel.manager.SequentialEvaluationManager import SequentialEvaluationManager
@@ -21,14 +21,8 @@ class DataParallelExecutionAlgorithm(ABC):
         self.units_number = units_number
         self.platform = platform
         # create SequentialEvaluationManager for every unit
-        # old version
-#       self.evaluation_managers = [SequentialEvaluationManager(patterns, eval_mechanism_params) for _ in
-#                                    range(self.units_number)]
-        # new version
-        eval_manager = SequentialEvaluationManager(patterns=patterns, eval_mechanism_params=eval_mechanism_params)
-        self.evaluation_managers = [deepcopy(eval_manager) for _ in range(self.units_number)]
-        x = 2+5
-        y = x+5
+        self.evaluation_managers = [SequentialEvaluationManager(patterns, eval_mechanism_params) for _ in
+                                    range(self.units_number)]
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
@@ -42,7 +36,8 @@ class DataParallelExecutionAlgorithm(ABC):
                                                 evaluation_manager,
                                                 self.FilterStream(skip_item=self._create_skip_item(unit_id),
                                                                   matches=matches,
-                                                                  unit_id=unit_id),
+                                                                  unit_id=unit_id,
+                                                                  lock=self.match_lock),
                                                 data_formatter)
             execution_unit.start()
             execution_units.append(execution_unit)
@@ -105,19 +100,22 @@ class DataParallelExecutionAlgorithm(ABC):
             evaluation_manager.eval(events, matches, data_formatter)
 
     class FilterStream(Stream):
-        def __init__(self, skip_item: Callable[[PatternMatch], bool], matches: OutputStream, unit_id: int):
+        def __init__(self, skip_item: Callable[[PatternMatch], bool], matches: OutputStream, unit_id: int, lock: Lock):
             super().__init__()
             self.matches = matches
             # set the unique_match function
             self.skip_item = skip_item
             self.unit_id = unit_id
+            self.lock = lock
 
         def add_item(self, item: PatternMatch):
             """
             adds to the stream only the first occurrence of the item (to prevent duplicates)
             """
             if not self.skip_item(item):
+                self.lock.acquire()
                 self.matches.add_item(item)
+                self.lock.release()
 
         def close(self):
             pass

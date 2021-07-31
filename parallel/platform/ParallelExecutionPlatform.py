@@ -17,11 +17,15 @@ class ParallelExecutionPlatform(ABC):
         """
         raise NotImplementedError()
 
+    @staticmethod
+    def create_lock():
+        raise NotImplementedError()
 
 class ParallelExecutionUnit(ABC):
     """
     Represents a single unit of parallel execution (such as a thread, a process, a VM, or a physical server).
     """
+
     def __init__(self, unit_id: int):
         self._id = unit_id
 
@@ -59,4 +63,15 @@ class ParallelExecutionUnit(ABC):
         """
         Attempts to receive an object from the execution unit.
         """
+        raise NotImplementedError()
+
+
+class Lock(ABC):
+    def acquire(self, blocking=True, timeout=-1):
+        raise NotImplementedError()
+
+    def release(self):
+        raise NotImplementedError()
+
+    def locked(self):
         raise NotImplementedError()
