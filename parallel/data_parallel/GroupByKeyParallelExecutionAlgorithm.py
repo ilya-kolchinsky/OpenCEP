@@ -27,28 +27,16 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
         super().__init__(units_number, patterns, eval_mechanism_params, platform)
         self._key = key
 
- #   def _classifier(self, event: Event) -> Set[int]:
- #       """
- #       return list of a single unit that matches the modulo of the key
- #       """
- #       value = event.payload.get(self._key)
- #       if value is None:
- #           #raise Exception(f"attribute {self._key} is not existing in type {event.type}")
- #       elif not is_int(value) and not is_float(value):
-#            # raise Exception(f"Non numeric key {self._key} = {value}")
-#        return {int(value) % self.units_number}
-
-
     def _classifier(self, event: Event) -> Set[int]:
         """
-        return list of a single unit that matches the modulo of the key
+        Returns a list of a single unit that matches the modulo of the key
+        This will server later as the execution units.
         """
         value = event.payload.get(self._key)
         if value is not None and (is_int(value) or is_float(value)):
             return {int(value) % self.units_number}
         else:
             return set()
-
 
     def _create_skip_item(self, unit_id: int):
         """

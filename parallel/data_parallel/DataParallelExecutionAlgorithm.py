@@ -28,7 +28,7 @@ class DataParallelExecutionAlgorithm(ABC):
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
-        Activates the actual parallel algorithm.
+        Activates the parallel algorithm of the instance.
         """
         execution_units = list()
         # create and run execution unit for each unit
@@ -88,6 +88,10 @@ class DataParallelExecutionAlgorithm(ABC):
             self.execution_unit.start()
 
         def add_event(self, raw_event):
+            """
+            :param raw_event: from the input stream
+            :returns: adds a specific event to the execution unit's event stream.
+            """
             self.events.add_item(raw_event)
 
         def wait(self):
@@ -102,6 +106,9 @@ class DataParallelExecutionAlgorithm(ABC):
             evaluation_manager.eval(events, matches, data_formatter)
 
     class FilterStream(Stream):
+        """
+        Used to filter matches coming from the execution manager into the output stream to prevent duplicates (same data from different units).
+        """
         def __init__(self, skip_item: Callable[[PatternMatch], bool], matches: OutputStream, unit_id: int, lock: Lock):
             super().__init__()
             self.matches = matches

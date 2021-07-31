@@ -31,9 +31,7 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
 
         dims = 0
         self.attributes_dict = dict()
-        """
-        alloc cube dimension for every attribute value
-        """
+        # alloc cube dimension for every attribute value
         for k, v in attributes_dict.items():
             if isinstance(v, list):
                 self.attributes_dict[k] = [(v, dims + i) for i, v in enumerate(v)]
@@ -45,14 +43,18 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
                 raise Exception
         if not self.attributes_dict:
             raise Exception("attributes_dict is empty")
-        """
-        create ndarray cube
-        """
+
+        # create ndarray cube
+
         shares, cube_size = self._calc_cubic_shares(units_number, dims)
         self.cube = array(range(cube_size)).reshape(shares)
         super().__init__(self.cube.size, patterns, eval_mechanism_params, platform)
 
     def _classifier(self, event: Event) -> Set[int]:
+        """
+        :param event: from the input fileStream
+        :return: The classification unit/s that this event will be sent to
+        """
         attributes = self.attributes_dict.get(event.type)  # get event attributes
         if attributes:  # if attributes exists we need to find the right dimension(s) of the cube to return
             units = set()
