@@ -23,16 +23,16 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
 
         # in case of multi pattern
         if isinstance(patterns, list):
-            self.__time_delta = max(pattern.window for pattern in patterns)
+            self._time_delta = max(pattern.window for pattern in patterns)
         else:
-            self.__time_delta = patterns.window
+            self._time_delta = patterns.window
 
-        self.interval = self.__time_delta * multiple
+        self._interval = self._time_delta * multiple
 
-        if self.__time_delta > self.interval:  # multiple must be > 1
+        if self._time_delta > self._interval:  # multiple must be > 1
             raise Exception("time delta > interval")
 
-        self.__start_time = None
+        self._start_time = None
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """
@@ -41,7 +41,7 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         the calling methods as a base point.
         """
         first_event = Event(events.first(), data_formatter)
-        self.__start_time = first_event.timestamp
+        self._start_time = first_event.timestamp
         super(RIPParallelExecutionAlgorithm, self).eval(events, matches, data_formatter)
 
     def _create_skip_item(self, unit_id: int):
@@ -61,8 +61,8 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         """
         returns the corresponding unit to the event time
         """
-        diff_time = event_time - self.__start_time
-        unit_id = int((diff_time / self.interval) % self.units_number)
+        diff_time = event_time - self._start_time
+        unit_id = int((diff_time / self._interval) % self.units_number)
         return unit_id  # result is zero based
 
     def _classifier(self, event: Event) -> Set[int]:
@@ -70,6 +70,6 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         Returns possible unit ids for the given event
         """
         event_time = event.timestamp
-        unit_id1 = self._get_unit_number(event_time - self.__time_delta)
+        unit_id1 = self._get_unit_number(event_time - self._time_delta)
         unit_id2 = self._get_unit_number(event_time)
         return {unit_id1, unit_id2}

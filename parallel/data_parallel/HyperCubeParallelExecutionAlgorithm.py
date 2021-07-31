@@ -32,50 +32,50 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
                 raise Exception(f"Not Support multiple typing of events, got {primitive_events}")
 
         dims = 0
-        self.attributes_dict = dict()
+        self._attributes_dict = dict()
         # alloc cube dimension for every attribute value
         for k, v in attributes_dict.items():
             if isinstance(v, list):
-                self.attributes_dict[k] = [(v, dims + i) for i, v in enumerate(v)]
+                self._attributes_dict[k] = [(v, dims + i) for i, v in enumerate(v)]
                 dims += len(v)
             elif isinstance(v, str):
-                self.attributes_dict[k] = [(v, dims)]
+                self._attributes_dict[k] = [(v, dims)]
                 dims += 1
             else:
                 raise Exception
-        if not self.attributes_dict:
+        if not self._attributes_dict:
             raise Exception("attributes_dict is empty")
 
         # create ndarray cube
 
         shares, cube_size = self._calc_cubic_shares(units_number, dims)
-        self.cube = array(range(cube_size)).reshape(shares)
-        super().__init__(self.cube.size, patterns, eval_mechanism_params, platform)
+        self._cube = array(range(cube_size)).reshape(shares)
+        super().__init__(self._cube.size, patterns, eval_mechanism_params, platform)
 
     def _classifier(self, event: Event) -> Set[int]:
         """
         :param event: from the input fileStream
         :return: The classification unit/s that this event will be sent to
         """
-        attributes = self.attributes_dict.get(event.type)  # get event attributes
+        attributes = self._attributes_dict.get(event.type)  # get event attributes
         if attributes:  # if attributes exists we need to find the right dimension(s) of the cube to return
             units = set()
             for attribute, index in attributes:  # loop of events attributes
                 # find for all attributes the union of the column/"cube face"
-                indices = [slice(None)] * self.cube.ndim  # default is slice(None) (all dim units)
+                indices = [slice(None)] * self._cube.ndim  # default is slice(None) (all dim units)
                 value = event.payload.get(attribute)
                 # check correctness
                 if value is None or (not is_int(value) and not is_float(value)):
                     return set()
 
-                col = int(value) % self.cube.shape[index]  # column number
+                col = int(value) % self._cube.shape[index]  # column number
                 indices[index] = slice(col, col + 1)
-                selected_units = self.cube[tuple(indices)]
+                selected_units = self._cube[tuple(indices)]
                 if isinstance(selected_units, ndarray):
-                    selected_units = list(self.cube[tuple(indices)].reshape(-1))
+                    selected_units = list(self._cube[tuple(indices)].reshape(-1))
                 units.update(set(selected_units))  # update units set
             return units
-        return set(range(self.cube.size))  # return all possible units
+        return set(range(self._cube.size))  # return all possible units
 
     @staticmethod
     def _calc_cubic_shares(units_number, dims) -> Tuple[Tuple[int], int]:
