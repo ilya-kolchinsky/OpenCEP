@@ -10,6 +10,7 @@ class ParallelExecutionPlatform(ABC):
     """
     A wrapper for accessing parallelization capabilities of any platform with such functionality.
     """
+
     @staticmethod
     def create_parallel_execution_unit(unit_id: int, callback_function: callable, *args, **kwargs):
         """

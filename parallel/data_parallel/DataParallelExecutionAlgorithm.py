@@ -1,4 +1,6 @@
 from abc import ABC
+from copy import deepcopy
+
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from base.DataFormatter import DataFormatter
@@ -20,8 +22,8 @@ class DataParallelExecutionAlgorithm(ABC):
         self.units_number = units_number
         self.platform = platform
         # create SequentialEvaluationManager for every unit
-        self.evaluation_managers = [SequentialEvaluationManager(patterns, eval_mechanism_params) for _ in
-                                    range(self.units_number)]
+        seq = SequentialEvaluationManager(patterns, eval_mechanism_params)
+        self.evaluation_managers = [deepcopy(seq) for _ in range(self.units_number)]
         self.match_lock = platform.create_lock()
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
