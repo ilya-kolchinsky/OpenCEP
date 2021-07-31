@@ -16,10 +16,8 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
 
     def __init__(self, units_number, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters,
-                 platform, interval: timedelta):
+                 platform, multiple: float):
         super().__init__(units_number, patterns, eval_mechanism_params, platform)
-
-        self.interval = interval
 
         # in case of multi pattern
         if isinstance(patterns, list):
@@ -27,7 +25,9 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         else:
             self.__time_delta = patterns.window
 
-        if self.__time_delta > self.interval:
+        self.interval = self.__time_delta * multiple
+
+        if self.__time_delta > self.interval:  # multiple must be > 1
             raise Exception("time delta > interval")
 
         self.__start_time = None

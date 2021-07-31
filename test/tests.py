@@ -262,18 +262,18 @@ amazonSpecificPatternSearchTest_8()
 googleAmazonLowPatternSearchTest_8()
 
 # parallel testing
-GroupByKeyMultiPatternTest()
-SensorsDataHIRZELTest()
 simpleGroupByKeyTest()
+SensorsDataHIRZELTest()
+GroupByKeyMultiPatternTest()
 simpleRIPTest()
-SensorsDataRIPTest()
+StocksDataRIPTest()
 SensorsDataRIPTestShort()
 SensorsDataRIPTest()
 SensorsDataRIPLongTime()
 simpleHyperCubeTest()
 HyperCubeMultiPatternTest()
-HyperCubeMultyAttrbutesTest()
-HyperCubeMultiPatternTest()
+HyperCubeMultiAttrbutesTest()
+HyperCubeMultiEventTypesTest()
 
 
 # benchmarks

@@ -116,7 +116,7 @@ def simpleRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTING_EV
     )
     units = 8
     parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units,
-                                                                            interval=timedelta(minutes=60))
+                                                                            multiple=12)
     runTest(test_name, [pattern], createTestFile, eval_mechanism_params, parallel_execution_params,
             eventStream=custom4)
 
@@ -148,7 +148,7 @@ def StocksDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTIN
 
     units = 8
     parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units,
-                                                                            interval=timedelta(hours=26))
+                                                                            multiple=26/24)
     runTest(test_name, [pattern1, pattern2], createTestFile, eventStream=nasdaqEventStream,
             eval_mechanism_params=eval_mechanism_params,
             parallel_execution_params=parallel_execution_params)
@@ -175,7 +175,7 @@ def SensorsDataRIPTestShort(createTestFile=False, eval_mechanism_params=DEFAULT_
     )
     units = 8
     parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units,
-                                                                            interval=timedelta(minutes=6))
+                                                                            multiple=1.2)
     runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_short,
             eval_mechanism_params=eval_mechanism_params, data_formatter=SensorsDataFormatter(),
             parallel_execution_params=parallel_execution_params)
@@ -202,7 +202,7 @@ def SensorsDataRIPTest(createTestFile=False, eval_mechanism_params=DEFAULT_TESTI
     )
     units = 8
     parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units,
-                                                                            interval=timedelta(minutes=6))
+                                                                            multiple=2)
     runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data,
             eval_mechanism_params=eval_mechanism_params,
             parallel_execution_params=parallel_execution_params, data_formatter=SensorsDataFormatter())
@@ -229,7 +229,7 @@ def SensorsDataRIPLongTime(createTestFile=False, eval_mechanism_params=DEFAULT_T
     )
     units = 8
     parallel_execution_params = DataParallelExecutionParametersRIPAlgorithm(units_number=units,
-                                                                            interval=timedelta(minutes=11))
+                                                                            multiple=5.5)
     runTest(test_name, [pattern], createTestFile, eventStream=Sensors_data_longtime,
             eval_mechanism_params=eval_mechanism_params, data_formatter=SensorsDataFormatter(),
             parallel_execution_params=parallel_execution_params)
@@ -291,7 +291,7 @@ def simpleHyperCubeTest(createTestFile=False, eval_mechanism_params=DEFAULT_TEST
                     eventStream=nasdaqEventStreamTiny)
 
 
-def HyperCubeMultyAttrbutesTest(createTestFile=False,
+def HyperCubeMultiAttrbutesTest(createTestFile=False,
                                 eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                                 test_name="HyperCubeMultyAttrbutes"):
     HyperCubeMultyAttrbutesPattern = Pattern(
@@ -311,7 +311,7 @@ def HyperCubeMultyAttrbutesTest(createTestFile=False,
             parallel_execution_params=parallel_execution_params)
 
 
-def HyperCubeMultyEventTypesTest(createTestFile=False,
+def HyperCubeMultiEventTypesTest(createTestFile=False,
                                  eval_mechanism_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS,
                                  test_name="HyperCubeMultyEventTypes_"):
     pattern = Pattern(
@@ -345,20 +345,18 @@ def HyperCubeMultyEventTypesTest(createTestFile=False,
 
 if __name__ == "__main__":
     runTest.over_all_time = 0
-    # # # GroupByKey
-    GroupByKeyMultiPatternTest()
-    SensorsDataHIRZELTest()
+    # GroupByKey
     simpleGroupByKeyTest()
-    # #
-    # # # RIP
+    SensorsDataHIRZELTest()
+    GroupByKeyMultiPatternTest()
+    # RIP
     simpleRIPTest()
-    SensorsDataRIPTest()
+    StocksDataRIPTest()
     SensorsDataRIPTestShort()
     SensorsDataRIPTest()
     SensorsDataRIPLongTime()
-    # #
-    # # # HypeCube
+    # HyperCube
     simpleHyperCubeTest()
     HyperCubeMultiPatternTest()
-    HyperCubeMultyAttrbutesTest()
-    HyperCubeMultiPatternTest()
+    HyperCubeMultiAttrbutesTest()
+    HyperCubeMultiEventTypesTest()

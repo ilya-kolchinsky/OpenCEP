@@ -380,15 +380,14 @@ event_stream = TwitterInputStream(['corona'])
 ### Tweet formation in CEP
 The format of a tweet is defined in Tweets.py (see documentation). The tweet keys are described there based on the overview of a tweet in https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object
 
-### Data Parallel Algorithms (NOTE: not supported yet)
+### Data Parallel Algorithms
 
 In order to run the program in parallel, the user is required to input the needed parameters
 under the following structure while the underline filled with the name of the chosen algorithm
 ("Hirzel" / "RIP" / "HyperCube"): DataParallelExecutionParameters___Algorithm  
 The structure above contains the following parameters:
-1.Parallel execution mode (Data/ Structure/ Task/ Hybrid PARALLELISM)
-2.Parallel execution platforms (Threading available for now)
-3.Calculations units number
+1.Parallel execution platforms (Threading available for now)
+2.Calculations units number
 
 Additionally, for each algorithm there is a unique additional input and certain terms on the inputs or on the pattern.
 Please note that there is no input validation. Input correctness is the user responsibility.
@@ -399,7 +398,7 @@ Terms on the pattern: The pattern will only contain equations (for example: equa
 Please note that the given attribute has to be the same attribute that his equality tested in the pattern.
 
 RIP Algorithm -
-Additional input: multiple of timedelta.
+Additional input: multiple of timedelta, the multiple should be > 1. The algorithm will run Round Robin between the units every (time_delta * multiple) 
 Terms on the pattern: The pattern will not contain unblocked negation.
 
 HyperCube Algorithm -
