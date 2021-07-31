@@ -10,6 +10,7 @@ class ThreadingParallelExecutionPlatform(ParallelExecutionPlatform):
     """
     Creates execution unit objects based on Python threads.
     """
+
     @staticmethod
     def create_parallel_execution_unit(unit_id: int, callback_function: callable, *args, **kwargs):
         new_thread = threading.Thread(target=callback_function, args=args, kwargs=kwargs)
