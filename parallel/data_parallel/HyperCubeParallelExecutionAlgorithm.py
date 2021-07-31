@@ -60,10 +60,10 @@ class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
                 # find for all attributes the union of the column/"cube face"
                 indices = [slice(None)] * self.cube.ndim  # default is slice(None) (all dim units)
                 value = event.payload.get(attribute)
-                if value is None:
-                    raise Exception(f"attribute {attribute} is not existing in type {event.type}")
-                elif not is_int(value) and not is_float(value):
-                    raise Exception(f"Non numeric key {attribute} = {value}")
+                # check correctness
+                if value is None or (not is_int(value) and not is_float(value)):
+                    return set()
+
                 col = int(value) % self.cube.shape[index]  # column number
                 indices[index] = slice(col, col + 1)
                 selected_units = self.cube[tuple(indices)]

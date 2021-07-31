@@ -11,6 +11,7 @@ from typing import Set, Callable
 from copy import deepcopy
 
 
+
 class DataParallelExecutionAlgorithm(ABC):
     """
     An abstract base class for all data parallel evaluation algorithms.
@@ -20,9 +21,16 @@ class DataParallelExecutionAlgorithm(ABC):
                  eval_mechanism_params: EvaluationMechanismParameters, platform: ParallelExecutionPlatform):
         self.units_number = units_number
         self.platform = platform
+
         # create SequentialEvaluationManager for every unit
-        self.evaluation_managers = [SequentialEvaluationManager(patterns, eval_mechanism_params) for _ in
-                                    range(self.units_number)]
+        self.match_lock = platform.create_lock()
+
+
+        single_eval_manager = SequentialEvaluationManager(patterns=patterns, eval_mechanism_params=eval_mechanism_params)
+        self.evaluation_managers = [deepcopy(single_eval_manager) for _ in range(self.units_number)]
+
+
+
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """

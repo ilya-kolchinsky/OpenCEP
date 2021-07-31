@@ -46,6 +46,8 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
         value = event.payload.get(self._key)
         if value is not None and (is_int(value) or is_float(value)):
             return {int(value) % self.units_number}
+        else:
+            return set()
 
 
     def _create_skip_item(self, unit_id: int):
