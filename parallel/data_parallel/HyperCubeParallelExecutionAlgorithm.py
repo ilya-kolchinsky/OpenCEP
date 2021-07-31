@@ -17,6 +17,8 @@ from typing import Tuple, Set
 class HyperCubeParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
     """
     Implements the HyperCube algorithm.
+    attributes_dict - Dictionary contains keys->attribute, and values->parameters.
+    units_number - Indicate the number of units/threads to run, doesn't include the "main execution unit".
     """
 
     def __init__(self, units_number, patterns: Pattern or List[Pattern],

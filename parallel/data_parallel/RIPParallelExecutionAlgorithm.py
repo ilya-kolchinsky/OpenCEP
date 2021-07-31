@@ -12,6 +12,8 @@ from stream.Stream import *
 class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
     """
     Implements the RIP algorithm.
+    multiple - Ratio between 'time window' and the 'interval'
+    units_number - Indicate the number of units/threads to run, doesn't include the "main execution unit".
     """
 
     def __init__(self, units_number, patterns: Pattern or List[Pattern],

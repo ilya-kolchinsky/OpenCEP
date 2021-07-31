@@ -16,6 +16,8 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
 
     All patterns must include == comparison between all attributes with the given "key" argument,
     to enforce matches on the same unit id.
+
+    units_number - Indicate the number of units/threads to run, doesn't include the "main execution unit".
     """
 
     def __init__(self,
@@ -26,6 +28,8 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
                  key: str):
         super().__init__(units_number, patterns, eval_mechanism_params, platform)
         self._key = key
+
+
 
     def _classifier(self, event: Event) -> Set[int]:
         """
