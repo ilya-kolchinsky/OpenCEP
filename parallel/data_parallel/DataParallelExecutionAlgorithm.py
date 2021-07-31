@@ -8,6 +8,7 @@ from stream.Stream import *
 from parallel.manager.EvaluationManager import EvaluationManager
 from parallel.manager.SequentialEvaluationManager import SequentialEvaluationManager
 from typing import Set, Callable
+from copy import deepcopy
 
 
 class DataParallelExecutionAlgorithm(ABC):
@@ -20,8 +21,14 @@ class DataParallelExecutionAlgorithm(ABC):
         self.units_number = units_number
         self.platform = platform
         # create SequentialEvaluationManager for every unit
-        self.evaluation_managers = [SequentialEvaluationManager(patterns, eval_mechanism_params) for _ in
-                                    range(self.units_number)]
+        # old version
+#       self.evaluation_managers = [SequentialEvaluationManager(patterns, eval_mechanism_params) for _ in
+#                                    range(self.units_number)]
+        # new version
+        eval_manager = SequentialEvaluationManager(patterns=patterns, eval_mechanism_params=eval_mechanism_params)
+        self.evaluation_managers = [deepcopy(eval_manager) for _ in range(self.units_number)]
+        x = 2+5
+        y = x+5
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
         """

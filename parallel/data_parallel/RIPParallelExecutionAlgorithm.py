@@ -37,11 +37,12 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
         self.__start_time = first_event.timestamp
         super(RIPParallelExecutionAlgorithm, self).eval(events, matches, data_formatter)
 
-    def _check_first_event(self, first_event: Event):
-        """
-        Init events start time
-        """
-        self.__start_time = first_event.timestamp
+#   todo: remove below code if still passes all tests
+#    def _check_first_event(self, first_event: Event):
+#        """
+#        Init events start time
+#        """
+#       self.__start_time = first_event.timestamp
 
     def _create_skip_item(self, unit_id: int):
         """
