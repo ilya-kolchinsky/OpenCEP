@@ -1,7 +1,6 @@
 from misc import DefaultConfig
 from parallel.ParallelExecutionModes import *
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
-from datetime import timedelta
 
 
 class ParallelExecutionParameters:

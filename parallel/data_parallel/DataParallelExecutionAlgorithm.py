@@ -11,7 +11,6 @@ from typing import Set, Callable
 from copy import deepcopy
 
 
-
 class DataParallelExecutionAlgorithm(ABC):
     """
     An abstract base class for all data parallel evaluation algorithms.

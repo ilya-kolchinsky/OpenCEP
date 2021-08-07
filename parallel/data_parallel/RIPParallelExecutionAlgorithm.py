@@ -3,7 +3,6 @@ from parallel.data_parallel.DataParallelExecutionAlgorithm import DataParallelEx
 from base.Pattern import Pattern
 from evaluation.EvaluationMechanismFactory import EvaluationMechanismParameters
 from base.PatternMatch import *
-from datetime import timedelta
 from typing import Set
 from base.DataFormatter import DataFormatter
 from stream.Stream import *

@@ -29,8 +29,6 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
         super().__init__(units_number, patterns, eval_mechanism_params, platform)
         self._key = key
 
-
-
     def _classifier(self, event: Event) -> Set[int]:
         """
         Returns a list of a single unit that matches the modulo of the key
@@ -51,4 +49,3 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
             return False
 
         return skip_item
-
