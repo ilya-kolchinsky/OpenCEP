@@ -81,7 +81,7 @@ def innerOrPatternTransformationTest():
         Pattern(
             SeqOperator(NegationOperator(PrimitiveEventStructure("AMZN", "z")),
                         PrimitiveEventStructure("AAPL", "a"),
-                        PrimitiveEventStructure("AAPL", "gg")),
+                        PrimitiveEventStructure("GOOG", "gg")),
             TrueCondition(),
             timedelta(minutes=5)
         ),

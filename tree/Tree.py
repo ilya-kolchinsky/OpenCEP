@@ -1,5 +1,4 @@
 from copy import deepcopy
-from datetime import timedelta
 from typing import List, Dict
 
 from base.Pattern import Pattern

@@ -52,7 +52,7 @@ class PrimitiveEventStructure(PatternStructure):
         return PrimitiveEventStructure(self.type, self.name)
 
     def __eq__(self, other):
-        return type(self) == type(other) and self.name == other.name
+        return type(self) == type(other) and self.type == other.type and self.name == other.name
 
     def contains_event(self, event_name: str):
         return self.name == event_name
