@@ -11,6 +11,7 @@ class KCCondition(AtomicCondition, ABC):
     The base class for conditions operating on Kleene closure matches.
     """
     def __init__(self, names: set, getattr_func: callable, relation_op: callable):
+        super().__init__()
         self._names = names
         self._getattr_func = getattr_func
         self._relation_op = relation_op
