@@ -1,0 +1,120 @@
+unit_id=0 
+filtered size = 0
+unfiltered size = 1
+	events:
+		{'Stock Ticker': 'AAPL', 'Date': 200802010900, 'Opening Price': 0, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AVID', 'Date': 200802010901, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AMZN', 'Date': 200802010902, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AAPL', 'Date': 200802010907, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AVID', 'Date': 200802010908, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+	filtered_matches:
+	unfiltered_matches:
+		{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AMZN', 'Date': 200802010902, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+
+
+unit_id=1 
+filtered size = 0
+unfiltered size = 0
+	events:
+		{'Stock Ticker': 'AVID', 'Date': 200802010901, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AMZN', 'Date': 200802010902, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AVID', 'Date': 200802010908, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+	filtered_matches:
+	unfiltered_matches:
+
+unit_id=2 
+filtered size = 0
+unfiltered size = 0
+	events:
+		{'Stock Ticker': 'AAPL', 'Date': 200802010900, 'Opening Price': 0, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AVID', 'Date': 200802010901, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AAPL', 'Date': 200802010907, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AVID', 'Date': 200802010908, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+	filtered_matches:
+	unfiltered_matches:
+
+unit_id=3 
+filtered size = 0
+unfiltered size = 0
+	events:
+		{'Stock Ticker': 'AVID', 'Date': 200802010901, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AVID', 'Date': 200802010908, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+	filtered_matches:
+	unfiltered_matches:
+
+unit_id=4 
+filtered size = 0
+unfiltered size = 0
+	events:
+		{'Stock Ticker': 'AAPL', 'Date': 200802010900, 'Opening Price': 0, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AVID', 'Date': 200802010901, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AAPL', 'Date': 200802010907, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AVID', 'Date': 200802010908, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+	filtered_matches:
+	unfiltered_matches:
+
+unit_id=5 
+filtered size = 0
+unfiltered size = 0
+	events:
+		{'Stock Ticker': 'AVID', 'Date': 200802010901, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AVID', 'Date': 200802010908, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+	filtered_matches:
+	unfiltered_matches:
+
+unit_id=6 
+filtered size = 0
+unfiltered size = 4
+	events:
+		{'Stock Ticker': 'AAPL', 'Date': 200802010900, 'Opening Price': 0, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AMZN', 'Date': 200802010901, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+		{'Stock Ticker': 'AVID', 'Date': 200802010901, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AMZN', 'Date': 200802010903, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+		{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AAPL', 'Date': 200802010907, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AMZN', 'Date': 200802010907, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+		{'Stock Ticker': 'AVID', 'Date': 200802010908, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+	filtered_matches:
+	unfiltered_matches:
+		{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AMZN', 'Date': 200802010901, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+		{'Stock Ticker': 'AVID', 'Date': 200802010901, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+
+		{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AMZN', 'Date': 200802010901, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+		{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+
+		{'Stock Ticker': 'AAPL', 'Date': 200802010901, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AMZN', 'Date': 200802010903, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+		{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+
+		{'Stock Ticker': 'AAPL', 'Date': 200802010907, 'Opening Price': 136.2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+		{'Stock Ticker': 'AMZN', 'Date': 200802010907, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+		{'Stock Ticker': 'AVID', 'Date': 200802010908, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+
+
+unit_id=7 
+filtered size = 0
+unfiltered size = 0
+	events:
+		{'Stock Ticker': 'AMZN', 'Date': 200802010901, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+		{'Stock Ticker': 'AVID', 'Date': 200802010901, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AMZN', 'Date': 200802010903, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+		{'Stock Ticker': 'AVID', 'Date': 200802010906, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+		{'Stock Ticker': 'AMZN', 'Date': 200802010907, 'Opening Price': 79.26, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+		{'Stock Ticker': 'AVID', 'Date': 200802010908, 'Opening Price': 22.14, 'Peak Price': 22.14, 'Lowest Price': 22.14, 'Close Price': 22.14, 'Volume': 200}
+	filtered_matches:
+	unfiltered_matches:
+

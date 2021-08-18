@@ -1,0 +1,13 @@
+{'Stock Ticker': 'AAPL', 'Date': 200802010900, 'Opening Price': 5, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+{'Stock Ticker': 'AMZN', 'Date': 200802010901, 'Opening Price': 5, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+{'Stock Ticker': 'AAPL', 'Date': 200802010902, 'Opening Price': 7, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+{'Stock Ticker': 'AMZN', 'Date': 200802010903, 'Opening Price': 7, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+{'Stock Ticker': 'AAPL', 'Date': 200802010900, 'Opening Price': 5, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+{'Stock Ticker': 'AMZN', 'Date': 200802010905, 'Opening Price': 5, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+{'Stock Ticker': 'AAPL', 'Date': 200802010904, 'Opening Price': 5, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+{'Stock Ticker': 'AMZN', 'Date': 200802010905, 'Opening Price': 5, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+{'Stock Ticker': 'AAPL', 'Date': 200802010906, 'Opening Price': 2, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+{'Stock Ticker': 'AMZN', 'Date': 200802010907, 'Opening Price': 2, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+{'Stock Ticker': 'AAPL', 'Date': 200802010908, 'Opening Price': 3, 'Peak Price': 136.2, 'Lowest Price': 136, 'Close Price': 136, 'Volume': 6700}
+{'Stock Ticker': 'AMZN', 'Date': 200802010909, 'Opening Price': 3, 'Peak Price': 79.36, 'Lowest Price': 79.25, 'Close Price': 79.36, 'Volume': 1450}
+

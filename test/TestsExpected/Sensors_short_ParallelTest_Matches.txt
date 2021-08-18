@@ -1,0 +1,171 @@
+unit_id=0 
+filtered size = 0
+unfiltered size = 5
+	events:
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:54:08', 'Amplitude': 0.002, 'Pressure': 24.413, 'Temperature': 949.917}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:54:18', 'Amplitude': 0.003, 'MagX': 8.192, 'MagY': -29.541, 'MagZ': -10.995}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:54:28', 'Amplitude': 0.002, 'MagX': 4.132, 'MagY': 66.528, 'MagZ': -0.785}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:54:38', 'Amplitude': 0.001, 'AccX': -45.406, 'AccY': 93.484, 'AccZ': -15.48}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:54:48', 'Amplitude': 0.001, 'AccX': 35.518, 'AccY': 98.596, 'AccZ': -3.125}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:54:58', 'Amplitude': 0.002, 'Pressure': 23.992, 'Temperature': 948.309}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:55:08', 'Amplitude': 0.003, 'MagX': 38.061, 'MagY': -15.362, 'MagZ': -7.999}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:55:18', 'Amplitude': 0.003, 'Pressure': 23.097, 'Temperature': 959.41}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:55:28', 'Amplitude': 0.001, 'AccX': 3.953, 'AccY': -21.239, 'AccZ': -1.077}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:55:38', 'Amplitude': 0.001, 'AccX': -45.322, 'AccY': -19.137, 'AccZ': 7.41}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:55:48', 'Amplitude': 0.0, 'MagX': -0.845, 'MagY': 90.011, 'MagZ': 7.459}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:55:58', 'Amplitude': 0.0, 'Pressure': 23.685, 'Temperature': 953.127}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:56:08', 'Amplitude': 0.002, 'AccX': -15.932, 'AccY': -27.879, 'AccZ': 14.796}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:56:18', 'Amplitude': 0.0, 'MagX': 45.622, 'MagY': -62.009, 'MagZ': -14.083}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:56:28', 'Amplitude': 0.002, 'AccX': 32.204, 'AccY': -53.536, 'AccZ': -5.924}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:56:38', 'Amplitude': 0.001, 'MagX': -23.239, 'MagY': 8.275, 'MagZ': -8.629}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:56:48', 'Amplitude': 0.003, 'Pressure': 25.413, 'Temperature': 947.292}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:56:58', 'Amplitude': 0.001, 'Pressure': 25.791, 'Temperature': 941.837}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:57:08', 'Amplitude': 0.0, 'MagX': -26.999, 'MagY': 74.021, 'MagZ': 4.021}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:57:18', 'Amplitude': 0.001, 'AccX': 40.193, 'AccY': 36.299, 'AccZ': 12.287}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:57:28', 'Amplitude': 0.001, 'AccX': 27.833, 'AccY': 17.704, 'AccZ': 1.535}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:57:38', 'Amplitude': 0.002, 'Pressure': 25.352, 'Temperature': 954.43}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:57:48', 'Amplitude': 0.002, 'AccX': 1.655, 'AccY': -84.111, 'AccZ': -13.539}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:57:58', 'Amplitude': 0.0, 'Pressure': 26.389, 'Temperature': 954.714}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:58:08', 'Amplitude': 0.002, 'Pressure': 24.803, 'Temperature': 946.281}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:58:18', 'Amplitude': 0.002, 'AccX': -17.373, 'AccY': 99.619, 'AccZ': -6.04}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:58:28', 'Amplitude': 0.003, 'AccX': 45.438, 'AccY': -38.641, 'AccZ': -12.795}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:58:38', 'Amplitude': 0.001, 'AccX': -37.916, 'AccY': 45.157, 'AccZ': 16.741}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:58:48', 'Amplitude': 0.001, 'MagX': 44.842, 'MagY': -6.477, 'MagZ': 13.355}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:58:58', 'Amplitude': 0.001, 'Pressure': 23.651, 'Temperature': 956.392}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:59:08', 'Amplitude': 0.002, 'AccX': -4.401, 'AccY': -85.51, 'AccZ': -1.572}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:59:18', 'Amplitude': 0.0, 'MagX': -1.644, 'MagY': -31.397, 'MagZ': 17.689}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:59:28', 'Amplitude': 0.001, 'Pressure': 26.968, 'Temperature': 949.05}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:59:38', 'Amplitude': 0.0, 'AccX': -49.034, 'AccY': -81.823, 'AccZ': -2.941}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:59:48', 'Amplitude': 0.002, 'MagX': -37.791, 'MagY': -4.668, 'MagZ': -9.317}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:59:58', 'Amplitude': 0.003, 'AccX': 14.831, 'AccY': 77.263, 'AccZ': 19.362}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 19:00:08', 'Amplitude': 0.002, 'AccX': 29.996, 'AccY': -31.463, 'AccZ': 19.927}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 19:00:18', 'Amplitude': 0.001, 'MagX': 46.498, 'MagY': 86.596, 'MagZ': -0.502}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 19:00:28', 'Amplitude': 0.001, 'AccX': -25.78, 'AccY': 80.54, 'AccZ': 12.223}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 19:00:38', 'Amplitude': 0.001, 'MagX': -45.393, 'MagY': 54.919, 'MagZ': -1.265}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 19:00:48', 'Amplitude': 0.003, 'AccX': 12.735, 'AccY': 0.066, 'AccZ': -18.02}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 19:00:58', 'Amplitude': 0.001, 'Pressure': 25.631, 'Temperature': 943.315}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 19:01:08', 'Amplitude': 0.001, 'Pressure': 23.65, 'Temperature': 944.13}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 19:01:18', 'Amplitude': 0.002, 'MagX': -27.784, 'MagY': -61.694, 'MagZ': -10.338}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 19:01:28', 'Amplitude': 0.0, 'MagX': 17.581, 'MagY': -1.611, 'MagZ': -18.065}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 19:01:38', 'Amplitude': 0.002, 'Pressure': 26.604, 'Temperature': 957.216}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 19:01:48', 'Amplitude': 0.002, 'Pressure': 23.933, 'Temperature': 949.159}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 19:01:58', 'Amplitude': 0.002, 'Pressure': 25.309, 'Temperature': 946.857}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 19:02:08', 'Amplitude': 0.001, 'MagX': -40.751, 'MagY': 27.091, 'MagZ': 16.958}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 19:02:18', 'Amplitude': 0.001, 'Pressure': 26.788, 'Temperature': 952.578}
+	filtered_matches:
+	unfiltered_matches:
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:54:28', 'Amplitude': 0.002, 'MagX': 4.132, 'MagY': 66.528, 'MagZ': -0.785}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:58:18', 'Amplitude': 0.002, 'AccX': -17.373, 'AccY': 99.619, 'AccZ': -6.04}
+
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:55:08', 'Amplitude': 0.003, 'MagX': 38.061, 'MagY': -15.362, 'MagZ': -7.999}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:59:58', 'Amplitude': 0.003, 'AccX': 14.831, 'AccY': 77.263, 'AccZ': 19.362}
+
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:56:38', 'Amplitude': 0.001, 'MagX': -23.239, 'MagY': 8.275, 'MagZ': -8.629}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:58:38', 'Amplitude': 0.001, 'AccX': -37.916, 'AccY': 45.157, 'AccZ': 16.741}
+
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:56:38', 'Amplitude': 0.001, 'MagX': -23.239, 'MagY': 8.275, 'MagZ': -8.629}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 19:00:28', 'Amplitude': 0.001, 'AccX': -25.78, 'AccY': 80.54, 'AccZ': 12.223}
+
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:58:48', 'Amplitude': 0.001, 'MagX': 44.842, 'MagY': -6.477, 'MagZ': 13.355}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 19:00:28', 'Amplitude': 0.001, 'AccX': -25.78, 'AccY': 80.54, 'AccZ': 12.223}
+
+
+unit_id=1 
+filtered size = 0
+unfiltered size = 0
+	events:
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 19:00:08', 'Amplitude': 0.002, 'AccX': 29.996, 'AccY': -31.463, 'AccZ': 19.927}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 19:00:18', 'Amplitude': 0.001, 'MagX': 46.498, 'MagY': 86.596, 'MagZ': -0.502}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 19:00:28', 'Amplitude': 0.001, 'AccX': -25.78, 'AccY': 80.54, 'AccZ': 12.223}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 19:00:38', 'Amplitude': 0.001, 'MagX': -45.393, 'MagY': 54.919, 'MagZ': -1.265}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 19:00:48', 'Amplitude': 0.003, 'AccX': 12.735, 'AccY': 0.066, 'AccZ': -18.02}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 19:00:58', 'Amplitude': 0.001, 'Pressure': 25.631, 'Temperature': 943.315}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 19:01:08', 'Amplitude': 0.001, 'Pressure': 23.65, 'Temperature': 944.13}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 19:01:18', 'Amplitude': 0.002, 'MagX': -27.784, 'MagY': -61.694, 'MagZ': -10.338}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 19:01:28', 'Amplitude': 0.0, 'MagX': 17.581, 'MagY': -1.611, 'MagZ': -18.065}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 19:01:38', 'Amplitude': 0.002, 'Pressure': 26.604, 'Temperature': 957.216}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 19:01:48', 'Amplitude': 0.002, 'Pressure': 23.933, 'Temperature': 949.159}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 19:01:58', 'Amplitude': 0.002, 'Pressure': 25.309, 'Temperature': 946.857}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 19:02:08', 'Amplitude': 0.001, 'MagX': -40.751, 'MagY': 27.091, 'MagZ': 16.958}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 19:02:18', 'Amplitude': 0.001, 'Pressure': 26.788, 'Temperature': 952.578}
+	filtered_matches:
+	unfiltered_matches:
+
+unit_id=2 
+filtered size = 0
+unfiltered size = 0
+	events:
+	filtered_matches:
+	unfiltered_matches:
+
+unit_id=3 
+filtered size = 0
+unfiltered size = 0
+	events:
+	filtered_matches:
+	unfiltered_matches:
+
+unit_id=4 
+filtered size = 0
+unfiltered size = 0
+	events:
+	filtered_matches:
+	unfiltered_matches:
+
+unit_id=5 
+filtered size = 0
+unfiltered size = 0
+	events:
+	filtered_matches:
+	unfiltered_matches:
+
+unit_id=6 
+filtered size = 0
+unfiltered size = 0
+	events:
+	filtered_matches:
+	unfiltered_matches:
+
+unit_id=7 
+filtered size = 2
+unfiltered size = 0
+	events:
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:54:08', 'Amplitude': 0.002, 'Pressure': 24.413, 'Temperature': 949.917}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:54:18', 'Amplitude': 0.003, 'MagX': 8.192, 'MagY': -29.541, 'MagZ': -10.995}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:54:28', 'Amplitude': 0.002, 'MagX': 4.132, 'MagY': 66.528, 'MagZ': -0.785}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:54:38', 'Amplitude': 0.001, 'AccX': -45.406, 'AccY': 93.484, 'AccZ': -15.48}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:54:48', 'Amplitude': 0.001, 'AccX': 35.518, 'AccY': 98.596, 'AccZ': -3.125}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:54:58', 'Amplitude': 0.002, 'Pressure': 23.992, 'Temperature': 948.309}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:55:08', 'Amplitude': 0.003, 'MagX': 38.061, 'MagY': -15.362, 'MagZ': -7.999}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:55:18', 'Amplitude': 0.003, 'Pressure': 23.097, 'Temperature': 959.41}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:55:28', 'Amplitude': 0.001, 'AccX': 3.953, 'AccY': -21.239, 'AccZ': -1.077}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:55:38', 'Amplitude': 0.001, 'AccX': -45.322, 'AccY': -19.137, 'AccZ': 7.41}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:55:48', 'Amplitude': 0.0, 'MagX': -0.845, 'MagY': 90.011, 'MagZ': 7.459}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:55:58', 'Amplitude': 0.0, 'Pressure': 23.685, 'Temperature': 953.127}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:56:08', 'Amplitude': 0.002, 'AccX': -15.932, 'AccY': -27.879, 'AccZ': 14.796}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:56:18', 'Amplitude': 0.0, 'MagX': 45.622, 'MagY': -62.009, 'MagZ': -14.083}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:56:28', 'Amplitude': 0.002, 'AccX': 32.204, 'AccY': -53.536, 'AccZ': -5.924}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:56:38', 'Amplitude': 0.001, 'MagX': -23.239, 'MagY': 8.275, 'MagZ': -8.629}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:56:48', 'Amplitude': 0.003, 'Pressure': 25.413, 'Temperature': 947.292}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:56:58', 'Amplitude': 0.001, 'Pressure': 25.791, 'Temperature': 941.837}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:57:08', 'Amplitude': 0.0, 'MagX': -26.999, 'MagY': 74.021, 'MagZ': 4.021}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:57:18', 'Amplitude': 0.001, 'AccX': 40.193, 'AccY': 36.299, 'AccZ': 12.287}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:57:28', 'Amplitude': 0.001, 'AccX': 27.833, 'AccY': 17.704, 'AccZ': 1.535}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:57:38', 'Amplitude': 0.002, 'Pressure': 25.352, 'Temperature': 954.43}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:57:48', 'Amplitude': 0.002, 'AccX': 1.655, 'AccY': -84.111, 'AccZ': -13.539}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:57:58', 'Amplitude': 0.0, 'Pressure': 26.389, 'Temperature': 954.714}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:58:08', 'Amplitude': 0.002, 'Pressure': 24.803, 'Temperature': 946.281}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:58:18', 'Amplitude': 0.002, 'AccX': -17.373, 'AccY': 99.619, 'AccZ': -6.04}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:58:28', 'Amplitude': 0.003, 'AccX': 45.438, 'AccY': -38.641, 'AccZ': -12.795}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:58:38', 'Amplitude': 0.001, 'AccX': -37.916, 'AccY': 45.157, 'AccZ': 16.741}
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:58:48', 'Amplitude': 0.001, 'MagX': 44.842, 'MagY': -6.477, 'MagZ': 13.355}
+		{'SensorType': 'PressTemp', 'TimeStamp': '06/27/2021 18:58:58', 'Amplitude': 0.001, 'Pressure': 23.651, 'Temperature': 956.392}
+	filtered_matches:
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:54:28', 'Amplitude': 0.002, 'MagX': 4.132, 'MagY': 66.528, 'MagZ': -0.785}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:58:18', 'Amplitude': 0.002, 'AccX': -17.373, 'AccY': 99.619, 'AccZ': -6.04}
+
+		{'SensorType': 'Magnetometer', 'TimeStamp': '06/27/2021 18:56:38', 'Amplitude': 0.001, 'MagX': -23.239, 'MagY': 8.275, 'MagZ': -8.629}
+		{'SensorType': 'Accelerometer', 'TimeStamp': '06/27/2021 18:58:38', 'Amplitude': 0.001, 'AccX': -37.916, 'AccY': 45.157, 'AccZ': 16.741}
+
+	unfiltered_matches:
+

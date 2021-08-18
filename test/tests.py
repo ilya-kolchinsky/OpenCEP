@@ -10,6 +10,7 @@ import test.EventProbabilityTests
 from test.NestedTests import *
 from test.UnitTests.test_storage import run_storage_tests
 from test.UnitTests.RuleTransformationTests import ruleTransformationTests
+from test.ParallelTests import *
 
 
 runTest.over_all_time = 0
@@ -271,6 +272,20 @@ msftDrivRacePatternSearchTest_8()
 googleIncreasePatternSearchTest_8()
 amazonSpecificPatternSearchTest_8()
 googleAmazonLowPatternSearchTest_8()
+
+# parallel testing
+simpleGroupByKeyTest()
+SensorsDataHIRZELTest()
+GroupByKeyMultiPatternTest()
+simpleRIPTest()
+StocksDataRIPTest()
+SensorsDataRIPTestShort()
+SensorsDataRIPTest()
+SensorsDataRIPLongTime()
+simpleHyperCubeTest()
+HyperCubeMultiPatternTest()
+HyperCubeMultiAttrbutesTest()
+HyperCubeMultiEventTypesTest()
 
 
 # benchmarks

@@ -3,7 +3,7 @@ Provides parallelization functionality based on Python threading library.
 """
 import threading
 
-from parallel.platform.ParallelExecutionPlatform import ParallelExecutionPlatform, ParallelExecutionUnit
+from parallel.platform.ParallelExecutionPlatform import ParallelExecutionPlatform, ParallelExecutionUnit, Lock
 
 
 class ThreadingParallelExecutionPlatform(ParallelExecutionPlatform):
@@ -14,6 +14,10 @@ class ThreadingParallelExecutionPlatform(ParallelExecutionPlatform):
     def create_parallel_execution_unit(unit_id: int, callback_function: callable, *args, **kwargs):
         new_thread = threading.Thread(target=callback_function, args=args, kwargs=kwargs)
         return ThreadingParallelExecutionUnit(unit_id, new_thread)
+
+    @staticmethod
+    def create_lock():
+        return ThreadingLock()
 
 
 class ThreadingParallelExecutionUnit(ParallelExecutionUnit):
@@ -41,3 +45,17 @@ class ThreadingParallelExecutionUnit(ParallelExecutionUnit):
     def receive(self, timeout: float = None):
         # TODO: not yet implemented
         return
+
+
+class ThreadingLock(Lock):
+    def __init__(self):
+        self._lock = threading.Lock()
+
+    def acquire(self, blocking=True, timeout=-1) -> bool:
+        return self._lock.acquire(blocking, timeout)
+
+    def release(self) -> None:
+        return self._lock.release()
+
+    def locked(self) -> bool:
+        return self._lock.locked()

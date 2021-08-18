@@ -4,15 +4,14 @@ This file contains various useful functions utilized by different project module
 
 from datetime import datetime
 from typing import Iterator, Sequence, TypeVar
-from typing import List, Container, Optional
-
+from typing import List, Container, Optional, Union
 from base.Pattern import Pattern
 from base.PatternStructure import PrimitiveEventStructure
 from itertools import combinations, chain
 from base.PatternStructure import SeqOperator
 from base.PatternMatch import PatternMatch
 from copy import deepcopy
-
+from functools import reduce
 from stream.Stream import Stream
 
 
@@ -305,3 +304,120 @@ def calculate_joint_probability(p1: Optional[float], p2: Optional[float]) -> Opt
     if p2 is None:
         return p1
     return p1 * p2
+
+
+class ndarray:
+    """
+    Simple implementation of numpy.array
+    """
+
+    def __init__(self, array_like):
+        if len(array_like) == 0:
+            self._data = []
+            self.shape = tuple([0])
+            self.ndim = 1
+            self.size = 0
+            return
+        elif isinstance(array_like[0], Container):
+            self._data = [ndarray(layer) for layer in array_like]
+        else:
+            self._data = list(array_like)
+        if isinstance(self._data[0], ndarray):
+            self.shape = tuple([len(self._data)] + list(self._data[0].shape))
+            self.ndim = self._data[0].ndim+1
+            self.size = self._data[0].size * len(self._data)
+        else:
+            self.size = len(self._data)
+            self.shape = tuple([self.size])
+            self.ndim = 1
+
+    def reshape(self, *new_shape: Union[int, Container[int]]):
+        if all(isinstance(d, int) for d in new_shape):
+            pass
+        elif not isinstance(new_shape[0], (list, tuple)) or len(new_shape) != 1:
+            raise TypeError
+        else:
+            new_shape = new_shape[0]
+        new_shape = list(new_shape)
+        new_size = self._list_mul(new_shape)
+        if new_shape.count(-1) > 1:
+            raise ValueError("can only specify one unknown dimension")
+        if -1 not in new_shape:
+            if new_size != self.size:
+                raise ValueError(f'cannot reshape array of size {self.size} into shape {tuple(new_shape)}')
+        else:
+            new_size *= -1
+            if new_size > self.size:
+                raise ValueError(f'cannot reshape array of size {self.size} into shape {tuple(new_shape)}')
+            new_shape[new_shape.index(-1)] = self.size // new_size
+
+        flat_array = self._ndarray_to_1darray()
+        if len(new_shape) <= 1:
+            return flat_array
+        else:
+            return flat_array._1darray_to_ndarray(new_shape)
+
+    def __getitem__(self, *slices):
+        if all(isinstance(d, int) for d in slices):
+            pass
+        elif not isinstance(slices[0], Container) or len(slices) != 1:
+            raise TypeError
+        else:
+            slices = slices[0]
+        slices = list(slices)
+        if len(slices) > self.ndim:
+            raise ValueError
+        if not slices:
+            return self
+        elif self.ndim == 1:
+            return self._data[slices[0]]
+        elif isinstance(slices[0], int):
+            return self._data[slices[0]][slices[1:]]
+        else:
+            return ndarray([layer[slices[1:]] for layer in self._data[slices[0]]])
+
+    def tolist(self):
+        if self.ndim == 1:
+            return self._data
+        else:
+            return [layer.tolist() for layer in self._data]
+
+    def __repr__(self):
+        return f'array({self.tolist()}, shape={self.shape.__repr__()}'
+
+    def __str__(self):
+        return self.tolist().__str__()
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __len__(self):
+        return self.shape[0] if self.shape else 0
+
+    @staticmethod
+    def _list_mul(lst):
+        return reduce(lambda a, b: a * b, lst) if lst else 0
+
+    def _ndarray_to_1darray(self):
+        def matrix_to_list(matrix):
+            return [item for sublist in matrix for item in sublist]
+
+        new_list = self._data
+        if new_list:
+            for _ in range(self.ndim - 1):
+                new_list = matrix_to_list(new_list)
+        return ndarray(new_list)
+
+    def _1darray_to_ndarray(self, newshape):
+        def list_to_matrix(flat_list, inner_dim):
+            m = len(flat_list) // inner_dim
+            return [[flat_list[i + inner_dim * j] for i in range(inner_dim)] for j in range(m)]
+
+        new_list = self._data
+        if len(newshape) > 1:
+            for d in newshape[-1:0:-1]:
+                new_list = list_to_matrix(new_list, d)
+        return ndarray(new_list)
+
+def array(array_like):
+    return ndarray(array_like)
