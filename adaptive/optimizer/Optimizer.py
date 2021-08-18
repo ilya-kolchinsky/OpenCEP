@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+
+from adaptive.statistics.StatisticsFactory import StatisticsFactory
 from base import Pattern
 from misc import DefaultConfig
 from plan import TreePlanBuilder
@@ -35,20 +37,21 @@ class Optimizer(ABC):
         """
         return self.__is_adaptivity_enabled
 
-    def build_initial_plan(self, initial_statistics: dict, cost_model_type: TreeCostModels,
-                           pattern: Pattern):
+    def build_initial_plan(self, pattern: Pattern, cost_model_type: TreeCostModels):
         """
-        initializes the Statistic objects with initial statistics if such statistics exists,
-        else, applies the default algorithm that does not require statistics.
+        Creates an initial tree plan using initial statistics if such statistics exists,
+        otherwise applies the default algorithm that does not require statistics.
         Note: right now only the TrivialLeftDeepTreeBuilder algorithm does not require statistics.
         """
+        statistics = pattern.statistics if pattern.statistics is not None \
+            else StatisticsFactory.get_default_statistics(pattern)
         non_prior_tree_plan_builder = self._build_non_prior_tree_plan_builder(cost_model_type, pattern)
         if non_prior_tree_plan_builder is not None:
             self._tree_plan_builder, temp_tree_plan_builder = non_prior_tree_plan_builder, self._tree_plan_builder
-            initial_tree_plan = self.build_new_plan(initial_statistics, pattern)
+            initial_tree_plan = self.build_new_plan(statistics, pattern)
             self._tree_plan_builder = temp_tree_plan_builder
         else:
-            initial_tree_plan = self.build_new_plan(initial_statistics, pattern)
+            initial_tree_plan = self.build_new_plan(statistics, pattern)
         return initial_tree_plan
 
     @staticmethod
@@ -118,9 +121,10 @@ class InvariantsAwareOptimizer(Optimizer):
         tree_plan, self._invariants = self._tree_plan_builder.build_tree_plan(pattern, new_statistics)
         return tree_plan
 
-    def build_initial_plan(self, new_statistics: dict, cost_model_type: TreeCostModels,
-                           pattern: Pattern):
+    def build_initial_plan(self, pattern: Pattern, cost_model_type: TreeCostModels):
+        statistics = pattern.statistics if pattern.statistics is not None \
+            else StatisticsFactory.get_default_statistics(pattern)
         non_prior_tree_plan_builder = self._build_non_prior_tree_plan_builder(cost_model_type, pattern)
         if non_prior_tree_plan_builder is not None:
-            return non_prior_tree_plan_builder.build_tree_plan(pattern, new_statistics)
-        return self.build_new_plan(new_statistics, pattern)
+            return non_prior_tree_plan_builder.build_tree_plan(pattern, statistics)
+        return self.build_new_plan(statistics, pattern)

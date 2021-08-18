@@ -250,7 +250,7 @@ def greedyNestedComplexStructuralTest():
                                                  TreePlanBuilderTypes.GREEDY_LEFT_DEEP_TREE)),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    expected_result = ('And', ('And', ('And', 'j', ('Seq', ('Seq', 'f', 'i'), ('Seq', 'g', 'h'))), ('Seq', 'd', 'e')), ('Seq', ('Seq', 'a', 'b'), 'c'))
+    expected_result = ('And', ('And', ('And', ('Seq', ('Seq', 'a', 'b'), 'c'), ('Seq', ('Seq', 'f', 'i'), ('Seq', 'g', 'h'))), ('Seq', 'd', 'e')), 'j')
     runStructuralTest('greedyNestedComplexStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 
@@ -426,7 +426,7 @@ def dpLdNestedComplexStructuralTest():
                                                  TreePlanBuilderTypes.DYNAMIC_PROGRAMMING_LEFT_DEEP_TREE)),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    expected_result = ('And', ('And', ('And', 'j', ('Seq', ('Seq', 'f', 'g'), ('Seq', 'h', 'i'))), ('Seq', 'd', 'e')), ('Seq', ('Seq', 'a', 'b'), 'c'))
+    expected_result = ('And', ('And', ('And', ('Seq', ('Seq', 'a', 'b'), 'c'), 'j'), ('Seq', 'd', 'e')), ('Seq', ('Seq', 'f', 'g'), ('Seq', 'h', 'i')))
     runStructuralTest('dpLdNestedComplexStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 
@@ -472,7 +472,7 @@ def zstreamOrdNestedComplexStructuralTest():
                                                  TreePlanBuilderTypes.ORDERED_ZSTREAM_BUSHY_TREE)),
         storage_params=DEFAULT_TESTING_EVALUATION_MECHANISM_SETTINGS.storage_params
     )
-    expected_result = ('And', ('And', ('And', 'j', ('Seq', ('Seq', 'f', 'g'), ('Seq', 'h', 'i'))), ('Seq', 'd', 'e')), ('Seq', ('Seq', 'a', 'b'), 'c'))
+    expected_result = ('And', ('And', ('And', ('Seq', ('Seq', 'a', 'b'), 'c'), ('Seq', ('Seq', 'f', 'g'), ('Seq', 'h', 'i'))), ('Seq', 'd', 'e')), 'j')
     runStructuralTest('zstreamOrdNestedComplexStructuralTest', [pattern], expected_result, eval_mechanism_params=eval_params)
 
 

@@ -72,10 +72,8 @@ class EvaluationMechanismFactory:
         statistics_collector = StatisticsCollectorFactory.build_statistics_collector(statistic_collector_params,
                                                                                      patterns)
         optimizer = OptimizerFactory.build_optimizer(eval_mechanism_params.optimizer_params)
-        initial_statistics = statistics_collector.get_statistics()
         cost_model_type = eval_mechanism_params.optimizer_params.tree_plan_params.cost_model_type
-        pattern_to_tree_plan_map = {pattern: optimizer.build_initial_plan(initial_statistics,
-                                                                          cost_model_type, pattern)
+        pattern_to_tree_plan_map = {pattern: optimizer.build_initial_plan(pattern, cost_model_type)
                                     for pattern in patterns}
         runtime_statistics_collector = statistics_collector if optimizer.is_adaptivity_enabled() else None
 

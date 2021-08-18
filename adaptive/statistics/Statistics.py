@@ -32,16 +32,23 @@ class Statistics(ABC):
         """
         raise NotImplementedError()
 
+    @staticmethod
+    def get_default_statistics(pattern: Pattern):
+        """
+        Generates and returns a default statistics object for the given pattern.
+        """
+        raise NotImplementedError()
+
 
 class ArrivalRatesStatistics(Statistics):
     """
     Represents the arrival rates statistics.
     """
     def __init__(self, arrival_rates_time_window: timedelta, pattern: Pattern, predefined_statistics: List = None):
-        primitive_events = pattern.get_primitive_events()
-        self.__arrival_rates = [0.0] * len(primitive_events) if not predefined_statistics else predefined_statistics
+        self.__arrival_rates = ArrivalRatesStatistics.get_default_statistics(pattern) \
+            if not predefined_statistics else predefined_statistics
         self.__event_type_to_indices_map = {}
-        for i, arg in enumerate(primitive_events):
+        for i, arg in enumerate(pattern.get_primitive_events()):
             if arg.type in self.__event_type_to_indices_map:
                 self.__event_type_to_indices_map[arg.type].append(i)
             else:
@@ -88,6 +95,10 @@ class ArrivalRatesStatistics(Statistics):
     def get_statistics(self):
         return copy.deepcopy(self.__arrival_rates)
 
+    @staticmethod
+    def get_default_statistics(pattern: Pattern):
+        return [0.0] * len(pattern.get_primitive_events())
+
 
 class SelectivityStatistics(Statistics):
     """
@@ -105,7 +116,7 @@ class SelectivityStatistics(Statistics):
         self.__relevant_indices = set()
 
         if not predefined_statistics:
-            self.__selectivity_matrix = [[1.0 for _ in range(self.__args_len)] for _ in range(self.__args_len)]
+            self.__selectivity_matrix = SelectivityStatistics.get_default_statistics(pattern)
         else:
             self.__selectivity_matrix = predefined_statistics
 
@@ -141,9 +152,14 @@ class SelectivityStatistics(Statistics):
                 if denominator != 0.0:
                     selectivity *= (numerator / denominator)
 
-            self.__selectivity_matrix[j][i] = self.__selectivity_matrix[i][j] = copy.deepcopy(selectivity)
+            self.__selectivity_matrix[j][i] = self.__selectivity_matrix[i][j] = selectivity
 
         return copy.deepcopy(self.__selectivity_matrix)
+
+    @staticmethod
+    def get_default_statistics(pattern: Pattern):
+        primitive_events = pattern.get_primitive_events()
+        return [[1.0 for _ in primitive_events] for _ in primitive_events]
 
     def __init_maps(self, pattern: Pattern):
         """
