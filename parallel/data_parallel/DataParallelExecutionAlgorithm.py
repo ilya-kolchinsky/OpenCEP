@@ -8,7 +8,6 @@ from stream.Stream import *
 from parallel.manager.EvaluationManager import EvaluationManager
 from parallel.manager.SequentialEvaluationManager import SequentialEvaluationManager
 from typing import Set, Callable
-from copy import deepcopy
 
 
 class DataParallelExecutionAlgorithm(ABC):
@@ -21,8 +20,8 @@ class DataParallelExecutionAlgorithm(ABC):
         self.units_number = units_number
         self.platform = platform
         # create SequentialEvaluationManager for every unit
-        seq = SequentialEvaluationManager(patterns, eval_mechanism_params)
-        self.evaluation_managers = [deepcopy(seq) for _ in range(self.units_number)]
+        self.evaluation_managers = [SequentialEvaluationManager(patterns, eval_mechanism_params)
+                                    for _ in range(self.units_number)]
         self.match_lock = platform.create_lock()
 
     def eval(self, events: InputStream, matches: OutputStream, data_formatter: DataFormatter):
@@ -57,6 +56,9 @@ class DataParallelExecutionAlgorithm(ABC):
         matches.close()
 
     def _create_skip_item(self, unit_id: int) -> Callable[[PatternMatch], bool]:
+        """
+        Returns a function for filtering out the matches arriving from the different execution units.
+        """
         raise NotImplementedError()
 
     def _classifier(self, event: Event) -> Set[int]:
@@ -72,7 +74,6 @@ class DataParallelExecutionAlgorithm(ABC):
         """
         A wrap for single unit that has input stream and an execution unit.
         """
-
         def __init__(self, platform, unit_id, evaluation_manager, matches, data_formatter):
             self.events = Stream()
             self.execution_unit = platform.create_parallel_execution_unit(unit_id,
@@ -106,7 +107,8 @@ class DataParallelExecutionAlgorithm(ABC):
 
     class FilterStream(Stream):
         """
-        Used to filter matches coming from the execution manager into the output stream to prevent duplicates (same data from different units).
+        Used to filter matches coming from the execution manager into the output stream to prevent duplicates
+        (same data from different units).
         """
         def __init__(self, skip_item: Callable[[PatternMatch], bool], matches: OutputStream, unit_id: int, lock: Lock):
             super().__init__()

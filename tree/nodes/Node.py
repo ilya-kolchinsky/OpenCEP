@@ -1,6 +1,6 @@
 from abc import ABC
-from collections import deque
 from datetime import timedelta, datetime
+from queue import Queue
 from typing import List, Set, Optional
 from dataclasses import dataclass
 
@@ -65,7 +65,7 @@ class Node(ABC):
 
         # Full pattern matches that were not yet reported. Only relevant for an output node, that is, for a node
         # corresponding to a full pattern definition.
-        self._unreported_matches = deque()
+        self._unreported_matches = Queue()
         self._is_output_node = False
 
         # set of event types that will only appear in a single full match
@@ -94,14 +94,14 @@ class Node(ABC):
         Removes and returns an unreported match buffered at this node.
         Used in an output node to collect full pattern matches.
         """
-        ret = self._unreported_matches.pop()
+        ret = self._unreported_matches.get()
         return ret
 
     def has_unreported_matches(self):
         """
         Returns True if this node contains any matches we did not report yet and False otherwise.
         """
-        return len(self._unreported_matches) > 0
+        return self._unreported_matches.qsize() > 0
 
     def clean_expired_partial_matches(self, last_timestamp: datetime):
         """
@@ -125,10 +125,10 @@ class Node(ABC):
         """
         self._partial_matches.add(pm)
         for parent in self._parents:
-            self._parent_to_unhandled_queue_dict[parent].append(pm)
+            self._parent_to_unhandled_queue_dict[parent].put(pm)
             parent.handle_new_partial_match(self)
         if self.is_output_node():
-            self._unreported_matches.append(pm)
+            self._unreported_matches.put(pm)
 
     def __can_add_partial_match(self, pm: PatternMatch) -> bool:
         """
@@ -198,7 +198,7 @@ class Node(ABC):
         """
         Returns the last partial match buffered at this node and not yet transferred to parent.
         """
-        return self._parent_to_unhandled_queue_dict[parent].pop()
+        return self._parent_to_unhandled_queue_dict[parent].get(block=False)
 
     def set_parents(self, parents, on_init: bool = False):
         """
@@ -230,7 +230,7 @@ class Node(ABC):
         if parent in self._parents:
             return
         self._parents.append(parent)
-        self._parent_to_unhandled_queue_dict[parent] = deque()
+        self._parent_to_unhandled_queue_dict[parent] = Queue()
         if not on_init:
             self._parent_to_info_dict[parent] = self.get_positive_event_definitions()
 

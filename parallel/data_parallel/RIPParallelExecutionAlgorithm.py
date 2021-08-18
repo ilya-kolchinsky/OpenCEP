@@ -14,7 +14,6 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
     multiple - Ratio between 'time window' and the 'interval'
     units_number - Indicate the number of units/threads to run, doesn't include the "main execution unit".
     """
-
     def __init__(self, units_number, patterns: Pattern or List[Pattern],
                  eval_mechanism_params: EvaluationMechanismParameters,
                  platform, multiple: float):
@@ -45,30 +44,27 @@ class RIPParallelExecutionAlgorithm(DataParallelExecutionAlgorithm, ABC):
 
     def _create_skip_item(self, unit_id: int):
         """
-        Creates and returns FilterStream object.
+        Only allows a match to pass if it was returned by the first of the two overlapping execution units.
         """
-
         def skip_item(item: PatternMatch):
-            """
-            the algorithm should accept only matches that their first event time stamp
-            """
-            first_matching_unit = self._get_unit_number(item.first_timestamp)
+            first_matching_unit = self.__get_unit_number(item.first_timestamp)
             return first_matching_unit != unit_id
         return skip_item
-
-    def _get_unit_number(self, event_time) -> int:
-        """
-        returns the corresponding unit to the event time
-        """
-        diff_time = event_time - self._start_time
-        unit_id = int((diff_time / self._interval) % self.units_number)
-        return unit_id  # result is zero based
 
     def _classifier(self, event: Event) -> Set[int]:
         """
         Returns possible unit ids for the given event
         """
         event_time = event.timestamp
-        unit_id1 = self._get_unit_number(event_time - self._time_delta)
-        unit_id2 = self._get_unit_number(event_time)
+        unit_id1 = self.__get_unit_number(event_time - self._time_delta)
+        unit_id2 = self.__get_unit_number(event_time)
         return {unit_id1, unit_id2}
+
+    def __get_unit_number(self, event_time) -> int:
+        """
+        Returns the ID of the execution unit in charge of the time interval to which the given timestamp belongs.
+        In case of an overlapping window between two threads, the first ID is returned.
+        """
+        diff_time = event_time - self._start_time
+        unit_id = int((diff_time / self._interval) % self.units_number)
+        return unit_id  # result is zero based

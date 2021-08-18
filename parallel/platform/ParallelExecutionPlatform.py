@@ -10,7 +10,6 @@ class ParallelExecutionPlatform(ABC):
     """
     A wrapper for accessing parallelization capabilities of any platform with such functionality.
     """
-
     @staticmethod
     def create_parallel_execution_unit(unit_id: int, callback_function: callable, *args, **kwargs):
         """
@@ -22,11 +21,11 @@ class ParallelExecutionPlatform(ABC):
     def create_lock():
         raise NotImplementedError()
 
+
 class ParallelExecutionUnit(ABC):
     """
     Represents a single unit of parallel execution (such as a thread, a process, a VM, or a physical server).
     """
-
     def __init__(self, unit_id: int):
         self._id = unit_id
 

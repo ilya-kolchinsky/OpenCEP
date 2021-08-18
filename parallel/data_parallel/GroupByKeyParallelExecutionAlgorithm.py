@@ -19,7 +19,6 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
 
     units_number - Indicate the number of units/threads to run, doesn't include the "main execution unit".
     """
-
     def __init__(self,
                  units_number,
                  patterns: Pattern or List[Pattern],
@@ -37,14 +36,12 @@ class GroupByKeyParallelExecutionAlgorithm(DataParallelExecutionAlgorithm):
         value = event.payload.get(self._key)
         if value is not None and (is_int(value) or is_float(value)):
             return {int(value) % self.units_number}
-        else:
-            return set()
+        return set()
 
     def _create_skip_item(self, unit_id: int):
         """
-        Creates and returns FilterStream object.
+        Returns a trivial function that does not perform any filtering.
         """
-
         def skip_item(item: PatternMatch):
             return False
 
