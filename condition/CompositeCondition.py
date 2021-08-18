@@ -36,7 +36,6 @@ class CompositeCondition(Condition, ABC):
                 return False
         return True
 
-
     def get_condition_of(self, names: set, get_kleene_closure_conditions=False, consume_returned_conditions=False):
         """
         Returns a new composite condition which only contains those conditions from this composite condition operating
@@ -105,6 +104,12 @@ class CompositeCondition(Condition, ABC):
         self._statistics_collector = statistics_collector
         for condition in self.extract_atomic_conditions():
             condition.set_statistics_collector(statistics_collector)
+
+    def get_statistics_collector(self):
+        """
+        Returns the statistics collector of this condition.
+        """
+        return self._statistics_collector
 
     def __repr__(self):
         res_list = []

@@ -50,6 +50,8 @@ class Tree:
         The condition is copied since it is modified inside the recursive apply_condition call.
         """
         condition_copy = deepcopy(pattern.condition)
+        # make sure the statistics collector is not copied
+        condition_copy.set_statistics_collector(pattern.condition.get_statistics_collector())
         self.__root.apply_condition(condition_copy)
 
     def get_leaves(self):
