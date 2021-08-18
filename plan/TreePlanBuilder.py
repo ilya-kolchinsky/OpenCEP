@@ -122,7 +122,7 @@ class TreePlanBuilder(ABC):
         elif isinstance(root, TreePlanNestedNode):
             return root if root.nested_event_index == index else None
         elif isinstance(root, TreePlanLeafNode):
-            return root if root.event_index == index else None
+            return root if root.original_event_index == index else None
         else:
             raise Exception("Illegal Root")
 
