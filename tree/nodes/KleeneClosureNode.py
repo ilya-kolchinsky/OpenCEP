@@ -2,7 +2,7 @@ from typing import List, Set
 from functools import reduce
 from misc.Utils import calculate_joint_probability
 
-from base.Event import Event
+from base.Event import Event, AggregatedEvent
 from condition.CompositeCondition import CompositeCondition
 from base.PatternMatch import PatternMatch
 from misc.Utils import powerset_generator
@@ -39,18 +39,21 @@ class KleeneClosureNode(UnaryNode):
 
         for partial_match_set in child_matches_powerset:
             # create and propagate the new match
-            events_for_partial_match = KleeneClosureNode.__partial_match_set_to_event_list(partial_match_set)
+            all_primitive_events = reduce(lambda x, y: x + y, [pm.events for pm in partial_match_set])
             probability = None if self._confidence is None else \
                 reduce(calculate_joint_probability, (pm.probability for pm in partial_match_set), None)
-            self._validate_and_propagate_partial_match(events_for_partial_match, probability)
+            aggregated_event = AggregatedEvent(all_primitive_events, probability)
+            self._validate_and_propagate_partial_match([aggregated_event], probability)
 
     def _validate_new_match(self, events_for_new_match: List[Event]):
         """
         Validates the condition stored in this node on the given set of events.
         """
+        if len(events_for_new_match) != 1 or not isinstance(events_for_new_match[0], AggregatedEvent):
+            raise Exception("Unexpected candidate event list for Kleene closure operator")
         if not Node._validate_new_match(self, events_for_new_match):
             return False
-        return self._condition.eval([e.payload for e in events_for_new_match])
+        return self._condition.eval([e.payload for e in events_for_new_match[0].primitive_events])
 
     def __create_child_matches_powerset(self):
         """
@@ -95,20 +98,3 @@ class KleeneClosureNode(UnaryNode):
         if not super().is_equivalent(other):
             return False
         return self.__min_size == other.__min_size and self.__max_size == other.__max_size
-
-    @staticmethod
-    def __partial_match_set_to_event_list(partial_match_set: List[PatternMatch]):
-        """
-        Converts a set of partial matches into a single list containing all primitive events of the partial
-        matches in the set.
-        TODO: this is not the way this operator should work!
-        """
-        min_timestamp = None
-        max_timestamp = None
-        events = []
-        for match in partial_match_set:
-            min_timestamp = match.first_timestamp if min_timestamp is None else min(min_timestamp, match.first_timestamp)
-            max_timestamp = match.last_timestamp if max_timestamp is None else max(max_timestamp, match.last_timestamp)
-            events.extend(match.events)
-
-        return events

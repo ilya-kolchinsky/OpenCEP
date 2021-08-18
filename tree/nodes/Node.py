@@ -115,7 +115,7 @@ class Node(ABC):
             # "single" consumption policy is disabled or no event types under the policy reach this node
             return
         self._filtered_events = set([event for event in self._filtered_events
-                                    if event.timestamp >= last_timestamp - self._sliding_window])
+                                    if event.min_timestamp >= last_timestamp - self._sliding_window])
 
     def _add_partial_match(self, pm: PatternMatch):
         """
@@ -188,8 +188,8 @@ class Node(ABC):
         """
         Validates the condition stored in this node on the given set of events.
         """
-        min_timestamp = min([event.timestamp for event in events_for_new_match])
-        max_timestamp = max([event.timestamp for event in events_for_new_match])
+        min_timestamp = min([event.min_timestamp for event in events_for_new_match])
+        max_timestamp = max([event.max_timestamp for event in events_for_new_match])
         return max_timestamp - min_timestamp <= self._sliding_window
 
 

@@ -93,9 +93,7 @@ class KCIndexCondition(KCCondition):
         item_1 = event_list[self.__first_index]
         item_2 = event_list[self.__second_index]
         # execute the relation op on both items
-        if not self._relation_op(self._getattr_func(item_1), self._getattr_func(item_2)):
-            return False
-        return True
+        return self._relation_op(self._getattr_func(item_1), self._getattr_func(item_2))
 
     def __eval_by_offset(self, event_list: list):
         """

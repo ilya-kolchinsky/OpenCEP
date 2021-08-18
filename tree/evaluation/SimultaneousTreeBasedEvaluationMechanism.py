@@ -59,7 +59,7 @@ class SimultaneousTreeBasedEvaluationMechanism(TreeBasedEvaluationMechanism):
         if self.__is_simultaneous_state:
             # After this round we ask if we are in a simultaneous state.
             # If the pattern window is over then we want to return to single tree state.
-            if event.timestamp - self.__tree_update_time > self._pattern.window:
+            if event.max_timestamp - self.__tree_update_time > self._pattern.window:
                 # Passes pending matches from the old tree to the new tree if the root is a NegationNode
                 self.__last_matches_from_old_tree = self._tree.get_last_matches()
 

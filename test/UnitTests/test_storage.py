@@ -13,7 +13,7 @@ class Event:
     def __init__(self, payload, event_type, time):
         self.payload = payload
         self.event_type = event_type
-        self.timestamp = time
+        self.min_timestamp = self.max_timestamp = self.timestamp = time
 
     def __repr__(self):
         return "((type: {}), (payload: {}), (timestamp: {}))".format(

@@ -1,5 +1,6 @@
 from abc import ABC
 from copy import deepcopy
+from datetime import timedelta
 from typing import List, Dict
 
 from adaptive.statistics.StatisticsTypes import StatisticsTypes
@@ -13,7 +14,7 @@ from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStruct
 from plan.TreeCostModel import TreeCostModelFactory
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode, TreePlanUnaryNode, \
-    TreePlanNestedNode, TreePlanLeafNode, TreePlanKCNode
+    TreePlanNestedNode, TreePlanLeafNode, TreePlanKCNode, TreePlanNegativeBinaryNode
 
 
 class TreePlanBuilder(ABC):
@@ -28,26 +29,18 @@ class TreePlanBuilder(ABC):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
-        statistics_copy = deepcopy(statistics)
-        pattern_positive_args = pattern.get_top_level_structure_args(positive_only=True)
-        pattern_positive_statistics = TreePlanBuilder.extract_positive_statistics(pattern, statistics_copy)
-        if any(not isinstance(arg, PrimitiveEventStructure) for arg in pattern_positive_args):
-            # the pattern contains nested parts and should be treated accordingly
-            nested_topology, _ = self.__create_nested_topology(pattern, pattern_positive_statistics)
-            positive_root = TreePlanBuilder.__adjust_nested_indices(pattern, nested_topology)
-        else:
-            # the pattern is entirely flat
-            positive_root = self._create_tree_topology(pattern, pattern_positive_statistics, self.__init_tree_leaves(pattern))
+        statistics_copy = deepcopy(statistics)  # the statistics object can be modified during the plan building process
+        root, _ = self.__create_topology(pattern, statistics_copy)
+        TreePlanBuilder.__adjust_indices(pattern, root)
         if isinstance(pattern.positive_structure, UnaryStructure):
             # an edge case where the topmost operator is a unary operator
-            positive_root = self._instantiate_unary_node(pattern, positive_root)
-        root = self.__negation_algorithm.handle_pattern_negation(pattern, statistics_copy, positive_root)
+            root = self._instantiate_unary_node(pattern, root)
         pattern_condition = deepcopy(pattern.condition)  # copied since apply_condition modifies its input parameter
         root.apply_condition(pattern_condition)
         return TreePlan(root)
 
     @staticmethod
-    def extract_positive_statistics(pattern: Pattern, statistics: Dict):
+    def __extract_positive_statistics(pattern: Pattern, statistics: Dict):
         """
         Returns a statistics object representing only the statistics related to the positive part of the pattern.
         """
@@ -55,12 +48,11 @@ class TreePlanBuilder(ABC):
             return statistics
         positive_statistics = {}
 
-        # TODO: this solution only works for negative events at the top level of the pattern - no nesting is supported
         negative_indices = []
         actual_index = 0
         for i, arg in enumerate(pattern.full_structure.args):
             if type(arg) == NegationOperator:
-                negative_indices.append(actual_index)
+                negative_indices.extend(range(actual_index, actual_index + len(arg.get_all_event_names())))
             actual_index += len(arg.get_all_event_names())
 
         if StatisticsTypes.ARRIVAL_RATES in statistics:
@@ -85,27 +77,41 @@ class TreePlanBuilder(ABC):
         return [item for i, item in enumerate(target_list) if i not in indices]
 
     @staticmethod
-    def __adjust_nested_indices(pattern: Pattern, root, offset=0):
+    def __adjust_indices(pattern: Pattern, root, offset=0):
         """
         After building a tree plan, this function will correct the indexes of sub trees to continue the
         indices of the main tree, instead of restarting in each sub tree(which was important while building the plan)
         """
-        for index, arg in enumerate(pattern.get_top_level_structure_args(positive_only=True)):
+        top_level_structure_args = pattern.get_top_level_structure_args()
+        for index, arg in enumerate(top_level_structure_args):
             node = TreePlanBuilder.__get_node_by_index(root, index)
             if isinstance(node, TreePlanLeafNode):
                 node.event_index += offset
-            elif isinstance(node, TreePlanNestedNode):
-                nested_pattern = TreePlanBuilder.__create_dummy_subpattern(pattern, arg)
-                TreePlanBuilder.__adjust_nested_indices(nested_pattern, node.sub_tree_plan,
-                                                        node.nested_event_index + offset)
-                offset += nested_pattern.count_primitive_events(positive_only=True) - 1
-        return root
+            elif isinstance(node, TreePlanNestedNode) or isinstance(node, TreePlanUnaryNode):
+                if isinstance(arg, NegationOperator):
+                    arg = arg.arg
+                nested_pattern = TreePlanBuilder.__create_dummy_subpattern(arg, pattern.window)
+                if isinstance(node, TreePlanNestedNode):
+                    new_root = node.sub_tree_plan
+                    new_offset = node.nested_event_index + offset
+                else:
+                    new_root = node.child
+                    new_offset = node.index + offset
+                TreePlanBuilder.__adjust_indices(nested_pattern, new_root, new_offset)
+                offset += nested_pattern.count_primitive_events() - 1
 
     @staticmethod
     def __get_node_by_index(root, index):
         """
         Given a tree and an event index, this will recursively search for the node structure with the index.
         """
+        if isinstance(root, TreePlanNegativeBinaryNode):
+            # In TreePlanNegativeBinaryNode the negative part is in the right child, and we need to start from this part
+            # in order to get the correct node.
+            node = TreePlanBuilder.__get_node_by_index(root.right_child, index)
+            if node is None:
+                node = TreePlanBuilder.__get_node_by_index(root.left_child, index)
+            return node
         if isinstance(root, TreePlanBinaryNode):
             node = TreePlanBuilder.__get_node_by_index(root.left_child, index)
             if node is None:
@@ -120,7 +126,7 @@ class TreePlanBuilder(ABC):
         else:
             raise Exception("Illegal Root")
 
-    def _create_tree_topology(self, pattern: Pattern, statistics: Dict, leaves: List[TreePlanNode]):
+    def _create_tree_topology(self, pattern: Pattern, statistics: Dict, leaves: List[TreePlanNode]) -> TreePlanNode:
         """
         An abstract method for creating the actual tree topology.
         This method works on the flat (not nested) case.
@@ -130,7 +136,7 @@ class TreePlanBuilder(ABC):
     @staticmethod
     def __init_tree_leaves(pattern: Pattern,
                            nested_topologies: List[TreePlanNode] = None, nested_args: List[PatternStructure] = None,
-                           nested_cost: List[float] = None):
+                           nested_cost: List[float] = None) -> List[TreePlanNode]:
         """
         Initializes the leaves of the tree plan. If the nested parameters are given, creates nested nodes instead of
         regular leaves where necessary.
@@ -145,24 +151,30 @@ class TreePlanBuilder(ABC):
             else:
                 nested_topology = nested_topologies[i].sub_tree_plan \
                     if isinstance(nested_topologies[i], TreePlanNestedNode) else nested_topologies[i]
-                new_leaf = TreePlanNestedNode(i, nested_topology,
-                                              nested_args[i], nested_cost[i])
+                new_leaf = TreePlanNestedNode(i, nested_topology, nested_args[i], nested_cost[i])
             if isinstance(arg, UnaryStructure):
                 new_leaf = TreePlanBuilder._instantiate_unary_node(
-                    TreePlanBuilder.__create_dummy_subpattern(pattern, arg), new_leaf)
+                    TreePlanBuilder.__create_dummy_subpattern(arg, pattern.window), new_leaf)
+                new_leaf.index = i
             leaves.append(new_leaf)
         return leaves
 
-    def __create_nested_topology(self, pattern: Pattern, statistics: Dict):
+    def __create_topology(self, pattern: Pattern, statistics: Dict):
         """
-        A recursive method for creating a tree topology for the nested case.
+        A recursive method for creating a tree topology.
         """
+        # Handle positive part
+        pattern_positive_statistics = TreePlanBuilder.__extract_positive_statistics(pattern, statistics)
         pattern, modified_statistics, nested_topologies, nested_args, nested_cost = \
-            self.__extract_nested_pattern(pattern, statistics)
+            self.__extract_nested_pattern(pattern, pattern_positive_statistics)
         tree_topology = self._create_tree_topology(pattern, modified_statistics,
                                                    self.__init_tree_leaves(pattern, nested_topologies,
                                                                            nested_args, nested_cost))
-        return tree_topology, modified_statistics
+
+        # Handle negative part
+        tree_topology = self.__handle_negative_part(pattern, statistics, tree_topology)
+
+        return tree_topology, statistics
 
     def _get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: Dict):
         """
@@ -200,6 +212,50 @@ class TreePlanBuilder(ABC):
             raise Exception("Unsupported binary operator")
         return TreePlanBinaryNode(operator_type, left_subtree, right_subtree)
 
+    def __handle_negative_part(self, pattern: Pattern, statistics: Dict, positive_tree_topology: TreePlanNode) \
+            -> TreePlanNode:
+        """
+        A recursive method for creating a tree topology for the negative part of the pattern.
+        The method handles both, flat negative pattern, and nested negative pattern. The nested patterns are
+        calculated recursively and saved into negative_index_to_tree_plan_node and negative_index_to_tree_plan_cost
+        dictionaries. The flat patterns will be handled in the handle_pattern_negation method.
+        """
+        negative_index_to_tree_plan_node: Dict[int, TreePlanNode] = {}
+        negative_index_to_tree_plan_cost: Dict[int, float] = {}
+        for index, arg in enumerate(pattern.get_top_level_structure_args()):
+            if type(arg) == NegationOperator:
+                negative_pattern = self.__create_dummy_subpattern(arg, pattern.window)
+                if not self.__is_pattern_flat(negative_pattern):
+                    nested_negative_pattern, nested_negative_statistics = self \
+                        .__create_nested_negative_pattern_and_statistics(pattern, arg, statistics)
+                    negative_tree_plan_node, _ = self.__create_topology(nested_negative_pattern,
+                                                                        nested_negative_statistics)
+                    negative_tree_plan_cost = self._get_plan_cost(nested_negative_pattern,
+                                                                  negative_tree_plan_node,
+                                                                  nested_negative_statistics)
+                    negative_index_to_tree_plan_node[index] = negative_tree_plan_node
+                    negative_index_to_tree_plan_cost[index] = negative_tree_plan_cost
+
+        tree_topology = self.__negation_algorithm.handle_pattern_negation(pattern, statistics, positive_tree_topology,
+                                                                          negative_index_to_tree_plan_node,
+                                                                          negative_index_to_tree_plan_cost)
+        return tree_topology
+
+    def __create_nested_negative_pattern_and_statistics(self, pattern: Pattern, arg: NegationOperator,
+                                                        statistics: Dict):
+        """
+        This method creates a nested negative pattern and nested negative statistics for the given pattern, statistics
+        and the nested argument.
+        """
+        negative_pattern = self.__create_dummy_subpattern(arg, pattern.window)
+        negative_statistics = self.__extract_nested_statistics(pattern, arg, statistics)
+        if isinstance(arg.arg, KleeneClosureOperator):
+            return negative_pattern, negative_statistics
+
+        nested_negative_pattern = self.__create_dummy_subpattern(arg.arg, pattern.window)
+        nested_negative_statistics = self.__extract_nested_statistics(negative_pattern, arg.arg, negative_statistics)
+        return nested_negative_pattern, nested_negative_statistics
+
     def __extract_nested_pattern(self, pattern: Pattern, statistics: Dict):
         """
         This function is done recursively, to support nested pattern's operators (i.e. And(Seq,Seq)).
@@ -210,9 +266,8 @@ class TreePlanBuilder(ABC):
         For every "flat" pattern, it invokes an algorithm (to be implemented by subclasses) that builds an evaluation
         order of the operands, and converts it into a left-deep tree topology.
         """
-        if isinstance(pattern.positive_structure, PrimitiveEventStructure):
+        if self.__is_pattern_flat(pattern, positive_only=True):
             return pattern, statistics, None, None, None
-        # a nested structure
         nested_topologies = []
         nested_args = []
         nested_cost = []
@@ -226,19 +281,31 @@ class TreePlanBuilder(ABC):
                 TreePlanBuilder.__create_selectivity_matrix_for_nested_operators(pattern, statistics)
         for arg in pattern.get_top_level_structure_args(positive_only=True):
             # This loop creates (recursively) all the nested subtrees
-            if not isinstance(arg, PrimitiveEventStructure):
+            if isinstance(arg, PrimitiveEventStructure):
+                # If we are here, than this structure is primitive
+                pattern, nested_topologies, nested_arrival_rates, nested_cost, nested_args = \
+                    TreePlanBuilder.__handle_primitive_event(pattern, statistics, nested_topologies,
+                                                             nested_arrival_rates, nested_cost, nested_args)
+            else:
                 # If we are here than this structure is composite or unary.
                 # And first create new pattern that fits the nested operator's stats and structure.
                 pattern, nested_topologies, nested_arrival_rates, nested_cost, nested_args = \
                     self.__handle_nested_operator(arg, pattern, statistics, nested_topologies,
                                                   nested_arrival_rates, nested_cost, nested_args)
-            else:
-                # If we are here, than this structure is primitive
-                pattern, nested_topologies, nested_arrival_rates, nested_cost, nested_args = \
-                    TreePlanBuilder.__handle_primitive_event(pattern, statistics, nested_topologies,
-                                                             nested_arrival_rates, nested_cost, nested_args)
         modified_statistics[StatisticsTypes.ARRIVAL_RATES] = nested_arrival_rates
         return pattern, modified_statistics, nested_topologies, nested_args, nested_cost
+
+    @staticmethod
+    def __is_pattern_flat(pattern: Pattern, positive_only=False, negative_only=False) -> bool:
+        """
+        This method checks whether the given pattern is flat. If it is flat it returns True, if the pattern
+        is nested it return False.
+        """
+        if positive_only and negative_only:
+            raise Exception("Wrong method usage")
+        top_level_args = pattern.get_top_level_structure_args(positive_only=positive_only, negative_only=negative_only)
+        return isinstance(pattern.full_structure, PrimitiveEventStructure) or all(
+            isinstance(arg, PrimitiveEventStructure) for arg in top_level_args)
 
     @staticmethod
     def __create_selectivity_matrix_for_nested_operators(pattern: Pattern, statistics: Dict):
@@ -301,16 +368,9 @@ class TreePlanBuilder(ABC):
         This function is building a sub tree for a given nested operator, and returns all the parameters of this subtree
         up to the main tree, that will treat this subtree as a fake leaf.
         """
-        nested_pattern = TreePlanBuilder.__create_dummy_subpattern(pattern, arg)
-        nested_statistics = {}
-        if StatisticsTypes.ARRIVAL_RATES in statistics:
-            arg_arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES][0:len(arg.get_all_event_names())]
-            nested_statistics[StatisticsTypes.ARRIVAL_RATES] = arg_arrival_rates
-        if StatisticsTypes.SELECTIVITY_MATRIX in statistics:
-            # Take only the relevant part of the selectivity matrix:
-            nested_statistics[StatisticsTypes.SELECTIVITY_MATRIX] = \
-                TreePlanBuilder.__chop_matrix(pattern, arg, statistics[StatisticsTypes.SELECTIVITY_MATRIX])
-        nested_topology, nested_statistics = self.__create_nested_topology(nested_pattern, nested_statistics)
+        nested_pattern = TreePlanBuilder.__create_dummy_subpattern(arg, pattern.window)
+        nested_statistics = self.__extract_nested_statistics(pattern, arg, statistics, positive_only=True)
+        nested_topology, nested_statistics = self.__create_topology(nested_pattern, nested_statistics)
         nested_topologies.append(nested_topology)  # Save nested topology to add it as a field to its root
         if len(statistics) > 0:
             # Get the cost of the nested structure to calculate the new arrival rate and save it for other
@@ -330,14 +390,39 @@ class TreePlanBuilder(ABC):
         return pattern, nested_topologies, nested_arrival_rates, nested_cost, nested_args
 
     @staticmethod
-    def __chop_matrix(pattern: Pattern, arg: PatternStructure, selectivity_matrix: List[List[float]]):
+    def __extract_nested_statistics(pattern: Pattern, arg: PatternStructure,
+                                    statistics: Dict[StatisticsTypes, List[list]],
+                                    positive_only: bool = False, negative_only: bool = False) \
+            -> Dict[StatisticsTypes, List[list]]:
+        """
+        This function creates nested statistics for a given pattern, the statistics of this pattern, and the
+        nested argument.
+        """
+        if positive_only and negative_only:
+            raise Exception("Wrong method usage")
+        nested_statistics = {}
+        if StatisticsTypes.ARRIVAL_RATES in statistics:
+            arg_arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES][0:len(arg.get_all_event_names())]
+            nested_statistics[StatisticsTypes.ARRIVAL_RATES] = arg_arrival_rates
+        if StatisticsTypes.SELECTIVITY_MATRIX in statistics:
+            # Take only the relevant part of the selectivity matrix:
+            nested_statistics[StatisticsTypes.SELECTIVITY_MATRIX] = \
+                TreePlanBuilder.__chop_matrix(pattern, arg, statistics[StatisticsTypes.SELECTIVITY_MATRIX],
+                                              positive_only=positive_only, negative_only=negative_only)
+        return nested_statistics
+
+    @staticmethod
+    def __chop_matrix(pattern: Pattern, arg: PatternStructure, selectivity_matrix: List[List[float]],
+                      positive_only: bool = False, negative_only: bool = False):
         """
         Chop the matrix and returns only the rows and columns that are relevant to this arg (assuming this arg is in
         pattern's operators), based on the nested events' name in this arg.
         """
-        if pattern.count_primitive_events(positive_only=True) != len(selectivity_matrix):
+        if positive_only and negative_only:
+            raise Exception("Wrong method usage")
+        if pattern.count_primitive_events(positive_only=positive_only, negative_only=negative_only) != len(selectivity_matrix):
             raise Exception("size mismatch")
-        event_names = [name for name in pattern.positive_structure.get_all_event_names()]
+        event_names = [name for name in pattern.get_primitive_event_names(positive_only=positive_only, negative_only=negative_only)]
         primitive_sons = [name for name in arg.get_all_event_names()]
         chop_start = event_names.index(primitive_sons[0])
         chop_end = event_names.index(primitive_sons[-1])
@@ -349,16 +434,16 @@ class TreePlanBuilder(ABC):
         Helper function for matrix chopping, extracting a square(from start to end) out of the matrix.
         """
         chopped_matrix = []
-        for row in range(start, end+1):
+        for row in range(start, end + 1):
             chopped_row = []
-            for index in range(start, end+1):
+            for index in range(start, end + 1):
                 chopped_row.append(matrix[row][index])
             chopped_matrix.append(chopped_row)
         return chopped_matrix
 
     @staticmethod
-    def __create_dummy_subpattern(pattern: Pattern, arg: PatternStructure):
+    def __create_dummy_subpattern(arg: PatternStructure, pattern_window: timedelta):
         """
         Creates a dummy pattern representing the given argument of the given pattern.
         """
-        return Pattern(arg, None, pattern.window)
+        return Pattern(arg, None, pattern_window)

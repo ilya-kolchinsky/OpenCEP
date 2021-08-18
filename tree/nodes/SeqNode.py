@@ -28,7 +28,7 @@ class SeqNode(BinaryNode):
                                   first_event_list, second_event_list, key=lambda x: x.index)
 
     def _validate_new_match(self, events_for_new_match: List[Event]):
-        if not is_sorted(events_for_new_match, key=lambda x: x.timestamp):
+        if not is_sorted(events_for_new_match, key=lambda x: x.timestamp, secondary_key=lambda x: x.max_timestamp):
             return False
         return super()._validate_new_match(events_for_new_match)
 

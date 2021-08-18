@@ -64,6 +64,8 @@ structuralTest5()
 structuralTest6()
 
 # Kleene closure tests
+testKleeneClosureSeq()
+testKleeneClosureAnd()
 oneArgumentsearchTestKleeneClosure()
 MinMax_0_TestKleeneClosure()
 MinMax_1_TestKleeneClosure()
@@ -178,6 +180,16 @@ dpBNestedStructuralTest()
 dpLdNestedComplexStructuralTest()
 zstreamOrdNestedComplexStructuralTest()
 KCNestedStructuralTest()
+NegationInNestedPatternTest_1()
+NegationInNestedPatternTest_2()
+NegationInNestedPatternZstreamTest()
+NestedNegationSeqTest()
+NestedNegationSeqAndTest()
+NestedNegationSeqAndStructuralTest()
+NestedNegationInNegationStructuralTest_1()
+NestedNegationInNegationStructuralTest_2()
+NestedNegationWithKCTest()
+NestedNegationWithNestedKCStructuralTest()
 
 
 # Optimizer tests
