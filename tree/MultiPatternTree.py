@@ -18,6 +18,7 @@ class MultiPatternTree:
         self.__id_to_pattern_map = {}
         self.__output_nodes = []
         self.__construct_multi_pattern_tree(pattern_to_tree_plan_map, storage_params)
+        self.__map = pattern_to_tree_plan_map
 
     def __construct_multi_pattern_tree(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                                        storage_params: TreeStorageParameters):
@@ -25,24 +26,23 @@ class MultiPatternTree:
         Constructs a multi-pattern evaluation tree.
         It is assumed that each pattern appears only once in patterns (which is a legitimate assumption).
         """
-        i = 1  # pattern IDs starts from 1
+        # pattern IDs starts from 1
         plan_nodes_to_nodes_map = {}  # a cache for already created subtrees
-        for pattern, plan in pattern_to_tree_plan_map.items():
+        for i, (pattern, plan) in enumerate(pattern_to_tree_plan_map.items(), 1):
             pattern.id = i
             new_tree_root = Tree(plan, pattern, storage_params, plan_nodes_to_nodes_map).get_root()
             self.__id_to_output_node_map[pattern.id] = new_tree_root
             self.__id_to_pattern_map[pattern.id] = pattern
             self.__output_nodes.append(new_tree_root)
-            i += 1
+
+    def get_cost(self):
+        raise NotImplementedError()
 
     def get_leaves(self):
         """
         Returns all leaves in this multi-pattern-tree.
         """
-        leaves = set()
-        for output_node in self.__output_nodes:
-            leaves |= set(output_node.get_leaves())
-        return leaves
+        return set.union(*[output_node.get_leaves() for output_node in self.__output_nodes])
 
     def __should_attach_match_to_pattern(self, match: PatternMatch, pattern: Pattern):
         """

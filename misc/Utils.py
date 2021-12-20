@@ -419,5 +419,23 @@ class ndarray:
                 new_list = list_to_matrix(new_list, d)
         return ndarray(new_list)
 
+
+def mapped_cache(mapping):
+    def memorize(func):
+        cache = {}
+
+        def wrapper(*args):
+            mapped = mapping(args)
+            if mapped in cache:
+                return cache[mapped]
+            result = func(*args)
+            cache[mapped] = result
+            return result
+
+        return wrapper
+
+    return memorize
+
+
 def array(array_like):
     return ndarray(array_like)

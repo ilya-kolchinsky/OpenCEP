@@ -168,7 +168,7 @@ class TreePlanUnaryNode(TreePlanInternalNode):
 
 class TreePlanKCNode(TreePlanUnaryNode):
     """
-    Represents an internal unary node of a tree-based plan.
+    Represents a Kleene Closure node of a tree-based plan.
     """
     def __init__(self, child: TreePlanNode, index: int, min_size: int, max_size: int,
                  condition: CompositeCondition = AndCondition()):
