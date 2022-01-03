@@ -2,8 +2,10 @@
 This file contains the composite condition classes.
 """
 from abc import ABC
+from copy import deepcopy
 
 from adaptive.statistics.StatisticsCollector import StatisticsCollector
+from base.PatternStructure import PrimitiveEventStructure
 from condition.Condition import Condition, AtomicCondition
 from condition.KCCondition import KCCondition
 
@@ -14,25 +16,25 @@ class CompositeCondition(Condition, ABC):
     logic operators such as conjunction and disjunction.
     """
     def __init__(self, terminating_result: bool, *condition_list):
-        self.__conditions = list(condition_list)
-        self.__terminating_result = terminating_result
+        self._conditions = list(condition_list)
+        self._terminating_result = terminating_result
         self._statistics_collector = None
 
     def eval(self, binding: dict = None):
         if self.get_num_conditions() == 0:
             return True
-        for condition in self.__conditions:
-            if condition.eval(binding) == self.__terminating_result:
-                return self.__terminating_result
-        return not self.__terminating_result
+        for condition in self._conditions:
+            if condition.eval(binding) == self._terminating_result:
+                return self._terminating_result
+        return not self._terminating_result
 
     def __eq__(self, other):
         if self == other:
             return True
         if type(self) != type(other) or self.get_num_conditions() != other.get_num_conditions():
             return False
-        for condition in self.__conditions:
-            if condition not in other.__conditions:
+        for condition in self._conditions:
+            if condition not in other._conditions:
                 return False
         return True
 
@@ -44,7 +46,7 @@ class CompositeCondition(Condition, ABC):
         """
         result_conditions = []
         conditions_to_remove = []
-        for index, current_condition in enumerate(self.__conditions):
+        for index, current_condition in enumerate(self._conditions):
             if isinstance(current_condition, CompositeCondition):
                 inner_condition = current_condition.get_condition_of(names, get_kleene_closure_conditions,
                                                                      consume_returned_conditions)
@@ -68,25 +70,25 @@ class CompositeCondition(Condition, ABC):
 
         # remove the conditions at previously saved indices
         for index in reversed(conditions_to_remove):
-            self.__conditions.pop(index)
+            self._conditions.pop(index)
 
-        return CompositeCondition(self.__terminating_result, *result_conditions)
+        return CompositeCondition(self._terminating_result, *result_conditions)
 
     def get_num_conditions(self):
         """
         Returns the number of conditions encapsulated by this composite condition.
         """
-        return len(self.__conditions)
+        return len(self._conditions)
 
     def get_conditions_list(self):
         """
         Returns the list of conditions encapsulated by this composite condition.
         """
-        return self.__conditions
+        return self._conditions
 
     def extract_atomic_conditions(self):
         result = []
-        for f in self.__conditions:
+        for f in self._conditions:
             result.extend(f.extract_atomic_conditions())
         return result
 
@@ -94,7 +96,7 @@ class CompositeCondition(Condition, ABC):
         """
         Adds a new atomic condition to this composite condition.
         """
-        self.__conditions.append(condition)
+        self._conditions.append(condition)
         condition.set_statistics_collector(self._statistics_collector)
 
     def set_statistics_collector(self, statistics_collector: StatisticsCollector):
@@ -113,19 +115,22 @@ class CompositeCondition(Condition, ABC):
 
     def __repr__(self):
         res_list = []
-        for condition in self.__conditions:
+        for condition in self._conditions:
             res_list.append(condition.__repr__())
         return res_list
 
     def __eq__(self, other):
         if type(self) != type(other):
             return False
-        if len(self.__conditions) != other.get_num_conditions():
+        if len(self._conditions) != other.get_num_conditions():
             return False
-        for condition in self.__conditions:
+        for condition in self._conditions:
             if condition not in other.get_conditions_list():
                 return False
         return True
+
+
+
 
 
 class AndCondition(CompositeCondition):
@@ -154,6 +159,14 @@ class AndCondition(CompositeCondition):
         flat_list = [item for sublist in sets_of_names for item in sublist]
         return set(flat_list)
 
+    def get_projection(self, event_names):
+        conditions_arr = []
+        for condition in self._conditions:
+            proj = condition.get_projection(event_names)
+            if proj is not None:
+                conditions_arr.append(proj)
+        return AndCondition(*conditions_arr)
+
 
 class OrCondition(CompositeCondition):
     """
@@ -172,3 +185,17 @@ class OrCondition(CompositeCondition):
 
     def __repr__(self):
         return " OR ".join(super().__repr__())
+
+    def get_projection(self, event_names):
+        conditions_arr = []
+        for condition in self._conditions:
+            proj = condition.get_projection(event_names)
+            if proj is not None:
+                conditions_arr.append(proj)
+        return OrCondition(*conditions_arr)
+
+    def intersect(self, condition):
+        if type(self) == type(condition):
+            intersection = list(map(lambda e: deepcopy(e), set(condition._conditions) & set(self._conditions)))
+            return OrCondition(*intersection)
+

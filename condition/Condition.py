@@ -2,9 +2,13 @@
 This file contains the basic Condition classes.
 """
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from enum import Enum
+from typing import List
+
 from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from adaptive.statistics.StatisticsCollector import StatisticsCollector
+from base.PatternStructure import PrimitiveEventStructure
 
 
 class RelopTypes(Enum):
@@ -91,6 +95,16 @@ class Condition(ABC):
         """
         return set()
 
+    def get_projection(self, event_names):
+        """
+        Returns the projection of the event names on the condition
+        """
+        raise NotImplementedError()
+
+    def intersect(self, condition):
+
+        raise NotImplementedError()
+
 
 class AtomicCondition(Condition, ABC):
     """
@@ -137,6 +151,17 @@ class AtomicCondition(Condition, ABC):
         Returns the statistics collector of this condition.
         """
         return self._statistics_collector
+
+    def get_projection(self, event_names):
+
+        if self.is_condition_of(event_names):
+            return deepcopy(self)
+        return None
+
+    def intersect(self, condition):
+        if type(self) == type(condition):
+            return deepcopy(self)
+        return None
 
 
 class TrueCondition(AtomicCondition):

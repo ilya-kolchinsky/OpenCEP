@@ -1,6 +1,7 @@
 from abc import ABC
 from time import time
-from random import sample
+from random import sample, random
+from math import exp
 from collections import deque
 
 
@@ -22,28 +23,6 @@ class LocalSearch(ABC):
         pass
 
     def start_search(self):
-        raise NotImplementedError()
-
-
-class TabuSearch(LocalSearch):
-    def __init(self, initial_capacity, lookup_radius, initial_solution, steps_threshold, time_threshold):
-        self.__capacity = initial_capacity
-        self.__lookup_radius = lookup_radius
-        self._tabu_list = deque()
-        super().__init__(initial_solution, steps_threshold=steps_threshold, time_threshold=time_threshold)
-
-    def make_step(self, state):
-        neighbors = self.get_neighbors(state)
-        chosen_neighbors = set(sample(neighbors, min(self.__lookup_radius, len(neighbors))))
-        chosen_neighbors -= set(self._tabu_list)  # TODO: Think of a better implementation for this
-        cheapest_neighbor = min(chosen_neighbors, key=lambda sol: sol.get_cost())
-        self._tabu_list.append(cheapest_neighbor)
-        if len(self._tabu_list) > self.__capacity:
-            self._tabu_list.popleft()
-
-        return cheapest_neighbor
-
-    def start_search(self):
         allowed_steps = self._steps_threshold
         current_best_solution = self._solution
         current_best_cost = current_best_solution.get_cost()
@@ -62,3 +41,50 @@ class TabuSearch(LocalSearch):
                 allowed_steps -= 1
 
         return current_best_solution, current_best_cost
+
+
+class TabuSearch(LocalSearch):
+    def __init(self, initial_capacity, lookup_radius, initial_solution, steps_threshold, time_threshold):
+        self.__capacity = initial_capacity
+        self.__lookup_radius = lookup_radius
+        self._tabu_list = deque()
+        super().__init__(initial_solution=initial_solution,
+                         steps_threshold=steps_threshold,
+                         time_threshold=time_threshold)
+
+    def make_step(self, state):
+        neighbors = self.get_neighbors(state)
+        chosen_neighbors = set(sample(neighbors, min(self.__lookup_radius, len(neighbors))))
+        chosen_neighbors -= set(self._tabu_list)  # TODO: Think of a better implementation for this
+        cheapest_neighbor = min(chosen_neighbors, key=lambda sol: sol.get_cost())
+        self._tabu_list.append(cheapest_neighbor)
+        if len(self._tabu_list) > self.__capacity:
+            self._tabu_list.popleft()
+
+        return cheapest_neighbor
+
+class SimulatedAnnealingSearch(LocalSearch):
+    def __init__(self, initial_solution, steps_threshold, time_threshold, alpha, c_0, c_threshold):
+        self._c = c_0
+        self._alpha = alpha
+        self._c_threshold = c_threshold
+        super().__init__(initial_solution=initial_solution,
+                         steps_threshold=steps_threshold,
+                         time_threshold=time_threshold)
+
+    def make_step(self, state):
+        if self._c < self._c_threshold:
+            return None
+
+        cost = state.get_cost()
+        chosen, best_cost = None, cost
+        for neighbor in self.get_neighbors(state):
+            if neighbor.get_cost() < cost:
+                pass
+            else:
+                # should accept with prob
+                if random() < exp(-(neighbor.get_cost() - cost)/self._c):
+                    pass
+
+        self._c *= self._alpha
+        return chosen

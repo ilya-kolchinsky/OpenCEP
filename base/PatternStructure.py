@@ -39,6 +39,9 @@ class PatternStructure(ABC):
         """
         raise NotImplementedError()
 
+    def get_structure_projection(self, event_names):
+        raise NotImplementedError()
+
 
 class PrimitiveEventStructure(PatternStructure):
     """
@@ -63,6 +66,11 @@ class PrimitiveEventStructure(PatternStructure):
     def __repr__(self):
         return "%s %s" % (self.type, self.name)
 
+    def get_structure_projection(self, event_names):
+        if self.name not in event_names:
+            return None
+        return self
+
 
 class UnaryStructure(PatternStructure, ABC):
     """
@@ -80,6 +88,12 @@ class UnaryStructure(PatternStructure, ABC):
     def get_all_event_names(self):
         return self.arg.get_all_event_names()
 
+    def get_structure_projection(self, event_names):
+        res = self.arg.get_structure_projection(event_names)
+        if res is None:
+            return None
+        return self
+
 
 class CompositeStructure(PatternStructure, ABC):
     """
@@ -92,6 +106,19 @@ class CompositeStructure(PatternStructure, ABC):
         new_structure = self.duplicate_top_operator()
         new_structure.args = [arg.duplicate() for arg in self.args]
         return new_structure
+
+    def get_structure_projection(self, event_names):
+        proj = self.duplicate_top_operator()
+        args = []
+        for arg in self.args:
+            arg_proj = arg.get_structure_projection(event_names)
+            if arg_proj is not None:
+                args.append(arg_proj)
+
+        if args:
+            proj.args = args
+            return proj
+        return None
 
     def duplicate_top_operator(self):
         raise NotImplementedError()

@@ -1,5 +1,7 @@
 from copy import deepcopy
 from typing import List, Dict
+
+from condition.Condition import Condition
 from misc.Utils import mapped_cache
 from base.Pattern import Pattern
 from itertools import product
@@ -29,12 +31,13 @@ class MultiPatternGraph:
         # transfer it from pattern -> set[patterns] to pattern -> list[patterns]
 
     def __make_pattern_to_maximal_common_subpattern_peers(self):
-
-        pattern_to_peers = dict()
-        [pattern_to_peers.setdefault(pattern_a, []).append((self.__get_maximal_common_sub_pattern(pattern_a, pattern_b),
-                                                            pattern_b.id))
-         for pattern_a, pattern_b in product(self._patterns_list, self._patterns_list)]
-
+        # 
+        pattern_to_peers = {
+            pattern_a: [(self.__get_maximal_common_sub_pattern(pattern_a, pattern_b), pattern_b)
+                        for pattern_b in self._patterns_list
+                        if pattern_a != pattern_b]
+            for pattern_a in self._patterns_list
+        }
         return pattern_to_peers
         # pattern_a
         # pattern_a -> [(maximal(pattern_a, pattern_b), pattern_b) for pattern_b in pattern]
@@ -42,8 +45,35 @@ class MultiPatternGraph:
     @mapped_cache(mapping=lambda x: frozenset(list(x)))  # TODO: Move to Utils/Pattern file
     def __get_maximal_common_sub_pattern(self, pattern_a: Pattern, pattern_b: Pattern) -> List[Pattern]:
 
-        if pattern_b.id == pattern_a.id:
+        if pattern_a == pattern_b:
             return [deepcopy(pattern_a)]
-        # TODO: ADD
-        raise NotImplementedError()
+
+        events_intersection = set(pattern_a.get_primitive_events()) & set(pattern_b.get_primitive_events())
+
+        event_names = set(map(lambda event: event.name, events_intersection))
+
+        conditions_a = pattern_a.condition.get_projection(event_names)
+        conditions_b = pattern_b.condition.get_projection(event_names)
+
+        if conditions_a != conditions_b:
+            # Todo: reduce E_ij
+            events_a = conditions_a.
+            pass
+
+        # Reducing Si and Sj
+        structure_a = pattern_a.full_structure.get_structure_projection(event_names)
+        structure_b = pattern_b.full_structure.get_structure_projection(event_names)
+
+        if structure_a != structure_b:
+            # According to Ilya's assumption
+            return []
+
+        window = min(pattern_a.window, pattern_b.window)
+        stat = {**pattern_a.statistics, **pattern_b.statistics}
+
+        maximal = Pattern(pattern_structure=structure_a, pattern_matching_condition=conditions_a,
+                          time_window=window)
+        # For now all the other parameters will not be present until discussed with Ilya
+        return [maximal]
+
 

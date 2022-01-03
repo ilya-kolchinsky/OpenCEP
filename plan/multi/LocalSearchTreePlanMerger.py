@@ -18,14 +18,13 @@ C = 1e4
 class LocalSearchTreePlanMerger(RecursiveTraversalTreePlanMerger):
 
     def merge_tree_plans(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan]):
-
+        """
+                Merges the given tree plans of individual tree plans into a global shared structure.
+                """
         mpg = MultiPatternGraph(list(pattern_to_tree_plan_map.keys()))
 
-        """
-        Merges the given tree plans of individual tree plans into a global shared structure.
-        """
-        raise NotImplementedError()
 
+        raise NotImplementedError()
 
     def _are_suitable_for_share(self, first_node: TreePlanNode, second_node: TreePlanNode):
         """
