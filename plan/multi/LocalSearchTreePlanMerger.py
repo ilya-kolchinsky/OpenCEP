@@ -19,10 +19,13 @@ class LocalSearchTreePlanMerger(RecursiveTraversalTreePlanMerger):
 
     def merge_tree_plans(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan]):
         """
-                Merges the given tree plans of individual tree plans into a global shared structure.
-                """
+        Merges the given tree plans of individual tree plans into a global shared structure.
+        """
         mpg = MultiPatternGraph(list(pattern_to_tree_plan_map.keys()))
-
+        # TODO:
+        # init an initial solution
+        # initialize local search with the starting solution
+        # get_best_solution()
 
         raise NotImplementedError()
 

@@ -11,6 +11,7 @@ class LocalSearch(ABC):
         self._solution = initial_solution
         self._steps_threshold = steps_threshold
         self._time_threshold = time_threshold
+        self.__was_activated = False
 
     def make_step(self, solution):
         raise NotImplementedError()
@@ -20,9 +21,12 @@ class LocalSearch(ABC):
         raise NotImplementedError()
 
     def get_best_solution(self):
-        pass
+        if not self.__was_activated:
+            self._solution, cost = self.__start_search()
+            self.__was_activated = True
+        return self._solution
 
-    def start_search(self):
+    def __start_search(self):
         allowed_steps = self._steps_threshold
         current_best_solution = self._solution
         current_best_cost = current_best_solution.get_cost()
@@ -54,14 +58,21 @@ class TabuSearch(LocalSearch):
 
     def make_step(self, state):
         neighbors = self.get_neighbors(state)
-        chosen_neighbors = set(sample(neighbors, min(self.__lookup_radius, len(neighbors))))
-        chosen_neighbors -= set(self._tabu_list)  # TODO: Think of a better implementation for this
+        tabu_set = set(self._tabu_list)
+        while True:
+            # choosing a set until we get a non-empty one
+            chosen_neighbors = set(sample(neighbors, min(self.__lookup_radius, len(neighbors))))
+            chosen_neighbors -= tabu_set
+            if chosen_neighbors:
+                break
+
         cheapest_neighbor = min(chosen_neighbors, key=lambda sol: sol.get_cost())
         self._tabu_list.append(cheapest_neighbor)
         if len(self._tabu_list) > self.__capacity:
             self._tabu_list.popleft()
 
         return cheapest_neighbor
+
 
 class SimulatedAnnealingSearch(LocalSearch):
     def __init__(self, initial_solution, steps_threshold, time_threshold, alpha, c_0, c_threshold):
@@ -80,11 +91,13 @@ class SimulatedAnnealingSearch(LocalSearch):
         chosen, best_cost = None, cost
         for neighbor in self.get_neighbors(state):
             if neighbor.get_cost() < cost:
-                pass
+                chosen = neighbor
+                break
             else:
                 # should accept with prob
                 if random() < exp(-(neighbor.get_cost() - cost)/self._c):
-                    pass
+                    chosen = neighbor
+                    break
 
         self._c *= self._alpha
         return chosen
