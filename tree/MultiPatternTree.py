@@ -1,6 +1,7 @@
 from typing import Dict
 
 from base.Pattern import Pattern
+from plan.TreeCostModel import IntermediateResultsTreeCostModel
 from plan.TreePlan import TreePlan
 from tree.PatternMatchStorage import TreeStorageParameters
 from base.PatternMatch import PatternMatch
@@ -19,6 +20,7 @@ class MultiPatternTree:
         self.__output_nodes = []
         self.__construct_multi_pattern_tree(pattern_to_tree_plan_map, storage_params)
         self.__map = pattern_to_tree_plan_map
+        self.__cost = None
 
     def __construct_multi_pattern_tree(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                                        storage_params: TreeStorageParameters):
@@ -35,8 +37,15 @@ class MultiPatternTree:
             self.__id_to_pattern_map[pattern.id] = pattern
             self.__output_nodes.append(new_tree_root)
 
+        cost_model = IntermediateResultsTreeCostModel()
+        visited = {}
+        total_cost = 0
+        for (pattern, plan), root in zip(pattern_to_tree_plan_map.items(),  self.__output_nodes):
+            total_cost += cost_model.get_plan_cost(pattern, root, pattern.statistics, visited)
+        self.__cost = total_cost
+
     def get_cost(self):
-        raise NotImplementedError()
+        return self.__cost
 
     def get_leaves(self):
         """

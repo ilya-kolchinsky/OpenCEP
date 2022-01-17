@@ -13,7 +13,7 @@ class TreeCostModel(ABC):
     """
     An abstract class for the cost model used by cost-based tree-structured evaluation plan generation algorithms.
     """
-    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict):
+    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict, visited: dict = None):
         """
         Returns the cost of a given plan for a given pattern provided the relevant data characteristics (statistics).
         """
@@ -25,7 +25,8 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
     Calculates the plan cost based on the expected size of intermediate results (partial matches).
     Creates an invariant matrix for an arrival rates only case, so that we can still use it in the cost algorithms.
     """
-    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict):
+    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict, visited: dict = None):
+        visited = visited or {}
         if StatisticsTypes.ARRIVAL_RATES not in statistics:
             raise MissingStatisticsException()
         arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
@@ -34,12 +35,13 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
         else:
             selectivity_matrix = [[1.0 for x in range(len(arrival_rates))] for y in range(len(arrival_rates))]
         _, _, cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(plan, selectivity_matrix,
-                                                                          arrival_rates, pattern.window.total_seconds())
+                                                                          arrival_rates, pattern.window.total_seconds(),
+                                                                          visited)
         return cost
 
     @staticmethod
     def __get_plan_cost_aux(tree: TreePlanNode, selectivity_matrix: List[List[float]],
-                            arrival_rates: List[int], time_window: float):
+                            arrival_rates: List[int], time_window: float, visited: dict):
         """
         A helper function for calculating the cost function of the given tree.
         Returns a tuple of three values as follows:
@@ -48,6 +50,11 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
         - the total cost including subtrees.
         """
         # calculate base case: tree is a leaf.
+
+        prev_result = visited.get(tree)
+        if prev_result is not None:
+            return prev_result[0], prev_result[1], 0
+
         if isinstance(tree, TreePlanLeafNode):
             cost = pm = time_window * arrival_rates[tree.event_index] * \
                         selectivity_matrix[tree.event_index][tree.event_index]
@@ -60,7 +67,7 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
             return IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.child,
                                                                         selectivity_matrix,
                                                                         arrival_rates,
-                                                                        time_window)
+                                                                        time_window, visited)
         if not isinstance(tree, TreePlanBinaryNode):
             raise Exception("Invalid tree node: %s" % (tree,))
 
@@ -68,12 +75,12 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
         left_args, left_pm, left_cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.left_child,
                                                                                              selectivity_matrix,
                                                                                              arrival_rates,
-                                                                                             time_window)
+                                                                                             time_window, visited)
         # calculate for right subtree
         right_args, right_pm, right_cost = IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.right_child,
                                                                                                 selectivity_matrix,
                                                                                                 arrival_rates,
-                                                                                                time_window)
+                                                                                                time_window, visited)
         # calculate from left and right subtrees for this subtree.
         cumulative_selectivity = 1.0
         for left_arg in left_args:
@@ -84,7 +91,9 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
         else:
             pm = left_pm * right_pm * cumulative_selectivity
         cost = left_cost + right_cost + pm
-        return left_args + right_args, pm, cost
+
+        visited[tree] = left_args + right_args, pm, cost
+        return visited[tree]
 
 
 class TreeCostModelFactory:

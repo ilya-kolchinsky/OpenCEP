@@ -5,7 +5,7 @@ from math import exp
 from collections import deque
 
 
-class LocalSearch(ABC):
+class LocalSearch:
 
     def __init__(self, initial_solution, steps_threshold, time_threshold):
         self._solution = initial_solution

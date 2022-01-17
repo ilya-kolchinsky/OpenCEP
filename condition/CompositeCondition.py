@@ -129,8 +129,14 @@ class CompositeCondition(Condition, ABC):
                 return False
         return True
 
-
-
+    def intersection(self, other):
+        if type(other) == type(self):
+            atomic_conds = set.intersection(set(other.get_conditions_list), set(self.get_conditions_list()))
+            atomic_conds = [deepcopy(cond) for cond in atomic_conds]
+            return other.get_constructor()(*atomic_conds)
+        if isinstance(other, AtomicCondition) and other in self.get_conditions_list():
+            return deepcopy(other)
+        return None
 
 
 class AndCondition(CompositeCondition):
@@ -147,6 +153,9 @@ class AndCondition(CompositeCondition):
         if composite_condition:
             return AndCondition(*composite_condition.get_conditions_list())
         return None
+
+    def get_constructor(self):
+        return AndCondition
 
     def __repr__(self):
         return " AND ".join(super().__repr__())
@@ -176,6 +185,9 @@ class OrCondition(CompositeCondition):
     def __init__(self, *condition_list):
         super().__init__(True, *condition_list)
 
+    def get_constructor(self):
+        return OrCondition
+
     def get_condition_of(self, names: set, get_kleene_closure_conditions=False, consume_returned_conditions=False):
         composite_condition = super().get_condition_of(names, get_kleene_closure_conditions, consume_returned_conditions)
         # at-least 1 condition was retrieved using get_condition_of for the list of conditions
@@ -193,9 +205,4 @@ class OrCondition(CompositeCondition):
             if proj is not None:
                 conditions_arr.append(proj)
         return OrCondition(*conditions_arr)
-
-    def intersect(self, condition):
-        if type(self) == type(condition):
-            intersection = list(map(lambda e: deepcopy(e), set(condition._conditions) & set(self._conditions)))
-            return OrCondition(*intersection)
 

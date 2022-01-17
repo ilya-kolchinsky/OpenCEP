@@ -9,6 +9,7 @@ from typing import List
 from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from adaptive.statistics.StatisticsCollector import StatisticsCollector
 from base.PatternStructure import PrimitiveEventStructure
+from condition.CompositeCondition import CompositeCondition
 
 
 class RelopTypes(Enum):
@@ -101,7 +102,7 @@ class Condition(ABC):
         """
         raise NotImplementedError()
 
-    def intersect(self, condition):
+    def intersection(self, condition):
 
         raise NotImplementedError()
 
@@ -153,14 +154,15 @@ class AtomicCondition(Condition, ABC):
         return self._statistics_collector
 
     def get_projection(self, event_names):
-
         if self.is_condition_of(event_names):
             return deepcopy(self)
         return None
 
-    def intersect(self, condition):
-        if type(self) == type(condition):
+    def intersection(self, other):
+        if self == other:
             return deepcopy(self)
+        if isinstance(other, CompositeCondition):
+            return other.intersection(self)
         return None
 
 

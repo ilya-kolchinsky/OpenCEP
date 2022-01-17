@@ -1,11 +1,10 @@
 import random
 from copy import deepcopy
-from typing import List, Dict
+from typing import List
 
 from condition.Condition import Condition
 from misc.Utils import mapped_cache
 from base.Pattern import Pattern
-from itertools import product
 
 
 class MultiPatternGraph:
@@ -15,7 +14,6 @@ class MultiPatternGraph:
             self.__make_pattern_to_maximal_common_subpattern_peers()  # Pattern -> list of peers
         self._maximal_subpattern_to_pattern_list =\
             self.__make_maximal_subpattern_to_patterns_dict()  # MP -> Constructing Patterns
-
 
     def __make_maximal_subpattern_to_patterns_dict(self):
         """
@@ -65,8 +63,10 @@ class MultiPatternGraph:
         cond_intersection = conditions_a
 
         if conditions_a != conditions_b:
-            # Todo: reduce E_ij
-            cond_intersection = None
+            cond_intersection = conditions_a.intersection(conditions_b)
+            if cond_intersection is None:
+                return []
+
             event_names = cond_intersection.get_event_names()
 
         # Reducing Si and Sj
@@ -78,10 +78,11 @@ class MultiPatternGraph:
             return []
 
         window = min(pattern_a.window, pattern_b.window)
-        stat = {**pattern_a.statistics, **pattern_b.statistics}
+        confidence = min(pattern_a.confidence, pattern_b.confidence)
 
         maximal = Pattern(pattern_structure=structure_a, pattern_matching_condition=cond_intersection,
-                          time_window=window)
+                          time_window=window, consumption_policy=pattern_a.consumption_policy,
+                          confidence=confidence, statistics=pattern_a.statistics)
         # For now all the other parameters will not be present until discussed with Ilya
         return [maximal]
 

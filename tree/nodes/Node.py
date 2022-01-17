@@ -192,7 +192,6 @@ class Node(ABC):
         max_timestamp = max([event.max_timestamp for event in events_for_new_match])
         return max_timestamp - min_timestamp <= self._sliding_window
 
-
     ###################################### Parent- and topology-related methods
     def get_last_unhandled_partial_match_by_parent(self, parent):
         """
@@ -244,10 +243,9 @@ class Node(ABC):
         """
         Returns the event definitions according to the parent.
         """
-        if parent not in self._parent_to_info_dict.keys():
+        if parent not in self._parent_to_info_dict:
             raise Exception("parent is not in the dictionary.")
         return self._parent_to_info_dict[parent]
-
 
     ###################################### Various setters and getters
     def get_pattern_ids(self):
@@ -298,7 +296,6 @@ class Node(ABC):
         Returns the basic filtering parameters (sliding window and confidence threshold as of now).
         """
         return PatternParameters(self._sliding_window, self._confidence)
-
 
     ###################################### Miscellaneous
     def register_single_event_type(self, event_type: str):
