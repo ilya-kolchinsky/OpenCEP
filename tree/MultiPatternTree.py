@@ -14,22 +14,22 @@ class MultiPatternTree:
     Represents a multi-pattern evaluation tree.
     """
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
-                 storage_params: TreeStorageParameters):
+                 storage_params: TreeStorageParameters, plan_nodes_to_nodes_map=None):
         self.__id_to_output_node_map = {}
         self.__id_to_pattern_map = {}
         self.__output_nodes = []
-        self.__construct_multi_pattern_tree(pattern_to_tree_plan_map, storage_params)
+        self.__construct_multi_pattern_tree(pattern_to_tree_plan_map, storage_params, plan_nodes_to_nodes_map)
         self.__map = pattern_to_tree_plan_map
         self.__cost = None
 
     def __construct_multi_pattern_tree(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
-                                       storage_params: TreeStorageParameters):
+                                       storage_params: TreeStorageParameters, plan_nodes_to_nodes_map=None):
         """
         Constructs a multi-pattern evaluation tree.
         It is assumed that each pattern appears only once in patterns (which is a legitimate assumption).
         """
         # pattern IDs starts from 1
-        plan_nodes_to_nodes_map = {}  # a cache for already created subtrees
+        plan_nodes_to_nodes_map = plan_nodes_to_nodes_map or {}  # a cache for already created subtrees
         for i, (pattern, plan) in enumerate(pattern_to_tree_plan_map.items(), 1):
             pattern.id = i
             new_tree_root = Tree(plan, pattern, storage_params, plan_nodes_to_nodes_map).get_root()

@@ -7,6 +7,7 @@ from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc.SelectionStrategies import SelectionStrategies
 from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from adaptive.optimizer.OptimizerTypes import OptimizerTypes
+from plan.multi.local_search.LocalSearchApproaches import LocalSearchApproaches
 from tree.evaluation.TreeEvaluationMechanismUpdateTypes import TreeEvaluationMechanismUpdateTypes
 from parallel.ParallelExecutionModes import *
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
@@ -71,3 +72,19 @@ DEFAULT_TREE_UPDATE_TYPE = TreeEvaluationMechanismUpdateTypes.TRIVIAL_TREE_EVALU
 DEFAULT_STATISTICS_TYPE = [StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX]  # the default statistics type can also be a list of types
 STATISTICS_TIME_WINDOW = timedelta(hours=1)  # Time window for statistics
 STATISTICS_UPDATES_WAIT_TIME = None  # the default wait time between statistics updates or None to disable adaptivity
+
+
+# Local Search Params
+DEFAULT_SEARCH_TYPE = LocalSearchApproaches.TABU_SEARCH
+
+LOCAL_SEARCH_TIME_LIMIT = 180  # NOTICE THIS IS IN SECONDS
+LOCAL_SEARCH_STEPS_THRESHOLD = 100
+
+SIMULATED_ANNEALING_MULTIPLIER = 0.99
+SIMULATED_ANNEALING_INITIAL_THRESHOLD = 1e3
+SIMULATED_ANNEALING_C_THRESHOLD = 1e-3
+
+TABU_SEARCH_CAPACITY = 1e4
+TABU_SEARCH_NEIGHBORHOOD_SIZE = 1e2
+
+

@@ -1,9 +1,8 @@
 import random
-from copy import copy
 
 from base.Pattern import Pattern
-from plan.TreePlan import TreePlan, TreePlanNode
-from plan.multi.MultiPatternGraph import MultiPatternGraph
+from plan.TreePlan import TreePlanNode
+from plan.multi.local_search.MultiPatternGraph import MultiPatternGraph
 from tree.MultiPatternTree import MultiPatternTree
 
 
@@ -16,7 +15,7 @@ from tree.MultiPatternTree import MultiPatternTree
 
 class StateNode:
     def __init__(self, mpt: MultiPatternTree,
-                 last_modified_node: TreePlanNode,
+                 last_modified_node: TreePlanNode or None,
                  mpg: MultiPatternGraph,
                  last_used):
         self.__mpt = mpt
@@ -59,6 +58,9 @@ class StateNode:
         Pattern(pattern_structure=new_struct,
                 pattern_matching_condition=new_cond,
                 time_window=max_sub_pattern.window)
+
+        plan_node =
+        # from here create the dictionary and send it to the multi_patter_tree builder.
         pass
 
 

@@ -8,6 +8,7 @@ from adaptive.optimizer.DeviationAwareTesterFactory import DeviationAwareTesterF
 from plan.invariant.InvariantTreePlanBuilder import InvariantTreePlanBuilder
 from plan.TreePlanBuilderFactory import TreePlanBuilderParameters, TreePlanBuilderFactory
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
+from plan.multi.local_search.LocalSearchApproaches import LocalSearchApproaches
 
 
 class OptimizerParameters:
@@ -17,9 +18,11 @@ class OptimizerParameters:
     def __init__(self, opt_type: OptimizerTypes = DefaultConfig.DEFAULT_OPTIMIZER_TYPE,
                  tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
                  statistics_collector_params: StatisticsCollectorParameters = StatisticsCollectorParameters(),
-                 statistics_updates_wait_time: timedelta = DefaultConfig.STATISTICS_UPDATES_WAIT_TIME):
+                 statistics_updates_wait_time: timedelta = DefaultConfig.STATISTICS_UPDATES_WAIT_TIME,
+                 local_search_params: dict = None):
         self.type = opt_type
         self.tree_plan_params = tree_plan_params
+        self.local_search_tree_params = local_search_params
         self.statistics_collector_params = statistics_collector_params
         self.statistics_updates_time_window = statistics_updates_wait_time  # None disabled any adaptive functionality
 
@@ -30,9 +33,11 @@ class TrivialOptimizerParameters(OptimizerParameters):
     """
     def __init__(self, tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
                  statistics_collector_params: StatisticsCollectorParameters = StatisticsCollectorParameters(),
-                 statistics_updates_wait_time: timedelta = DefaultConfig.STATISTICS_UPDATES_WAIT_TIME):
+                 statistics_updates_wait_time: timedelta = DefaultConfig.STATISTICS_UPDATES_WAIT_TIME,
+                 local_search_params: dict = None):
         super().__init__(OptimizerTypes.TRIVIAL_OPTIMIZER, tree_plan_params,
-                         statistics_collector_params, statistics_updates_wait_time)
+                         statistics_collector_params, statistics_updates_wait_time,
+                         local_search_params=local_search_params)
 
 
 class StatisticsDeviationAwareOptimizerParameters(OptimizerParameters):
@@ -42,9 +47,11 @@ class StatisticsDeviationAwareOptimizerParameters(OptimizerParameters):
     def __init__(self, tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(),
                  statistics_collector_params: StatisticsCollectorParameters = StatisticsCollectorParameters(),
                  statistics_updates_wait_time: timedelta = DefaultConfig.STATISTICS_UPDATES_WAIT_TIME,
-                 deviation_threshold: float = DefaultConfig.DEVIATION_OPTIMIZER_THRESHOLD):
+                 deviation_threshold: float = DefaultConfig.DEVIATION_OPTIMIZER_THRESHOLD,
+                 local_search_params: dict = None):
         super().__init__(OptimizerTypes.STATISTICS_DEVIATION_AWARE_OPTIMIZER, tree_plan_params,
-                         statistics_collector_params, statistics_updates_wait_time)
+                         statistics_collector_params, statistics_updates_wait_time,
+                         local_search_params=local_search_params)
         statistics_types = statistics_collector_params.statistics_types
         if isinstance(statistics_types, StatisticsTypes):
             statistics_types = [statistics_types]
@@ -58,9 +65,11 @@ class InvariantsAwareOptimizerParameters(OptimizerParameters):
     """
     def __init__(self, tree_plan_params: TreePlanBuilderParameters = TreePlanBuilderParameters(TreePlanBuilderTypes.INVARIANT_AWARE_GREEDY_LEFT_DEEP_TREE),
                  statistics_collector_params: StatisticsCollectorParameters = StatisticsCollectorParameters(),
-                 statistics_updates_wait_time: timedelta = DefaultConfig.STATISTICS_UPDATES_WAIT_TIME):
+                 statistics_updates_wait_time: timedelta = DefaultConfig.STATISTICS_UPDATES_WAIT_TIME,
+                 local_search_params: dict = None):
         super().__init__(OptimizerTypes.INVARIANT_AWARE_OPTIMIZER, tree_plan_params,
-                         statistics_collector_params, statistics_updates_wait_time)
+                         statistics_collector_params, statistics_updates_wait_time,
+                         local_search_params=local_search_params)
 
 
 class OptimizerFactory:
