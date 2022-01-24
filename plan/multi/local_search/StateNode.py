@@ -1,0 +1,84 @@
+import random
+from typing import Dict
+
+from adaptive.optimizer.Optimizer import Optimizer
+from base.Pattern import Pattern
+from plan.TreeCostModel import IntermediateResultsTreeCostModel
+from plan.TreePlan import TreePlan
+from plan.multi.local_search.MultiPatternGraph import MultiPatternGraph
+
+
+class StateNode:
+    def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
+                 mpg: MultiPatternGraph,
+                 optimizer: Optimizer,
+                 shared_sub_trees: dict = None):
+
+        self.__pattern_to_tree_plan_map = pattern_to_tree_plan_map
+        self.__mpg = mpg
+        self.__optimizer = optimizer
+        self.__shared_sub_trees = shared_sub_trees or {}
+        self.__cost = None
+
+    def __eq__(self, other):
+        return self.__pattern_to_tree_plan_map == other.__pattern_to_tree_plan_map
+
+    @property
+    def pattern_to_tree_plan_map(self):
+        return self.__pattern_to_tree_plan_map
+
+    def get_cost(self):
+        if self.__cost is None:
+            cost_model = IntermediateResultsTreeCostModel()
+            visited = {}
+            total_cost = 0
+            for pattern, plan in self.__pattern_to_tree_plan_map.items():
+                total_cost += cost_model.get_plan_cost(pattern, plan.root, pattern.statistics, visited)
+            self.__cost = total_cost
+        return self.__cost
+
+    def get_neighbor(self, neighborhood_vertex_size: int):
+        # Choose a random max common sub pattern and its patterns according to neighborhood-vertex-k decision
+        max_sub_pattern, chosen_patterns = self.__mpg.get_random_max_pattern_and_peers(neighborhood_vertex_size)
+
+        # create a random sub pattern out of max_sub_pattern
+        event_names = set(max_sub_pattern.get_primitive_event_names())
+        rand_size = random.randint(0, len(event_names))
+        filtered_events = random.sample(event_names, rand_size)
+        random_sub_pattern = max_sub_pattern.get_sub_pattern(filtered_events)
+
+        # create tree plan for sub pattern
+        sub_pattern_plan = self.__optimizer.build_new_plan(random_sub_pattern.statistics, random_sub_pattern)
+
+        # create new tree plans for the patterns involved with this subpattern
+        # List for choosing randomly if preserve or not subtrees for each pattern
+        pattern_to_tree_plan_map = self.__pattern_to_tree_plan_map.copy()
+        preserve_subtrees = [True, False]
+        modified_tree = False
+        all_shared_subtrees = self.__shared_sub_trees.copy()  # will hold mapping of pattern -> shared sub trees
+        for pattern in chosen_patterns:
+            pattern_old_shared_subtrees = self.__shared_sub_trees.get(pattern, [])
+            # If this plan is already shared with this pattern, ignore
+            if sub_pattern_plan in pattern_old_shared_subtrees:
+                continue
+
+            pattern_new_shared_sub_trees = [sub_pattern_plan.root]
+            if pattern_old_shared_subtrees:
+                preserve = random.choice(preserve_subtrees)
+                if preserve:
+                    # get subtrees of pattern, pass them to generate new plan
+                    pattern_new_shared_sub_trees += pattern_old_shared_subtrees
+            # new tree plan for pattern
+            if len(pattern_new_shared_sub_trees) > 0:
+                all_shared_subtrees[pattern] = pattern_new_shared_sub_trees
+                new_pattern_plan = self.__optimizer.build_new_plan(pattern.statistics, pattern,
+                                                                   pattern_new_shared_sub_trees)
+                pattern_to_tree_plan_map[pattern] = new_pattern_plan
+                modified_tree = True
+
+        # Return a state with the new plan, also store the shared subtrees in a mapping
+        if modified_tree:
+            return StateNode(pattern_to_tree_plan_map=pattern_to_tree_plan_map, mpg=self.__mpg,
+                             optimizer=self.__optimizer, shared_sub_trees=all_shared_subtrees)
+        else:
+            return None

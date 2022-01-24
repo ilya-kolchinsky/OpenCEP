@@ -101,29 +101,27 @@ def merge(arr1: list, arr2: list, key=lambda x: x):
     """
     Merges two lists. The comparison is performed according to the given key function.
     """
-    return merge_according_to(arr1=arr1, arr2=arr2, actual1=arr1, actual2=arr2, key=key)
+    new_len = len(arr1) + len(arr2)
+    ret = []
+    i = i1 = i2 = 0
+    while i < new_len and i1 < len(arr1) and i2 < len(arr2):
+        if key(arr1[i1]) < key(arr2[i2]):
+            ret.append(arr1[i1])
+            i1 += 1
+        else:
+            ret.append(arr2[i2])
+            i2 += 1
+        i += 1
 
-    # new_len = len(arr1) + len(arr2)
-    # ret = []
-    # i = i1 = i2 = 0
-    # while i < new_len and i1 < len(arr1) and i2 < len(arr2):
-    #     if key(arr1[i1]) < key(arr2[i2]):
-    #         ret.append(arr1[i1])
-    #         i1 += 1
-    #     else:
-    #         ret.append(arr2[i2])
-    #         i2 += 1
-    #     i += 1
-    #
-    # while i1 < len(arr1):
-    #     ret.append(arr1[i1])
-    #     i1 += 1
-    #
-    # while i2 < len(arr2):
-    #     ret.append(arr2[i2])
-    #     i2 += 1
-    #
-    # return ret
+    while i1 < len(arr1):
+        ret.append(arr1[i1])
+        i1 += 1
+
+    while i2 < len(arr2):
+        ret.append(arr2[i2])
+        i2 += 1
+
+    return ret
 
 
 def merge_according_to(arr1: list, arr2: list, actual1: list, actual2: list, key: callable = lambda x: x):
@@ -231,7 +229,6 @@ def does_match_exist(matches: list, match: list):
             if is_equal:
                 return True
     return False
-
 
 T = TypeVar("T")
 def powerset_generator(seq: Sequence[T], max_size: int, min_size: int=0) -> Iterator[List[T]]:
@@ -421,24 +418,6 @@ class ndarray:
             for d in newshape[-1:0:-1]:
                 new_list = list_to_matrix(new_list, d)
         return ndarray(new_list)
-
-
-def mapped_cache(mapping):
-    def memorize(func):
-        cache = {}
-
-        def wrapper(*args):
-            mapped = mapping(args)
-            if mapped in cache:
-                return cache[mapped]
-            result = func(*args)
-            cache[mapped] = result
-            return result
-
-        return wrapper
-
-    return memorize
-
 
 def array(array_like):
     return ndarray(array_like)

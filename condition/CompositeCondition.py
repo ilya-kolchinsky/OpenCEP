@@ -5,7 +5,6 @@ from abc import ABC
 from copy import deepcopy
 
 from adaptive.statistics.StatisticsCollector import StatisticsCollector
-from base.PatternStructure import PrimitiveEventStructure
 from condition.Condition import Condition, AtomicCondition
 from condition.KCCondition import KCCondition
 
@@ -168,10 +167,10 @@ class AndCondition(CompositeCondition):
         flat_list = [item for sublist in sets_of_names for item in sublist]
         return set(flat_list)
 
-    def get_projection(self, event_names):
+    def get_condition_projection(self, event_names):
         conditions_arr = []
         for condition in self._conditions:
-            proj = condition.get_projection(event_names)
+            proj = condition.get_condition_projection(event_names)
             if proj is not None:
                 conditions_arr.append(proj)
         return AndCondition(*conditions_arr)
@@ -198,10 +197,10 @@ class OrCondition(CompositeCondition):
     def __repr__(self):
         return " OR ".join(super().__repr__())
 
-    def get_projection(self, event_names):
+    def get_condition_projection(self, event_names):
         conditions_arr = []
         for condition in self._conditions:
-            proj = condition.get_projection(event_names)
+            proj = condition.get_condition_projection(event_names)
             if proj is not None:
                 conditions_arr.append(proj)
         return OrCondition(*conditions_arr)

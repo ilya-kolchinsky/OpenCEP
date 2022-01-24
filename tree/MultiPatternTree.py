@@ -1,7 +1,6 @@
 from typing import Dict
 
 from base.Pattern import Pattern
-from plan.TreeCostModel import IntermediateResultsTreeCostModel
 from plan.TreePlan import TreePlan
 from tree.PatternMatchStorage import TreeStorageParameters
 from base.PatternMatch import PatternMatch
@@ -14,22 +13,20 @@ class MultiPatternTree:
     Represents a multi-pattern evaluation tree.
     """
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
-                 storage_params: TreeStorageParameters, plan_nodes_to_nodes_map=None):
+                 storage_params: TreeStorageParameters):
         self.__id_to_output_node_map = {}
         self.__id_to_pattern_map = {}
         self.__output_nodes = []
-        self.__construct_multi_pattern_tree(pattern_to_tree_plan_map, storage_params, plan_nodes_to_nodes_map)
-        self.__map = pattern_to_tree_plan_map
-        self.__cost = None
+        self.__construct_multi_pattern_tree(pattern_to_tree_plan_map, storage_params)
 
     def __construct_multi_pattern_tree(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
-                                       storage_params: TreeStorageParameters, plan_nodes_to_nodes_map=None):
+                                       storage_params: TreeStorageParameters):
         """
         Constructs a multi-pattern evaluation tree.
         It is assumed that each pattern appears only once in patterns (which is a legitimate assumption).
         """
         # pattern IDs starts from 1
-        plan_nodes_to_nodes_map = plan_nodes_to_nodes_map or {}  # a cache for already created subtrees
+        plan_nodes_to_nodes_map = {}  # a cache for already created subtrees
         for i, (pattern, plan) in enumerate(pattern_to_tree_plan_map.items(), 1):
             pattern.id = i
             new_tree_root = Tree(plan, pattern, storage_params, plan_nodes_to_nodes_map).get_root()
@@ -37,21 +34,14 @@ class MultiPatternTree:
             self.__id_to_pattern_map[pattern.id] = pattern
             self.__output_nodes.append(new_tree_root)
 
-        cost_model = IntermediateResultsTreeCostModel()
-        visited = {}
-        total_cost = 0
-        for (pattern, plan), root in zip(pattern_to_tree_plan_map.items(),  self.__output_nodes):
-            total_cost += cost_model.get_plan_cost(pattern, root, pattern.statistics, visited)
-        self.__cost = total_cost
-
-    def get_cost(self):
-        return self.__cost
-
     def get_leaves(self):
         """
         Returns all leaves in this multi-pattern-tree.
         """
-        return set.union(*[output_node.get_leaves() for output_node in self.__output_nodes])
+        leaves = set()
+        for output_node in self.__output_nodes:
+            leaves |= set(output_node.get_leaves())
+        return leaves
 
     def __should_attach_match_to_pattern(self, match: PatternMatch, pattern: Pattern):
         """

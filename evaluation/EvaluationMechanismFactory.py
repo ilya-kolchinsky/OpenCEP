@@ -7,6 +7,7 @@ from base.Pattern import Pattern
 from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc import DefaultConfig
 from plan.multi.LocalSearchTreePlanMerger import LocalSearchTreePlanMerger
+from plan.multi.local_search.LocalSearchFactory import LocalSearchParameters, TabuSearchLocalSearchParameters
 from tree.evaluation.TreeEvaluationMechanismUpdateTypes import TreeEvaluationMechanismUpdateTypes
 from adaptive.optimizer.OptimizerFactory import OptimizerParameters, OptimizerFactory, \
     StatisticsDeviationAwareOptimizerParameters
@@ -14,7 +15,6 @@ from adaptive.statistics.StatisticsCollectorFactory import StatisticsCollectorFa
 from plan.multi.ShareLeavesTreePlanMerger import ShareLeavesTreePlanMerger
 from plan.multi.SubTreeSharingTreePlanMerger import SubTreeSharingTreePlanMerger
 from plan.TreePlan import TreePlan
-from plan.TreePlanBuilderFactory import TreePlanBuilderFactory
 from plan.multi.MultiPatternTreePlanMergeApproaches import MultiPatternTreePlanMergeApproaches
 from tree.PatternMatchStorage import TreeStorageParameters
 from tree.evaluation.SimultaneousTreeBasedEvaluationMechanism import SimultaneousTreeBasedEvaluationMechanism
@@ -38,10 +38,12 @@ class TreeBasedEvaluationMechanismParameters(EvaluationMechanismParameters):
     def __init__(self,
                  storage_params: TreeStorageParameters = TreeStorageParameters(),
                  optimizer_params: OptimizerParameters = StatisticsDeviationAwareOptimizerParameters(),
-                 tree_update_type: TreeEvaluationMechanismUpdateTypes = DefaultConfig.DEFAULT_TREE_UPDATE_TYPE):
+                 tree_update_type: TreeEvaluationMechanismUpdateTypes = DefaultConfig.DEFAULT_TREE_UPDATE_TYPE,
+                 local_search_params: LocalSearchParameters = TabuSearchLocalSearchParameters()):
         super().__init__(EvaluationMechanismTypes.TREE_BASED, optimizer_params)
         self.storage_params = storage_params
         self.tree_update_type = tree_update_type
+        self.local_search_params = local_search_params
 
 
 class EvaluationMechanismFactory:
@@ -81,7 +83,7 @@ class EvaluationMechanismFactory:
         if len(patterns) > 1:
             # a multi-pattern case - try to merge the tree plans
             pattern_to_tree_plan_map = EvaluationMechanismFactory.__merge_tree_plans(
-                pattern_to_tree_plan_map, eval_mechanism_params)
+                pattern_to_tree_plan_map, eval_mechanism_params, optimizer)
 
         return EvaluationMechanismFactory.__create_tree_based_evaluation_mechanism_by_update_type(
             pattern_to_tree_plan_map, eval_mechanism_params.storage_params, runtime_statistics_collector, optimizer,
@@ -89,7 +91,7 @@ class EvaluationMechanismFactory:
 
     @staticmethod
     def __merge_tree_plans(pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
-                           eval_mechanism_params: TreeBasedEvaluationMechanismParameters):
+                           eval_mechanism_params: TreeBasedEvaluationMechanismParameters, optimizer: Optimizer):
         """
         Merges the given tree plans of individual tree plans into a global shared structure.
         """
@@ -100,9 +102,8 @@ class EvaluationMechanismFactory:
             return SubTreeSharingTreePlanMerger().merge_tree_plans(pattern_to_tree_plan_map)
         if tree_plan_merge_approach == MultiPatternTreePlanMergeApproaches.TREE_PLAN_LOCAL_SEARCH:
             return LocalSearchTreePlanMerger().merge_tree_plans(pattern_to_tree_plan_map,
-                                                                eval_mechanism_params)
-            # TODO: not yet implemented
-            pass
+                                                                eval_mechanism_params.local_search_params,
+                                                                optimizer)
         raise Exception("Unsupported multi-pattern merge algorithm %s" % (tree_plan_merge_approach,))
 
     @staticmethod

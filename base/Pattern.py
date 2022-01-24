@@ -242,6 +242,18 @@ class Pattern:
             return target_structure.args
         raise Exception("Invalid top-level pattern structure")
 
+    def get_sub_pattern(self, event_names: List[str]):
+        """
+        Given a list of event names, return the sub pattern consisting of these events.
+        """
+        structure = self.full_structure.get_structure_projection(event_names)
+        conditions = self.condition.get_condition_projection(event_names)
+        if structure is None and conditions is None:
+            return None
+        return Pattern(pattern_structure=structure, pattern_matching_condition=conditions,
+                       time_window=self.window, consumption_policy=self.consumption_policy,
+                       confidence=self.confidence, statistics=self.statistics)
+
     def __repr__(self):
         return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.full_structure,
                                                                                 self.condition,

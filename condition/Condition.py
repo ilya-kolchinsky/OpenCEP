@@ -4,12 +4,9 @@ This file contains the basic Condition classes.
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from enum import Enum
-from typing import List
 
 from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from adaptive.statistics.StatisticsCollector import StatisticsCollector
-from base.PatternStructure import PrimitiveEventStructure
-from condition.CompositeCondition import CompositeCondition
 
 
 class RelopTypes(Enum):
@@ -96,7 +93,7 @@ class Condition(ABC):
         """
         return set()
 
-    def get_projection(self, event_names):
+    def get_condition_projection(self, event_names):
         """
         Returns the projection of the event names on the condition
         """
@@ -153,7 +150,7 @@ class AtomicCondition(Condition, ABC):
         """
         return self._statistics_collector
 
-    def get_projection(self, event_names):
+    def get_condition_projection(self, event_names):
         if self.is_condition_of(event_names):
             return deepcopy(self)
         return None
@@ -161,6 +158,7 @@ class AtomicCondition(Condition, ABC):
     def intersection(self, other):
         if self == other:
             return deepcopy(self)
+        from condition.CompositeCondition import CompositeCondition
         if isinstance(other, CompositeCondition):
             return other.intersection(self)
         return None

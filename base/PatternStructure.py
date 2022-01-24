@@ -40,6 +40,9 @@ class PatternStructure(ABC):
         raise NotImplementedError()
 
     def get_structure_projection(self, event_names):
+        """
+        Returns the projection of the event names on the structure.
+        """
         raise NotImplementedError()
 
 
@@ -69,7 +72,7 @@ class PrimitiveEventStructure(PatternStructure):
     def get_structure_projection(self, event_names):
         if self.name not in event_names:
             return None
-        return self
+        return self.duplicate()
 
 
 class UnaryStructure(PatternStructure, ABC):
@@ -87,12 +90,6 @@ class UnaryStructure(PatternStructure, ABC):
 
     def get_all_event_names(self):
         return self.arg.get_all_event_names()
-
-    def get_structure_projection(self, event_names):
-        res = self.arg.get_structure_projection(event_names)
-        if res is None:
-            return None
-        return self
 
 
 class CompositeStructure(PatternStructure, ABC):
@@ -184,6 +181,12 @@ class KleeneClosureOperator(UnaryStructure):
     def __repr__(self):
         return "(%s)+" % (self.arg,)
 
+    def get_structure_projection(self, event_names):
+        res = self.arg.get_structure_projection(event_names)
+        if res is None:
+            return None
+        return KleeneClosureOperator(arg=res, min_size=self.min_size, max_size=self.max_size)
+
 
 class NegationOperator(UnaryStructure):
     def duplicate(self):
@@ -191,3 +194,9 @@ class NegationOperator(UnaryStructure):
 
     def __repr__(self):
         return "NOT(%s)" % (self.arg,)
+
+    def get_structure_projection(self, event_names):
+        res = self.arg.get_structure_projection(event_names)
+        if res is None:
+            return None
+        return NegationOperator(arg=res)

@@ -243,7 +243,7 @@ class Node(ABC):
         """
         Returns the event definitions according to the parent.
         """
-        if parent not in self._parent_to_info_dict:
+        if parent not in self._parent_to_info_dict.keys():
             raise Exception("parent is not in the dictionary.")
         return self._parent_to_info_dict[parent]
 
