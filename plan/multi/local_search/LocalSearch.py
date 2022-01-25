@@ -8,24 +8,22 @@ from typing import Dict
 from adaptive.optimizer.Optimizer import Optimizer
 from base.Pattern import Pattern
 from plan.TreePlan import TreePlan
-from plan.multi.local_search.LocalSearchFactory import TabuSearchLocalSearchParameters,\
-    SimulatedAnnealingLocalSearchParameters, LocalSearchParameters
 from plan.multi.local_search.MultiPatternGraph import MultiPatternGraph
 from plan.multi.local_search.StateNode import StateNode
 
 
 class LocalSearch(ABC):
 
-    def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
-                 local_search_params: LocalSearchParameters, optimizer: Optimizer):
+    def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan], optimizer: Optimizer, steps_threshold: int,
+                 time_threshold: float, neighborhood_vertex_size: int):
         self._solution = StateNode(
             mpg=MultiPatternGraph(list(pattern_to_tree_plan_map.keys())),
             pattern_to_tree_plan_map=pattern_to_tree_plan_map,
             optimizer=optimizer,
         )
-        self._steps_threshold = local_search_params.steps_threshold
-        self._time_threshold = local_search_params.time_limit
-        self.__neighborhood_vertex_size = local_search_params.neighborhood_vertex_size
+        self._steps_threshold = steps_threshold
+        self._time_threshold = time_threshold
+        self.__neighborhood_vertex_size = neighborhood_vertex_size
         self.__was_activated = False
 
     def _make_step(self, state):
@@ -72,14 +70,14 @@ class LocalSearch(ABC):
 
 
 class TabuSearch(LocalSearch):
-    def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
-                 local_search_params: TabuSearchLocalSearchParameters, optimizer: Optimizer):
-        super().__init__(pattern_to_tree_plan_map=pattern_to_tree_plan_map,
-                         local_search_params=local_search_params,
-                         optimizer=optimizer,
+    def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan], optimizer: Optimizer, steps_threshold: int,
+                 time_threshold: float, neighborhood_vertex_size: int, capacity: int, lookup_radius: int):
+        super().__init__(pattern_to_tree_plan_map=pattern_to_tree_plan_map, optimizer=optimizer,
+                         steps_threshold=steps_threshold, time_threshold=time_threshold,
+                         neighborhood_vertex_size=neighborhood_vertex_size
                          )
-        self.__capacity = local_search_params.capacity
-        self.__lookup_radius = local_search_params.neighborhood_size
+        self.__capacity = capacity
+        self.__lookup_radius = lookup_radius
         self._tabu_list = deque()
 
     def _make_step(self, state):
@@ -106,14 +104,16 @@ class TabuSearch(LocalSearch):
 
 
 class SimulatedAnnealingSearch(LocalSearch):
-    def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
-                 local_search_params: SimulatedAnnealingLocalSearchParameters, optimizer: Optimizer):
+    def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan], optimizer: Optimizer, steps_threshold: int,
+                 time_threshold: float, neighborhood_vertex_size: int, multiplier: float,
+                 simulated_anealing_threshold: float, initial_neighbors: int):
         super().__init__(pattern_to_tree_plan_map=pattern_to_tree_plan_map,
-                         local_search_params=local_search_params, optimizer=optimizer)
-        self._alpha = local_search_params.multiplier
-        self._c_threshold = local_search_params.simulated_annealing_threshold
+                         optimizer=optimizer, steps_threshold=steps_threshold, time_threshold=time_threshold,
+                         neighborhood_vertex_size=neighborhood_vertex_size)
+        self._alpha = multiplier
+        self._c_threshold = simulated_anealing_threshold
         # Initialize C0 according to the article
-        neighbors = self._get_neighbors(self._solution, local_search_params.initial_neighbors)
+        neighbors = self._get_neighbors(self._solution, initial_neighbors)
         if not neighbors:
             raise Exception('Failed initializing Simulated Annealing')
         init_solution_cost = self._solution.get_cost()

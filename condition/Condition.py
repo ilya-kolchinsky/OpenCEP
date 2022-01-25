@@ -100,7 +100,9 @@ class Condition(ABC):
         raise NotImplementedError()
 
     def intersection(self, condition):
-
+        """
+        Returns the intersection condition between two conditions
+        """
         raise NotImplementedError()
 
 

@@ -22,7 +22,7 @@ class LocalSearchParameters:
         self.steps_threshold = steps_threshold
 
 
-class TabuSearchLocalSearchParameters:
+class TabuSearchLocalSearchParameters(LocalSearchParameters):
     """
     Parameters for the creation of the TabuSearch class.
     """
@@ -37,7 +37,7 @@ class TabuSearchLocalSearchParameters:
                          time_limit, steps_threshold)
 
 
-class SimulatedAnnealingLocalSearchParameters:
+class SimulatedAnnealingLocalSearchParameters(LocalSearchParameters):
     """
     Parameters for the creation of the SimulatedAnnealingSearch class.
     """
@@ -67,12 +67,18 @@ class LocalSearchFactory:
 
     @staticmethod
     def __create_local_search(pattern_to_tree_plan_map: Dict[Pattern, TreePlan], optimizer: Optimizer,
-                              local_search_parameters: LocalSearchParameters):
+                              local_search_parameters):
+        mutual_params = [pattern_to_tree_plan_map, optimizer, local_search_parameters.steps_threshold,
+                         local_search_parameters.time_limit, local_search_parameters.neighborhood_vertex_size]
+
         if local_search_parameters.search_type == LocalSearchApproaches.TABU_SEARCH:
-            return TabuSearch(pattern_to_tree_plan_map, local_search_parameters, optimizer)
+            return TabuSearch(*mutual_params, local_search_parameters.capacity,
+                              local_search_parameters.neighborhood_size)
 
         if local_search_parameters.search_type == LocalSearchApproaches.SIMULATED_ANNEALING_SEARCH:
-            return SimulatedAnnealingSearch(pattern_to_tree_plan_map, local_search_parameters, optimizer)
+            return SimulatedAnnealingSearch(*mutual_params, local_search_parameters.multiplier,
+                                            local_search_parameters.simulated_annealing_threshold,
+                                            local_search_parameters.initial_neighbors)
 
         raise Exception("Unknown local search type specified")
 
