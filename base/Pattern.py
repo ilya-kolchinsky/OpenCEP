@@ -36,7 +36,7 @@ class Pattern:
         self.negative_structure = self.__extract_negative_structure()
 
         self.condition = pattern_matching_condition
-        if isinstance(self.condition, TrueCondition):
+        if isinstance(self.condition, TrueCondition) or self.condition is None:
             self.condition = AndCondition()
         elif not isinstance(self.condition, CompositeCondition):
             self.condition = AndCondition(self.condition)
@@ -248,11 +248,24 @@ class Pattern:
         """
         structure = self.full_structure.get_structure_projection(event_names)
         conditions = self.condition.get_condition_projection(event_names)
-        if structure is None and conditions is None:
+        if structure is None:
             return None
         return Pattern(pattern_structure=structure, pattern_matching_condition=conditions,
                        time_window=self.window, consumption_policy=self.consumption_policy,
                        confidence=self.confidence, statistics=self.statistics)
+
+    def get_unique_sub_pattern(self, sub_patterns):
+        """
+        Return a new sub pattern that is constructed as follows:
+        Take the original pattern (self), remove the conditions of sub_patterns from it,
+         and create a new pattern that fits only to the left conditions.
+        """
+        # Assumption - the sub_patterns are indeed a sub patterns of the original pattern (self).
+        # two cases - composite condition - And/Or, take its ingredients and remove.
+        # atomic condition - simply remove it also from the list - or if its an
+        # need to consider case of empty condition case
+
+        pass
 
     def __repr__(self):
         return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.full_structure,

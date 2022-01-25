@@ -58,16 +58,19 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
         if isinstance(tree, TreePlanLeafNode):
             cost = pm = time_window * arrival_rates[tree.event_index] * \
                         selectivity_matrix[tree.event_index][tree.event_index]
-            return [tree.event_index], pm, cost
+            visited[tree] = [tree.event_index], pm, cost
+            return visited[tree]
 
         if isinstance(tree, TreePlanNestedNode):
-            return [tree.nested_event_index], tree.cost, tree.cost
+            visited[tree] = [tree.nested_event_index], tree.cost, tree.cost
+            return visited[tree]
 
         if isinstance(tree, TreePlanUnaryNode):
-            return IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.child,
+            visited[tree] = IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.child,
                                                                         selectivity_matrix,
                                                                         arrival_rates,
                                                                         time_window, visited)
+            return visited[tree]
         if not isinstance(tree, TreePlanBinaryNode):
             raise Exception("Invalid tree node: %s" % (tree,))
 

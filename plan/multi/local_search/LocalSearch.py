@@ -37,6 +37,8 @@ class LocalSearch(ABC):
                 if neighbor is not None:
                     neighbors.append(neighbor)
                     break
+            if not self._time_cond():
+                break
         return neighbors
 
     def get_best_solution(self):
@@ -94,7 +96,6 @@ class TabuSearch(LocalSearch):
 
         if not flag:
             return None
-
         cheapest_neighbor = min(chosen_neighbors, key=lambda sol: sol.get_cost())
         self._tabu_list.extend(chosen_neighbors)
         if len(self._tabu_list) > self.__capacity:

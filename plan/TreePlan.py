@@ -5,6 +5,7 @@ mechanisms based on tree structure.
 from abc import ABC
 from enum import Enum
 
+from base.Pattern import Pattern
 from condition.CompositeCondition import CompositeCondition, AndCondition
 
 
@@ -253,5 +254,6 @@ class TreePlan:
     """
     A complete tree-based evaluation plan.
     """
-    def __init__(self, root: TreePlanNode):
+    def __init__(self, root: TreePlanNode, pattern: Pattern):
         self.root = root
+        self.pattern = pattern

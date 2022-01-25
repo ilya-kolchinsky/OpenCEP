@@ -1,5 +1,5 @@
 import random
-from typing import Dict
+from typing import Dict, List
 
 from adaptive.optimizer.Optimizer import Optimizer
 from base.Pattern import Pattern
@@ -12,7 +12,7 @@ class StateNode:
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                  mpg: MultiPatternGraph,
                  optimizer: Optimizer,
-                 shared_sub_trees: dict = None):
+                 shared_sub_trees: Dict[Pattern, List[TreePlan]] = None):
 
         self.__pattern_to_tree_plan_map = pattern_to_tree_plan_map
         self.__mpg = mpg
@@ -72,7 +72,7 @@ class StateNode:
             if sub_pattern_plan in pattern_old_shared_subtrees:
                 continue
 
-            pattern_new_shared_sub_trees = [sub_pattern_plan.root]
+            pattern_new_shared_sub_trees = [sub_pattern_plan]
             if pattern_old_shared_subtrees:
                 preserve = random.choice(preserve_subtrees)
                 if preserve:

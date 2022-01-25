@@ -16,7 +16,8 @@ class RecursiveTraversalTreePlanMerger(TreePlanMerger, ABC):
         merged_pattern_to_tree_plan_map = {}
         for pattern, tree_plan in pattern_to_tree_plan_map.items():
             merged_pattern_to_tree_plan_map[pattern] = TreePlan(self.__traverse_tree_plan(tree_plan.root,
-                                                                                          known_unique_tree_plan_nodes))
+                                                                                          known_unique_tree_plan_nodes),
+                                                                pattern)
         return merged_pattern_to_tree_plan_map
 
     def __traverse_tree_plan(self, current: TreePlanNode, known_unique_tree_plan_nodes: Set[TreePlanNode]):

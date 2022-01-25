@@ -41,7 +41,7 @@ def localSearchTest(createTestFile=False, eval_mechanism_params=LOCAL_EVALUATION
         {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076]})  # {"AAPL": 460, "LOCM": 219}
 
     pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), NegationOperator(PrimitiveEventStructure("AMZN", "b")),
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
                     PrimitiveEventStructure("GOOG", "c")),
         AndCondition(
             GreaterThanCondition(Variable("a", lambda x: x["Opening Price"]),
@@ -54,4 +54,27 @@ def localSearchTest(createTestFile=False, eval_mechanism_params=LOCAL_EVALUATION
     pattern2.set_statistics(
         {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076, 0.0159]})  # {"AAPL": 460, "LOCM": 219}
 
-    runMultiTest("FirstMultiPattern", [pattern1, pattern2], createTestFile, eval_mechanism_params)
+    runMultiTest("Test1", [pattern1, pattern2], createTestFile, eval_mechanism_params)
+
+def localSearchTest2(createTestFile=False, eval_mechanism_params=LOCAL_EVALUATION_MECHANISM_SETTINGS,
+                          test_name = "FirstMultiPattern"):
+
+    pattern1 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
+        GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
+        timedelta(minutes=5)
+    )
+    pattern1.set_statistics(
+        {StatisticsTypes.ARRIVAL_RATES: [0.0159]})  # {"AAPL": 460, "LOCM": 219}
+
+    pattern2 = Pattern(
+        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
+        AndCondition(GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
+                     SmallerThanCondition(Variable("b", lambda x: x["Opening Price"]),
+                                 Variable("c", lambda x: x["Opening Price"]))),
+        timedelta(minutes=5)
+    )
+    pattern2.set_statistics(
+        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076, 0.0159]})  # {"AAPL": 460, "LOCM": 219}
+
+    runMultiTest("TestCheck", [pattern1, pattern2], createTestFile, eval_mechanism_params)

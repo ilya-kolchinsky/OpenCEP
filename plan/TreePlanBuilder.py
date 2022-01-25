@@ -25,7 +25,7 @@ class TreePlanBuilder(ABC):
         self.__cost_model = TreeCostModelFactory.create_cost_model(cost_model_type)
         self.__negation_algorithm = NegationAlgorithmFactory.create_negation_algorithm(negation_algorithm_type)
 
-    def build_tree_plan(self, pattern: Pattern, statistics: Dict, shared_sub_trees: List[TreePlanNode] = None):
+    def build_tree_plan(self, pattern: Pattern, statistics: Dict, shared_sub_trees: List[TreePlan] = None):
         """
         Creates a tree-based evaluation plan for the given pattern.
         """
@@ -34,14 +34,16 @@ class TreePlanBuilder(ABC):
         # if shared already include all events, no need for creation of plan for pattern - just merge all sub trees
         sub_pattern = pattern
         # TODO: Reorg the code
+        # TODO: Change the build of the subtrees
         if shared_sub_trees is not None and len(shared_sub_trees) > 0:
             events = set(pattern.get_primitive_event_names())
             for subtree in shared_sub_trees:
-                subtree_events = set(subtree.get_event_names())
+                subtree_events = set(subtree.root.get_event_names())
                 events -= subtree_events
+                # Need to change - its not good to completely remove events. instead remove conditions, and then project by the remained events in these conditions.
             if len(events) == 0:
                 # sub trees include all data of pattern, no need for create topology below
-                all_sub_trees = shared_sub_trees
+                all_sub_trees = [plan.root for plan in shared_sub_trees]
             else:
                 sub_pattern = pattern.get_sub_pattern(event_names=list(events))
                 statistics = sub_pattern.statistics if sub_pattern.statistics is not None else statistics
@@ -54,9 +56,9 @@ class TreePlanBuilder(ABC):
                 pattern_condition = deepcopy(sub_pattern.condition)  # copied since apply_condition modifies its input parameter
                 sub_pattern_root.apply_condition(pattern_condition)
 
-                all_sub_trees = [sub_pattern_root] + shared_sub_trees
+                all_sub_trees = [sub_pattern_root] + [plan.root for plan in shared_sub_trees]
             root = TreePlanBuilder.__make_tree_out_of_sub_trees(pattern, all_sub_trees)
-            return TreePlan(root)
+            return TreePlan(root, pattern)
 
         else:
             statistics_copy = deepcopy(statistics)  # the statistics object can be modified during the plan building process
@@ -67,7 +69,7 @@ class TreePlanBuilder(ABC):
             root = self._instantiate_unary_node(pattern, root)
         pattern_condition = deepcopy(pattern.condition)  # copied since apply_condition modifies its input parameter
         root.apply_condition(pattern_condition)
-        return TreePlan(root)
+        return TreePlan(root, pattern)
 
     @staticmethod
     def __make_tree_out_of_sub_trees(pattern: Pattern, sub_trees: List[TreePlanNode]) -> TreePlanNode:
