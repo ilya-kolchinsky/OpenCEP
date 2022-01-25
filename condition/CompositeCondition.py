@@ -27,16 +27,6 @@ class CompositeCondition(Condition, ABC):
                 return self._terminating_result
         return not self._terminating_result
 
-    def __eq__(self, other):
-        if self == other:
-            return True
-        if type(self) != type(other) or self.get_num_conditions() != other.get_num_conditions():
-            return False
-        for condition in self._conditions:
-            if condition not in other._conditions:
-                return False
-        return True
-
     def get_condition_of(self, names: set, get_kleene_closure_conditions=False, consume_returned_conditions=False):
         """
         Returns a new composite condition which only contains those conditions from this composite condition operating
@@ -137,6 +127,9 @@ class CompositeCondition(Condition, ABC):
             return deepcopy(other)
         return None
 
+    def __hash__(self):
+        return hash(str(self))
+
 
 class AndCondition(CompositeCondition):
     """
@@ -173,6 +166,8 @@ class AndCondition(CompositeCondition):
             proj = condition.get_condition_projection(event_names)
             if proj is not None:
                 conditions_arr.append(proj)
+        if not conditions_arr:
+            return None
         return AndCondition(*conditions_arr)
 
 
@@ -203,5 +198,7 @@ class OrCondition(CompositeCondition):
             proj = condition.get_condition_projection(event_names)
             if proj is not None:
                 conditions_arr.append(proj)
+        if not conditions_arr:
+            return None
         return OrCondition(*conditions_arr)
 

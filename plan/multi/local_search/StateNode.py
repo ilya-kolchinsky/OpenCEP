@@ -37,16 +37,26 @@ class StateNode:
             self.__cost = total_cost
         return self.__cost
 
+    def __repr__(self):
+        return str(self.__pattern_to_tree_plan_map)
+
+    def __hash__(self):
+        return hash(str(self))
+
     def get_neighbor(self, neighborhood_vertex_size: int):
         # Choose a random max common sub pattern and its patterns according to neighborhood-vertex-k decision
-        max_sub_pattern, chosen_patterns = self.__mpg.get_random_max_pattern_and_peers(neighborhood_vertex_size)
+        tup = self.__mpg.get_random_max_pattern_and_peers(neighborhood_vertex_size)
+        if tup is None:
+            return None
+        max_sub_pattern, chosen_patterns = tup
 
         # create a random sub pattern out of max_sub_pattern
         event_names = set(max_sub_pattern.get_primitive_event_names())
         rand_size = random.randint(0, len(event_names))
         filtered_events = random.sample(event_names, rand_size)
         random_sub_pattern = max_sub_pattern.get_sub_pattern(filtered_events)
-
+        if random_sub_pattern is None:
+            return None
         # create tree plan for sub pattern
         sub_pattern_plan = self.__optimizer.build_new_plan(random_sub_pattern.statistics, random_sub_pattern)
 

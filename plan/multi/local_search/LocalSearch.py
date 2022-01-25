@@ -43,7 +43,7 @@ class LocalSearch(ABC):
         if not self.__was_activated:
             self._solution, cost = self._start_search()
             self.__was_activated = True
-        return self._solution.mpt
+        return self._solution.pattern_to_tree_plan_map
 
     def _time_cond(self):
         return time() - self._running_time <= self._time_threshold

@@ -258,3 +258,6 @@ class Pattern:
         return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.full_structure,
                                                                                 self.condition,
                                                                                 self.window)
+
+    def __hash__(self):
+        return hash(str(self))

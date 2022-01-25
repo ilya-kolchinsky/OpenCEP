@@ -74,6 +74,9 @@ class PrimitiveEventStructure(PatternStructure):
             return None
         return self.duplicate()
 
+    def __hash__(self):
+        return hash(str(self))
+
 
 class UnaryStructure(PatternStructure, ABC):
     """

@@ -44,7 +44,10 @@ class MultiPatternGraph:
         Return a tuple of (max sub pattern, chosen_patterns)
         """
         random_pattern = random.choice(self.__patterns_list)
-        random_max_sub_pattern = self.__pattern_to_maximal_common_sub_patterns.get(random_pattern)
+        random_max_sub_pattern_set = self.__pattern_to_maximal_common_sub_patterns.get(random_pattern)
+        if not random_max_sub_pattern_set:
+            return None
+        random_max_sub_pattern = random.choice(list(random_max_sub_pattern_set))
         containing_patterns = self.__maximal_sub_pattern_to_patterns.get(random_max_sub_pattern)
         chosen_patterns = random.sample(containing_patterns, min(k, len(containing_patterns)))
         return random_max_sub_pattern, chosen_patterns
@@ -63,6 +66,9 @@ class MultiPatternGraph:
 
         cond_intersection = conditions_a
 
+        if conditions_a is None or conditions_b is None:
+            return []
+
         if conditions_a != conditions_b:
             cond_intersection = conditions_a.intersection(conditions_b)
             if cond_intersection is None:
@@ -73,12 +79,15 @@ class MultiPatternGraph:
         structure_a = pattern_a.full_structure.get_structure_projection(events_intersection)
         structure_b = pattern_b.full_structure.get_structure_projection(events_intersection)
 
-        if structure_a != structure_b:
+        if structure_a != structure_b or (None in [structure_a, structure_b]):
             # According to Ilya's assumption
             return []
 
         window = min(pattern_a.window, pattern_b.window)
-        confidence = min(pattern_a.confidence, pattern_b.confidence)
+        if pattern_a.confidence is None or pattern_b.confidence is None:
+            confidence = None
+        else:
+            confidence = min(pattern_a.confidence, pattern_b.confidence)
 
         maximal = Pattern(pattern_structure=structure_a, pattern_matching_condition=cond_intersection,
                           time_window=window, consumption_policy=pattern_a.consumption_policy,
