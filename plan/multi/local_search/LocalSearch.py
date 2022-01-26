@@ -13,7 +13,10 @@ from plan.multi.local_search.StateNode import StateNode
 
 
 class LocalSearch(ABC):
-
+    """
+    Abstract class for the local search algorithms when creating a global plan.
+    Each subclass needs to implement the _make_step method which defines how to generate a new solution each iteration.
+    """
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan], optimizer: Optimizer, steps_threshold: int,
                  time_threshold: float, neighborhood_vertex_size: int):
         self._solution = StateNode(
@@ -27,9 +30,16 @@ class LocalSearch(ABC):
         self.__was_activated = False
 
     def _make_step(self, state):
+        """
+        Given a state, look for a cheaper solution using the neighborhood function and the chosen meta-heuristic.
+        """
         raise NotImplementedError()
 
     def _get_neighbors(self, state: StateNode, size: int):
+        """
+        Return certain amount of neighbors of the current state. The decision of choosing the neighbor will
+        be subject to the __neighborhood_vertex_size property.
+        """
         neighbors = []
         for i in range(size):
             while self._time_cond():
@@ -42,15 +52,25 @@ class LocalSearch(ABC):
         return neighbors
 
     def get_best_solution(self):
+        """
+        Return the best solution found under the given constraints (time limit, allowed steps, ...)
+        """
         if not self.__was_activated:
             self._solution, cost = self._start_search()
             self.__was_activated = True
         return self._solution.pattern_to_tree_plan_map
 
     def _time_cond(self):
+        """
+        Inner function to check if the algorithm reached its time limit.
+        """
         return time() - self._running_time <= self._time_threshold
 
     def _start_search(self):
+        """
+        The main function that implements the local search algorithm. Under the time limit and steps threshold,
+         look for a better solution each step. If it is cheaper, replace it with the current solution.
+        """
         allowed_steps = self._steps_threshold
         current_best_solution = self._solution
         current_best_cost = current_best_solution.get_cost()
@@ -72,6 +92,12 @@ class LocalSearch(ABC):
 
 
 class TabuSearch(LocalSearch):
+    """
+    Local search meta-heuristic.
+    Tabu search explores L random neighbors each step, and moves to the cheapest of them.
+    Visiting the same neighbor twice is prohibited. To enforce that, visited solutions are stored in a tabu list.
+    When the list reaches its capacity limit, old solutions will be removed from it.
+    """
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan], optimizer: Optimizer, steps_threshold: int,
                  time_threshold: float, neighborhood_vertex_size: int, capacity: int, lookup_radius: int):
         super().__init__(pattern_to_tree_plan_map=pattern_to_tree_plan_map, optimizer=optimizer,
@@ -105,6 +131,12 @@ class TabuSearch(LocalSearch):
 
 
 class SimulatedAnnealingSearch(LocalSearch):
+    """
+    Local search meta-heuristic.
+    A threshold Ck is defined for each step. A better solution is chosen to replace the current one.
+    When facing a more expensive solution, it is chosen with some probability. After each step the threshold is decreased by a predefined rate.
+    The algorithm ends when reaching a predefined small value for Ck.
+    """
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan], optimizer: Optimizer, steps_threshold: int,
                  time_threshold: float, neighborhood_vertex_size: int, multiplier: float,
                  simulated_anealing_threshold: float, initial_neighbors: int):

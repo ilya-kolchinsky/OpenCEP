@@ -254,19 +254,6 @@ class Pattern:
                        time_window=self.window, consumption_policy=self.consumption_policy,
                        confidence=self.confidence, statistics=self.statistics)
 
-    def get_unique_sub_pattern(self, sub_patterns):
-        """
-        Return a new sub pattern that is constructed as follows:
-        Take the original pattern (self), remove the conditions of sub_patterns from it,
-         and create a new pattern that fits only to the left conditions.
-        """
-        # Assumption - the sub_patterns are indeed a sub patterns of the original pattern (self).
-        # two cases - composite condition - And/Or, take its ingredients and remove.
-        # atomic condition - simply remove it also from the list - or if its an
-        # need to consider case of empty condition case
-
-        pass
-
     def __repr__(self):
         return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.full_structure,
                                                                                 self.condition,

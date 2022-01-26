@@ -95,13 +95,13 @@ class Condition(ABC):
 
     def get_condition_projection(self, event_names):
         """
-        Returns the projection of the event names on the condition
+        Returns the projection of the event names on the condition.
         """
         raise NotImplementedError()
 
     def intersection(self, condition):
         """
-        Returns the intersection condition between two conditions
+        Returns the intersection condition between self and the condition argument.
         """
         raise NotImplementedError()
 

@@ -108,7 +108,7 @@ def localSearchTest3(createTestFile=False, eval_mechanism_params=LOCAL_EVALUATIO
     pattern2.set_statistics(
         {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076, 0.0159]})  # {"AAPL": 460, "LOCM": 219}
 
-    runMultiTest("abcccc", [pattern1, pattern2], createTestFile, eval_mechanism_params)
+    runMultiTest("abcccc", [pattern1, pattern2], createTestFile, subtree_sharing_eval_mechanism_params)
 
 
 def localSearchTest4(createTestFile=False, eval_mechanism_params=LOCAL_EVALUATION_MECHANISM_SETTINGS,

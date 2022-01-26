@@ -73,18 +73,17 @@ DEFAULT_STATISTICS_TYPE = [StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECT
 STATISTICS_TIME_WINDOW = timedelta(hours=1)  # Time window for statistics
 STATISTICS_UPDATES_WAIT_TIME = None  # the default wait time between statistics updates or None to disable adaptivity
 
-# TODO: Complete documentation of parameters below
 # Local Search Settings
 DEFAULT_SEARCH_TYPE = LocalSearchApproaches.TABU_SEARCH
 NEIGHBORHOOD_VERTEX_SIZE = 2  # should be greater than or equal to 2
 LOCAL_SEARCH_TIME_LIMIT = 180  # this is in seconds
-LOCAL_SEARCH_STEPS_THRESHOLD = 100
+LOCAL_SEARCH_STEPS_THRESHOLD = 100  # max allowed steps without improvement
 
-SIMULATED_ANNEALING_MULTIPLIER = 0.99
-SIMULATED_ANNEALING_INIT_NEIGHBORS = 1e3
-SIMULATED_ANNEALING_C_THRESHOLD = 1e-3
+SIMULATED_ANNEALING_MULTIPLIER = 0.99  # the decrease rate for the simulated annealing algorithm
+SIMULATED_ANNEALING_INIT_NEIGHBORS = 1e3  # num of neighbors for simulated annealing init
+SIMULATED_ANNEALING_C_THRESHOLD = 1e-3  # final threshold to end simulated annealing algorithm
 
-TABU_SEARCH_CAPACITY = 1e4
-TABU_SEARCH_NEIGHBORHOOD_SIZE = 1e2
+TABU_SEARCH_CAPACITY = 1e4  # the capacity of the tabu list
+TABU_SEARCH_NEIGHBORHOOD_SIZE = 1e2  # how many neighbors to search in each step
 
 

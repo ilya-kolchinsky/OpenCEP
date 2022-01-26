@@ -28,8 +28,9 @@ class TreePlanBuilder(ABC):
     def build_tree_plan(self, pattern: Pattern, statistics: Dict, shared_sub_trees: List[TreePlan] = None):
         """
         Creates a tree-based evaluation plan for the given pattern.
+        An optional argument is the shared_sub_trees, which will use a previous created tree plans and merge
+         them with the pattern's full plan.
         """
-        # TODO: Check the apply condition, adjust indices and the edge case
         # If there are shared sub trees, consider them while creating the plan
         if shared_sub_trees:
             # Take only events that do not exist in the shared subtrees
@@ -74,7 +75,6 @@ class TreePlanBuilder(ABC):
         _sub_trees.pop(0)
         while len(_sub_trees) > 0:
             root = TreePlanBuilder._instantiate_binary_node(pattern, root, _sub_trees[0])
-            # TODO: Check case of main perator is unary (KC, NOT)
             _sub_trees.pop(0)
         return root
 

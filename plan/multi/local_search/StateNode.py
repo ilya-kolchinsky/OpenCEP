@@ -9,6 +9,11 @@ from plan.multi.local_search.MultiPatternGraph import MultiPatternGraph
 
 
 class StateNode:
+    """
+    Describes a state in the local search algorithm, in order to generate a global plan.
+    StateNode stores the current solution and its cost, and also allows transition between states
+    using the Multi-Pattern Graph.
+    """
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan],
                  mpg: MultiPatternGraph,
                  optimizer: Optimizer,
@@ -28,6 +33,9 @@ class StateNode:
         return self.__pattern_to_tree_plan_map
 
     def get_cost(self):
+        """
+        Get the total cost of the current solution.
+        """
         if self.__cost is None:
             cost_model = IntermediateResultsTreeCostModel()
             visited = {}
@@ -44,6 +52,11 @@ class StateNode:
         return hash(str(self))
 
     def get_neighbor(self, neighborhood_vertex_size: int):
+        """
+        Return a neighbor of the current state, based on the neighborhood_vertex_size param.
+        The algorithm chooses a random common subpattern in the multi pattern graph, and patterns that share it.
+        Then, it tries to build a new plan that uses this shared subpattern, which generates a new global plan.
+        """
         # Choose a random max common sub pattern and its patterns according to neighborhood-vertex-k decision
         tup = self.__mpg.get_random_max_pattern_and_peers(neighborhood_vertex_size)
         if tup is None:

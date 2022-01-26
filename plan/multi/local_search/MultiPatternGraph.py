@@ -11,15 +11,16 @@ class MultiPatternGraph:
         self.__patterns_list = patterns
         self.__pattern_to_maximal_common_sub_patterns = None  # dict of Pattern -> set of max common sub patterns
         self.__maximal_sub_pattern_to_patterns = None  # dict of max common sub pattern -> set of patterns
-        self.__set_max_sub_patterns()  # prepare the dicts above
+        self.__build_graph()  # build the dicts above
 
     @property
     def patterns(self):
         return self.__patterns_list
 
-    def __set_max_sub_patterns(self):
+    def __build_graph(self):
         """
-        creates mapping between distinct maximal sub-patterns and the sets of patterns containing them.
+        Implements the Multi Pattern Graph for the local search algorithm.
+        Creates a mapping between distinct maximal sub-patterns and the sets of patterns containing them.
         Also, for each pattern save its max common sub patterns in a dict.
         """
         max_sub_pattern_to_patterns = dict()
@@ -37,10 +38,10 @@ class MultiPatternGraph:
         self.__maximal_sub_pattern_to_patterns = max_sub_pattern_to_patterns
         self.__pattern_to_maximal_common_sub_patterns = pattern_to_max_sub_patters
 
-    def get_random_max_pattern_and_peers(self, k: int):
+    def get_random_max_pattern_and_peers(self, neighborhood: int):
         """
         Choose randomly a pattern, and then choose a random max sub pattern of it in the graph.
-        From all the x patterns that share this sub pattern, choose randomly min(k,x) patterns.
+        From all the x patterns that share this sub pattern, choose randomly min(neighborhood,x) patterns.
         Return a tuple of (max sub pattern, chosen_patterns)
         """
         random_pattern = random.choice(self.__patterns_list)
@@ -49,7 +50,7 @@ class MultiPatternGraph:
             return None
         random_max_sub_pattern = random.choice(list(random_max_sub_pattern_set))
         containing_patterns = self.__maximal_sub_pattern_to_patterns.get(random_max_sub_pattern)
-        chosen_patterns = random.sample(containing_patterns, min(k, len(containing_patterns)))
+        chosen_patterns = random.sample(containing_patterns, min(neighborhood, len(containing_patterns)))
         return random_max_sub_pattern, chosen_patterns
 
     def __get_maximal_common_sub_patterns(self, pattern_a: Pattern, pattern_b: Pattern) -> List[Pattern]:
@@ -80,7 +81,8 @@ class MultiPatternGraph:
         structure_b = pattern_b.full_structure.get_structure_projection(events_intersection)
 
         if structure_a != structure_b or (None in [structure_a, structure_b]):
-            # According to Ilya's assumption
+            # Current limitation: The algorithm does not create intersection between the patterns structures
+            # (it only checks for equality, otherwise returns that there is no common subpattern)
             return []
 
         window = min(pattern_a.window, pattern_b.window)
