@@ -146,16 +146,18 @@ class SimulatedAnnealingSearch(LocalSearch):
         self._alpha = multiplier
         self._c_threshold = simulated_anealing_threshold
         # Initialize C0 according to the article
+        self._running_time = time()  # time limit for the initialization
         neighbors = self._get_neighbors(self._solution, initial_neighbors)
         if not neighbors:
-            raise Exception('Failed initializing Simulated Annealing')
-        init_solution_cost = self._solution.get_cost()
-        # Set C0, the initial value, to the largest difference observed with the calculated neighbors of initial state
-        c_0 = max([abs(init_solution_cost - neighbor.get_cost()) for neighbor in neighbors])
+            c_0 = self._c_threshold
+        else:
+            # Set C0, the initial value, to the largest difference observed with the calculated neighbors of initial state
+            init_solution_cost = self._solution.get_cost()
+            c_0 = max([abs(init_solution_cost - neighbor.get_cost()) for neighbor in neighbors])
         self._c = c_0
 
     def _make_step(self, state):
-        if self._c < self._c_threshold:
+        if self._c <= self._c_threshold:
             return None
 
         chosen = None
