@@ -30,39 +30,28 @@ class TreePlanBuilder(ABC):
         Creates a tree-based evaluation plan for the given pattern.
         """
         # TODO: Check the apply condition, adjust indices and the edge case
-        # create sub pattern without occurences of shared sub trees events
-        # if shared already include all events, no need for creation of plan for pattern - just merge all sub trees
-        sub_pattern = pattern
-        # TODO: Reorg the code
-        # TODO: Change the build of the subtrees
-        if shared_sub_trees is not None and len(shared_sub_trees) > 0:
+        # If there are shared sub trees, consider them while creating the plan
+        if shared_sub_trees:
+            # Take only events that do not exist in the shared subtrees
             events = set(pattern.get_primitive_event_names())
             for subtree in shared_sub_trees:
                 subtree_events = set(subtree.root.get_event_names())
                 events -= subtree_events
-                # Need to change - its not good to completely remove events. instead remove conditions, and then project by the remained events in these conditions.
-            if len(events) == 0:
-                # sub trees include all data of pattern, no need for create topology below
-                all_sub_trees = [plan.root for plan in shared_sub_trees]
-            else:
+            all_sub_trees = [plan.root for plan in shared_sub_trees]
+            # If there is a data that is not shared with the existing shared trees, create a subtree plan for it
+            if len(events) > 0:
                 sub_pattern = pattern.get_sub_pattern(event_names=list(events))
                 statistics = sub_pattern.statistics if sub_pattern.statistics is not None else statistics
-                statistics_copy = deepcopy(statistics)  # the statistics object can be modified during the plan building process
-                sub_pattern_root, _ = self.__create_topology(sub_pattern, statistics_copy)
-                TreePlanBuilder.__adjust_indices(sub_pattern, sub_pattern_root)
-                if isinstance(sub_pattern.positive_structure, UnaryStructure):
-                    # an edge case where the topmost operator is a unary operator
-                    sub_pattern_root = self._instantiate_unary_node(pattern, sub_pattern_root)
-                pattern_condition = deepcopy(sub_pattern.condition)  # copied since apply_condition modifies its input parameter
-                sub_pattern_root.apply_condition(pattern_condition)
+                sub_pattern_plan = self.build_tree_plan(pattern=sub_pattern, statistics=statistics)
 
-                all_sub_trees = [sub_pattern_root] + [plan.root for plan in shared_sub_trees]
+                all_sub_trees = [sub_pattern_plan.root] + all_sub_trees
+            # Merge all the subtrees into one plan for the pattern
             root = TreePlanBuilder.__make_tree_out_of_sub_trees(pattern, all_sub_trees)
-            return TreePlan(root, pattern)
 
         else:
             statistics_copy = deepcopy(statistics)  # the statistics object can be modified during the plan building process
             root, _ = self.__create_topology(pattern, statistics_copy)
+
         TreePlanBuilder.__adjust_indices(pattern, root)
         if isinstance(pattern.positive_structure, UnaryStructure):
             # an edge case where the topmost operator is a unary operator

@@ -17,7 +17,6 @@ class LocalSearchTreePlanMerger(RecursiveTraversalTreePlanMerger):
         local_search = LocalSearchFactory.build_local_search(pattern_to_tree_plan_map, optimizer,
                                                              local_search_parameters)
         return local_search.get_best_solution()
-        # TODO: Should call super().merge_tree_plans()?
 
     def _are_suitable_for_share(self, first_node: TreePlanNode, second_node: TreePlanNode):
         """

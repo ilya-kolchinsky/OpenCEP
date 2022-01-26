@@ -16,7 +16,7 @@ from test.ParallelTests import *
 
 runTest.over_all_time = 0
 # localSearchTest()
-localSearchTest2()
+localSearchTest3()
 
 # # basic functionality tests
 # oneArgumentsearchTest()
