@@ -99,7 +99,7 @@ class Condition(ABC):
         """
         raise NotImplementedError()
 
-    def intersection(self, condition):
+    def get_conditions_intersection(self, condition):
         """
         Returns the intersection condition between self and the condition argument.
         """
@@ -157,12 +157,12 @@ class AtomicCondition(Condition, ABC):
             return deepcopy(self)
         return None
 
-    def intersection(self, other):
+    def get_conditions_intersection(self, other):
         if self == other:
             return deepcopy(self)
         from condition.CompositeCondition import CompositeCondition
         if isinstance(other, CompositeCondition):
-            return other.intersection(self)
+            return other.get_conditions_intersection(self)
         return None
 
 

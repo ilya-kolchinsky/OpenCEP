@@ -1,5 +1,5 @@
 from abc import ABC
-from copy import deepcopy
+from copy import deepcopy, copy
 from datetime import timedelta
 from typing import List, Dict
 
@@ -69,7 +69,6 @@ class TreePlanBuilder(ABC):
         # assuming non empty list
         if len(sub_trees) == 1:
             return sub_trees[0]
-        from copy import copy
         _sub_trees = copy(sub_trees)
         root = _sub_trees[0]
         _sub_trees.pop(0)

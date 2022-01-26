@@ -247,9 +247,9 @@ class Pattern:
         Given a list of event names, return the sub pattern consisting of these events.
         """
         structure = self.full_structure.get_structure_projection(event_names)
-        conditions = self.condition.get_condition_projection(event_names)
         if structure is None:
             return None
+        conditions = self.condition.get_condition_projection(event_names)
         return Pattern(pattern_structure=structure, pattern_matching_condition=conditions,
                        time_window=self.window, consumption_policy=self.consumption_policy,
                        confidence=self.confidence, statistics=self.statistics)

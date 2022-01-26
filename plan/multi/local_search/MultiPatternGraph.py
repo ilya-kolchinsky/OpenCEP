@@ -71,12 +71,12 @@ class MultiPatternGraph:
             return []
 
         if conditions_a != conditions_b:
-            cond_intersection = conditions_a.intersection(conditions_b)
+            cond_intersection = conditions_a.get_conditions_intersection(conditions_b)
             if cond_intersection is None:
                 return []
             events_intersection = cond_intersection.get_event_names()
 
-        # Reducing Si and Sj
+        # Reducing Structure a and Structure b according to the events intersection
         structure_a = pattern_a.full_structure.get_structure_projection(events_intersection)
         structure_b = pattern_b.full_structure.get_structure_projection(events_intersection)
 

@@ -10,7 +10,7 @@ from plan.multi.local_search.MultiPatternGraph import MultiPatternGraph
 
 class StateNode:
     """
-    Describes a state in the local search algorithm, in order to generate a global plan.
+    Describes a state in the local search algorithm. The final state will be the chosen global plan.
     StateNode stores the current solution and its cost, and also allows transition between states
     using the Multi-Pattern Graph.
     """

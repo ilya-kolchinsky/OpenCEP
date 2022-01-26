@@ -118,7 +118,7 @@ class CompositeCondition(Condition, ABC):
                 return False
         return True
 
-    def intersection(self, other):
+    def get_conditions_intersection(self, other):
         if type(other) == type(self):
             atomic_conds = set.intersection(set(other.get_conditions_list()), set(self.get_conditions_list()))
             atomic_conds = [deepcopy(cond) for cond in atomic_conds]
