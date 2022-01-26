@@ -155,6 +155,7 @@ pattern = Pattern(
 For multi-pattern workloads, you can choose one of the algorithms to share the common sub-patterns:
 * `TRIVIAL_SHARING_LEAVES`: shares equivalent leaves from different tree plans.
 * `TREE_PLAN_SUBTREES_UNION`: shares equivalent subtrees of different tree plans.
+* `TREE_PLAN_LOCAL_SEARCH`: shares multiple subtrees of different tree plans, using the local search algorithm.
 
 More muti-pattern sharing algorithms will be supported in the future.
 
