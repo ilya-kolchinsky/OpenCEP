@@ -111,7 +111,7 @@ class CompositeCondition(Condition, ABC):
     def __eq__(self, other):
         if type(self) != type(other):
             return False
-        if len(self._conditions) != other.get_num_conditions():
+        if self.get_num_conditions() != other.get_num_conditions():
             return False
         for condition in self._conditions:
             if condition not in other.get_conditions_list():

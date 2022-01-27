@@ -133,7 +133,7 @@ class TabuSearch(LocalSearch):
 class SimulatedAnnealingSearch(LocalSearch):
     """
     Local search meta-heuristic.
-    A threshold Ck is defined for each step. A better solution is chosen to replace the current one.
+    A threshold Ck is defined for each step. When a better solution is found, it is chosen to replace the current one.
     When facing a more expensive solution, it is chosen with some probability. After each step the threshold is decreased by a predefined rate.
     The algorithm ends when reaching a predefined small value for Ck.
     """
