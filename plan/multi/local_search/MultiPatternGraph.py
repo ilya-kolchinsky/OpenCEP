@@ -7,6 +7,12 @@ from base.Pattern import Pattern
 
 
 class MultiPatternGraph:
+    """
+    Data structure that is capable of efficiently retrieving information about the mutual
+     sub patterns between a list of patterns.
+     This is a compact representation of the graph, according to the article:
+     https://assaf.net.technion.ac.il/files/2019/03/Real-Time-Multi-Pattern-Detection-over-Event-Streams.pdf
+    """
     def __init__(self, patterns: List[Pattern]):
         self.__patterns_list = patterns
         self.__pattern_to_maximal_common_sub_patterns = None  # dict of Pattern -> set of max common sub patterns
