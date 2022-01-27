@@ -218,7 +218,7 @@ class TreePlanBuilder(ABC):
         """
         Returns the cost of a given plan for the given plan according to a predefined cost model.
         """
-        return self.__cost_model.get_plan_cost(pattern, plan, statistics, None)
+        return self.__cost_model.get_plan_cost(pattern, plan, statistics)
 
     @staticmethod
     def _instantiate_unary_node(pattern: Pattern, subtree: TreePlanNode):
@@ -413,8 +413,7 @@ class TreePlanBuilder(ABC):
         if len(statistics) > 0:
             # Get the cost of the nested structure to calculate the new arrival rate and save it for other
             # functions (all functions that uses cost of a tree and will need the cost of nested subtrees).
-            cost = IntermediateResultsTreeCostModel().get_plan_cost(nested_pattern, nested_topology, nested_statistics,
-                                                                    None)
+            cost = IntermediateResultsTreeCostModel().get_plan_cost(nested_pattern, nested_topology, nested_statistics)
             if isinstance(arg, UnaryStructure):
                 if isinstance(arg, KleeneClosureOperator):
                     nested_arrival_rates.append(pow(2, cost) / pattern.window.total_seconds())

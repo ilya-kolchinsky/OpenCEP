@@ -35,6 +35,7 @@ class StateNode:
     def get_cost(self):
         """
         Get the total cost of the current solution.
+        A visited dict is passed to the inner cost function, in order to avoid calculating the same node twice.
         """
         if self.__cost is None:
             cost_model = IntermediateResultsTreeCostModel()
