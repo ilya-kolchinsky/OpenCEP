@@ -26,7 +26,8 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
     Creates an invariant matrix for an arrival rates only case, so that we can still use it in the cost algorithms.
     """
     def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict, visited: dict = None):
-        visited = visited or {}
+        if visited is None:
+            visited = {}
         if StatisticsTypes.ARRIVAL_RATES not in statistics:
             raise MissingStatisticsException()
         arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
