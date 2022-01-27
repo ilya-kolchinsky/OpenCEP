@@ -134,8 +134,8 @@ class SimulatedAnnealingSearch(LocalSearch):
     """
     Local search meta-heuristic.
     A threshold Ck is defined for each step. When a better solution is found, it is chosen to replace the current one.
-    When facing a more expensive solution, it is chosen with some probability. After each step the threshold is decreased by a predefined rate.
-    The algorithm ends when reaching a predefined small value for Ck.
+    When facing a more expensive solution, it is chosen with some probability.
+    After each step the threshold is decreased by a predefined rate, until it reaches a predefined small value.
     """
     def __init__(self, pattern_to_tree_plan_map: Dict[Pattern, TreePlan], optimizer: Optimizer, steps_threshold: int,
                  time_threshold: float, neighborhood_vertex_size: int, multiplier: float,
