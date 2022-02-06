@@ -124,7 +124,7 @@ class TabuSearch(LocalSearch):
             return None
         cheapest_neighbor = min(chosen_neighbors, key=lambda sol: sol.get_cost())
         self._tabu_list.extend(chosen_neighbors)
-        if len(self._tabu_list) > self.__capacity:
+        while len(self._tabu_list) > self.__capacity:
             self._tabu_list.popleft()
 
         return cheapest_neighbor
