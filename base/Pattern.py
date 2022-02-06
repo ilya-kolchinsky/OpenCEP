@@ -260,9 +260,11 @@ class Pattern:
                                                                                 self.window)
 
     def __eq__(self, other):
-        return self.full_structure == other.full_structure and self.condition == other.condition and\
-               self.window == other.window and self.statistics == other.statistics and\
-               self.confidence == other.confidence
+        return id(self) == id(other) or (self.full_structure == other.full_structure and
+                                         self.condition == other.condition and
+                                         self.window == other.window and
+                                         self.statistics == other.statistics and
+                                         self.confidence == other.confidence)
 
     def __hash__(self):
         return hash(str(self))

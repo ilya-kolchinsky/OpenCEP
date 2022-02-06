@@ -113,8 +113,8 @@ class CompositeCondition(Condition, ABC):
             return False
         if self.get_num_conditions() != other.get_num_conditions():
             return False
-        for condition in self._conditions:
-            if condition not in other.get_conditions_list():
+        for condition_a, condition_b in zip(self._conditions, other._conditions):
+            if condition_a not in other.get_conditions_list() or condition_b not in self.get_conditions_list():
                 return False
         return True
 

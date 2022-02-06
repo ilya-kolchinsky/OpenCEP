@@ -215,7 +215,9 @@ class SimpleCondition(AtomicCondition):
         return "[" + separator.join(term_list) + "]"
 
     def __eq__(self, other):
-        return self == other or type(self) == type(other) and self.terms == other.terms and self.relation_op == other.relation_op
+        return id(self) == id(other) or (type(self) == type(other) and
+                                         self.terms == other.terms and
+                                         self.relation_op == other.relation_op)
 
     def get_event_names(self):
         """

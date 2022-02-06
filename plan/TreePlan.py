@@ -254,6 +254,5 @@ class TreePlan:
     """
     A complete tree-based evaluation plan.
     """
-    def __init__(self, root: TreePlanNode, pattern: Pattern):
+    def __init__(self, root: TreePlanNode):
         self.root = root
-        self.pattern = pattern

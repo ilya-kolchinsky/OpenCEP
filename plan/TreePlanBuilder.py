@@ -31,51 +31,15 @@ class TreePlanBuilder(ABC):
         An optional argument is the shared_sub_trees, which will use a previous created tree plans and merge
          them with the pattern's full plan.
         """
-        # If there are shared sub trees, consider them while creating the plan
-        if shared_sub_trees:
-            # Take only events that do not exist in the shared subtrees
-            events = set(pattern.get_primitive_event_names())
-            for subtree in shared_sub_trees:
-                subtree_events = set(subtree.root.get_event_names())
-                events -= subtree_events
-            all_sub_trees = [plan.root for plan in shared_sub_trees]
-            # If there is a data that is not shared with the existing shared trees, create a subtree plan for it
-            if len(events) > 0:
-                sub_pattern = pattern.get_sub_pattern(event_names=list(events))
-                statistics = sub_pattern.statistics if sub_pattern.statistics is not None else statistics
-                sub_pattern_plan = self.build_tree_plan(pattern=sub_pattern, statistics=statistics)
-
-                all_sub_trees = [sub_pattern_plan.root] + all_sub_trees
-            # Merge all the subtrees into one plan for the pattern
-            root = TreePlanBuilder.__make_tree_out_of_sub_trees(pattern, all_sub_trees)
-
-        else:
-            statistics_copy = deepcopy(statistics)  # the statistics object can be modified during the plan building process
-            root, _ = self.__create_topology(pattern, statistics_copy)
-
+        statistics_copy = deepcopy(statistics)  # the statistics object can be modified during the plan building process
+        root, _ = self.__create_topology(pattern, statistics_copy, shared_sub_trees)
         TreePlanBuilder.__adjust_indices(pattern, root)
         if isinstance(pattern.positive_structure, UnaryStructure):
             # an edge case where the topmost operator is a unary operator
             root = self._instantiate_unary_node(pattern, root)
         pattern_condition = deepcopy(pattern.condition)  # copied since apply_condition modifies its input parameter
         root.apply_condition(pattern_condition)
-        return TreePlan(root, pattern)
-
-    @staticmethod
-    def __make_tree_out_of_sub_trees(pattern: Pattern, sub_trees: List[TreePlanNode]) -> TreePlanNode:
-        """
-        Given subtrees that represent sub patterns, merge them to one tree plan.
-        """
-        # assuming non empty list
-        if len(sub_trees) == 1:
-            return sub_trees[0]
-        _sub_trees = copy(sub_trees)
-        root = _sub_trees[0]
-        _sub_trees.pop(0)
-        while len(_sub_trees) > 0:
-            root = TreePlanBuilder._instantiate_binary_node(pattern, root, _sub_trees[0])
-            _sub_trees.pop(0)
-        return root
+        return TreePlan(root)
 
     @staticmethod
     def __extract_positive_statistics(pattern: Pattern, statistics: Dict):
@@ -197,17 +161,74 @@ class TreePlanBuilder(ABC):
             leaves.append(new_leaf)
         return leaves
 
-    def __create_topology(self, pattern: Pattern, statistics: Dict):
+    @staticmethod
+    def __create_complement_subpattern(pattern: Pattern, statistics: Dict,
+                                       shared_sub_trees: List[TreePlan] = None):
+        """
+        Given a pattern, its statistics and a shared_sub_trees list, create a new sub pattern,
+        which consists of all the events that do not appear in shared_sub_trees (the complement sub pattern).
+        """
+        sub_pattern = pattern
+        sub_statistics = statistics
+        if shared_sub_trees:
+            # Take only events that do not exist in the shared subtrees
+            events = set(pattern.get_primitive_event_names())
+            for subtree in shared_sub_trees:
+                subtree_events = set(subtree.root.get_event_names())
+                events -= subtree_events
+            if len(events) > 0:
+                # If there is a data that is not shared with the existing shared trees, create a subpattern for it
+                sub_pattern = pattern.get_sub_pattern(event_names=list(events))
+                sub_statistics = sub_pattern.statistics if sub_pattern.statistics is not None else statistics
+            else:
+                # Shared subtrees cover the entire patten, return None for the complement subpattern
+                sub_pattern = None
+                sub_statistics = None
+
+        return sub_pattern, sub_statistics
+
+    def __create_leaves_for_tree_plan(self, pattern: Pattern, statistics: Dict, nested_topologies: List[TreePlanNode],
+                                      nested_args: List[PatternStructure], nested_cost: List[float],
+                                      shared_sub_trees: List[TreePlan] = None) -> List[TreePlanNode]:
+        """
+        Return the leaves of the pattern's tree plan. If there are shared subtrees to consider,
+        they would be inserted as existing leaves, and we would not create new leaves for them.
+        """
+        # Create subpattern that consists only of events that are not shared with the existing subtrees
+        sub_pattern, sub_statistics = TreePlanBuilder.__create_complement_subpattern(pattern, statistics,
+                                                                                     shared_sub_trees)
+        if sub_pattern is None:
+            # shared subtrees cover the entire pattern - the leaves would simply be the shared subtrees
+            leaves = [subtree.root for subtree in shared_sub_trees]
+        elif sub_pattern == pattern:
+            # no shared subtrees - create all necessary leaves
+            leaves = self.__init_tree_leaves(pattern, nested_topologies, nested_args, nested_cost)
+        else:
+            # the shared subtrees cover part of the pattern, so for the rest of the pattern create new leaves.
+            sub_pattern_positive_statistics = TreePlanBuilder.__extract_positive_statistics(sub_pattern, sub_statistics)
+            sub_pattern, sub_modified_statistics, sub_nested_topologies, sub_nested_args, sub_nested_cost = \
+                self.__extract_nested_pattern(sub_pattern, sub_pattern_positive_statistics)
+            leaves = self.__init_tree_leaves(sub_pattern, sub_nested_topologies, sub_nested_args, sub_nested_cost)
+            # add the leaves that represent the shared subtrees
+            leaves.extend([subtree.root for subtree in shared_sub_trees])
+        return leaves
+
+    def __create_topology(self, pattern: Pattern, statistics: Dict, shared_sub_trees: List[TreePlan] = None):
         """
         A recursive method for creating a tree topology.
+        An optional argument is the shared_sub_trees, which will use a previous created tree plans and merge
+         them with the pattern's full plan.
         """
         # Handle positive part
         pattern_positive_statistics = TreePlanBuilder.__extract_positive_statistics(pattern, statistics)
         pattern, modified_statistics, nested_topologies, nested_args, nested_cost = \
             self.__extract_nested_pattern(pattern, pattern_positive_statistics)
-        tree_topology = self._create_tree_topology(pattern, modified_statistics,
-                                                   self.__init_tree_leaves(pattern, nested_topologies,
-                                                                           nested_args, nested_cost))
+
+        # Create the leaves for the tree plan
+        leaves = self.__create_leaves_for_tree_plan(pattern, statistics, nested_topologies,
+                                                    nested_args, nested_cost, shared_sub_trees)
+
+        tree_topology = self._create_tree_topology(pattern, modified_statistics, leaves)
 
         # Handle negative part
         tree_topology = self.__handle_negative_part(pattern, statistics, tree_topology)

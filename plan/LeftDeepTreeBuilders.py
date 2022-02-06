@@ -37,6 +37,9 @@ class LeftDeepTreeBuilder(TreePlanBuilder):
         """
         if leaves is None:
             leaves = [TreePlanLeafNode(i) for i in range(max(order)+1)]
+        # Trim order list, so it would have the same length as leaves list
+        if len(order) > len(leaves):
+            order = order[0:len(leaves)]
         tree_topology = leaves[order[0]]
         for i in range(1, len(order)):
             tree_topology = TreePlanBuilder._instantiate_binary_node(pattern, tree_topology, leaves[order[i]])
