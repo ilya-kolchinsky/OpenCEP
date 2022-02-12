@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import List
+from typing import List, Set
 
 from base.Pattern import Pattern
 from misc.LegacyStatistics import MissingStatisticsException
@@ -25,7 +25,7 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
     Calculates the plan cost based on the expected size of intermediate results (partial matches).
     Creates an invariant matrix for an arrival rates only case, so that we can still use it in the cost algorithms.
     """
-    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict, visited: set = None):
+    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict, visited: Set[TreePlanNode] = None):
         if visited is None:
             visited = set()
         if StatisticsTypes.ARRIVAL_RATES not in statistics:
@@ -42,7 +42,7 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
 
     @staticmethod
     def __get_plan_cost_aux(tree: TreePlanNode, selectivity_matrix: List[List[float]],
-                            arrival_rates: List[int], time_window: float, visited: set):
+                            arrival_rates: List[int], time_window: float, visited: Set[TreePlanNode]):
         """
         A helper function for calculating the cost function of the given tree.
         Returns a tuple of three values as follows:
