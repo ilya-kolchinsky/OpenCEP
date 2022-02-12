@@ -39,7 +39,8 @@ class StateNode:
         """
         if self.__cost is None:
             cost_model = IntermediateResultsTreeCostModel()
-            visited = {}
+            # Keep a set of the visited nodes, to avoid calculating the same subtree twice
+            visited = set()
             total_cost = 0
             for pattern, plan in self.__pattern_to_tree_plan_map.items():
                 total_cost += cost_model.get_plan_cost(pattern, plan.root, pattern.statistics, visited)

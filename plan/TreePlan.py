@@ -254,5 +254,15 @@ class TreePlan:
     """
     A complete tree-based evaluation plan.
     """
-    def __init__(self, root: TreePlanNode):
+    def __init__(self, root: TreePlanNode, original_pattern: Pattern, modified_pattern: Pattern = None):
         self.root = root
+        # original pattern is the pattern that was initialized by the user
+        # modified pattern represents a customized pattern that suits the actual topology of the tree
+        self.original_pattern = original_pattern
+        self.modified_pattern = modified_pattern if modified_pattern else original_pattern
+
+    def __eq__(self, other):
+        return self.original_pattern == other.original_pattern
+
+    def __hash__(self):
+        return hash(str(self))

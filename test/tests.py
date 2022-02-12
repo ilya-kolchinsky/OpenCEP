@@ -306,6 +306,7 @@ localSimulatedSearchTriplePatterns()
 locaSimulatedSearchTripleSharePatterns()
 localSimulatedSearchAndPatterns()
 localSimulatedSearchAndOpposite()
+localSimulatedBushySearchAndOpposite()
 
 # benchmarks
 if INCLUDE_BENCHMARKS:

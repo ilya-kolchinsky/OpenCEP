@@ -1,6 +1,7 @@
 from abc import ABC
 from copy import deepcopy, copy
 from datetime import timedelta
+from itertools import combinations
 from typing import List, Dict
 
 from adaptive.statistics.StatisticsTypes import StatisticsTypes
@@ -31,15 +32,19 @@ class TreePlanBuilder(ABC):
         An optional argument is the shared_sub_trees, which will use a previous created tree plans and merge
          them with the pattern's full plan.
         """
-        statistics_copy = deepcopy(statistics)  # the statistics object can be modified during the plan building process
-        root, _ = self.__create_topology(pattern, statistics_copy, shared_sub_trees)
-        TreePlanBuilder.__adjust_indices(pattern, root)
-        if isinstance(pattern.positive_structure, UnaryStructure):
+        actual_shared_trees = [] if not shared_sub_trees else TreePlanBuilder.__get_unique_subtrees(shared_sub_trees)
+        # In case of shared subtrees, create a temporary pattern that suits the topology of the subtrees.
+        modified_pattern, modified_statistics, tree_building_blocks = self.__create_modified_pattern_and_statistics(
+            pattern, statistics, actual_shared_trees)
+        statistics_copy = deepcopy(modified_statistics)  # the statistics object can be modified during the plan building process
+        root, _ = self.__create_topology(modified_pattern, statistics_copy, tree_building_blocks)
+        TreePlanBuilder.__adjust_indices(modified_pattern, root)
+        if isinstance(modified_pattern.positive_structure, UnaryStructure):
             # an edge case where the topmost operator is a unary operator
-            root = self._instantiate_unary_node(pattern, root)
-        pattern_condition = deepcopy(pattern.condition)  # copied since apply_condition modifies its input parameter
+            root = self._instantiate_unary_node(modified_pattern, root)
+        pattern_condition = deepcopy(modified_pattern.condition)  # copied since apply_condition modifies its input parameter
         root.apply_condition(pattern_condition)
-        return TreePlan(root)
+        return TreePlan(root, pattern, modified_pattern)
 
     @staticmethod
     def __extract_positive_statistics(pattern: Pattern, statistics: Dict):
@@ -162,6 +167,21 @@ class TreePlanBuilder(ABC):
         return leaves
 
     @staticmethod
+    def __get_unique_subtrees(sub_trees: List[TreePlan]):
+        """
+        Given a list of subtrees, return only those that aren't subtrees of others in the list
+        """
+        modified_shared_trees = set(sub_trees)
+        for tree_a, tree_b in combinations(sub_trees, 2):
+            pattern_a = tree_a.original_pattern
+            pattern_b = tree_b.original_pattern
+            if pattern_a.is_sub_pattern(pattern_b):
+                modified_shared_trees.discard(tree_a)
+            elif pattern_b.is_sub_pattern(pattern_a):
+                modified_shared_trees.discard(tree_b)
+        return list(modified_shared_trees)
+
+    @staticmethod
     def __create_complement_subpattern(pattern: Pattern, statistics: Dict,
                                        shared_sub_trees: List[TreePlan] = None):
         """
@@ -187,48 +207,84 @@ class TreePlanBuilder(ABC):
 
         return sub_pattern, sub_statistics
 
-    def __create_leaves_for_tree_plan(self, pattern: Pattern, statistics: Dict, nested_topologies: List[TreePlanNode],
-                                      nested_args: List[PatternStructure], nested_cost: List[float],
-                                      shared_sub_trees: List[TreePlan] = None) -> List[TreePlanNode]:
+    def __create_modified_pattern_and_statistics(self, pattern: Pattern, statistics: Dict,
+                                                 shared_sub_trees: List[TreePlan] = None):
         """
-        Return the leaves of the pattern's tree plan. If there are shared subtrees to consider,
-        they would be inserted as existing leaves, and we would not create new leaves for them.
+        Given a pattern, its statistics and a list of shared subtrees, create a new pattern that suits
+        the topology of the shared subtrees.
+        Return the modified pattern, the modified statistics and the complete list of the modified pattern's tree plan
+        building blocks (which will be the leaves).
         """
-        # Create subpattern that consists only of events that are not shared with the existing subtrees
-        sub_pattern, sub_statistics = TreePlanBuilder.__create_complement_subpattern(pattern, statistics,
-                                                                                     shared_sub_trees)
-        if sub_pattern is None:
-            # shared subtrees cover the entire pattern - the leaves would simply be the shared subtrees
-            leaves = [subtree.root for subtree in shared_sub_trees]
-        elif sub_pattern == pattern:
-            # no shared subtrees - create all necessary leaves
-            leaves = self.__init_tree_leaves(pattern, nested_topologies, nested_args, nested_cost)
+        if not shared_sub_trees:
+            return pattern, statistics, None
+        complement_pattern, complement_statistics = TreePlanBuilder.__create_complement_subpattern(pattern, statistics,
+                                                                                                   shared_sub_trees)
+        if complement_pattern is None:
+            sub_patterns = [tree.modified_pattern for tree in shared_sub_trees]
+            tree_building_blocks = shared_sub_trees
+        elif complement_pattern == pattern:
+            return pattern, statistics, None
         else:
-            # the shared subtrees cover part of the pattern, so for the rest of the pattern create new leaves.
-            sub_pattern_positive_statistics = TreePlanBuilder.__extract_positive_statistics(sub_pattern, sub_statistics)
-            sub_pattern, sub_modified_statistics, sub_nested_topologies, sub_nested_args, sub_nested_cost = \
-                self.__extract_nested_pattern(sub_pattern, sub_pattern_positive_statistics)
-            leaves = self.__init_tree_leaves(sub_pattern, sub_nested_topologies, sub_nested_args, sub_nested_cost)
-            # add the leaves that represent the shared subtrees
-            leaves.extend([subtree.root for subtree in shared_sub_trees])
-        return leaves
+            sub_patterns = [complement_pattern] + [tree.modified_pattern for tree in shared_sub_trees]
+            # create tree plan for the complement pattern
+            complement_tree_plan = self.build_tree_plan(complement_pattern, complement_statistics)
+            # these are all the building blocks of the pattern (top args)
+            tree_building_blocks = [complement_tree_plan] + shared_sub_trees
 
-    def __create_topology(self, pattern: Pattern, statistics: Dict, shared_sub_trees: List[TreePlan] = None):
+        modified_pattern = TreePlanBuilder.__merge_patterns(pattern, sub_patterns)
+
+        # create modified statistics - according to the order of the modified pattern
+        modified_statistics = pattern.create_modified_statistics(statistics, modified_pattern)
+        modified_pattern.set_statistics(modified_statistics)
+
+        return modified_pattern, modified_statistics, tree_building_blocks
+
+    @staticmethod
+    def __merge_patterns(original_pattern: Pattern, sub_patterns: List[Pattern]):
+        """
+        Create a variation of original_pattern, so that it will be constructed by the sub_patterns list.
+        """
+        merged_structure = TreePlanBuilder.__merge_pattern_structures([pattern.full_structure
+                                                                       for pattern in sub_patterns])
+        new_pattern = Pattern(pattern_structure=merged_structure, pattern_matching_condition=original_pattern.condition,
+                              time_window=original_pattern.window,
+                              consumption_policy=original_pattern.consumption_policy,
+                              confidence=original_pattern.confidence, statistics=original_pattern.statistics)
+        return new_pattern
+
+    @staticmethod
+    def __merge_pattern_structures(structures: List[PatternStructure]):
+        """
+        Merge the pattern structures list into one pattern structure.
+        """
+        new_structure = None
+        current_structure = structures[0]
+        if isinstance(current_structure, CompositeStructure):
+            new_structure = current_structure.duplicate_top_operator()
+            new_structure.args = structures
+        elif isinstance(current_structure, KleeneClosureOperator):
+            arg = TreePlanBuilder.__merge_pattern_structures([kleene.arg for kleene in structures])
+            new_structure = KleeneClosureOperator(arg, min_size=current_structure.min_size,
+                                                  max_size=current_structure.max_size)
+        elif isinstance(current_structure, NegationOperator):
+            arg = TreePlanBuilder.__merge_pattern_structures([negation.arg for negation in structures])
+            new_structure = NegationOperator(arg)
+        return new_structure
+
+    def __create_topology(self, pattern: Pattern, statistics: Dict, tree_building_blocks: List[TreePlan] = None):
         """
         A recursive method for creating a tree topology.
-        An optional argument is the shared_sub_trees, which will use a previous created tree plans and merge
-         them with the pattern's full plan.
+        An optional argument is the tree_building_blocks, which will build the topology according to these subtrees.
         """
         # Handle positive part
         pattern_positive_statistics = TreePlanBuilder.__extract_positive_statistics(pattern, statistics)
         pattern, modified_statistics, nested_topologies, nested_args, nested_cost = \
-            self.__extract_nested_pattern(pattern, pattern_positive_statistics)
+            self.__extract_nested_pattern(pattern, pattern_positive_statistics, tree_building_blocks)
 
         # Create the leaves for the tree plan
-        leaves = self.__create_leaves_for_tree_plan(pattern, statistics, nested_topologies,
-                                                    nested_args, nested_cost, shared_sub_trees)
-
-        tree_topology = self._create_tree_topology(pattern, modified_statistics, leaves)
+        tree_topology = self._create_tree_topology(pattern, modified_statistics,
+                                                   self.__init_tree_leaves(pattern, nested_topologies,
+                                                                           nested_args, nested_cost))
 
         # Handle negative part
         tree_topology = self.__handle_negative_part(pattern, statistics, tree_topology)
@@ -315,7 +371,7 @@ class TreePlanBuilder(ABC):
         nested_negative_statistics = self.__extract_nested_statistics(negative_pattern, arg.arg, negative_statistics)
         return nested_negative_pattern, nested_negative_statistics
 
-    def __extract_nested_pattern(self, pattern: Pattern, statistics: Dict):
+    def __extract_nested_pattern(self, pattern: Pattern, statistics: Dict, nested_tree_plans: List = None):
         """
         This function is done recursively, to support nested pattern's operators (i.e. And(Seq,Seq)).
         When encounters KleeneClosure or CompositeStructure, it computes this operator's tree plan (recursively...)
@@ -324,6 +380,7 @@ class TreePlanBuilder(ABC):
         ones.
         For every "flat" pattern, it invokes an algorithm (to be implemented by subclasses) that builds an evaluation
         order of the operands, and converts it into a left-deep tree topology.
+        If nested_tree_plans arguments is not None, we will use these topologies instead (without recreating them).
         """
         if self.__is_pattern_flat(pattern, positive_only=True):
             return pattern, statistics, None, None, None
@@ -338,7 +395,7 @@ class TreePlanBuilder(ABC):
             # structure.
             modified_statistics[StatisticsTypes.SELECTIVITY_MATRIX] = \
                 TreePlanBuilder.__create_selectivity_matrix_for_nested_operators(pattern, statistics)
-        for arg in pattern.get_top_level_structure_args(positive_only=True):
+        for i, arg in enumerate(pattern.get_top_level_structure_args(positive_only=True)):
             # This loop creates (recursively) all the nested subtrees
             if isinstance(arg, PrimitiveEventStructure):
                 # If we are here, than this structure is primitive
@@ -348,9 +405,10 @@ class TreePlanBuilder(ABC):
             else:
                 # If we are here than this structure is composite or unary.
                 # And first create new pattern that fits the nested operator's stats and structure.
+                existing_tree_plan = nested_tree_plans[i] if nested_tree_plans else None
                 pattern, nested_topologies, nested_arrival_rates, nested_cost, nested_args = \
                     self.__handle_nested_operator(arg, pattern, statistics, nested_topologies,
-                                                  nested_arrival_rates, nested_cost, nested_args)
+                                                  nested_arrival_rates, nested_cost, nested_args, existing_tree_plan)
         modified_statistics[StatisticsTypes.ARRIVAL_RATES] = nested_arrival_rates
         return pattern, modified_statistics, nested_topologies, nested_args, nested_cost
 
@@ -422,19 +480,38 @@ class TreePlanBuilder(ABC):
         return pattern, nested_topologies, nested_arrival_rates, nested_cost, nested_args
 
     def __handle_nested_operator(self, arg, pattern, statistics,
-                                 nested_topologies, nested_arrival_rates, nested_cost, nested_args):
+                                 nested_topologies, nested_arrival_rates, nested_cost, nested_args,
+                                 existing_tree_plan: TreePlan = None):
         """
         This function is building a sub tree for a given nested operator, and returns all the parameters of this subtree
         up to the main tree, that will treat this subtree as a fake leaf.
         """
-        nested_pattern = TreePlanBuilder.__create_dummy_subpattern(arg, pattern.window)
-        nested_statistics = self.__extract_nested_statistics(pattern, arg, statistics, positive_only=True)
-        nested_topology, nested_statistics = self.__create_topology(nested_pattern, nested_statistics)
+        if existing_tree_plan:
+            nested_pattern = existing_tree_plan.modified_pattern
+            nested_statistics = nested_pattern.statistics
+            nested_topology = existing_tree_plan.root
+        else:
+            nested_pattern = TreePlanBuilder.__create_dummy_subpattern(arg, pattern.window)
+            nested_statistics = self.__extract_nested_statistics(pattern, arg, statistics, positive_only=True)
+            nested_topology, nested_statistics = self.__create_topology(nested_pattern, nested_statistics)
+
         nested_topologies.append(nested_topology)  # Save nested topology to add it as a field to its root
         if len(statistics) > 0:
             # Get the cost of the nested structure to calculate the new arrival rate and save it for other
             # functions (all functions that uses cost of a tree and will need the cost of nested subtrees).
-            cost = IntermediateResultsTreeCostModel().get_plan_cost(nested_pattern, nested_topology, nested_statistics)
+
+            if existing_tree_plan:
+                # We need to manually change these tree plan's leaf indices to fit the current pattern,
+                # because it is shared between multiple patterns. For this we make a copy.
+                copy_tree = deepcopy(nested_topology)
+                event_to_index_map = {event: index for index, event
+                                      in enumerate(nested_pattern.get_primitive_event_names())}
+                for leaf in copy_tree.get_leaves():
+                    leaf.event_index = event_to_index_map.get(leaf.event_name)
+            else:
+                copy_tree = nested_topology
+
+            cost = IntermediateResultsTreeCostModel().get_plan_cost(nested_pattern, copy_tree, nested_statistics)
             if isinstance(arg, UnaryStructure):
                 if isinstance(arg, KleeneClosureOperator):
                     nested_arrival_rates.append(pow(2, cost) / pattern.window.total_seconds())

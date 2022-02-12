@@ -1,6 +1,7 @@
 from functools import reduce
 from typing import List, Dict
 
+from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from base.Event import Event
 from condition.Condition import Condition, Variable, BinaryCondition, TrueCondition
 from condition.CompositeCondition import CompositeCondition, AndCondition
@@ -250,9 +251,78 @@ class Pattern:
         if structure is None:
             return None
         conditions = self.condition.get_condition_projection(event_names)
-        return Pattern(pattern_structure=structure, pattern_matching_condition=conditions,
+        sub_pattern = Pattern(pattern_structure=structure, pattern_matching_condition=conditions,
                        time_window=self.window, consumption_policy=self.consumption_policy,
-                       confidence=self.confidence, statistics=self.statistics)
+                       confidence=self.confidence)
+        # Create statistics that include only data about the sub pattern
+        modified_statistics = self.create_modified_statistics(self.statistics, sub_pattern)
+        sub_pattern.set_statistics(modified_statistics)
+        return sub_pattern
+
+    def is_sub_pattern(self, other_pattern):
+        """
+        Check if the current pattern (self) is a subpattern of other_pattern.
+        """
+        if other_pattern is None:
+            return False
+        current_pattern_events = self.get_primitive_event_names()
+        real_subpattern = other_pattern.get_sub_pattern(current_pattern_events)
+        if real_subpattern is None:
+            return False
+        return self == real_subpattern
+
+    def create_modified_statistics(self, original_statistics: Dict, modified_pattern):
+        """
+        Create a statistics dict for modified_pattern based on the original pattern.
+        modified_pattern is a variation of the original pattern (self).
+        For example, the original pattern could be SEQ(A,B,C), and modified_pattern could be SEQ(B,C,A).
+        """
+        if original_statistics is None or len(original_statistics) == 0:
+            return original_statistics
+        # this dict keeps a mapping between the order of the event in the original pattern to the event name
+        original_index_to_event_mapping = {index: event_name for index, event_name
+                                           in enumerate(self.get_primitive_event_names())}
+        # this dict keeps a mapping between the event name to its order in the modified pattern
+        modified_event_to_index_mapping = {event_name: index for index, event_name
+                                           in enumerate(modified_pattern.get_primitive_event_names())}
+        # using both dicts above we will reorder the statistics according to the modified pattern order
+        return self.__aux_create_modified_statistics(original_statistics, original_index_to_event_mapping,
+                                                                modified_event_to_index_mapping)
+
+    def __aux_create_modified_statistics(self, original_statistics: Dict, original_index_to_event_mapping: Dict,
+                                     modified_event_to_index_mapping: Dict):
+        """
+        Inner function of create_modified_statistics.
+        """
+        new_statistics = dict()
+
+        original_arrival = original_statistics.get(StatisticsTypes.ARRIVAL_RATES)
+        if original_arrival is not None:
+            new_arrival = [0 for i in modified_event_to_index_mapping]
+            # fill arrival rate
+            for old_index, event_name in original_index_to_event_mapping.items():
+                new_index = modified_event_to_index_mapping.get(event_name)
+                if new_index is not None:
+                    new_arrival[new_index] = original_arrival[old_index]
+            new_statistics[StatisticsTypes.ARRIVAL_RATES] = new_arrival
+
+        original_selectivity = original_statistics.get(StatisticsTypes.SELECTIVITY_MATRIX)
+        if original_selectivity is not None:
+            new_selectivity = [[0 for j in modified_event_to_index_mapping] for i in modified_event_to_index_mapping]
+
+            # fill selectivity matrix
+            for i, first_event_name in original_index_to_event_mapping.items():
+                new_row_index = modified_event_to_index_mapping.get(first_event_name)
+                if new_row_index is None:
+                    continue
+                for j, second_event_name in original_index_to_event_mapping.items():
+                    new_column_index = modified_event_to_index_mapping.get(second_event_name)
+                    if new_column_index is None:
+                        continue
+                    new_selectivity[new_row_index][new_column_index] = original_selectivity[i][j]
+            new_statistics[StatisticsTypes.SELECTIVITY_MATRIX] = new_selectivity
+
+        return new_statistics
 
     def __repr__(self):
         return "\nPattern structure: %s\nCondition: %s\nTime window: %s\n\n" % (self.full_structure,
@@ -261,10 +331,7 @@ class Pattern:
 
     def __eq__(self, other):
         return id(self) == id(other) or (self.full_structure == other.full_structure and
-                                         self.condition == other.condition and
-                                         self.window == other.window and
-                                         self.statistics == other.statistics and
-                                         self.confidence == other.confidence)
+                                         self.condition == other.condition)
 
     def __hash__(self):
         return hash(str(self))

@@ -26,8 +26,10 @@ class Tree:
                  plan_nodes_to_nodes_map: Dict[TreePlanNode, Node] = None):
         self.__plan_nodes_to_nodes_map = plan_nodes_to_nodes_map
         pattern_parameters = PatternParameters(pattern.window, pattern.confidence)
-        self.__root = self.__construct_tree(pattern.full_structure, tree_plan.root,
-                                            Tree.__get_operator_arg_list(pattern.full_structure),
+        # Maps between the event to its order in the original pattern
+        self.__event_to_index_mapping = {event: index for index, event in enumerate(pattern.get_primitive_event_names())}
+        self.__root = self.__construct_tree(tree_plan.modified_pattern.full_structure, tree_plan.root,
+                                            Tree.__get_operator_arg_list(tree_plan.modified_pattern.full_structure),
                                             pattern_parameters, None, pattern.consumption_policy)
         if pattern.consumption_policy is not None and \
                 pattern.consumption_policy.should_register_event_type_as_single(True):
@@ -111,7 +113,8 @@ class Tree:
         if consumption_policy is not None and \
                 consumption_policy.should_register_event_type_as_single(False, primitive_event_structure.type):
             parent.register_single_event_type(primitive_event_structure.type)
-        return LeafNode(pattern_params, tree_plan_leaf.event_index, primitive_event_structure, parent)
+        real_event_index = self.__event_to_index_mapping.get(primitive_event_structure.name)
+        return LeafNode(pattern_params, real_event_index, primitive_event_structure, parent)
 
     def __handle_unary_structure(self, unary_tree_plan: TreePlanUnaryNode,
                                  root_operator: PatternStructure, args: List[PatternStructure],

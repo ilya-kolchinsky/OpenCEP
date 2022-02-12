@@ -13,7 +13,7 @@ class TreeCostModel(ABC):
     """
     An abstract class for the cost model used by cost-based tree-structured evaluation plan generation algorithms.
     """
-    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict, visited: dict = None):
+    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict, visited: set = None):
         """
         Returns the cost of a given plan for a given pattern provided the relevant data characteristics (statistics).
         """
@@ -25,8 +25,9 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
     Calculates the plan cost based on the expected size of intermediate results (partial matches).
     Creates an invariant matrix for an arrival rates only case, so that we can still use it in the cost algorithms.
     """
-    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict, visited: dict = None):
-        visited = visited or {}
+    def get_plan_cost(self, pattern: Pattern, plan: TreePlanNode, statistics: dict, visited: set = None):
+        if visited is None:
+            visited = set()
         if StatisticsTypes.ARRIVAL_RATES not in statistics:
             raise MissingStatisticsException()
         arrival_rates = statistics[StatisticsTypes.ARRIVAL_RATES]
@@ -41,7 +42,7 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
 
     @staticmethod
     def __get_plan_cost_aux(tree: TreePlanNode, selectivity_matrix: List[List[float]],
-                            arrival_rates: List[int], time_window: float, visited: dict):
+                            arrival_rates: List[int], time_window: float, visited: set):
         """
         A helper function for calculating the cost function of the given tree.
         Returns a tuple of three values as follows:
@@ -49,28 +50,26 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
         - the number of partial matches at the given node;
         - the total cost including subtrees.
         """
+        if tree in visited:
+            return [], 0, 0
+        visited.add(tree)
         # calculate base case: tree is a leaf.
-
-        prev_result = visited.get(tree)
-        if prev_result is not None:
-            return prev_result[0], prev_result[1], 0
-
         if isinstance(tree, TreePlanLeafNode):
             cost = pm = time_window * arrival_rates[tree.event_index] * \
                         selectivity_matrix[tree.event_index][tree.event_index]
-            visited[tree] = [tree.event_index], pm, cost
-            return visited[tree]
+            return [tree.event_index], pm, cost
 
         if isinstance(tree, TreePlanNestedNode):
-            visited[tree] = [tree.nested_event_index], tree.cost, tree.cost
-            return visited[tree]
+            if tree.sub_tree_plan in visited:
+                return [], 0, 0
+            visited.add(tree.sub_tree_plan)
+            return [tree.nested_event_index], tree.cost, tree.cost
 
         if isinstance(tree, TreePlanUnaryNode):
-            visited[tree] = IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.child,
+            return IntermediateResultsTreeCostModel.__get_plan_cost_aux(tree.child,
                                                                         selectivity_matrix,
                                                                         arrival_rates,
                                                                         time_window, visited)
-            return visited[tree]
         if not isinstance(tree, TreePlanBinaryNode):
             raise Exception("Invalid tree node: %s" % (tree,))
 
@@ -95,8 +94,7 @@ class IntermediateResultsTreeCostModel(TreeCostModel):
             pm = left_pm * right_pm * cumulative_selectivity
         cost = left_cost + right_cost + pm
 
-        visited[tree] = left_args + right_args, pm, cost
-        return visited[tree]
+        return left_args + right_args, pm, cost
 
 
 class TreeCostModelFactory:

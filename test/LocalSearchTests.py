@@ -1,3 +1,5 @@
+from random import random
+
 from adaptive.optimizer.OptimizerFactory import OptimizerParameters
 from adaptive.optimizer.OptimizerTypes import OptimizerTypes
 from adaptive.statistics.StatisticsCollectorFactory import StatisticsCollectorParameters
@@ -46,6 +48,43 @@ SIMULATED_ANNEALING_LOCAL_EVALUATION_MECHANISM_SETTINGS = \
             neighborhood_vertex_size=2, time_limit=10, steps_threshold=100, initial_neighbors=1000, multiplier=0.99,
             simulated_annealing_threshold=0.001))
 
+SIMULATED_ANNEALING_BUSHY_LOCAL_EVALUATION_MECHANISM_SETTINGS = \
+    TreeBasedEvaluationMechanismParameters(
+        optimizer_params=OptimizerParameters(
+                                             statistics_collector_params=StatisticsCollectorParameters(
+                                                             statistics_types=[StatisticsTypes.ARRIVAL_RATES]),
+                                             opt_type=OptimizerTypes.TRIVIAL_OPTIMIZER,
+                                             tree_plan_params=TreePlanBuilderParameters(
+                                                 builder_type=TreePlanBuilderTypes.ZSTREAM_BUSHY_TREE,
+                                                 cost_model_type=TreeCostModels.INTERMEDIATE_RESULTS_TREE_COST_MODEL,
+                                                 tree_plan_merger_type=MultiPatternTreePlanMergeApproaches.TREE_PLAN_LOCAL_SEARCH)),
+        storage_params=TreeStorageParameters(sort_storage=False, clean_up_interval=10,
+                                             prioritize_sorting_by_timestamp=True),
+        local_search_params=SimulatedAnnealingLocalSearchParameters(
+            neighborhood_vertex_size=2, time_limit=10, steps_threshold=100, initial_neighbors=1000, multiplier=0.99,
+            simulated_annealing_threshold=0.001))
+
+
+def create_statistics(patterns):
+    """
+    Generate statistics for patterns
+    """
+    for pattern in patterns:
+        statistics = dict()
+        num_of_events = pattern.count_primitive_events()
+        arrival_rates = [random() for x in range(num_of_events)]
+        selectivity = [[random() for x in range(num_of_events)] for y in range(num_of_events)]
+        # fix matrix: M[i][i] = 1.0 and M[i][j] = M[j][i] for each x,y
+        for i in range(1, num_of_events):
+            for j in range(i):
+                selectivity[i][j] = selectivity[j][i]
+        for i in range(num_of_events):
+            selectivity[i][i] = 1.0
+
+        statistics[StatisticsTypes.ARRIVAL_RATES] = arrival_rates
+        statistics[StatisticsTypes.SELECTIVITY_MATRIX] = selectivity
+        pattern.set_statistics(statistics)
+
 
 """
 local tabu search test 2 disjoint patterns
@@ -59,8 +98,6 @@ def localTabuSearchDisjoint(createTestFile=False, eval_mechanism_params=TABU_SEA
         GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
-    pattern1.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159]})
 
     pattern2 = Pattern(
         SeqOperator(PrimitiveEventStructure("AMZN", "b"),
@@ -70,8 +107,7 @@ def localTabuSearchDisjoint(createTestFile=False, eval_mechanism_params=TABU_SEA
                                  Variable("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    pattern2.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0076, 0.0159]})
+    create_statistics([pattern1, pattern2])
 
     runTest("DisjointLocalTabuSearch", [pattern1, pattern2], createTestFile, eval_mechanism_params)
 
@@ -88,8 +124,6 @@ def localSimulatedSearchDisjoint(createTestFile=False, eval_mechanism_params=SIM
         GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
-    pattern1.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159]})
 
     pattern2 = Pattern(
         SeqOperator(PrimitiveEventStructure("AMZN", "b"),
@@ -99,8 +133,7 @@ def localSimulatedSearchDisjoint(createTestFile=False, eval_mechanism_params=SIM
                                  Variable("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    pattern2.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0076, 0.0159]})
+    create_statistics([pattern1, pattern2])
 
     runTest("DisjointLocalSASearch", [pattern1, pattern2], createTestFile, eval_mechanism_params)
 
@@ -117,8 +150,6 @@ def localTabuSearchLeafSharing(createTestFile=False, eval_mechanism_params=TABU_
         GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
-    pattern1.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076]})
 
     pattern2 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
@@ -129,8 +160,7 @@ def localTabuSearchLeafSharing(createTestFile=False, eval_mechanism_params=TABU_
                                  Variable("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    pattern2.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076, 0.0159]})
+    create_statistics([pattern1, pattern2])
 
     runTest("OneEventLocalTabuSearch", [pattern1, pattern2], createTestFile, eval_mechanism_params)
 
@@ -147,8 +177,6 @@ def localSimulatedSearchLeafSharing(createTestFile=False, eval_mechanism_params=
         GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
-    pattern1.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076]})
 
     pattern2 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),
@@ -159,8 +187,7 @@ def localSimulatedSearchLeafSharing(createTestFile=False, eval_mechanism_params=
                                  Variable("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    pattern2.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076, 0.0159]})
+    create_statistics([pattern1, pattern2])
 
     runTest("OneEventLocalSASearch", [pattern1, pattern2], createTestFile, eval_mechanism_params)
 
@@ -178,8 +205,6 @@ def localTabuSearchMultiSharing(createTestFile=False, eval_mechanism_params=TABU
                      SmallerThanCondition(Variable("b", lambda x: x["Opening Price"]), 120)),
         timedelta(minutes=5)
     )
-    pattern1.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076]})
 
     pattern2 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
@@ -189,8 +214,7 @@ def localTabuSearchMultiSharing(createTestFile=False, eval_mechanism_params=TABU
                                  Variable("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    pattern2.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076, 0.0159]})
+    create_statistics([pattern1, pattern2])
 
     runTest("DoubleEventLocalTabuSearch", [pattern1, pattern2], createTestFile, eval_mechanism_params)
 
@@ -208,8 +232,6 @@ def localSimulatedSearchMultiSharing(createTestFile=False, eval_mechanism_params
                      SmallerThanCondition(Variable("b", lambda x: x["Opening Price"]), 120)),
         timedelta(minutes=5)
     )
-    pattern1.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076]})
 
     pattern2 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
@@ -219,8 +241,7 @@ def localSimulatedSearchMultiSharing(createTestFile=False, eval_mechanism_params
                                  Variable("c", lambda x: x["Opening Price"]))),
         timedelta(minutes=5)
     )
-    pattern2.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076, 0.0159]})
+    create_statistics([pattern1, pattern2])
 
     runTest("DoubleEventSASearch", [pattern1, pattern2], createTestFile, eval_mechanism_params)
 
@@ -237,25 +258,20 @@ def localTabuSearchTriplePatterns(createTestFile=False, eval_mechanism_params=TA
         GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
-    pattern1.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159]})
 
     pattern2 = Pattern(
-        SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
+        SeqOperator(SeqOperator(PrimitiveEventStructure("AAPL", "a")), PrimitiveEventStructure("AMZN", "b")),
         AndCondition(GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
                      SmallerThanCondition(Variable("b", lambda x: x["Opening Price"]), 120)),
         timedelta(minutes=5)
     )
-    pattern2.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076]})
 
     pattern3 = Pattern(
         SeqOperator(PrimitiveEventStructure("GOOG", "c")),
         GreaterThanCondition(Variable("c", lambda x: x["Opening Price"]), 530.1),
         timedelta(minutes=5)
     )
-    pattern3.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159]})
+    create_statistics([pattern1, pattern2, pattern3])
 
     runTest("TriplePatternLocalTabuSearch", [pattern1, pattern2, pattern3], createTestFile, eval_mechanism_params)
 
@@ -272,8 +288,6 @@ def localSimulatedSearchTriplePatterns(createTestFile=False, eval_mechanism_para
         GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
-    pattern1.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159]})
 
     pattern2 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
@@ -281,16 +295,13 @@ def localSimulatedSearchTriplePatterns(createTestFile=False, eval_mechanism_para
                      SmallerThanCondition(Variable("b", lambda x: x["Opening Price"]), 120)),
         timedelta(minutes=5)
     )
-    pattern2.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076]})
 
     pattern3 = Pattern(
         SeqOperator(PrimitiveEventStructure("GOOG", "c")),
         GreaterThanCondition(Variable("c", lambda x: x["Opening Price"]), 530.1),
         timedelta(minutes=5)
     )
-    pattern3.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159]})
+    create_statistics([pattern1, pattern2, pattern3])
 
     runTest("TriplePatternLocalSASearch", [pattern1, pattern2, pattern3], createTestFile, eval_mechanism_params)
 
@@ -307,8 +318,6 @@ def localTabuSearchTripleSharePatterns(createTestFile=False, eval_mechanism_para
         GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
-    pattern1.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159]})
 
     pattern2 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
@@ -316,8 +325,6 @@ def localTabuSearchTripleSharePatterns(createTestFile=False, eval_mechanism_para
                      SmallerThanCondition(Variable("b", lambda x: x["Opening Price"]), 120)),
         timedelta(minutes=5)
     )
-    pattern2.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076]})
 
     pattern3 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
@@ -326,8 +333,7 @@ def localTabuSearchTripleSharePatterns(createTestFile=False, eval_mechanism_para
                      GreaterThanCondition(Variable("c", lambda x: x["Opening Price"]), 530.1)),
         timedelta(minutes=5)
     )
-    pattern3.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076, 0.0159]})
+    create_statistics([pattern1, pattern2, pattern3])
 
     runTest("TripleSharePatternLocalTabuSearch", [pattern1, pattern2, pattern3], createTestFile, eval_mechanism_params)
 
@@ -344,8 +350,6 @@ def locaSimulatedSearchTripleSharePatterns(createTestFile=False, eval_mechanism_
         GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
-    pattern1.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159]})
 
     pattern2 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
@@ -353,8 +357,6 @@ def locaSimulatedSearchTripleSharePatterns(createTestFile=False, eval_mechanism_
                      SmallerThanCondition(Variable("b", lambda x: x["Opening Price"]), 120)),
         timedelta(minutes=5)
     )
-    pattern2.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076]})
 
     pattern3 = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("GOOG", "c")),
@@ -363,8 +365,7 @@ def locaSimulatedSearchTripleSharePatterns(createTestFile=False, eval_mechanism_
                      GreaterThanCondition(Variable("c", lambda x: x["Opening Price"]), 530.1)),
         timedelta(minutes=5)
     )
-    pattern3.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076, 0.0159]})
+    create_statistics([pattern1, pattern2, pattern3])
 
     runTest("TripleSharePatternSASearch", [pattern1, pattern2, pattern3], createTestFile, eval_mechanism_params)
 
@@ -381,8 +382,6 @@ def localTabuSearchAndPatterns(createTestFile=False, eval_mechanism_params=TABU_
         GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
-    pattern1.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159]})
 
     pattern2 = Pattern(
         AndOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
@@ -390,8 +389,7 @@ def localTabuSearchAndPatterns(createTestFile=False, eval_mechanism_params=TABU_
                      SmallerThanCondition(Variable("b", lambda x: x["Peak Price"]), 79.2)),
         timedelta(minutes=5)
     )
-    pattern2.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076]})
+    create_statistics([pattern1, pattern2])
 
     runTest("AndPatternLocalTabuSearch", [pattern1, pattern2], createTestFile, eval_mechanism_params)
 
@@ -408,8 +406,6 @@ def localSimulatedSearchAndPatterns(createTestFile=False, eval_mechanism_params=
         GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
-    pattern1.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159]})
 
     pattern2 = Pattern(
         AndOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b")),
@@ -417,8 +413,7 @@ def localSimulatedSearchAndPatterns(createTestFile=False, eval_mechanism_params=
                      SmallerThanCondition(Variable("b", lambda x: x["Peak Price"]), 79.2)),
         timedelta(minutes=5)
     )
-    pattern2.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159, 0.0076]})
+    create_statistics([pattern1, pattern2])
 
     runTest("AndPatternLocalSASearch", [pattern1, pattern2], createTestFile, eval_mechanism_params)
 
@@ -435,8 +430,6 @@ def localTabuSearchAndOpposite(createTestFile=False, eval_mechanism_params=TABU_
         GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
-    pattern1.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159]})
 
     pattern2 = Pattern(
         AndOperator(PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AAPL", "a")),
@@ -444,8 +437,7 @@ def localTabuSearchAndOpposite(createTestFile=False, eval_mechanism_params=TABU_
                      SmallerThanCondition(Variable("b", lambda x: x["Peak Price"]), 79.2)),
         timedelta(minutes=5)
     )
-    pattern2.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0076, 0.0159]})
+    create_statistics([pattern1, pattern2])
 
     runTest("AndOppositeLocalTabuSearch", [pattern1, pattern2], createTestFile, eval_mechanism_params)
 
@@ -462,8 +454,6 @@ def localSimulatedSearchAndOpposite(createTestFile=False, eval_mechanism_params=
         GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
         timedelta(minutes=5)
     )
-    pattern1.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0159]})
 
     pattern2 = Pattern(
         AndOperator(PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AAPL", "a")),
@@ -471,7 +461,30 @@ def localSimulatedSearchAndOpposite(createTestFile=False, eval_mechanism_params=
                      SmallerThanCondition(Variable("b", lambda x: x["Peak Price"]), 79.2)),
         timedelta(minutes=5)
     )
-    pattern2.set_statistics(
-        {StatisticsTypes.ARRIVAL_RATES: [0.0076, 0.0159]})
+    create_statistics([pattern1, pattern2])
 
     runTest("AndOppositeLocalSASearch", [pattern1, pattern2], createTestFile, eval_mechanism_params)
+
+
+"""
+local simulated annealing search test with bushy tree
+"""
+
+
+def localSimulatedBushySearchAndOpposite(createTestFile=False, eval_mechanism_params=SIMULATED_ANNEALING_BUSHY_LOCAL_EVALUATION_MECHANISM_SETTINGS):
+
+    pattern1 = Pattern(
+        AndOperator(PrimitiveEventStructure("AAPL", "a")),
+        GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
+        timedelta(minutes=5)
+    )
+
+    pattern2 = Pattern(
+        AndOperator(PrimitiveEventStructure("AMZN", "b"), PrimitiveEventStructure("AAPL", "a")),
+        AndCondition(GreaterThanCondition(Variable("a", lambda x: x["Peak Price"]), 135),
+                     SmallerThanCondition(Variable("b", lambda x: x["Peak Price"]), 79.2)),
+        timedelta(minutes=5)
+    )
+    create_statistics([pattern1, pattern2])
+
+    runTest("AndOppositeBushyLocalSASearch", [pattern1, pattern2], createTestFile, eval_mechanism_params)

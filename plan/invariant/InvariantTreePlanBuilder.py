@@ -17,4 +17,4 @@ class InvariantTreePlanBuilder(TreePlanBuilder, ABC):
         # as of now, the invariant-based method can only work on composite non-nested patterns
         leaves = [TreePlanLeafNode(i) for i in range(len(pattern.full_structure.args))]
         tree_topology, invariants = self._create_tree_topology(pattern, statistics, leaves)
-        return TreePlan(tree_topology), invariants
+        return TreePlan(tree_topology, pattern), invariants

@@ -99,5 +99,8 @@ class MultiPatternGraph:
 
         maximal = Pattern(pattern_structure=structure_a, pattern_matching_condition=cond_intersection,
                           time_window=window, consumption_policy=pattern_a.consumption_policy,
-                          confidence=confidence, statistics=pattern_a.statistics)
+                          confidence=confidence, statistics=None)
+        # Creates statistics dict that contains only data of the max common subpattern
+        max_pattern_statistics = pattern_a.create_modified_statistics(pattern_a.statistics, maximal)
+        maximal.set_statistics(max_pattern_statistics)
         return [maximal]
