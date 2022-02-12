@@ -226,7 +226,7 @@ class TreePlanBuilder(ABC):
         elif complement_pattern == pattern:
             return pattern, statistics, None
         else:
-            # shared subtrees cover partially the pattern, need to create topology for the rest of the pattern
+            # shared subtrees cover only part of the pattern, need to create topology for the rest of the pattern
             sub_patterns = [complement_pattern] + [tree.modified_pattern for tree in shared_sub_trees]
             # create tree plan for the complement pattern
             complement_tree_plan = self.build_tree_plan(complement_pattern, complement_statistics)
