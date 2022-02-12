@@ -107,7 +107,10 @@ class Tree:
         # this is a temporary hack used until the procedure is modified to extract event details from tree plan leaves
         if isinstance(primitive_event_structure, NegationOperator):
             primitive_event_structure = primitive_event_structure.arg
-
+        # this could be a composite structure that wraps a primitive event (for example Seq(Seq(a))
+        if isinstance(primitive_event_structure, CompositeStructure) and len(primitive_event_structure.args) == 1:
+            return self.__handle_primitive_event(tree_plan_leaf, primitive_event_structure.args[0], pattern_params,
+                                                 parent, consumption_policy)
         if not isinstance(primitive_event_structure, PrimitiveEventStructure):
             raise Exception("Illegal operator for a tree leaf: %s" % (primitive_event_structure,))
         if consumption_policy is not None and \

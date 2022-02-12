@@ -257,6 +257,8 @@ class TreePlanBuilder(ABC):
         """
         Merge the pattern structures list into one pattern structure.
         """
+        if len(structures) == 1:
+            return structures[0]
         new_structure = None
         current_structure = structures[0]
         if isinstance(current_structure, CompositeStructure):
