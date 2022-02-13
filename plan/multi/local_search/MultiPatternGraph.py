@@ -4,6 +4,7 @@ from typing import List
 from itertools import combinations
 
 from base.Pattern import Pattern
+from base.PatternStructure import NegationOperator
 
 
 class MultiPatternGraph:
@@ -63,6 +64,11 @@ class MultiPatternGraph:
         """
         Return the maximal common subpattern between pattern_a and pattern_b.
         """
+        # Avoid sharing negative structures
+        for pattern in [pattern_a, pattern_b]:
+            if pattern.negative_structure is not None or isinstance(pattern.full_structure, NegationOperator):
+                return []
+
         if pattern_a == pattern_b:
             return [deepcopy(pattern_a)]
 
