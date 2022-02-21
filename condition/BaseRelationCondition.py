@@ -49,6 +49,9 @@ class BaseRelationCondition(BinaryCondition, ABC):
     def __eq__(self, other):
         return id(self) == id(other) or self.__eq_same_type(other) or self.__eq_opposite_type(other)
 
+    def __hash__(self):
+        return hash(str(self))
+
 
 class EqCondition(BaseRelationCondition):
     """

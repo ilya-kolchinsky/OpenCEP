@@ -7,6 +7,7 @@ from evaluation.EvaluationMechanismTypes import EvaluationMechanismTypes
 from misc.SelectionStrategies import SelectionStrategies
 from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from adaptive.optimizer.OptimizerTypes import OptimizerTypes
+from plan.multi.local_search.LocalSearchApproaches import LocalSearchApproaches
 from tree.evaluation.TreeEvaluationMechanismUpdateTypes import TreeEvaluationMechanismUpdateTypes
 from parallel.ParallelExecutionModes import *
 from parallel.ParallelExecutionPlatforms import ParallelExecutionPlatforms
@@ -71,3 +72,18 @@ DEFAULT_TREE_UPDATE_TYPE = TreeEvaluationMechanismUpdateTypes.TRIVIAL_TREE_EVALU
 DEFAULT_STATISTICS_TYPE = [StatisticsTypes.ARRIVAL_RATES, StatisticsTypes.SELECTIVITY_MATRIX]  # the default statistics type can also be a list of types
 STATISTICS_TIME_WINDOW = timedelta(hours=1)  # Time window for statistics
 STATISTICS_UPDATES_WAIT_TIME = None  # the default wait time between statistics updates or None to disable adaptivity
+
+# Local Search Settings
+DEFAULT_SEARCH_TYPE = LocalSearchApproaches.TABU_SEARCH
+NEIGHBORHOOD_VERTEX_SIZE = 2  # should be greater than or equal to 2
+LOCAL_SEARCH_TIME_LIMIT = 180  # this is in seconds
+LOCAL_SEARCH_STEPS_THRESHOLD = 100  # max allowed steps without improvement
+
+SIMULATED_ANNEALING_MULTIPLIER = 0.99  # the decrease rate for the simulated annealing algorithm
+SIMULATED_ANNEALING_INIT_NEIGHBORS = 1000  # num of neighbors for simulated annealing init
+SIMULATED_ANNEALING_C_THRESHOLD = 0.001  # final threshold to end simulated annealing algorithm
+
+TABU_SEARCH_CAPACITY = 10000  # the capacity of the tabu list
+TABU_SEARCH_NEIGHBORHOOD_SIZE = 100  # how many neighbors to search in each step
+
+

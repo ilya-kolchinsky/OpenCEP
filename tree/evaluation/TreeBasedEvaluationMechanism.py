@@ -62,7 +62,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
 
         for raw_event in events:
             event = Event(raw_event, data_formatter)
-            if event.type not in self._event_types_listeners.keys():
+            if event.type not in self._event_types_listeners:
                 continue
             self.__remove_expired_freezers(event)
 
@@ -137,7 +137,7 @@ class TreeBasedEvaluationMechanism(EvaluationMechanism, ABC):
         event_types_listeners = {}
         for leaf in tree.get_leaves():
             event_type = leaf.get_event_type()
-            if event_type in event_types_listeners.keys():
+            if event_type in event_types_listeners:
                 event_types_listeners[event_type].append(leaf)
             else:
                 event_types_listeners[event_type] = [leaf]

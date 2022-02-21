@@ -1,4 +1,5 @@
 from test.EvaluationTests import *
+from test.LocalSearchTests import *
 from test.OptimizerTests import *
 from test.TreeConstructionTests import *
 from test.KC_tests import *
@@ -287,6 +288,25 @@ HyperCubeMultiPatternTest()
 HyperCubeMultiAttrbutesTest()
 HyperCubeMultiEventTypesTest()
 
+# local search testing
+# tabu search
+localTabuSearchDisjoint()
+localTabuSearchLeafSharing()
+localTabuSearchMultiSharing()
+localTabuSearchTriplePatterns()
+localTabuSearchTripleSharePatterns()
+localTabuSearchAndPatterns()
+localTabuSearchAndOpposite()
+
+# simulated annealing search
+localSimulatedSearchDisjoint()
+localSimulatedSearchLeafSharing()
+localSimulatedSearchMultiSharing()
+localSimulatedSearchTriplePatterns()
+locaSimulatedSearchTripleSharePatterns()
+localSimulatedSearchAndPatterns()
+localSimulatedSearchAndOpposite()
+localSimulatedBushySearchAndOpposite()
 
 # benchmarks
 if INCLUDE_BENCHMARKS:

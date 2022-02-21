@@ -26,8 +26,10 @@ class Tree:
                  plan_nodes_to_nodes_map: Dict[TreePlanNode, Node] = None):
         self.__plan_nodes_to_nodes_map = plan_nodes_to_nodes_map
         pattern_parameters = PatternParameters(pattern.window, pattern.confidence)
-        self.__root = self.__construct_tree(pattern.full_structure, tree_plan.root,
-                                            Tree.__get_operator_arg_list(pattern.full_structure),
+        # Maps between the event to its order in the original pattern
+        self.__event_to_index_mapping = {event: index for index, event in enumerate(pattern.get_primitive_event_names())}
+        self.__root = self.__construct_tree(tree_plan.modified_pattern.full_structure, tree_plan.root,
+                                            Tree.__get_operator_arg_list(tree_plan.modified_pattern.full_structure),
                                             pattern_parameters, None, pattern.consumption_policy)
         if pattern.consumption_policy is not None and \
                 pattern.consumption_policy.should_register_event_type_as_single(True):
@@ -105,13 +107,17 @@ class Tree:
         # this is a temporary hack used until the procedure is modified to extract event details from tree plan leaves
         if isinstance(primitive_event_structure, NegationOperator):
             primitive_event_structure = primitive_event_structure.arg
-
+        # this could be a composite structure that wraps a primitive event (for example Seq(Seq(a))
+        if isinstance(primitive_event_structure, CompositeStructure) and len(primitive_event_structure.args) == 1:
+            return self.__handle_primitive_event(tree_plan_leaf, primitive_event_structure.args[0], pattern_params,
+                                                 parent, consumption_policy)
         if not isinstance(primitive_event_structure, PrimitiveEventStructure):
             raise Exception("Illegal operator for a tree leaf: %s" % (primitive_event_structure,))
         if consumption_policy is not None and \
                 consumption_policy.should_register_event_type_as_single(False, primitive_event_structure.type):
             parent.register_single_event_type(primitive_event_structure.type)
-        return LeafNode(pattern_params, tree_plan_leaf.event_index, primitive_event_structure, parent)
+        real_event_index = self.__event_to_index_mapping.get(primitive_event_structure.name)
+        return LeafNode(pattern_params, real_event_index, primitive_event_structure, parent)
 
     def __handle_unary_structure(self, unary_tree_plan: TreePlanUnaryNode,
                                  root_operator: PatternStructure, args: List[PatternStructure],

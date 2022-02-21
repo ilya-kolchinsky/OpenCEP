@@ -14,6 +14,7 @@ from condition.BaseRelationCondition import GreaterThanCondition, SmallerThanCon
 from base.PatternStructure import SeqOperator, PrimitiveEventStructure
 from base.Pattern import Pattern
 
+
 def nonFrequencyPatternSearchTest(createTestFile=False):
     pattern = Pattern(
         SeqOperator(PrimitiveEventStructure("AAPL", "a"), PrimitiveEventStructure("AMZN", "b"),

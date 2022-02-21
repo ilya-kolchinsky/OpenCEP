@@ -25,15 +25,14 @@ class MultiPatternTree:
         Constructs a multi-pattern evaluation tree.
         It is assumed that each pattern appears only once in patterns (which is a legitimate assumption).
         """
-        i = 1  # pattern IDs starts from 1
+        # pattern IDs starts from 1
         plan_nodes_to_nodes_map = {}  # a cache for already created subtrees
-        for pattern, plan in pattern_to_tree_plan_map.items():
+        for i, (pattern, plan) in enumerate(pattern_to_tree_plan_map.items(), 1):
             pattern.id = i
             new_tree_root = Tree(plan, pattern, storage_params, plan_nodes_to_nodes_map).get_root()
             self.__id_to_output_node_map[pattern.id] = new_tree_root
             self.__id_to_pattern_map[pattern.id] = pattern
             self.__output_nodes.append(new_tree_root)
-            i += 1
 
     def get_leaves(self):
         """

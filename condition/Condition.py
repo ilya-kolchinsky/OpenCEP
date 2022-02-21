@@ -2,7 +2,9 @@
 This file contains the basic Condition classes.
 """
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from enum import Enum
+
 from adaptive.statistics.StatisticsTypes import StatisticsTypes
 from adaptive.statistics.StatisticsCollector import StatisticsCollector
 
@@ -91,6 +93,18 @@ class Condition(ABC):
         """
         return set()
 
+    def get_condition_projection(self, event_names):
+        """
+        Returns the projection of the event names on the condition.
+        """
+        raise NotImplementedError()
+
+    def get_conditions_intersection(self, condition):
+        """
+        Returns the intersection condition between self and the condition argument.
+        """
+        raise NotImplementedError()
+
 
 class AtomicCondition(Condition, ABC):
     """
@@ -137,6 +151,19 @@ class AtomicCondition(Condition, ABC):
         Returns the statistics collector of this condition.
         """
         return self._statistics_collector
+
+    def get_condition_projection(self, event_names):
+        if self.is_condition_of(event_names):
+            return deepcopy(self)
+        return None
+
+    def get_conditions_intersection(self, other):
+        if self == other:
+            return deepcopy(self)
+        from condition.CompositeCondition import CompositeCondition
+        if isinstance(other, CompositeCondition):
+            return other.get_conditions_intersection(self)
+        return None
 
 
 class TrueCondition(AtomicCondition):
@@ -188,7 +215,9 @@ class SimpleCondition(AtomicCondition):
         return "[" + separator.join(term_list) + "]"
 
     def __eq__(self, other):
-        return self == other or type(self) == type(other) and self.terms == other.terms and self.relation_op == other.relation_op
+        return id(self) == id(other) or (type(self) == type(other) and
+                                         self.terms == other.terms and
+                                         self.relation_op == other.relation_op)
 
     def get_event_names(self):
         """

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List
 
 from adaptive.statistics.StatisticsFactory import StatisticsFactory
 from base import Pattern
@@ -7,6 +8,7 @@ from plan import TreePlanBuilder
 from plan.LeftDeepTreeBuilders import TrivialLeftDeepTreeBuilder
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlanBuilderTypes import TreePlanBuilderTypes
+from plan.TreePlan import TreePlan
 
 
 class Optimizer(ABC):
@@ -25,7 +27,7 @@ class Optimizer(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def build_new_plan(self, new_statistics: dict, pattern: Pattern):
+    def build_new_plan(self, new_statistics: dict, pattern: Pattern, shared_sub_trees: List[TreePlan] = None):
         """
         Builds and returns a new evaluation plan based on the given statistics.
         """
@@ -77,8 +79,8 @@ class TrivialOptimizer(Optimizer):
     def should_optimize(self, new_statistics: dict, pattern: Pattern):
         return True
 
-    def build_new_plan(self, new_statistics: dict, pattern: Pattern):
-        tree_plan = self._tree_plan_builder.build_tree_plan(pattern, new_statistics)
+    def build_new_plan(self, new_statistics: dict, pattern: Pattern, shared_sub_trees: List[TreePlan] = None):
+        tree_plan = self._tree_plan_builder.build_tree_plan(pattern, new_statistics, shared_sub_trees)
         return tree_plan
 
 
@@ -99,9 +101,9 @@ class StatisticsDeviationAwareOptimizer(Optimizer):
                 return True
         return False
 
-    def build_new_plan(self, new_statistics: dict, pattern: Pattern):
+    def build_new_plan(self, new_statistics: dict, pattern: Pattern, shared_sub_trees: List[TreePlan] = None):
         self.__prev_statistics = new_statistics
-        tree_plan = self._tree_plan_builder.build_tree_plan(pattern, new_statistics)
+        tree_plan = self._tree_plan_builder.build_tree_plan(pattern, new_statistics, shared_sub_trees)
         return tree_plan
 
 
@@ -117,8 +119,8 @@ class InvariantsAwareOptimizer(Optimizer):
     def should_optimize(self, new_statistics: dict, pattern: Pattern):
         return self._invariants is None or self._invariants.is_invariants_violated(new_statistics, pattern)
 
-    def build_new_plan(self, new_statistics: dict, pattern: Pattern):
-        tree_plan, self._invariants = self._tree_plan_builder.build_tree_plan(pattern, new_statistics)
+    def build_new_plan(self, new_statistics: dict, pattern: Pattern, shared_sub_trees: List[TreePlan] = None):
+        tree_plan, self._invariants = self._tree_plan_builder.build_tree_plan(pattern, new_statistics, shared_sub_trees)
         return tree_plan
 
     def build_initial_plan(self, pattern: Pattern, cost_model_type: TreeCostModels):
