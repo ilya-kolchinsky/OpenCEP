@@ -22,12 +22,14 @@ class Tree:
     object returned by a tree builder. Other than that, merely acts as a proxy to the tree root node.
     The plan_nodes_to_nodes_map is used in multi-pattern mode.
     """
+
     def __init__(self, tree_plan: TreePlan, pattern: Pattern, storage_params: TreeStorageParameters,
                  plan_nodes_to_nodes_map: Dict[TreePlanNode, Node] = None):
         self.__plan_nodes_to_nodes_map = plan_nodes_to_nodes_map
         pattern_parameters = PatternParameters(pattern.window, pattern.confidence)
         # Maps between the event to its order in the original pattern
-        self.__event_to_index_mapping = {event: index for index, event in enumerate(pattern.get_primitive_event_names())}
+        self.__event_to_index_mapping = {event: index for index, event in
+                                         enumerate(pattern.get_primitive_event_names())}
         self.__root = self.__construct_tree(tree_plan.modified_pattern.full_structure, tree_plan.root,
                                             Tree.__get_operator_arg_list(tree_plan.modified_pattern.full_structure),
                                             pattern_parameters, None, pattern.consumption_policy)
@@ -36,8 +38,6 @@ class Tree:
             for event_type in pattern.consumption_policy.single_types:
                 self.__root.register_single_event_type(event_type)
 
-        self.__apply_condition(pattern)
-
         self.__root.set_is_output_node(True)
         self.__root.create_storage_unit(storage_params)
 
@@ -45,6 +45,12 @@ class Tree:
 
         if pattern.id is not None:
             self.__root.propagate_pattern_id(pattern.id)
+
+        # applying condition to the root
+        condition_copy = deepcopy(pattern.condition)
+        # make sure the statistics collector is not copied
+        condition_copy.set_statistics_collector(pattern.condition.get_statistics_collector())
+        self.__root.apply_condition(condition_copy)
 
     def __apply_condition(self, pattern: Pattern):
         """
@@ -100,7 +106,8 @@ class Tree:
         raise Exception("Unknown or unsupported operator %s" % (operator_node.operator,))
 
     def __handle_primitive_event(self, tree_plan_leaf: TreePlanLeafNode, primitive_event_structure: PatternStructure,
-                                 pattern_params: PatternParameters, parent: Node, consumption_policy: ConsumptionPolicy):
+                                 pattern_params: PatternParameters, parent: Node,
+                                 consumption_policy: ConsumptionPolicy):
         """
         Creates a leaf node for a primitive events.
         """
@@ -121,7 +128,8 @@ class Tree:
 
     def __handle_unary_structure(self, unary_tree_plan: TreePlanUnaryNode,
                                  root_operator: PatternStructure, args: List[PatternStructure],
-                                 pattern_params: PatternParameters, parent: Node, consumption_policy: ConsumptionPolicy):
+                                 pattern_params: PatternParameters, parent: Node,
+                                 consumption_policy: ConsumptionPolicy):
         """
         Creates an internal unary node possibly containing nested operators.
         """
@@ -143,7 +151,7 @@ class Tree:
         if isinstance(unary_operator_child, TreePlanLeafNode):
             # non-nested unary operator
             child = self.__construct_tree(current_operator, unary_operator_child,
-                                      [nested_operator], pattern_params, unary_node, consumption_policy)
+                                          [nested_operator], pattern_params, unary_node, consumption_policy)
         elif isinstance(unary_operator_child, TreePlanNestedNode):
             # a nested unary operator
             child = self.__construct_tree(nested_operator, unary_operator_child.sub_tree_plan,
@@ -194,6 +202,11 @@ class Tree:
         else:
             raise Exception("Unknown tree plan node type")
 
+        # copying the conditions of the tree_plan_node to the new node
+        condition_copy = deepcopy(tree_plan.condition)
+        # make sure the statistics collector is not copied
+        condition_copy.set_statistics_collector(tree_plan.condition.get_statistics_collector())
+        node.apply_condition(tree_plan.condition)
         self.__register_new_node(tree_plan, node)
         return node
 
