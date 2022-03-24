@@ -115,8 +115,7 @@ class Tree:
         if consumption_policy is not None and \
                 consumption_policy.should_register_event_type_as_single(False, primitive_event_structure.type):
             parent.register_single_event_type(primitive_event_structure.type)
-        real_event_index = self.__event_to_index_mapping.get(primitive_event_structure.name)
-        return LeafNode(pattern_params, real_event_index, primitive_event_structure, parent)
+        return LeafNode(pattern_params, tree_plan_leaf, parent)
 
     def __handle_unary_structure(self, unary_tree_plan: TreePlanUnaryNode,
                                  root_operator: PatternStructure, args: List[PatternStructure],

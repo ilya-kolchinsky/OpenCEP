@@ -4,6 +4,7 @@ from typing import List, Set
 from base.Event import Event
 from condition.Condition import Condition, RelopTypes, EquationSides
 from base.PatternStructure import PrimitiveEventStructure
+from plan.TreePlan import TreePlanLeafNode
 from tree.nodes.Node import Node
 from tree.nodes.Node import PrimitiveEventDefinition, PatternParameters
 from tree.PatternMatchStorage import TreeStorageParameters, SortedPatternMatchStorage
@@ -13,12 +14,12 @@ class LeafNode(Node):
     """
     A leaf node is responsible for a single event type of the pattern.
     """
-    def __init__(self, pattern_params: PatternParameters, leaf_index: int, leaf_event: PrimitiveEventStructure,
+    def __init__(self, pattern_params: PatternParameters, tree_plan_leaf: TreePlanLeafNode,
                  parents: List[Node], pattern_ids: int or Set[int] = None):
         super().__init__(pattern_params, parents, pattern_ids)
-        self.__leaf_index = leaf_index
-        self.__event_name = leaf_event.name
-        self.__event_type = leaf_event.type
+        self.__leaf_index = tree_plan_leaf.event_index
+        self.__event_name = tree_plan_leaf.event_name
+        self.__event_type = tree_plan_leaf.event_type
 
     def create_parent_to_info_dict(self):
         """
