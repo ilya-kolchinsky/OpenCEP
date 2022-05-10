@@ -46,11 +46,11 @@ class Tree:
         if pattern.id is not None:
             self.__root.propagate_pattern_id(pattern.id)
 
-        # applying condition to the root
-        condition_copy = deepcopy(pattern.condition)
-        # make sure the statistics collector is not copied
-        condition_copy.set_statistics_collector(pattern.condition.get_statistics_collector())
-        self.__root.apply_condition(condition_copy)
+        # # applying condition to the root
+        # condition_copy = deepcopy(pattern.condition)
+        # # make sure the statistics collector is not copied
+        # condition_copy.set_statistics_collector(pattern.condition.get_statistics_collector())
+        # self.__root.apply_condition(condition_copy)
 
     def __apply_condition(self, pattern: Pattern):
         """
@@ -94,15 +94,15 @@ class Tree:
         Creates an internal node representing a given operator.
         """
         if operator_node.operator == OperatorTypes.SEQ:
-            return SeqNode(pattern_params, parent)
+            return SeqNode(operator_node, pattern_params, parent)
         if operator_node.operator == OperatorTypes.AND:
-            return AndNode(pattern_params, parent)
+            return AndNode(operator_node, pattern_params, parent)
         if operator_node.operator == OperatorTypes.NSEQ:
-            return NegativeSeqNode(pattern_params, operator_node.is_unbounded, parent)
+            return NegativeSeqNode(operator_node, pattern_params, operator_node.is_unbounded, parent)
         if operator_node.operator == OperatorTypes.NAND:
-            return NegativeAndNode(pattern_params, operator_node.is_unbounded, parent)
+            return NegativeAndNode(operator_node, pattern_params, operator_node.is_unbounded, parent)
         if operator_node.operator == OperatorTypes.KC:
-            return KleeneClosureNode(pattern_params, operator_node.min_size, operator_node.max_size, parent)
+            return KleeneClosureNode(operator_node, pattern_params, operator_node.min_size, operator_node.max_size, parent)
         raise Exception("Unknown or unsupported operator %s" % (operator_node.operator,))
 
     def __handle_primitive_event(self, tree_plan_leaf: TreePlanLeafNode, primitive_event_structure: PatternStructure,
@@ -124,7 +124,7 @@ class Tree:
                 consumption_policy.should_register_event_type_as_single(False, primitive_event_structure.type):
             parent.register_single_event_type(primitive_event_structure.type)
         real_event_index = self.__event_to_index_mapping.get(primitive_event_structure.name)
-        return LeafNode(pattern_params, real_event_index, primitive_event_structure, parent)
+        return LeafNode(tree_plan_leaf, pattern_params, real_event_index, primitive_event_structure, parent)
 
     def __handle_unary_structure(self, unary_tree_plan: TreePlanUnaryNode,
                                  root_operator: PatternStructure, args: List[PatternStructure],
@@ -202,11 +202,6 @@ class Tree:
         else:
             raise Exception("Unknown tree plan node type")
 
-        # copying the conditions of the tree_plan_node to the new node
-        condition_copy = deepcopy(tree_plan.condition)
-        # make sure the statistics collector is not copied
-        condition_copy.set_statistics_collector(tree_plan.condition.get_statistics_collector())
-        node.apply_condition(tree_plan.condition)
         self.__register_new_node(tree_plan, node)
         return node
 

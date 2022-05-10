@@ -8,6 +8,7 @@ from base.PatternMatch import PatternMatch
 from misc.Utils import powerset_generator
 from tree.nodes.Node import Node, PatternParameters
 from tree.nodes.UnaryNode import UnaryNode
+from plan.TreePlan import TreePlanNode
 
 
 class KleeneClosureNode(UnaryNode):
@@ -15,9 +16,9 @@ class KleeneClosureNode(UnaryNode):
     An internal node representing a Kleene closure operator.
     It generates and propagates sets of partial matches provided by its sole child.
     """
-    def __init__(self, pattern_params: PatternParameters, min_size, max_size,
+    def __init__(self, tree_plan_node: TreePlanNode, pattern_params: PatternParameters, min_size, max_size,
                  parents: List[Node] = None, pattern_ids: int or Set[int] = None):
-        super().__init__(pattern_params, parents, pattern_ids)
+        super().__init__(tree_plan_node, pattern_params, parents, pattern_ids)
         self.__min_size = min_size
         self.__max_size = max_size
 

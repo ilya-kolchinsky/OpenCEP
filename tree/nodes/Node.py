@@ -1,4 +1,5 @@
 from abc import ABC
+from copy import deepcopy
 from datetime import timedelta, datetime
 from queue import Queue
 from typing import List, Set, Optional
@@ -6,9 +7,10 @@ from dataclasses import dataclass
 
 from base.Event import Event
 from condition.Condition import RelopTypes, EquationSides
-from condition.CompositeCondition import CompositeCondition, AndCondition
+from condition.CompositeCondition import CompositeCondition, AndCondition  # not sure if needed
 from base.PatternMatch import PatternMatch
 from tree.PatternMatchStorage import TreeStorageParameters
+from plan.TreePlan import TreePlanNode
 
 
 class PrimitiveEventDefinition:
@@ -54,9 +56,9 @@ class Node(ABC):
         """
         return Node.__enable_partial_match_expiration
 
-
     ###################################### Initialization
-    def __init__(self, pattern_params: PatternParameters, parents, pattern_ids: int or Set[int] = None):
+    def __init__(self, tree_plan_node: TreePlanNode, pattern_params: PatternParameters, parents,
+                 pattern_ids: int or Set[int] = None):
         self._parents = []
         self._sliding_window = pattern_params.window
         self._confidence = pattern_params.confidence
@@ -67,6 +69,8 @@ class Node(ABC):
         # corresponding to a full pattern definition.
         self._unreported_matches = Queue()
         self._is_output_node = False
+
+        self.set_condition(tree_plan_node.condition) # added
 
         # set of event types that will only appear in a single full match
         self._single_event_types = set()
@@ -259,6 +263,16 @@ class Node(ABC):
         Returns the condition of this node.
         """
         return self._condition
+
+    def set_condition(self, condition: CompositeCondition):  # new method
+        """
+        Sets condition for this node
+        """
+        # copying the conditions of the tree_plan_node to the new node
+        condition_copy = deepcopy(condition)
+        # make sure the statistics collector is not copied
+        condition_copy.set_statistics_collector(condition.get_statistics_collector())
+        self._condition = condition_copy
 
     def add_pattern_ids(self, ids: Set[int]):
         """

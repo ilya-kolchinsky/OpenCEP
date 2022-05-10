@@ -5,16 +5,19 @@ from base.Event import Event, AggregatedEvent
 from condition.Condition import RelopTypes, EquationSides
 from tree.nodes.Node import Node, PrimitiveEventDefinition, PatternParameters
 from tree.PatternMatchStorage import TreeStorageParameters, UnsortedPatternMatchStorage, SortedPatternMatchStorage
+from plan.TreePlan import TreePlanNode
 
 
 class InternalNode(Node, ABC):
     """
     This class represents a non-leaf node of an evaluation tree.
     """
-    def __init__(self, pattern_params: PatternParameters, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
+    def __init__(self, tree_plan_node: TreePlanNode, pattern_params: PatternParameters, parents: List[Node] = None, pattern_ids: int or Set[int] = None,
                  event_defs: List[PrimitiveEventDefinition] = None):
-        super().__init__(pattern_params, parents, pattern_ids)
+        super().__init__(tree_plan_node, pattern_params, parents, pattern_ids)
         self._event_defs = event_defs
+        self.set_condition(tree_plan_node.condition) #new
+
 
     def get_event_definitions(self):
         return self._event_defs
