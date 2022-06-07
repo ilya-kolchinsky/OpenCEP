@@ -15,7 +15,7 @@ from base.PatternStructure import AndOperator, SeqOperator, PrimitiveEventStruct
 from plan.TreeCostModel import TreeCostModelFactory
 from plan.TreeCostModels import TreeCostModels
 from plan.TreePlan import TreePlan, TreePlanNode, OperatorTypes, TreePlanBinaryNode, TreePlanUnaryNode, \
-    TreePlanNestedNode, TreePlanLeafNode, TreePlanKCNode, TreePlanNegativeBinaryNode
+    TreePlanNestedNode, TreePlanLeafNode, TreePlanKCNode, TreePlanNegativeBinaryNode, TreePlanSEQNode
 
 
 class TreePlanBuilder(ABC):
@@ -325,11 +325,13 @@ class TreePlanBuilder(ABC):
         pattern_structure = pattern.positive_structure
         if isinstance(pattern_structure, AndOperator):
             operator_type = OperatorTypes.AND
+            return TreePlanBinaryNode(operator_type, left_subtree, right_subtree)
         elif isinstance(pattern_structure, SeqOperator):
             operator_type = OperatorTypes.SEQ
+            return TreePlanSEQNode(operator_type, left_subtree, right_subtree) #new
         else:
             raise Exception("Unsupported binary operator")
-        return TreePlanBinaryNode(operator_type, left_subtree, right_subtree)
+        # return TreePlanBinaryNode(operator_type, left_subtree, right_subtree)
 
     def __handle_negative_part(self, pattern: Pattern, statistics: Dict, positive_tree_topology: TreePlanNode) \
             -> TreePlanNode:

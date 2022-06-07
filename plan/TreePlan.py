@@ -52,7 +52,7 @@ class TreePlanNode(ABC):
         This default implementation only compares the types and conditions of the nodes. The structure equivalence
         test must be implemented by the subclasses.
         """
-        return type(self) == type(other) and self.condition == other.condition and self.is_compatible(other)
+        return type(self) == type(other) and self.condition == other.condition
 
     def get_leaves(self):
         """
@@ -65,29 +65,6 @@ class TreePlanNode(ABC):
         Propagates the given condition to successors - to be implemented by subclasses.
         """
         raise NotImplementedError()
-
-    def is_compatible(self, other):
-        """
-        differs between two tree plans by the order of the events
-        """
-        first_leaves = self.get_leaves()
-        second_leaves = other.get_leaves()
-
-        if len(first_leaves) != len(second_leaves):
-            return False
-
-        first_events_defs = [(x.event_name, x.event_index) for x in first_leaves]
-        second_events_defs = [(x.event_name, x.event_index) for x in second_leaves]
-        first_events_defs.sort(key=lambda x: x[1])
-        second_events_defs.sort(key=lambda x: x[1])
-
-        for i in range(len(first_events_defs)):
-            first_event_name = first_events_defs[i][0]  # or maybe type instead
-            second_event_name = second_events_defs[i][0]
-            if first_event_name != second_event_name:
-                return False
-
-        return True
 
 
 class TreePlanLeafNode(TreePlanNode):
@@ -271,6 +248,35 @@ class TreePlanNegativeBinaryNode(TreePlanBinaryNode):
         v1 = self.left_child.is_equivalent(other.left_child)
         v2 = self.right_child.is_equivalent(other.right_child)
         return v1 and v2
+
+
+class TreePlanSEQNode(TreePlanBinaryNode):
+    """
+    Represents a sequence Node of a tree-basea plan
+    """
+
+    def __init__(self, operator: OperatorTypes, left_child: TreePlanNode, right_child: TreePlanNode,
+                 condition: CompositeCondition = AndCondition()):
+        super().__init__(operator, left_child, right_child, condition)
+
+    def is_equivalent(self, other):
+        """
+        differs between two tree plans by the order of the events
+        """
+        if not TreePlanNode.is_equivalent(self, other):
+            return False
+        first_leaves = self.get_leaves()
+        second_leaves = other.get_leaves()
+
+        if len(first_leaves) != len(second_leaves):
+            return False
+
+        first_events_defs = [(x.event_name, x.event_index) for x in first_leaves]
+        second_events_defs = [(x.event_name, x.event_index) for x in second_leaves]
+        first_events_defs.sort(key=lambda x: x[1])
+        second_events_defs.sort(key=lambda x: x[1])
+
+        return all([(ev1[0] == ev2[0]) for ev1, ev2 in zip(first_events_defs, second_events_defs)])
 
 
 class TreePlan:
